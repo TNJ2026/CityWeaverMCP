@@ -1,0 +1,29 @@
+{
+  "origin": {
+    "x": -960,
+    "z": 160
+  },
+  "columns": 3,
+  "rows": 2,
+  "block_width_m": 96,
+  "block_height_m": 96,
+  "road_prefab": "Small Road",
+  "perimeter_road_prefab": "Small Road",
+  "zone_type": "industrial",
+  "arterial_connector": {
+    "road_prefab": "Medium Road",
+    "points": [
+      {
+        "node_id": "b633807521a241638940bcec3a4e5aeb:61291:1",
+        "x": -1138.4,
+        "z": 352.0
+      },
+      {
+        "x": -960.0,
+        "z": 352.0
+      }
+    ]
+  },
+  "resume_speed": "fastest",
+  "check_conflicts": true
+}

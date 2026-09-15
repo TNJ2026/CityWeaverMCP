@@ -1,0 +1,4685 @@
+{
+  "ok": true,
+  "meta": {
+    "session_id": "7349d96b141c4ca9908232836ef08896",
+    "queried_at_utc": "2026-09-13T13:15:12.6399762Z",
+    "game_version": "1.6.0f1 (419.d6c6) [6216.19404]",
+    "protocol_version": 1,
+    "simulation_frame": 68613,
+    "simulation_date": "2026-01-06T07:53:00.3290000Z"
+  },
+  "data": {
+    "snapshot_id": "8e8b47dd5e07491a949b5a2844653254",
+    "membership_captured_at_utc": "2026-09-13T13:15:12.6333161Z",
+    "row_values": "live_at_query_time",
+    "total": 206,
+    "offset": 0,
+    "next_offset": 100,
+    "skipped_deleted": 0,
+    "items": [
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12379:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 142,
+                "y": 47
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 150000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12380:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 142,
+                "y": 47
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 500000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12381:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 142,
+                "y": 47
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 100000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12387:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 18,
+                "y": 9
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 18500,
+              "m_XPReward": 60
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12388:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 143458
+              },
+              "m_LotSize": {
+                "x": 7,
+                "y": 7
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 75000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 40,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 75000,
+              "m_XPReward": 60
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12390:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 13,
+                "y": 13
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 20000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12391:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 13,
+                "y": 13
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 35000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12392:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 13,
+                "y": 13
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 12000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12395:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 56,
+                "y": 33
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 120000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12396:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 56,
+                "y": 33
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 80000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12397:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 19,
+                "y": 13
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 100000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OnGround, OwnerSide, Floating",
+                "value": 39
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 3,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 100,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 100000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12399:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 38,
+                "y": 17
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 35000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12400:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack",
+                "value": 14434
+              },
+              "m_LotSize": {
+                "x": 16,
+                "y": 12
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 50000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "OwnerSide",
+                "value": 4
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 50000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12402:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 8,
+                "y": 8
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 25000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 80,
+              "m_MaxPlacementOffset": 3,
+              "m_UpgradeCost": 25000,
+              "m_XPReward": 60
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12403:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 143458
+              },
+              "m_LotSize": {
+                "x": 8,
+                "y": 8
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 75000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 80,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 75000,
+              "m_XPReward": 60
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12404:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 6,
+                "y": 6
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 10500,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 80,
+              "m_MaxPlacementOffset": 2,
+              "m_UpgradeCost": 10500,
+              "m_XPReward": 60
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12408:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 16,
+                "y": 20
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 320000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12409:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 16,
+                "y": 20
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 320000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12415:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 50,
+                "y": 40
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 500000,
+              "m_XPReward": 400
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12416:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 50,
+                "y": 40
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 250000,
+              "m_XPReward": 400
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12417:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 143458
+              },
+              "m_LotSize": {
+                "x": 25,
+                "y": 33
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 100000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 200,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 100000,
+              "m_XPReward": 400
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12418:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 50,
+                "y": 40
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 200000,
+              "m_XPReward": 400
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12420:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 22,
+                "y": 16
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 300000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12421:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, LeftAccess, RightAccess, BackAccess, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145534
+              },
+              "m_LotSize": {
+                "x": 10,
+                "y": 8
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 245000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 100,
+              "m_MaxPlacementOffset": 4,
+              "m_UpgradeCost": 245000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12424:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 8,
+                "y": 10
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 51000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12425:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 4,
+                "y": 6
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 30000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 40,
+              "m_MaxPlacementOffset": 0,
+              "m_UpgradeCost": 30000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12426:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 8,
+                "y": 10
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 24000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12432:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, BackAccess, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145522
+              },
+              "m_LotSize": {
+                "x": 6,
+                "y": 8
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 24000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 60,
+              "m_MaxPlacementOffset": 2,
+              "m_UpgradeCost": 24000,
+              "m_XPReward": 60
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12433:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 18,
+                "y": 8
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 22500,
+              "m_XPReward": 60
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12434:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, ColorizeLot, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 143586
+              },
+              "m_LotSize": {
+                "x": 6,
+                "y": 4
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 24000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 60,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 24000,
+              "m_XPReward": 60
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12436:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 22,
+                "y": 10
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 75000,
+              "m_XPReward": 60
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12437:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 12,
+                "y": 14
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 25000,
+              "m_XPReward": 30
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12438:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 5,
+                "y": 4
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 24000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 40,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 24000,
+              "m_XPReward": 60
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12440:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 1,
+                "y": 2
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 12000,
+              "m_XPReward": 20
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12441:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 1,
+                "y": 2
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 7600,
+              "m_XPReward": 20
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12443:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 5,
+                "y": 5
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 10000,
+              "m_XPReward": 60
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12445:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 7,
+                "y": 7
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 240000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 40,
+              "m_MaxPlacementOffset": 3,
+              "m_UpgradeCost": 240000,
+              "m_XPReward": 600
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12446:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 14,
+                "y": 18
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 224000,
+              "m_XPReward": 600
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12447:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 14,
+                "y": 18
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 15400,
+              "m_XPReward": 600
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12448:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 14,
+                "y": 18
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 250000,
+              "m_XPReward": 600
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12452:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 27,
+                "y": 38
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 260000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12453:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 27,
+                "y": 38
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 300000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12454:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 27,
+                "y": 38
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 150000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12455:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 9,
+                "y": 9
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 200000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 200,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 200000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12458:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 4,
+                "y": 4
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 15000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide, SubNetSnap",
+                "value": 262149
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 40,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 15000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12459:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 44,
+                "y": 35
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 375000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12460:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 44,
+                "y": 35
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 250000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12462:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 6,
+                "y": 6
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 22000,
+              "m_XPReward": 20
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12463:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 6,
+                "y": 6
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 20000,
+              "m_XPReward": 20
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12466:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 38,
+                "y": 11
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 100000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12467:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 38,
+                "y": 11
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 75000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12472:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 22,
+                "y": 16
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 130000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12473:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 22,
+                "y": 16
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 85000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12474:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, BackAccess, RestrictedPedestrian, RestrictedCar, ColorizeLot, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145650
+              },
+              "m_LotSize": {
+                "x": 26,
+                "y": 20
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 56000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 100,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 56000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12476:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 23,
+                "y": 10
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 200000,
+              "m_XPReward": 600
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12477:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 23,
+                "y": 10
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 225000,
+              "m_XPReward": 600
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12478:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 23,
+                "y": 10
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 225000,
+              "m_XPReward": 600
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12480:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": true,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 6,
+                "y": 9
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 0,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "OnGround, Shoreline, SubNetSnap",
+                "value": 262162
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 0,
+              "m_XPReward": 0
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12482:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 25,
+                "y": 27
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 500000,
+              "m_XPReward": 400
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12483:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 25,
+                "y": 27
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 200000,
+              "m_XPReward": 400
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12484:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 8,
+                "y": 6
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 100000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 100,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 100000,
+              "m_XPReward": 400
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12487:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 17,
+                "y": 15
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 35000,
+              "m_XPReward": 30
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12488:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 12,
+                "y": 8
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 25000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 100,
+              "m_MaxPlacementOffset": 4,
+              "m_UpgradeCost": 25000,
+              "m_XPReward": 30
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12489:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 17,
+                "y": 15
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 56000,
+              "m_XPReward": 30
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12493:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 11,
+                "y": 6
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 25000,
+              "m_XPReward": 30
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12494:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 6,
+                "y": 3
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 15000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 40,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 15000,
+              "m_XPReward": 30
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12496:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 62,
+                "y": 18
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 480000,
+              "m_XPReward": 600
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12497:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, BackAccess, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145522
+              },
+              "m_LotSize": {
+                "x": 15,
+                "y": 7
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 480000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 120,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 480000,
+              "m_XPReward": 600
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12498:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 16,
+                "y": 8
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 480000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 120,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 480000,
+              "m_XPReward": 600
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12508:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 6,
+                "y": 5
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 37500,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 40,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 37500,
+              "m_XPReward": 30
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12509:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 7,
+                "y": 10
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 31500,
+              "m_XPReward": 30
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12513:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 6,
+                "y": 8
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 75000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 60,
+              "m_MaxPlacementOffset": 2,
+              "m_UpgradeCost": 75000,
+              "m_XPReward": 600
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12514:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 18,
+                "y": 20
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 60000,
+              "m_XPReward": 600
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12515:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 18,
+                "y": 20
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 200000,
+              "m_XPReward": 600
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12517:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 12,
+                "y": 7
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 18000,
+              "m_XPReward": 60
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12519:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 6,
+                "y": 4
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 15000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 40,
+              "m_MaxPlacementOffset": 2,
+              "m_UpgradeCost": 15000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12520:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 7,
+                "y": 6
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 22500,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 40,
+              "m_MaxPlacementOffset": 1,
+              "m_UpgradeCost": 22500,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12522:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 28,
+                "y": 28
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 45000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12523:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 28,
+                "y": 28
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 30000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12524:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 17,
+                "y": 11
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 30000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 80,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 30000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12526:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 14,
+                "y": 14
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 96000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 60,
+              "m_MaxPlacementOffset": 10,
+              "m_UpgradeCost": 96000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12527:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 26,
+                "y": 24
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 75000,
+              "m_XPReward": 200
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12529:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 4,
+                "y": 3
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 8100,
+              "m_XPReward": 20
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12530:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 4,
+                "y": 3
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 4080,
+              "m_XPReward": 20
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12533:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 44,
+                "y": 28
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 50000,
+              "m_XPReward": 60
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12534:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 44,
+                "y": 28
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 75000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12536:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 22,
+                "y": 18
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 200000,
+              "m_XPReward": 400
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12537:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 8,
+                "y": 10
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 200000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 100,
+              "m_MaxPlacementOffset": 8,
+              "m_UpgradeCost": 200000,
+              "m_XPReward": 400
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12538:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 16,
+                "y": 7
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 150000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 100,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 150000,
+              "m_XPReward": 400
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12540:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 10,
+                "y": 12
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 4000,
+              "m_XPReward": 30
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12543:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 24,
+                "y": 18
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 40000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12544:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 24,
+                "y": 18
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 60000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12546:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 2,
+                "y": 2
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 12000,
+              "m_XPReward": 20
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12547:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, RestrictedParking, RestrictedTrack",
+                "value": 12386
+              },
+              "m_LotSize": {
+                "x": 2,
+                "y": 3
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 30000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "OwnerSide",
+                "value": 4
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 30000,
+              "m_XPReward": 20
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12551:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 143458
+              },
+              "m_LotSize": {
+                "x": 5,
+                "y": 4
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 15000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide, SubNetSnap",
+                "value": 262149
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 150,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 15000,
+              "m_XPReward": 400
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12552:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 36,
+                "y": 69
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 600000,
+              "m_XPReward": 400
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12553:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "kind": "component",
+            "fields": {
+              "m_Flags": {
+                "name": "NoRoadConnection, RestrictedPedestrian, RestrictedCar, HasInsideRoom, RestrictedParking, RestrictedTrack, CanBeRoadSide",
+                "value": 145506
+              },
+              "m_LotSize": {
+                "x": 16,
+                "y": 6
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "present": false
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "kind": "component",
+            "fields": {
+              "m_ConstructionCost": 45000,
+              "m_DefaultProbability": 0,
+              "m_Flags": {
+                "name": "RoadSide, OwnerSide",
+                "value": 5
+              },
+              "m_PlacementOffset": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "m_RotationSymmetry": {
+                "name": "None",
+                "value": 0
+              },
+              "m_SubReplacementType": {
+                "name": "None",
+                "value": 0
+              },
+              "m_XPReward": 0
+            },
+            "present": true
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 150,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 45000,
+              "m_XPReward": 400
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12556:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 3,
+                "y": 2
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 15000,
+              "m_XPReward": 30
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12558:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 21,
+                "y": 6
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 15000,
+              "m_XPReward": 20
+            },
+            "present": true
+          }
+        }
+      },
+      {
+        "entity_id": "7349d96b141c4ca9908232836ef08896:12560:1",
+        "name": "",
+        "components": {
+          "Game.Prefabs.BuildingData": {
+            "present": false
+          },
+          "Game.Prefabs.BuildingExtensionData": {
+            "kind": "component",
+            "fields": {
+              "m_External": false,
+              "m_HasUndergroundElements": false,
+              "m_LotSize": {
+                "x": 44,
+                "y": 20
+              },
+              "m_Position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            "present": true
+          },
+          "Game.Prefabs.PlaceableObjectData": {
+            "present": false
+          },
+          "Game.Prefabs.ServiceUpgradeData": {
+            "kind": "component",
+            "fields": {
+              "m_ForbidMultiple": false,
+              "m_MaxPlacementDistance": 0,
+              "m_MaxPlacementOffset": -1,
+              "m_UpgradeCost": 75000,
+              "m_XPReward": 100
+            },
+            "present": true
+          }
+        }
+      }
+    ]
+  }
+}

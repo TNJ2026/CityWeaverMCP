@@ -1,0 +1,10 @@
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+const c = new Client({ name: 'city-services-live', version: '1' });
+await c.connect(new StdioClientTransport({ command: process.execPath, args: ['server.mjs'] }));
+const call = async (name, args = {}) => (await c.callTool({ name, arguments: args })).structuredContent;
+const prefabs = await call('list_city_service_prefabs', { unlocked_only: true, offset: 0, limit: 100 });
+const facilities = await call('list_city_service_facilities', { kind: 'all' });
+console.log('PREFABS', JSON.stringify(prefabs));
+console.log('FACILITIES', JSON.stringify(facilities));
+await c.close();
