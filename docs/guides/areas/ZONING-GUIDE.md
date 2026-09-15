@@ -17,3 +17,24 @@
 `Blocked`、`Shared` 和 `Redundant` 格不会被修改。`Occupied` 默认跳过，只有明确设置 `include_occupied: true` 才会改写；这可能使已成长建筑与新区域不匹配。
 
 当前接口操作道路拥有的分区格。专业产业区域、水域专用区域能出现在区域列表中，但其实际建筑生成还取决于资源区、水面、产业区工具以及对应游戏规则。
+
+## 地图主题与分区预设绑定实战铁律
+
+- **严禁使用无前缀泛型名称**：
+  在实际建城中，严禁盲目传入 `"Residential Low"` 或 `"Commercial Low"`。虽然预览和提交能返回 `completed`，但游戏后台找不到泛型匹配模型，会导致划区长期 100% 全空、人口零增长。
+- **主题与精确分区映射表**：
+  - **欧洲主题（`European`）**：
+    - 低密度住宅：`"EU Residential Low"`
+    - 中密度联排住宅：`"EU Residential Medium Row"`
+    - 低密度商业：`"EU Commercial Low"`
+  - **北美主题（`North American`）**：
+    - 低密度住宅：`"NA Residential Low"`
+    - 中密度联排住宅：`"NA Residential Medium Row"`
+    - 低密度商业：`"NA Commercial Low"`
+  - **通用工业与办公**：
+    - 标准低密度制造业工业区：`"Industrial Manufacturing"`（不受主题限制）
+- **操作标准流程**：
+  1. 调用 `get_city_configuration` 查明当前存档的 `theme` 字段。
+  2. 调用 `list_zone_types` 获取对应主题的 `zone_index` 与精确全称。
+  3. 传入 `preview_zoning` 时，必须使用上述带前缀的完整字符串。
+

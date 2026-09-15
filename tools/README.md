@@ -147,6 +147,20 @@ node tools/tests/test-spatial-survey.mjs
 - `scratch/deploy_civic_hub.mjs` 和 `scratch/deploy_deathcare.mjs` 是固定方案、固定坐标的一次性写入脚本，不是正式入口。未经逐行检查当前目标、费用和用户授权不得运行。
 - `ilspy/` 是本地反编译工具及依赖，已被 Git 忽略，不属于城市自动化接口。
 
+## 核心参数限制与几何边界
+
+脚本与自动化工具调用时，必须严格遵守底层引擎与几何库的边界约束：
+
+| 约束项 | 参数/范围 | 限制与行为 |
+| --- | --- | --- |
+| 单段道路长度 | $16\text{m} \sim 256\text{m}$ | $< 16\text{m}$ 报 `SEGMENT_TOO_SHORT`；$> 256\text{m}$ 报 `SEGMENT_TOO_LONG`，长路线需用 `subdivideRoute` 切分 |
+| 管网折线段长度 | $\le 200\text{m}$，2~16 个点 | 单次预览折线点数在 2 到 16 之间，单段管线长度建议不超过 200m |
+| 节点吸附容差 | $\le 8\text{m}$ | 连接既有道路或管网 `node_id` 时，输入坐标必须在该节点 8 米范围内，否则拒绝吸附 |
+| 8 米格网模数 | `x % 8 == 0, z % 8 == 0` | 街区西南角起点（`origin`）及街区长宽（`block_w`, `block_h`）必须严格为 8 的倍数 |
+| 建筑路口退距 | $\ge 32\text{m}$ | 建筑中点距离相邻道路交叉口节点必须 $\ge 32\text{m}$，且路段长度需满足 $\ge \text{建筑面宽} + 16\text{m}$ |
+| 主题分区预设 | `list_zone_types` 精确值 | `--zone` 或 JSON 中的 `zone` 必须为主细分风格名称（如 `EU Residential Low`），严禁未映射的泛型名称 |
+| 模拟速度枚举 | 全小写字符串 | 仅接受 `"paused"`, `"normal"`, `"fast"`, `"fastest"` 四种全小写枚举 |
+
 ## 安全边界
 
 - 只读诊断不授权运行 `deploy-district.mjs` 或任何 `scratch` 写入脚本。

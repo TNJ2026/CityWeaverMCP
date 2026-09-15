@@ -51,11 +51,17 @@ node road-operation.mjs cancel OPERATION_ID
 - 异步操作状态由返回对象的 **`state`** 字段指示（如 `queued` → `generating_preview` → `preview_ready` → `commit_queued` / `applying` → `completed`），切勿读取不存在的 `status` 字段。
 - 轮询间隔可用约 0.5–1 秒，每轮等候保持有界。超出一轮等待时间只说明尚未得到终态，不能据此判断未应用。
 - 提交调用（`apply_building_operation`、`apply_city_service_operation`、`build_road` 等）必须提供合法的 **`request_id`**（8..100 字符，符合正则 `^[A-Za-z0-9_-]+$`）以及 `operation_id`，否则会引发 `INVALID_ARGUMENT` 报错。
-- 模拟速度控制使用 `set_simulation_speed`，其参数必须为字符串枚举：`{ speed: "paused" | "normal" | "fast" | "fastest" }`，不得使用数字或 `simulation_speed` 字段。
+- 模拟速度控制使用 `set_simulation_speed`，其参数必须为全小写字符串枚举：`{ speed: "paused" | "normal" | "fast" | "fastest" }`，不得使用大写、数字或 `simulation_speed` 字段。
 - 原生工具切换防护：连续执行不同类型的写操作或预览时，若游戏保持完全暂停，游戏可能停留在上一工具状态报错 `TOOL_BUSY`。在切换工具间歇，可调用 `{ speed: "normal" }` 让游戏推进 200~500ms 后再次暂停，以促使原生系统安全释放并重置为 `DefaultToolSystem`。
 - 提交前错误、锁定、资金不足、原值冲突需要处理原因。费用上限不可为绕过校验而随意放大。
 - 成功后读回永久对象、位置、政策或金额；观察到的数量与 API 实体计数口径一致。网络拆分/合并、地形变化、灾害影响应按实际返回结果解释。
 - 对用户报告已完成、部分完成、失败或结果未知，并提供足以继续查询的 operation ID；不把计划或预览写成已完成。
+
+### MCP 关键参数规范与实战避坑
+
+1. **`preview_road` 顶层端点参数**：单段道路输入必须为顶层的 `start: { x, z, node_id? }` 和 `end: { x, z, node_id? }`，多段道路输入必须为 `points: [...]` 数组。切勿嵌套包装成额外的内部对象。连接已有节点时提供 8 米范围内的 `node_id`。
+2. **`preview_zoning` 参数名与主题精确绑定**：参数名必须是 `zone`（精确字符串）与 `edge_ids`（数组）。`zone` 必须通过 `list_zone_types` 获取（如欧洲风格使用 `"EU Residential Low"`），严禁使用泛型名称（如 `"Residential Low"`）。
+3. **`max_cost` 事务预算保护**：所有提交调用（`build_road`、`apply_city_service_operation` 等）必须提供 `max_cost`，其值应设定在预览返回的 `cost` 的 1.1~1.5 倍之间，既能防止意料之外的高额扣费，又能避免因细微地形成本波动导致提交失败。
 
 ## 错误处置
 
@@ -71,6 +77,8 @@ node road-operation.mjs cancel OPERATION_ID
 | `*_CONFLICT` | 重新读取目标原值和其他更改，再决定是否重新预览 |
 | `RESPONSE_TOO_LARGE` | 缩小实体 limit、组件数或 buffer_limit，按返回游标分页 |
 | `outcome_unknown` | 停止提交，核验原事务及实际状态；无法判定则明确报告未知 |
+| `GAME_REJECTED_BUILDING` | 原生引擎拒绝建筑落位。检查候选是否紧贴交叉路口（$< 32\text{m}$）或路段过短。在脚本中执行候选列表的遍历回退（fallback）循环，尝试下一候选点 |
+| `TOOL_BUSY` | 原生工具系统尚未重置。短暂恢复模拟速度（`normal` 推进 200~500ms）后重新暂停即可释放 |
 
 ## 验证与维护
 

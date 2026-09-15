@@ -57,13 +57,14 @@ description: 通过 CityWeaverMCP 查询和操作《都市：天际线 II》的�
 
 ## 核心避坑与实战经验（Field-Tested Rules）
 
-- **地图主题与分区绑定（Theme-specific Zoning 铁律）**：城市存档具有明确的主题属性（如 `European` 或 `North American`）。在施划区域（Zoning）时，严禁盲目使用泛型名字（如 `"Residential Low"` 或 `"Commercial Low"`），否则游戏会因找不到对应泛型建筑预设而拒绝生成任何建筑，导致划区全空、人口零增长。必须通过 `get_city_configuration` 检查主题，并从 `list_zone_types` 选用精准的主题分区名称（如欧洲主题必须使用 `"EU Residential Low"`、`"EU Commercial Low"`、`"EU Residential Medium Row"`；北美主题使用 `"NA ..."`）。
-- **环境气象与工业风向选址（Wind & Pollution Alignment）**：规划重污染或中低密度工业区（`Industrial Manufacturing`）前，必须先调用 `get_climate_state` 读取当前恒定风向矢量（如 `wind: { x: +0.275, z: +0.275 }` 为东北向）。工业区必须选址于居住区和商业区的正下风侧边缘，确保废气烟尘直接排向地图无人外围，绝不倒灌生活区；同时与自来水水源（水塔）保持至少 500m 以上距离与独立流域隔离。
-- **市政服务选址与路口退距（Roadside Setback & Clearances）**：`plan_city_service_site` 生成的候选点偶尔会落在道路交叉节点极近处（$< 32\text{m}$），甚至直接落于路口中心线，直接放置会触发 `GAME_REJECTED_BUILDING`。宽体建筑（如 111.6m 宽的公墓 `Cemetery02`）必须选择远离十字交叉口的长平直路段，且放置时应对返回的候选列表进行顺序遍历回退（fallback）测试。
-- **生命线公用工程独立性原则**：
-  - **变电站布局**：变电站（`TransformerStation01`）具备较强噪音与高压电网辐射，必须移至远离居住区的北部或专属地块，通过独立专用支路接驳主路网，再经由地下高压电缆（`High-voltage Ground Cable`）直连高压输电线。
-  - **水污彻底隔离**：排水口（`SewageOutlet01`）必须单独敷设纯污水管（`Small Sewage Pipe`）接入路网排污管系，严禁混入任何综合供水管（`Combined Small Pipe`），确保居民饮用水水质 100% 洁净无污染。
-- **重载物流与生活交通分流**：工业园区应紧贴高速公路出入口端点设置，通过专用 4 车道集疏运干道（`Medium Road`）直接引出，实现“高速 $\leftrightarrow$ 工厂”点对点集疏运，杜绝重型货车穿行居住区街道。
+- **地图主题与分区绑定**：划区严禁使用泛型名称，必须根据城市主题（EU/NA）从 `list_zone_types` 获取精准预设名，详见 [分区指南](../../docs/guides/areas/ZONING-GUIDE.md#地图主题与分区预设绑定实战铁律theme-specific-zoning)。
+- **工业区风向与环境选址**：工业区必须建在生活区绝对下风向且距水塔净水设施 $\ge 500\text{m}$，详见 [环境与景观指南](../../docs/guides/areas/ENVIRONMENT-LANDSCAPE-GUIDE.md#工业区环境风向与污染排布准则)。
+- **市政服务路口退距与回退**：市政设施（尤其宽体建筑）须距十字路口 $\ge 32\text{m}$ 并在预览被拒时执行候选遍历回退，详见 [城市公共服务设施指南](../../docs/guides/city/CITY-SERVICE-GUIDE.md#道路选址退距与候选回退setback--fallback机制)。
+- **排污口管道单向物理隔离**：排污口必须仅敷设专用纯污水管（`Small Sewage Pipe`）接入路网，严禁混接供排水合流管以防全城饮用水重度中毒，详见 [公共设施与管网指南](../../docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md#生命线工程隔离与接驳铁律)。
+- **变电站安全岛隔离**：变电站严禁紧贴住宅，须在独立地块以专用支路连入路网并通过地下高压电缆直连高压走廊，详见 [公共设施与管网指南](../../docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md#生命线工程隔离与接驳铁律)。
+- **工业重载直连物流通道**：工业区应由高速公路出入口通过专用 4 车道干道直连以实现重卡零穿城，详见 [道路指南](../../docs/guides/roads/ROAD-GUIDE.md#重载工业集疏运专用通道与防平行干涉原则)。
+- **从零建城自然晋级四步法**：建城应遵循“骨架与生命线 $\to$ 主题分区激活 $\to$ 梯次市政服务 $\to$ 环保工业园”自然演进，详见 [从零建城工作流](../../docs/workflows/new-city.md#实战落地从零建城自然晋级四步法field-tested-4-step-progression)。
+- **MCP 关键参数与错误回退**：道路起终点顶层传参、模拟速度全小写枚举及 `GAME_REJECTED_BUILDING` 错误处置规范，详见 [操作与事务工作流](../../docs/workflows/operations.md#mcp-关键参数规范与实战避坑)。
 
 ## 结果边界
 
