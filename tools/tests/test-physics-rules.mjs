@@ -122,6 +122,9 @@ const badConfig = {
 const valBad = validateDistrictConfig(badConfig);
 assert(valBad.valid === false && valBad.errors[0].includes('multiple of 8m'), 'Non-8m block width correctly caught');
 
+const oversizedGrid = validateDistrictConfig({ ...goodConfig, columns: 6 });
+assert(oversizedGrid.valid === false && oversizedGrid.errors[0].includes('[1..5]'), 'Grid size above MCP limit is rejected before deployment');
+
 // 7. Archetypes Presets Loading
 console.log('\n[Test Suite 7: Archetypes Preset File Integrity]');
 const presetPath = path.resolve('tools/presets/district-archetypes.json');

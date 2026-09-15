@@ -40,7 +40,7 @@ namespace CitiesSkylines2Mod
 
         public GameQueryService()
         {
-            m_Preload = (purpose, mode) => { ResetRoadOperations(); ResetTerrainOperations(); ResetBuildingOperations(); ResetZoningOperations(); ResetDistrictOperations(); ResetTransportOperations(); ResetEconomyOperations(); ResetMapTileOperations(); ResetDisasterOperations(); m_Loaded = false; m_Session = Guid.NewGuid().ToString("N"); m_Snapshots.Clear(); };
+            m_Preload = (purpose, mode) => { ResetRoadOperations(); ResetTerrainOperations(); ResetBuildingOperations(); ResetBuildingAreaOperations(); ResetZoningOperations(); ResetDistrictOperations(); ResetTransportOperations(); ResetEconomyOperations(); ResetMapTileOperations(); ResetDisasterOperations(); m_Loaded = false; m_Session = Guid.NewGuid().ToString("N"); m_Snapshots.Clear(); };
             m_LoadComplete = (purpose, mode) => { m_Loaded = mode == GameMode.Game; };
             GameManager.instance.onGamePreload += m_Preload;
             GameManager.instance.onGameLoadingComplete += m_LoadComplete;
@@ -154,6 +154,11 @@ namespace CitiesSkylines2Mod
                 case "get_building_operation": return Wrap(BuildingOperationById(args).Json());
                 case "apply_building_operation": return Wrap(ApplyBuildingOperation(args, world));
                 case "cancel_building_preview": return Wrap(CancelBuildingOperation(args));
+                case "list_building_areas": return Wrap(ListBuildingAreas(args, world));
+                case "preview_building_area": return Wrap(PreviewBuildingArea(args, world).Json());
+                case "get_building_area_operation": return Wrap(GetBuildingAreaOperation(args));
+                case "apply_building_area_operation": return Wrap(ApplyBuildingAreaOperation(args, world));
+                case "cancel_building_area_preview": return Wrap(CancelBuildingAreaPreview(args));
                 case "list_zone_types": return Wrap(ListZoneTypes(args, world));
                 case "analyze_zoning_cells": return Wrap(AnalyzeZoningCells(args, world));
                 case "preview_zoning": return Wrap(PreviewZoning(args, world).Json());
@@ -406,7 +411,7 @@ namespace CitiesSkylines2Mod
         {
             var ready = IsReady();
             var result = new JObject { ["connected"] = true, ["city_loaded"] = ready, ["loading"] = GameManager.instance.isGameLoading,
-                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.19.0", ["read_only"] = false };
+                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.20.0", ["read_only"] = false };
             result["paused"] = JValue.CreateNull();
             if (ready)
             {
@@ -439,6 +444,7 @@ namespace CitiesSkylines2Mod
             ["zoning_operations"] = new JObject { ["modes"] = new JArray("assign", "clear", "replace"), ["road_sides"] = new JArray("left", "right", "both"), ["depth_cells"] = "1..6", ["max_cells_per_operation"] = 4096, ["requires_paused_city_to_apply"] = true, ["workflow"] = "list_zone_types -> analyze_zoning_cells -> preview_zoning -> apply_zoning", ["validation"] = "Atomic per-cell snapshots with conflict rejection and rollback; native Updated markers trigger lot and building refresh." },
             ["terrain_modification"] = new JObject { ["modes"] = new JArray("raise", "lower", "level", "smooth", "slope", "raise_land", "flatten_map"), ["brush_size_m"] = "8..1000", ["strength"] = "0.01..1", ["passes"] = "1..32", ["requires_paused_city"] = true, ["cost"] = 0, ["workflow"] = "sample_terrain -> preview_terrain -> get_terrain_operation(preview_ready) -> apply_terrain -> get_terrain_operation(completed)", ["preview_semantics"] = "The game 1.6.0 PreviewBrush method is empty. Preview validates parameters and captures live baseline samples; terrain changes only after apply_terrain.", ["limitations"] = "Height readback samples verify path points. Brush falloff affects the surrounding footprint. raise_land uses the live native water-depth mask and shifts dry heightmap cells once. flatten_map overwrites the full native heightmap and can clear dynamic water and natural water sources. Terrain edits do not have a native undo journal." },
             ["building_operations"] = new JObject { ["modes"] = new JArray("place", "move", "replace", "upgrade", "rebuild", "demolish", "remove_upgrade"), ["requires_paused_city"] = true, ["preview_ttl_seconds"] = 300, ["max_operations_per_session"] = 128, ["workflow"] = "list_building_prefabs -> plan_building_site (optional) -> preview building operation -> get_building_operation(preview_ready) -> apply_building_operation -> get_building_operation(completed)", ["validation"] = "Native temporary entities, placement errors, warnings and cost are checked before commit." },
+            ["building_area_operations"] = new JObject { ["modes"] = new JArray("create", "boundary", "delete"), ["area_kinds"] = new JArray("storage", "extractor", "other"), ["max_points"] = 64, ["requires_paused_city"] = true, ["preview_ttl_seconds"] = 300, ["max_operations_per_session"] = 128, ["workflow"] = "list_building_areas -> preview_building_area -> get_building_area_operation(preview_ready) -> apply_building_area_operation -> get_building_area_operation(completed)", ["validation"] = "Owner building snapshot, prefab-declared SubArea compatibility, simple polygon validation, native temporary-area errors, cost ceiling and permanent owner/prefab/boundary verification." },
             ["entity_categories"] = new JArray(Domains.Keys),
             ["road_building"] = new JObject { ["modes"] = new JArray("straight", "quadratic", "cubic", "elevated", "tunnel", "polyline"), ["min_length_m"] = 16, ["max_length_m"] = 256,
                 ["requires_paused_city"] = true, ["preview_ttl_seconds"] = 300, ["max_operations_per_session"] = 128,
@@ -466,6 +472,11 @@ namespace CitiesSkylines2Mod
                 tools.Add("analyze_transport_catchment");
                 tools.Add("analyze_education_demand");
                 tools.Add("analyze_attraction_impact");
+                tools.Add("list_building_areas");
+                tools.Add("preview_building_area");
+                tools.Add("get_building_area_operation");
+                tools.Add("apply_building_area_operation");
+                tools.Add("cancel_building_area_preview");
             }
             return result;
         }
@@ -638,6 +649,7 @@ namespace CitiesSkylines2Mod
             ResetRoadOperations();
             ResetTerrainOperations();
             ResetBuildingOperations();
+            ResetBuildingAreaOperations();
             ResetZoningOperations();
             ResetDistrictOperations();
             ResetTransportOperations();

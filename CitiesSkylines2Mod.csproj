@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<Version>1.19.0</Version>
-		<AssemblyVersion>1.19.0.0</AssemblyVersion>
-		<FileVersion>1.19.0.0</FileVersion>
+		<Version>1.20.0</Version>
+		<AssemblyVersion>1.20.0.0</AssemblyVersion>
+		<FileVersion>1.20.0.0</FileVersion>
 		<Configurations>Debug;Release</Configurations>
 	
 		<!--The file where mod information which is required for publishing mod on PDX mods are stored-->

@@ -31,6 +31,7 @@ namespace CitiesSkylines2Mod
             updateSystem.UpdateBefore<McpRoadToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpTerrainToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpBuildingToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
+            updateSystem.UpdateBefore<McpBuildingAreaToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpDistrictToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpTransportLineToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             m_Queries = new GameQueryService();

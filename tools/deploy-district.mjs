@@ -490,8 +490,8 @@ Options:
   --archetype <name>    Use pre-validated archetype: residential_suburban_3x2, commercial_hub_3x3, industrial_manufacturing_3x2, etc.
   --config <path>       Path to JSON configuration file
   --origin <X,Z>        Grid origin (e.g. -1600,160)
-  --cols <N>            Columns (1..10, default 3)
-  --rows <N>            Rows (1..10, default 3)
+  --cols <N>            Columns (1..5, default 3)
+  --rows <N>            Rows (1..5, default 3)
   --block-w <N>         Block width in meters (default 96)
   --block-h <N>         Block height in meters (default 96)
   --road <name>         Road prefab (default 'Small Road')

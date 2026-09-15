@@ -96,15 +96,19 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   t.after(() => client.close());
   await client.connect(transport);
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 329);
+  assert.equal(tools.length, 334);
   assert(tools.some(tool => tool.name === 'deploy_grid_district'), 'high-level grid deployment tool is registered');
   for (const name of ['plan_building_workflow', 'execute_building_plan', 'cancel_building_plan', 'deploy_building_plans']) {
+    assert(tools.some(tool => tool.name === name), `${name} is registered`);
+  }
+  for (const name of ['list_building_areas', 'preview_building_area', 'get_building_area_operation', 'apply_building_area_operation', 'cancel_building_area_preview']) {
     assert(tools.some(tool => tool.name === name), `${name} is registered`);
   }
   assert.equal(tools.find(tool => tool.name === 'plan_building_workflow').annotations.destructiveHint, false);
   const mutations = new Set(['set_simulation_speed', 'preview_disaster', 'apply_disaster_operation', 'cancel_disaster_preview', 'update_disaster', 'stop_disaster', 'clear_disaster_effects', 'set_city_name', 'set_city_money', 'set_city_configuration', 'set_city_policy', 'set_transport_line_schedule', 'set_transport_line_ticket_price', 'set_transport_line_vehicle_count', 'set_transport_line_number', 'set_transport_line_unbunching', 'set_transport_stop_name', 'set_transport_facility_name', 'set_transport_facility_active', 'set_transport_facility_policy', 'preview_transport_facility_upgrade', 'preview_transport_facility_upgrade_removal', 'request_transport_line_vehicle', 'cancel_transport_line_vehicle_requests', 'release_transport_line_vehicle', 'preview_map_tile_purchase', 'apply_map_tile_purchase', 'cancel_map_tile_purchase', 'unlock_all_map_tiles', 'place_landscape_objects', 'plant_landscape_pattern', 'move_landscape_object', 'set_tree_state', 'remove_landscape_objects', 'clear_landscape_area', 'create_water_source', 'update_water_source', 'delete_water_source', 'set_pollution_area', 'set_weather_override', 'set_wind', 'set_unlimited_demand', 'set_citizen_attributes', 'set_household_money', 'set_company_profitability', 'set_resource_amount', 'create_citizen', 'set_citizen_name', 'set_citizen_profile', 'set_citizen_household', 'set_citizen_workplace', 'set_citizen_school', 'set_citizen_location', 'set_citizen_health_problem', 'delete_citizen', 'create_household', 'set_household_name', 'set_household_profile', 'set_household_housing', 'set_household_need', 'delete_household', 'create_company', 'set_company_name', 'set_company_financials', 'set_company_workforce', 'set_company_property', 'set_company_trade_cost', 'delete_company', 'request_vehicle_reroute', 'set_vehicle_target', 'set_vehicle_behavior', 'remove_vehicle', 'request_traveler_reroute', 'set_traveler_target', 'set_traveler_speed', 'request_citizen_trip', 'cancel_citizen_trips', 'manage_traffic', 'set_experience_points', 'set_development_points', 'purchase_development_node', 'unlock_prefab', 'unlock_all_progression', 'preview_road', 'preview_road_route', 'preview_road_ring', 'preview_road_grid', 'preview_road_parallel', 'preview_road_interchange', 'preview_road_autoroute', 'preview_road_reverse', 'preview_road_batch_reverse', 'preview_road_upgrade', 'preview_road_demolition', 'preview_road_batch_upgrade', 'preview_road_batch_demolition', 'preview_road_elevation', 'preview_road_zoning', 'preview_road_features', 'preview_road_parking', 'preview_intersection_control', 'preview_intersection_roundabout', 'preview_intersection_rules', 'preview_road_policies', 'preview_road_undo', 'build_road', 'cancel_road_preview', 'preview_terrain', 'apply_terrain', 'cancel_terrain_preview', 'preview_building_placement', 'preview_special_building_placement', 'preview_building_batch_placement', 'preview_building_move', 'preview_building_replacement', 'preview_building_upgrade', 'preview_building_rebuild', 'preview_building_demolition', 'preview_building_upgrade_removal', 'apply_building_operation', 'cancel_building_preview', 'set_building_name', 'set_building_active', 'set_building_policy', 'preview_zoning', 'apply_zoning', 'cancel_zoning_preview', 'preview_district_create', 'preview_district_boundary', 'preview_district_delete', 'apply_district_operation', 'cancel_district_preview', 'set_district_name', 'set_district_policy', 'set_service_districts', 'preview_transport_line', 'preview_transport_line_stops', 'preview_transport_line_delete', 'apply_transport_line_operation', 'cancel_transport_line_preview', 'set_transport_line_name', 'set_transport_line_active', 'set_transport_line_color', 'set_transport_line_policy', 'preview_transport_facility_placement', 'preview_transport_facility_move', 'preview_transport_facility_delete', 'apply_transport_facility_operation', 'cancel_transport_facility_preview', 'preview_transport_track', 'preview_transport_track_delete', 'apply_transport_track_operation', 'cancel_transport_track_preview', 'preview_utility_facility_placement', 'preview_utility_facility_move', 'preview_utility_facility_delete', 'apply_utility_facility_operation', 'cancel_utility_facility_preview', 'preview_utility_network', 'preview_utility_network_upgrade', 'preview_utility_network_delete', 'apply_utility_operation', 'cancel_utility_preview', 'preview_city_service_placement', 'preview_city_service_move', 'preview_city_service_upgrade', 'preview_city_service_upgrade_removal', 'preview_city_service_delete', 'apply_city_service_operation', 'cancel_city_service_preview', 'preview_tax_change', 'preview_service_budget', 'preview_service_fee', 'preview_loan_change', 'apply_economy_operation', 'cancel_economy_preview']);
   mutations.add('deploy_grid_district');
   for (const name of ['plan_building_workflow', 'execute_building_plan', 'cancel_building_plan', 'deploy_building_plans']) mutations.add(name);
+  for (const name of ['preview_building_area', 'apply_building_area_operation', 'cancel_building_area_preview']) mutations.add(name);
   assert(tools.every(tool => tool.annotations.readOnlyHint === !mutations.has(tool.name)));
   assert.equal(tools.find(tool => tool.name === 'build_road').annotations.destructiveHint, true);
   assert.equal(tools.find(tool => tool.name === 'get_road_operation').annotations.readOnlyHint, true);
@@ -117,6 +121,26 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
     { name: 'deploy_building_plans', arguments: { request_id: 'workflow-invalid-004', buildings: [] } }
   ]) assert.equal((await client.callTool(request)).isError, true);
   assert.equal(calls, beforeBadWorkflow, 'Invalid high-level building workflow arguments must not reach the game.');
+  const buildingId = 'a'.repeat(32) + ':10:1';
+  const areaId = 'b'.repeat(32) + ':11:1';
+  const areaBoundary = [{ x: 10, z: 10 }, { x: 50, z: 10 }, { x: 50, z: 50 }, { x: 10, z: 50 }];
+  const areaCreate = { request_id: 'area-create-001', mode: 'create', building_id: buildingId, area_prefab: 'Fixture Storage Area', boundary: areaBoundary };
+  assert.deepEqual((await client.callTool({ name: 'preview_building_area', arguments: areaCreate })).structuredContent.data.args, areaCreate);
+  const areaBoundaryChange = { request_id: 'area-boundary-001', mode: 'boundary', area_id: areaId, boundary: areaBoundary };
+  assert.deepEqual((await client.callTool({ name: 'preview_building_area', arguments: areaBoundaryChange })).structuredContent.data.args, areaBoundaryChange);
+  const areaDelete = { request_id: 'area-delete-001', mode: 'delete', area_id: areaId };
+  assert.deepEqual((await client.callTool({ name: 'preview_building_area', arguments: areaDelete })).structuredContent.data.args, areaDelete);
+  const areaApply = { operation_id: 'c'.repeat(32), request_id: 'area-apply-001', max_cost: 10000 };
+  assert.deepEqual((await client.callTool({ name: 'apply_building_area_operation', arguments: areaApply })).structuredContent.data.args, areaApply);
+  const beforeBadArea = calls;
+  for (const request of [
+    { name: 'preview_building_area', arguments: { request_id: 'area-invalid-001', mode: 'create', building_id: buildingId, area_prefab: 'Fixture', boundary: areaBoundary.slice(0, 2) } },
+    { name: 'preview_building_area', arguments: { request_id: 'area-invalid-002', mode: 'create', building_id: buildingId, boundary: areaBoundary } },
+    { name: 'preview_building_area', arguments: { request_id: 'area-invalid-003', mode: 'boundary', area_id: areaId } },
+    { name: 'preview_building_area', arguments: { request_id: 'area-invalid-004', mode: 'delete', area_id: areaId, boundary: areaBoundary } },
+    { name: 'apply_building_area_operation', arguments: { ...areaApply, max_cost: -1 } }
+  ]) assert.equal((await client.callTool(request)).isError, true);
+  assert.equal(calls, beforeBadArea, 'Invalid building-area arguments must not reach the game.');
   const disaster = { request_id: 'disaster-test-001', prefab: 'Fixture Tornado', x: 100, z: 200, phenomenon_radius: 150, hotspot_radius: 50, initial_intensity: 0.5, warning_seconds: 10, duration_seconds: 60 };
   assert.deepEqual((await client.callTool({ name: 'preview_disaster', arguments: disaster })).structuredContent.data.args, disaster);
   const beforeBadDisaster = calls;
@@ -126,9 +150,10 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   assert.equal(result.isError, false);
   assert.equal(result.structuredContent.data.args.limit, 10);
   assert.equal(result.structuredContent.data.args.offset, 0);
+  const beforeInvalidQuery = calls;
   const invalid = await client.callTool({ name: 'query_buildings', arguments: { limit: 101 } });
   assert.equal(invalid.isError, true);
-  assert.equal(calls, 2, 'Invalid arguments must not reach the game.');
+  assert.equal(calls, beforeInvalidQuery, 'Invalid arguments must not reach the game.');
   const discovery = await client.callTool({ name: 'list_component_types', arguments: { search: 'Citizen' } });
   assert.equal(discovery.structuredContent.data.args.search, 'Citizen');
   const entityQuery = await client.callTool({ name: 'query_entities', arguments: { category: 'citizens', include_components: ['Game.Citizens.Citizen'] } });

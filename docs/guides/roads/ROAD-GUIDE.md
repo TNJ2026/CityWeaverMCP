@@ -36,6 +36,12 @@
 
 既有道路的纵向移动是单独的原子 ECS 事务，因为游戏 1.6.0 的网络替换预览会把移动后的课程端点重新吸附到原节点高度。该事务仍通过 `Updated` 标记交给游戏网络系统重建派生几何与车道，并在返回 `completed` 前核对全部节点和曲线端点。
 
+## 道路治理注意
+
+- 使用 `preview_road_ring` 建设多节点圆环后，应读取各环上节点的实际控制状态。若游戏自动加上信号灯并造成环流互锁，可对对应节点使用 `preview_intersection_control` 设置 `uncontrolled`；原生单节点环岛则优先使用 `preview_intersection_roundabout`。
+- 环上接入口的斑马线可能阻断持续车流。确认行人流量确实造成问题后，可用 `preview_intersection_rules` 对具体入口关闭 `crosswalk_enabled`，同时规划替代步行过街路径，而不是全城统一禁用。
+- 主干道和圆环需要稳定通行能力时，检查实际可用停车车道。可用 `preview_road_parking` 切换无停车变体，或在道路支持时用 `preview_road_features` 添加草带、树带；提交后用 `inspect_road_lanes` 验证 `usable_parking_lane_count`。
+
 ## 重试与失败
 
 - 相同预览请求 ID 和相同参数返回原操作；不同参数产生冲突。

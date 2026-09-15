@@ -315,8 +315,8 @@ export function validateDistrictConfig(config) {
 
   const cols = config.columns ?? 3;
   const rows = config.rows ?? 3;
-  if (cols < 1 || cols > 10) errors.push(`Columns (${cols}) out of recommended bounds [1..10]`);
-  if (rows < 1 || rows > 10) errors.push(`Rows (${rows}) out of recommended bounds [1..10]`);
+  if (cols < 1 || cols > 5) errors.push(`Columns (${cols}) out of supported bounds [1..5]`);
+  if (rows < 1 || rows > 5) errors.push(`Rows (${rows}) out of supported bounds [1..5]`);
 
   const blockW = config.block_width_m ?? OPTIMAL_BLOCK_WIDTH_M;
   const blockH = config.block_height_m ?? OPTIMAL_BLOCK_WIDTH_M;

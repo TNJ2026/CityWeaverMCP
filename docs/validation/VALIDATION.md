@@ -45,13 +45,13 @@
 
 - 新增 12 个地图格工具，总数 232；全平台构建、MCP 测试和 529 格真实地图读取通过。
 - 验证地图边界、资源、可建设面积、邻接、坐标定位、气候、海平面及全解锁幂等路径；当前存档无未购格，首次购买仍缺实例。
-- 详见 `MAP-AREA-GUIDE.md`、`mcp/VALIDATION.md` 和 `artifacts/map-area-live-1.13.0.log`。
+- 详见 `docs/guides/areas/MAP-AREA-GUIDE.md`、本验证记录和 `artifacts/map-area-live-1.13.0.log`。
 
 ## 1.12.0 交通与出行控制（2026-09-14）
 
 - 新增 20 个工具，总数 220；全平台官方后处理和 8 项 MCP 自动测试通过，部署桥接为 1.12.0。
 - “沃本”实机完成车辆/Traveler/路径/交通/停车读取、重寻路、目标、汽车速度与公交车道标志往返、瞬时停车、原生市民行程队列、车辆删除和批量清理验证。
-- 当前存档缺少自行车、列车、船舶、飞机、步行、等待和卡住的非空样本；完整边界见 `TRAFFIC-MOBILITY-GUIDE.md` 与 `mcp/VALIDATION.md`。
+- 当前存档缺少自行车、列车、船舶、飞机、步行、等待和卡住的非空样本；完整边界见 `docs/guides/roads/TRAFFIC-MOBILITY-GUIDE.md` 与本验证记录。
 
 ## 0.3.0 live test and 0.3.1 correction (2026-09-13)
 
@@ -201,13 +201,13 @@ Reports: artifacts/road-build-validation.log and artifacts/created-road-details.
 
 - 新增 12 个工具，总数 200；全平台官方后处理和 8 项 MCP 测试通过。
 - “沃本”读取到 8 名市民、3 个家庭、45 家企业、77 个资源持有者和 41 种资源；健康、家庭 Money、企业利润和库存均完成精确往返恢复。
-- 当前没有工人和学生实例，空筛选已验证，非空关系待后续城市覆盖。详见 `POPULATION-ECONOMY-GUIDE.md` 与 `artifacts/population-economy-live-1.11.0.log`。
+- 当前没有工人和学生实例，空筛选已验证，非空关系待后续城市覆盖。详见 `docs/guides/economy/POPULATION-ECONOMY-GUIDE.md` 与 `artifacts/population-economy-live-1.11.0.log`。
 
 ## 1.10.0 城市进度、里程碑与解锁（2026-09-14）
 
 - 新增 10 个工具，总数 188；Release 官方后处理与 8 项 MCP 测试通过，0 警告、0 错误。
 - 真实城市“沃本”成功读取 20 个里程碑、71 个发展节点、2111 个可锁定预设和 529 个地图格；满级边界返回稳定的完成状态。
-- XP 与发展点完成可恢复写入测试；节点购买和单项解锁在该全解锁存档验证幂等行为；原生全量解锁调度已运行。详见 `PROGRESSION-GUIDE.md` 与 `artifacts/progression-live-1.10.0.log`。
+- XP 与发展点完成可恢复写入测试；节点购买和单项解锁在该全解锁存档验证幂等行为；原生全量解锁调度已运行。详见 `docs/guides/city/PROGRESSION-GUIDE.md` 与 `artifacts/progression-live-1.10.0.log`。
 
 
 

@@ -17,7 +17,7 @@ CLI 的业务结果在 `ok`、`meta`、`data`；检查错误包和退出码，�
 
 未安装 Node 依赖时在 `mcp/` 执行 `npm ci`。不为普通使用自动构建、部署或重启游戏。游戏桥接凭据保存在用户 LocalLow 的 `ModsData/CitiesSkylines2Mod/bridge.json`；客户端自动读取，不能将文件中的令牌输出、提交或复制进技能。测试端点可通过 `CSII_BRIDGE_FILE` 指定。
 
-需要完整工具 schema 时，可用已安装 MCP SDK 的 Client 执行 `listTools()`；源定义在 `mcp/server.mjs`，游戏路由在 `GameQueryService.cs`。工具与游戏能力不一致时先处理版本差异，不把旧工具参数用于新操作。
+需要完整工具 schema 时，可用已安装 MCP SDK 的 Client 执行 `listTools()`；源定义在 `mcp/server.mjs`，游戏路由在 `src/Core/GameQueryService.cs`。工具与游戏能力不一致时先处理版本差异，不把旧工具参数用于新操作。
 
 ## 事务工具对应关系
 
@@ -77,5 +77,5 @@ node road-operation.mjs cancel OPERATION_ID
 - `npm test` 是本地协议、schema 和模拟桥接测试，不证明游戏运行正常。
 - `node check-tool-parity.mjs` 读取实际游戏能力并比较 MCP 工具；游戏需运行，不修改城市。
 - `smoke-*-live.mjs` 不一定只读，许多会建设、改资金或触发灾害。普通使用与技能验证不批量执行这些脚本；仅在用户授权相应实机测试范围时阅读并选择。
-- 用户要求维护模组时，开发入口为 `Mod.cs`、`GameQueryService.cs`、领域 `*Queries.cs`、`Mcp*ToolSystem.cs` 和 `mcp/server.mjs`。`build.ps1 -Stage` 仅暂存；普通 `build.ps1` 会部署并替换模组目录，且要求退出游戏。
-- 此技能源码位于项目 `skills/cities-skylines2`；个人目录中的同名技能为安装副本。更新时先维护源文件，再同步安装副本。新增功能更新功能地图；不要把历史工具总数当兼容性检查。
+- 用户要求维护模组时，开发入口为 `src/Core/Mod.cs`、`src/Core/GameQueryService.cs`、各领域 `*Queries.cs`、`Mcp*ToolSystem.cs` 和 `mcp/server.mjs`。`build.ps1 -Stage` 仅暂存；普通 `build.ps1` 会部署并替换模组目录，且要求退出游戏。
+- 技能入口源码位于项目 `skills/cities-skylines2`；完整工作流和领域指南位于 `docs`，个人目录中的同名技能是安装副本。更新时先维护仓库内容，再同步安装副本。新增功能更新功能地图；不要把历史工具总数当兼容性检查。
