@@ -61,7 +61,7 @@ node road-operation.mjs cancel OPERATION_ID
 
 1. **`preview_road` 顶层端点参数**：单段道路输入必须为顶层的 `start: { x, z, node_id? }` 和 `end: { x, z, node_id? }`，多段道路输入必须为 `points: [...]` 数组。切勿嵌套包装成额外的内部对象。连接已有节点时提供 8 米范围内的 `node_id`。
 2. **`preview_zoning` 参数名与主题精确绑定**：参数名必须是 `zone`（精确字符串）与 `edge_ids`（数组）。`zone` 必须通过 `list_zone_types` 获取（如欧洲风格使用 `"EU Residential Low"`），严禁使用泛型名称（如 `"Residential Low"`）。
-3. **`max_cost` 事务预算保护**：所有提交调用（`build_road`、`apply_city_service_operation` 等）必须提供 `max_cost`，其值应设定在预览返回的 `cost` 的 1.1~1.5 倍之间，既能防止意料之外的高额扣费，又能避免因细微地形成本波动导致提交失败。
+3. **`max_cost` 事务预算保护**：所有需要预算的提交调用（`build_road`、`apply_city_service_operation` 等）必须提供不低于当前预览 `cost` 且不超过用户授权预算的 `max_cost`。费用或目标发生变化时重新预览，不要用固定倍数盲目放大预算。
 
 ## 错误处置
 

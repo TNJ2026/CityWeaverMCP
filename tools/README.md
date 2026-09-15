@@ -153,11 +153,11 @@ node tools/tests/test-spatial-survey.mjs
 
 | 约束项 | 参数/范围 | 限制与行为 |
 | --- | --- | --- |
-| 单段道路长度 | $16\text{m} \sim 256\text{m}$ | $< 16\text{m}$ 报 `SEGMENT_TOO_SHORT`；$> 256\text{m}$ 报 `SEGMENT_TOO_LONG`，长路线需用 `subdivideRoute` 切分 |
+| 单段道路长度 | $16\text{m} \sim 256\text{m}$ | 基础道路/曲线超出范围报 `INVALID_ROAD_LENGTH`；自动路线中的短分段可能报 `ROUTE_SEGMENT_TOO_SHORT`。长路线应使用路线工具或 `subdivideRoute` 切分 |
 | 管网折线段长度 | $\le 200\text{m}$，2~16 个点 | 单次预览折线点数在 2 到 16 之间，单段管线长度建议不超过 200m |
 | 节点吸附容差 | $\le 8\text{m}$ | 连接既有道路或管网 `node_id` 时，输入坐标必须在该节点 8 米范围内，否则拒绝吸附 |
 | 8 米格网模数 | `x % 8 == 0, z % 8 == 0` | 街区西南角起点（`origin`）及街区长宽（`block_w`, `block_h`）必须严格为 8 的倍数 |
-| 建筑路口退距 | $\ge 32\text{m}$ | 建筑中点距离相邻道路交叉口节点必须 $\ge 32\text{m}$，且路段长度需满足 $\ge \text{建筑面宽} + 16\text{m}$ |
+| 建筑路口退距 | 建议从 $32\text{m}$ 起评估 | 退距和路段长度由建筑 prefab、道路几何及原生预览共同决定；宽体建筑应优先选择长直路段 |
 | 主题分区预设 | `list_zone_types` 精确值 | `--zone` 或 JSON 中的 `zone` 必须为主细分风格名称（如 `EU Residential Low`），严禁未映射的泛型名称 |
 | 模拟速度枚举 | 全小写字符串 | 仅接受 `"paused"`, `"normal"`, `"fast"`, `"fastest"` 四种全小写枚举 |
 

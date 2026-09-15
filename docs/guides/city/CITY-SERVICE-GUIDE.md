@@ -70,9 +70,9 @@
 
 ### 道路选址退距与候选回退（Setback & Fallback）机制
 
-1. **路口安全退距**：`plan_city_service_site` 生成的候选点有时会紧贴道路交叉节点（$< 32\text{m}$）甚至落在路口中心线，直接放置会触发 `GAME_REJECTED_BUILDING`。选址时应优先选择平直路段，并确保设施临街中点距离相邻交叉路口节点保持至少 $\ge 32\text{m}$ 的安全退距，避免与路口渠化、斑马线及红绿灯碰撞。
+1. **路口安全退距**：`plan_city_service_site` 生成的候选点有时会紧贴道路交叉节点，甚至落在路口中心线，直接放置可能触发 `GAME_REJECTED_BUILDING`。32m 可作为宽体设施的保守起始值，但不是所有道路和 prefab 的硬性 API 阈值；应优先选择平直路段，并以 `preview_city_service_placement` 的原生校验为最终依据。
 2. **长开间与宽体建筑选址**：大体量或宽开间建筑（如宽度 111.6m 的公墓 `Cemetery02`、大型综合高中、综合医院等）要求路段平直且长度充裕。所属路段长度建议满足 $\ge \text{建筑面宽} + 16\text{m}$，切忌放置在短路段（如 $< 64\text{m}$）、急弯路段或断头路尽头。
-3. **候选列表顺序回退（Fallback）**：调用 `plan_city_service_site` 时通常请求 3~5 个候选（`count: 5`）。自动化脚本在调用 `preview_city_service_placement` 时，必须实现候选列表的顺序遍历与失败回退循环，若前序候选因碰撞或地质原因被原生引擎拒绝，立即尝试下一候选，直至成功获得 `preview_ready`。
+3. **候选列表顺序回退（Fallback）**：调用 `plan_city_service_site` 时可通过 `candidate_count` 请求多个候选（例如 `candidate_count: 5`）。自动化脚本在调用 `preview_city_service_placement` 时，应实现候选列表的顺序遍历与失败回退循环；若前序候选因碰撞或地质原因被原生引擎拒绝，再尝试下一候选，直至成功获得 `preview_ready` 或候选耗尽。
 
 ### 覆盖分析
 

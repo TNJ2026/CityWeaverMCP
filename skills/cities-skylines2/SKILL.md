@@ -57,11 +57,11 @@ description: 通过 CityWeaverMCP 查询和操作《都市：天际线 II》的�
 
 ## 核心避坑与实战经验（Field-Tested Rules）
 
-- **地图主题与分区绑定**：划区严禁使用泛型名称，必须根据城市主题（EU/NA）从 `list_zone_types` 获取精准预设名，详见 [分区指南](../../docs/guides/areas/ZONING-GUIDE.md#地图主题与分区预设绑定实战铁律theme-specific-zoning)。
-- **工业区风向与环境选址**：工业区必须建在生活区绝对下风向且距水塔净水设施 $\ge 500\text{m}$，详见 [环境与景观指南](../../docs/guides/areas/ENVIRONMENT-LANDSCAPE-GUIDE.md#工业区环境风向与污染排布准则)。
-- **市政服务路口退距与回退**：市政设施（尤其宽体建筑）须距十字路口 $\ge 32\text{m}$ 并在预览被拒时执行候选遍历回退，详见 [城市公共服务设施指南](../../docs/guides/city/CITY-SERVICE-GUIDE.md#道路选址退距与候选回退setback--fallback机制)。
-- **排污口管道单向物理隔离**：排污口必须仅敷设专用纯污水管（`Small Sewage Pipe`）接入路网，严禁混接供排水合流管以防全城饮用水重度中毒，详见 [公共设施与管网指南](../../docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md#生命线工程隔离与接驳铁律)。
-- **变电站安全岛隔离**：变电站严禁紧贴住宅，须在独立地块以专用支路连入路网并通过地下高压电缆直连高压走廊，详见 [公共设施与管网指南](../../docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md#生命线工程隔离与接驳铁律)。
+- **地图主题与分区绑定**：划区严禁猜测名称，必须从 `list_zone_types` 获取当前存档的精准预设名，详见 [分区指南](../../docs/guides/areas/ZONING-GUIDE.md#地图主题与分区预设绑定实战铁律)。
+- **工业区风向与环境选址**：工业区优先布置在生活区下风向，并结合污染、水体和地下水图层评估距离；500m 是本次验证的保守起始参考，详见 [环境与景观指南](../../docs/guides/areas/ENVIRONMENT-LANDSCAPE-GUIDE.md#工业区环境风向与污染排布准则)。
+- **市政服务路口退距与回退**：宽体设施应优先选择长直路段，以约 32m 作为保守起始退距并以原生预览为准；预览被拒时遍历候选，详见 [城市公共服务设施指南](../../docs/guides/city/CITY-SERVICE-GUIDE.md#道路选址退距与候选回退setback--fallback机制)。
+- **排污口管道按连接层隔离**：先按 `list_utility_network_prefabs` 返回的连接层选择兼容管网，纯污水管是保守选择；不要对合流管的污染后果作未经验证的绝对断言，详见 [公共设施与管网指南](../../docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md#生命线工程隔离与接驳铁律)。
+- **变电站安全岛隔离**：变电站宜远离住宅，并在独立地块以专用支路连入路网；高压接驳需按当前 prefab 连接层和原生预览确认，详见 [公共设施与管网指南](../../docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md#生命线工程隔离与接驳铁律)。
 - **工业重载直连物流通道**：工业区应由高速公路出入口通过专用 4 车道干道直连以实现重卡零穿城，详见 [道路指南](../../docs/guides/roads/ROAD-GUIDE.md#重载工业集疏运专用通道与防平行干涉原则)。
 - **从零建城自然晋级四步法**：建城应遵循“骨架与生命线 $\to$ 主题分区激活 $\to$ 梯次市政服务 $\to$ 环保工业园”自然演进，详见 [从零建城工作流](../../docs/workflows/new-city.md#实战落地从零建城自然晋级四步法field-tested-4-step-progression)。
 - **MCP 关键参数与错误回退**：道路起终点顶层传参、模拟速度全小写枚举及 `GAME_REJECTED_BUILDING` 错误处置规范，详见 [操作与事务工作流](../../docs/workflows/operations.md#mcp-关键参数规范与实战避坑)。
