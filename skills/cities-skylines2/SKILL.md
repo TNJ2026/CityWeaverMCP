@@ -52,7 +52,7 @@ description: 通过 CityWeaverMCP 查询和操作《都市：天际线 II》的�
 - 新增普通建筑、市政服务、交通设施或公用设施优先使用 `plan_building_workflow` / `execute_building_plan`；已授权的一组建筑可用 `deploy_building_plans`。移动、升级、拆除及专用网络仍使用领域工具。
 - 垃圾填埋场储存区和专门产业采集区是建筑附属区域，不是行政区或 zoning。先由 `list_building_areas` 发现 owner 允许的精确区域 prefab。
 - NxN 小区优先使用 `deploy_grid_district`。道路类型、分区名称和建筑 prefab 都从当前城市发现；高层编排仍必须经过原生 preview 和永久回读。
-- 跨领域批量建设可使用 `deploy_service_cluster`、`deploy_industrial_campus`、`deploy_transit_corridor`；它们按固定阶段串行执行并返回 `phases`。阶段失败或 `outcome_unknown` 时停止后续工作，不更换 `request_id` 重试，也不提供跨领域自动回滚。
+- 跨领域批量建设可使用 `deploy_service_cluster`、`deploy_industrial_campus`、`deploy_transit_corridor`、`build_utility_backbone`、`repair_congested_corridor`；它们按固定阶段串行执行并返回 `phases`。阶段失败或 `outcome_unknown` 时停止后续工作，不更换 `request_id` 重试，也不提供跨领域自动回滚。`build_utility_backbone` 将设施端口接驳与显式骨架管线按顺序建设；`repair_congested_corridor` 先分析瓶颈，再按授权策略升级、平行分流或自动绕行。
 - zoning 名称与城市主题和资产包相关，必须使用 `list_zone_types` 返回的精确名称。
 - 交通站、机场、港口以及电力、供水、污水、通信设施不会自动补齐缺失轨道、航线、道路或管网；失败时先处理明确的前置网络。
 - 变电站、电站、抽水站、水塔或排污口接驳：优先使用 `connect_utility_facility`；需要诊断真实端口时先调用 `list_utility_connection_points`，需要检查候选时调用 `find_compatible_utility_targets`。高压/低压、清水/污水/雨水必须按端口的 `connection` 和管网的 `connection_layers` 匹配，不能用建筑中心点或名称猜测。高层工具仍保留原生 preview/apply；`outcome_unknown` 只能查询原操作，不能换 request ID 重提。

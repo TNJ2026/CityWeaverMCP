@@ -56,6 +56,8 @@
 
 对单个设施接入既有网络，优先使用高层 `connect_utility_facility`。它会读取真实端口，按连接层筛选候选，串行尝试有限的直线/正交路径，逐一执行原生 `preview_utility_network`，只提交首个 `preview_ready`，轮询到 `completed` 后恢复原模拟速度。`outcome_unknown` 会停止并保留原操作 ID，不能换新的 `request_id` 重提。
 
+需要同时铺设多条生命线时使用 `build_utility_backbone`。把设施接驳放入 `connections`，把不属于设施的骨架管线放入 `segments`；工具固定按数组顺序执行并返回每段的 operation ID、结果边和费用。它不会猜测管网 prefab：设施接驳由端口发现决定，显式段必须传入当前城市发现的 `utility_prefab`。任一段出现 `outcome_unknown` 都必须先查询原操作，不能改用新 ID 重放。
+
 新建点使用世界坐标 `x/z` 和相对地表的 `elevation_m`。地下管线通常要求 -50 至 -10 米，架空线通常要求 0 至 10 米，准确范围以预制件返回值为准。连接现有节点时提供 `node_id`；连接现有边时提供 `edge_id`，坐标必须在该边 8 米内。同一次折线的每段都必须满足预制件长度和坡度限制。
 
 推荐调用顺序：

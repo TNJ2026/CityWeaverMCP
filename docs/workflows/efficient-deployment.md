@@ -20,6 +20,13 @@ node tools/survey-space.mjs --auto-find residential --anchor -1138,528 --mode qu
 
 三个工具都保持写事务串行，返回 `phases` 和费用。某阶段 `failed`、`cancelled`、`expired` 或 `outcome_unknown` 时停止后续阶段；未知结果只能查询原 operation，不能换新的 `request_id` 盲目重试。它们不执行跨领域自动拆除或退款回滚，恢复速度只在流程结束时按 `resume_speed` 处理。
 
+### 基础设施与拥堵高层流程
+
+- `build_utility_backbone` 接受 `connections` 和 `segments`。前者按设施真实端口、`connection_layers` 和候选目标调用 `connect_utility_facility`；后者按 `preview_utility_network` → `apply_utility_operation` 建设明确的管线段。连接完成后才进入下一段，费用按连接/段/总额限制累计。
+- `repair_congested_corridor` 先调用 `analyze_road_traffic`。`strategy=upgrade` 使用批量升级，`parallel` 使用避障平行道路，`reroute` 使用带起终点的自动路径，`auto` 根据瓶颈建议选择升级或平行分流。每个动作都经过道路原生预览和 `build_road`，不会清车、拆路或自动回滚。
+
+两个工具都返回逐阶段 `phases`、原生 `operation_id` 和费用；失败或 `outcome_unknown` 会停止后续写入。重复相同 `request_id` 与参数返回缓存结果，不同参数会报幂等冲突。
+
 ## 一次批量建设
 
 ### MCP 高层工具

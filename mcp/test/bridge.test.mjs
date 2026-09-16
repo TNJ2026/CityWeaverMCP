@@ -96,7 +96,7 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   t.after(() => client.close());
   await client.connect(transport);
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 340);
+  assert.equal(tools.length, 342);
   assert(tools.some(tool => tool.name === 'deploy_grid_district'), 'high-level grid deployment tool is registered');
   for (const name of ['plan_building_workflow', 'execute_building_plan', 'cancel_building_plan', 'deploy_building_plans']) {
     assert(tools.some(tool => tool.name === name), `${name} is registered`);
@@ -115,6 +115,7 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   mutations.add('deploy_grid_district');
   for (const name of ['plan_building_workflow', 'execute_building_plan', 'cancel_building_plan', 'deploy_building_plans']) mutations.add(name);
   for (const name of ['deploy_service_cluster', 'deploy_industrial_campus', 'deploy_transit_corridor']) mutations.add(name);
+  for (const name of ['build_utility_backbone', 'repair_congested_corridor']) mutations.add(name);
   for (const name of ['preview_building_area', 'apply_building_area_operation', 'cancel_building_area_preview']) mutations.add(name);
   mutations.add('connect_utility_facility');
   assert(tools.every(tool => tool.annotations.readOnlyHint === !mutations.has(tool.name)));
