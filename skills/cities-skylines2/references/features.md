@@ -13,7 +13,7 @@
 | 行政区 | 边界创建、重画、删除、命名、政策、点定位和服务覆盖；`set_district_name`、`set_district_policy`、`set_service_districts` | `docs/guides/areas/DISTRICT-GUIDE.md` |
 | 公交线路 | `list_transport_line_prefabs`、`list_transport_lines`；创建、站序、线路与站名、颜色、班表、票价、车辆数、编号、均匀发车、请求车辆与返场、删除 | `docs/guides/transport/TRANSPORT-GUIDE.md` |
 | 公交设施和轨道 | `list_transport_facility_prefabs`、`list_transport_facilities`、`analyze_transport_catchment`、`list_transport_track_prefabs`、`preview_transport_track`；站点/车辆段/机场/港口的建筑事务，火车/地铁/电车轨道连接和拆除 | `docs/guides/transport/TRANSPORT-INFRASTRUCTURE-GUIDE.md` |
-| 电水污水与管网 | `list_utility_facility_prefabs`、`list_utility_facilities`、`list_utility_networks`；电力、供水、污水、通信、独立管网、资源管道查询和建设 | `docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md` |
+| 电水污水与管网 | `list_utility_facility_prefabs`、`list_utility_facilities`、`list_utility_connection_points`、`find_compatible_utility_targets`、`connect_utility_facility`、`list_utility_networks`；按真实设施端口和连接层完成电力、供水、污水、通信、独立管网、资源管道查询和建设 | `docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md` |
 | 公共服务 | `list_city_service_prefabs`、`list_city_service_facilities`、`analyze_service_coverage`、`analyze_education_demand`、`analyze_attraction_impact`；医疗、消防、警察、教育、垃圾、殡葬、维护、公园、邮政、停车、福利、研究、应急，支持选址与建筑事务 | `docs/guides/city/CITY-SERVICE-GUIDE.md` |
 | 城市财政 | `get_city_economy`、`get_tax_settings`、`list_service_budgets`、`list_service_fees`、`get_loan_status`；税率、预算、服务费、贷款预览与应用 | `docs/guides/economy/ECONOMY-GUIDE.md` |
 | 发展需求 | `get_zone_demand`、`get_resource_demand`；人口、住房、就业、教育、分区需求与原生影响因子，无限需求控制 | `docs/guides/city/DEVELOPMENT-GUIDE.md` |

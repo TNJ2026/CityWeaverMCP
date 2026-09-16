@@ -6,6 +6,8 @@
 
 ## 使用
 
+版本 1.21.0 新增 `list_utility_connection_points`、`find_compatible_utility_targets` 和 `connect_utility_facility`。高层接驳按真实设施端口和 `connection_layers` 发现高压、低压、清水、污水或雨水候选，并保留原生 preview/apply 事务。
+
 1. 在模组根目录运行 `./build.ps1`。部署前先保存并退出游戏；运行中的游戏会锁定 DLL。`./build.ps1 -Stage` 可在游戏运行时只构建到 `artifacts/staged`。
 2. 在本目录运行 `npm ci`（Node.js 20 或以上）。
 3. 注册到 Codex（这台电脑已经注册为 `cities-skylines2`）：

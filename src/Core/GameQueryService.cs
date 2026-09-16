@@ -233,6 +233,8 @@ namespace CitiesSkylines2Mod
                 case "list_utility_facility_prefabs": return Wrap(ListUtilityFacilityPrefabs(args, world));
                 case "list_utility_facilities": return Wrap(ListUtilityFacilities(args, world));
                 case "get_utility_facility": return Wrap(GetUtilityFacility(args, world));
+                case "list_utility_connection_points": return Wrap(ListUtilityConnectionPoints(args, world));
+                case "find_compatible_utility_targets": return Wrap(FindCompatibleUtilityTargets(args, world));
                 case "plan_utility_facility_site": return Wrap(PlanUtilityFacilitySite(args, world));
                 case "preview_utility_facility_placement": return Wrap(PreviewUtilityFacility(args, world, "place"));
                 case "preview_utility_facility_move": return Wrap(PreviewUtilityFacility(args, world, "move"));
@@ -411,7 +413,7 @@ namespace CitiesSkylines2Mod
         {
             var ready = IsReady();
             var result = new JObject { ["connected"] = true, ["city_loaded"] = ready, ["loading"] = GameManager.instance.isGameLoading,
-                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.20.0", ["read_only"] = false };
+                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.21.0", ["read_only"] = false };
             result["paused"] = JValue.CreateNull();
             if (ready)
             {
@@ -477,6 +479,8 @@ namespace CitiesSkylines2Mod
                 tools.Add("get_building_area_operation");
                 tools.Add("apply_building_area_operation");
                 tools.Add("cancel_building_area_preview");
+                tools.Add("list_utility_connection_points");
+                tools.Add("find_compatible_utility_targets");
             }
             return result;
         }

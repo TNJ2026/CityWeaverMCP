@@ -1,6 +1,6 @@
 # 公共设施与管网指南
 
-1.6.0 提供电力、供水、污水、通信设施以及独立公用管网的读取和原生建造事务。所有修改都要求城市暂停；预览只生成游戏临时实体，只有操作状态变为 `completed` 才表示永久修改完成。
+1.6.0 提供电力、供水、污水、通信设施以及独立公用管网的读取和原生建造事务。所有修改都要求城市暂停；预览只生成游戏临时实体，只有操作状态变为 `completed` 才表示永久修改完成。MCP 1.21.0 增加了设施端口发现和高层接驳工作流。
 
 ## 设施
 
@@ -11,6 +11,8 @@
 | `list_utility_facility_prefabs` | 枚举可放置设施、造价、占地、尺寸和原生放置标志 |
 | `list_utility_facilities` | 按类型读取永久设施及实时生产、储量、污染、处理量和效率 |
 | `get_utility_facility` | 读取一个设施的实例状态 |
+| `list_utility_connection_points` | 读取设施本体及已启用升级的原生连接端口、连接层、容量、电压和当前连接状态 |
+| `find_compatible_utility_targets` | 按端口连接层搜索附近兼容的管网节点和边，减少盲目试点 |
 | `plan_utility_facility_site` | 根据预制件自动选择道路侧、岸线、水面、道路边或道路节点选址 |
 | `preview_utility_facility_placement` | 原生放置预览 |
 | `preview_utility_facility_move` | 原生移动预览 |
@@ -52,6 +54,8 @@
 | `apply_utility_operation` | 提交管网事务 |
 | `cancel_utility_preview` | 取消未提交预览 |
 
+对单个设施接入既有网络，优先使用高层 `connect_utility_facility`。它会读取真实端口，按连接层筛选候选，串行尝试有限的直线/正交路径，逐一执行原生 `preview_utility_network`，只提交首个 `preview_ready`，轮询到 `completed` 后恢复原模拟速度。`outcome_unknown` 会停止并保留原操作 ID，不能换新的 `request_id` 重提。
+
 新建点使用世界坐标 `x/z` 和相对地表的 `elevation_m`。地下管线通常要求 -50 至 -10 米，架空线通常要求 0 至 10 米，准确范围以预制件返回值为准。连接现有节点时提供 `node_id`；连接现有边时提供 `edge_id`，坐标必须在该边 8 米内。同一次折线的每段都必须满足预制件长度和坡度限制。
 
 推荐调用顺序：
@@ -62,6 +66,10 @@
 4. 检查 `errors`、`cost` 和 `can_commit`。
 5. 使用相同 `request_id` 和足够的 `max_cost` 提交。
 6. 轮询到 `completed`，使用返回的永久实体 ID 继续查询或连接。
+
+## 端口与连接层
+
+不要把设施中心点当作连接点。变电站、发电厂、电池和排污设施可能通过建筑 `SubNet` 或已启用升级暴露多个原生端口；`list_utility_connection_points` 返回这些端口的 `node_id`、`connection`、容量和 `externally_connected`。高压接驳使用 `high_voltage`，低压使用 `low_voltage`；清水、污水、雨水分别使用 `fresh_water`、`sewage`、`stormwater`。候选网络必须有对应的 `connection_layers`，合流管只有在端口和流量都确认兼容时才使用。
 
 ## 已验证范围
 
