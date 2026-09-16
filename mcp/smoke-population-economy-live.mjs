@@ -7,8 +7,8 @@ await client.connect(new StdioClientTransport({ command: process.execPath, args:
 const call = async (name, args = {}) => { const result = await client.callTool({ name, arguments: args }); return result.structuredContent ?? { ok: false, error: { message: (result.content ?? []).map(x => x.text ?? '').join('\n') } }; };
 const ok = (value, label) => { assert.equal(value.ok, true, `${label}: ${JSON.stringify(value)}`); return value.data; };
 
-const status = ok(await call('get_game_status'), 'status'); assert.equal(status.bridge_version, '1.11.0'); assert.equal(status.city_loaded, true);
-const tools = await client.listTools(); assert.equal(tools.tools.length, 200);
+const status = ok(await call('get_game_status'), 'status'); assert.equal(status.bridge_version, '1.21.2'); assert.equal(status.city_loaded, true);
+const tools = await client.listTools(); assert.equal(tools.tools.length, 342);
 const citizens = ok(await call('list_citizens', { limit: 100 }), 'citizens');
 const workers = ok(await call('list_citizens', { role: 'worker', limit: 100 }), 'workers');
 const students = ok(await call('list_citizens', { role: 'student', limit: 100 }), 'students');
@@ -19,7 +19,9 @@ const holders = ok(await call('list_resource_holders', { limit: 100 }), 'resourc
 assert.equal(resources.total, 41); assert.ok(citizens.total > 0 && households.total > 0 && companies.total > 0 && holders.total > 0);
 const citizen = ok(await call('get_citizen', { citizen_id: citizens.items[0].entity_id }), 'citizen detail');
 const household = ok(await call('get_household', { household_id: households.items[0].entity_id }), 'household detail');
-const company = ok(await call('get_company', { company_id: companies.items[0].entity_id }), 'company detail');
+const companySummary = companies.items.find(item => Number.isInteger(item.profitability));
+assert.ok(companySummary, 'Expected at least one company with profitability data');
+const company = ok(await call('get_company', { company_id: companySummary.entity_id }), 'company detail');
 
 for (const [name, args] of [
   ['set_citizen_attributes', { citizen_id: citizen.entity_id, health: citizen.health }],

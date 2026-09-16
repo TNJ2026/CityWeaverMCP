@@ -413,7 +413,7 @@ namespace CitiesSkylines2Mod
         {
             var ready = IsReady();
             var result = new JObject { ["connected"] = true, ["city_loaded"] = ready, ["loading"] = GameManager.instance.isGameLoading,
-                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.21.0", ["read_only"] = false };
+                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.21.2", ["read_only"] = false };
             result["paused"] = JValue.CreateNull();
             if (ready)
             {
@@ -481,6 +481,10 @@ namespace CitiesSkylines2Mod
                 tools.Add("cancel_building_area_preview");
                 tools.Add("list_utility_connection_points");
                 tools.Add("find_compatible_utility_targets");
+                tools.Add("find_roads_by_name");
+                tools.Add("get_transport_facility");
+                tools.Add("get_transport_track");
+                tools.Add("read_surface_water_mask");
             }
             return result;
         }

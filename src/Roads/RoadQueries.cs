@@ -1663,7 +1663,7 @@ namespace CitiesSkylines2Mod
             if (!op.Terminal)
             {
                 op.CancelRequested = true;
-                if (op.TransactionKind.StartsWith("direct_atomic")) op.State = "cancelled";
+                if (op.TransactionKind != null && op.TransactionKind.StartsWith("direct_atomic")) op.State = "cancelled";
             }
             return op.Json();
         }

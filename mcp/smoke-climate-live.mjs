@@ -5,7 +5,7 @@ async function q(tool, args = {}) { return (await queryGame(tool, args)).data; }
 let baseline;
 try {
   const status = await q('get_game_status');
-  assert.equal(status.bridge_version, '1.15.0');
+  assert.equal(status.bridge_version, '1.21.2');
   await q('set_simulation_speed', { speed: 'paused' });
   baseline = await q('get_climate_state');
 

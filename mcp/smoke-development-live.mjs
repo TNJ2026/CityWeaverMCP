@@ -14,10 +14,10 @@ const ok = (value, label) => {
 };
 
 const status = ok(await call('get_game_status'), 'status');
-assert.equal(status.bridge_version, '1.9.0');
+assert.equal(status.bridge_version, '1.21.2');
 assert.equal(status.city_loaded, true);
 const tools = await client.listTools();
-assert.equal(tools.tools.length, 178);
+assert.equal(tools.tools.length, 342);
 
 const reads = {};
 reads.zone = ok(await call('get_zone_demand'), 'zone demand');

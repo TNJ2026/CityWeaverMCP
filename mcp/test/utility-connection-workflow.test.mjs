@@ -85,3 +85,25 @@ test('waits for an asynchronous preview to become ready before applying', async 
   assert.equal(result.state, 'completed');
   assert.equal(calls.filter(call => call.tool === 'apply_utility_operation').length, 1);
 });
+
+test('uses the facility port paired with the compatible target', async () => {
+  const responses = baseResponses();
+  const pairedPort = { node_id: 'b'.repeat(32) + ':21:1', connection: 'high_voltage', position: { x: 10, z: 5 } };
+  const createdEdgeIds = ['i'.repeat(32) + ':41:1', 'i'.repeat(32) + ':42:1'];
+  responses.list_utility_connection_points.items.push(pairedPort);
+  responses.find_compatible_utility_targets.items = [{ ...target, facility_port: pairedPort }];
+  const calls = [];
+  const queryGame = async (tool, input) => {
+    calls.push({ tool, input });
+    if (tool === 'set_simulation_speed') return { data: {} };
+    if (tool === 'preview_utility_network') return { data: { state: 'preview_ready', operation_id: 'h'.repeat(32), cost: 50 } };
+    if (tool === 'apply_utility_operation') return { data: { state: 'completed', operation_id: input.operation_id, cost: 50, created_utility_edge_ids: createdEdgeIds } };
+    return { data: responses[tool] };
+  };
+  const workflow = createUtilityConnectionWorkflow(queryGame);
+  const result = await workflow.connect({ ...args, request_id: 'utility-paired-port-001' });
+  const preview = calls.find(call => call.tool === 'preview_utility_network');
+  assert.equal(preview.input.points[0].node_id, pairedPort.node_id);
+  assert.equal(result.port.node_id, pairedPort.node_id);
+  assert.deepEqual(result.result_edge_ids, createdEdgeIds);
+});

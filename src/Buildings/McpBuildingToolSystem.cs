@@ -170,7 +170,7 @@ namespace CitiesSkylines2Mod
                 var config = World.GetExistingSystemManaged<Game.City.CityConfigurationSystem>();
                 var placement = op.Placements[m_BatchIndex];
                 m_ControlPoints.Clear(); m_ControlPoints.Add(new ControlPoint { m_Position = placement.Position, m_HitPosition = placement.Position, m_Rotation = placement.Rotation, m_OriginalEntity = placement.ParentRoad, m_ElementIndex = new int2(-1) });
-                CreateDefinitions(placement.Prefab, Entity.Null, Entity.Null, Entity.Null, Entity.Null, Entity.Null, config.defaultTheme, m_ControlPoints, default(NativeReference<AttachmentData>), false, config.leftHandTraffic, false, false, 100, 0, .5f, 0, 0, RandomSeed.Next(), Snap.All, Game.Tools.AgeMask.Sapling, false, default);
+                CreateDefinitions(placement.Prefab, Entity.Null, Entity.Null, Entity.Null, Entity.Null, Entity.Null, config.defaultTheme, m_ControlPoints, default(NativeReference<AttachmentData>), false, config.leftHandTraffic, false, false, 100, 0, .5f, 0, 0, RandomSeed.Next(), Snap.All, Game.Tools.AgeMask.Sapling, false, default, default);
             }
             else if (op.Type == "place" || op.Type == "move" || op.Type == "upgrade" || op.Type == "rebuild")
             {
@@ -182,7 +182,7 @@ namespace CitiesSkylines2Mod
                 Entity owner = op.Type == "upgrade" || op.Type == "rebuild" ? op.Target : Entity.Null;
                 Entity original = op.Type == "move" ? op.Target : Entity.Null;
                 var config = World.GetExistingSystemManaged<Game.City.CityConfigurationSystem>();
-                CreateDefinitions(prefab, Entity.Null, Entity.Null, owner, original, Entity.Null, config.defaultTheme, m_ControlPoints, default(NativeReference<AttachmentData>), false, config.leftHandTraffic, false, false, 100, 0, .5f, 0, 0, RandomSeed.Next(), Snap.All, Game.Tools.AgeMask.Sapling, false, default);
+                CreateDefinitions(prefab, Entity.Null, Entity.Null, owner, original, Entity.Null, config.defaultTheme, m_ControlPoints, default(NativeReference<AttachmentData>), false, config.leftHandTraffic, false, false, 100, 0, .5f, 0, 0, RandomSeed.Next(), Snap.All, Game.Tools.AgeMask.Sapling, false, default, default);
             }
             else if (op.Type == "demolish" || op.Type == "remove_upgrade") AddDefinition(op.OriginalPrefab, op.Target, Entity.Null, CreationFlags.Delete, op.OriginalPosition, op.OriginalRotation);
             else if (op.Type == "replace")
@@ -190,7 +190,7 @@ namespace CitiesSkylines2Mod
                 AddDefinition(op.OriginalPrefab, op.Target, Entity.Null, CreationFlags.Delete, op.OriginalPosition, op.OriginalRotation);
                 m_ControlPoints.Clear(); var point = new ControlPoint { m_Position = op.OriginalPosition, m_HitPosition = op.OriginalPosition, m_Rotation = op.OriginalRotation, m_OriginalEntity = op.ParentRoad, m_ElementIndex = new int2(-1) }; m_ControlPoints.Add(point);
                 var config = World.GetExistingSystemManaged<Game.City.CityConfigurationSystem>();
-                CreateDefinitions(op.Prefab, Entity.Null, Entity.Null, Entity.Null, Entity.Null, Entity.Null, config.defaultTheme, m_ControlPoints, default(NativeReference<AttachmentData>), false, config.leftHandTraffic, false, false, 100, 0, .5f, 0, 0, RandomSeed.Next(), Snap.All, Game.Tools.AgeMask.Sapling, false, default);
+                CreateDefinitions(op.Prefab, Entity.Null, Entity.Null, Entity.Null, Entity.Null, Entity.Null, config.defaultTheme, m_ControlPoints, default(NativeReference<AttachmentData>), false, config.leftHandTraffic, false, false, 100, 0, .5f, 0, 0, RandomSeed.Next(), Snap.All, Game.Tools.AgeMask.Sapling, false, default, default);
             }
             else throw new QueryException("INVALID_BUILDING_OPERATION", "Unsupported building operation.");
         }

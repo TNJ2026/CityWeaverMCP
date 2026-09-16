@@ -11,8 +11,8 @@ async function wait(id){for(let i=0;i<250;i++){const x=(await call('get_transpor
 await client.connect(new StdioClientTransport({command:process.execPath,args:[fileURLToPath(new URL('./server.mjs',import.meta.url))]}));
 let lineId=null;const report={};
 try{
-  assert.equal((await client.listTools()).tools.length,249);
-  const status=(await call('get_game_status')).data;assert.equal(status.bridge_version,'1.14.0');await call('set_simulation_speed',{speed:'paused'});
+  assert.equal((await client.listTools()).tools.length,342);
+  const status=(await call('get_game_status')).data;assert.equal(status.bridge_version,'1.21.2');await call('set_simulation_speed',{speed:'paused'});
   const before=(await call('list_transport_lines')).data.total;
   const prefab=(await call('list_transport_line_prefabs',{search:'Bus'})).data.items.find(x=>x.name==='Bus Line');
   const stops=(await call('list_transport_stops',{transport_type:'Bus',passenger_only:true})).data.items;
@@ -29,7 +29,10 @@ try{
   line=(await call('get_transport_line',{line_id:lineId})).data;assert.equal(line.route_number,701);assert(Math.abs(line.unbunching_factor-.33)<.001);assert.equal(line.schedule,'day');
   await call('set_transport_line_schedule',{line_id:lineId,schedule:'day_and_night'});await sleep(250);assert.equal((await call('get_transport_line',{line_id:lineId})).data.schedule,'day_and_night');
   const policies=(await call('list_transport_line_policies',{line_id:lineId})).data.items;const ticket=policies.find(x=>x.option_mask===8&&x.slider);if(ticket){const price=Math.max(1,Math.ceil(ticket.slider.min));await call('set_transport_line_ticket_price',{line_id:lineId,ticket_price:price});await call('set_simulation_speed',{speed:'normal'});await sleep(1000);await call('set_simulation_speed',{speed:'paused'});assert.equal((await call('get_transport_line',{line_id:lineId})).data.ticket_price,price);await call('set_transport_line_ticket_price',{line_id:lineId,ticket_price:0});}
-  const setCount=await call('set_transport_line_vehicle_count',{line_id:lineId,vehicle_count:4});assert.equal(setCount.data.requested_vehicle_count,4);report.vehicleCount=setCount.data;
+  const countProbe=await call('set_transport_line_vehicle_count',{line_id:lineId,vehicle_count:1},true);
+  let requestedVehicleCount=1;let setCount=countProbe;
+  if(countProbe.ok===false||countProbe.isError===true){const message=countProbe.error?.message||countProbe.content?.[0]?.text||'';const range=/native line range (\d+)\.\.(\d+)/.exec(message);assert(range,`Missing native vehicle-count range: ${message}`);requestedVehicleCount=Number(range[1]);setCount=await call('set_transport_line_vehicle_count',{line_id:lineId,vehicle_count:requestedVehicleCount});}
+  assert.equal(setCount.data.requested_vehicle_count,requestedVehicleCount);report.vehicleCount=setCount.data;
   const stop=stops[0];await call('set_transport_stop_name',{stop_id:stop.stop_id,name:'MCP Stop Live'});assert.equal((await call('list_transport_stops',{transport_type:'Bus',passenger_only:true})).data.items.find(x=>x.stop_id===stop.stop_id).name,'MCP Stop Live');await call('set_transport_stop_name',{stop_id:stop.stop_id,name:''});
   const request=(await call('request_transport_line_vehicle',{line_id:lineId,priority:.8})).data;let requests=(await call('list_transport_vehicle_requests',{line_id:lineId})).data;assert(requests.total>=1&&requests.items.some(x=>x.request_id===request.request_id));const cancelled=(await call('cancel_transport_line_vehicle_requests',{line_id:lineId})).data;assert(cancelled.cancelled_request_count>=1);requests=(await call('list_transport_vehicle_requests',{line_id:lineId})).data;assert.equal(requests.total,0);
   report.controls={number:true,unbunching:true,schedule:true,ticketPrice:!!ticket,stopName:true,vehicleRequestRoundTrip:true};

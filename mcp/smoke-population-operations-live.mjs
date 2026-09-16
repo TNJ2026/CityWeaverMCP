@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 import { queryGame } from './bridge-client.mjs';
 
-const artifact = new URL('../artifacts/population-operations-live-1.16.0.log', import.meta.url);
+const artifact = new URL('../artifacts/population-operations-live-1.21.2.log', import.meta.url);
 await mkdir(new URL('../artifacts/', import.meta.url), { recursive: true });
 await writeFile(artifact, 'Cities Skylines II population operations live test\n');
 const created = { citizen: null, household: null, company: null };
 const results = [];
+let originalSpeed = 'normal';
 
 async function call(tool, args = {}) {
   const response = await queryGame(tool, args, { timeoutMs: 20000 });
@@ -20,12 +21,13 @@ async function cleanup() {
     if (!created[kind]) continue;
     try { await call(tool, { [`${kind}_id`]: created[kind] }); } catch (error) { await appendFile(artifact, `\ncleanup ${kind}: ${error.code} ${error.message}\n`); }
   }
-  try { await call('set_simulation_speed', { speed: 'normal' }); } catch {}
+  try { await call('set_simulation_speed', { speed: originalSpeed }); } catch {}
 }
 
 try {
   const status = await call('get_game_status');
-  assert.equal(status.bridge_version, '1.16.0');
+  assert.equal(status.bridge_version, '1.21.2');
+  originalSpeed = status.paused ? 'paused' : 'normal';
   await call('set_simulation_speed', { speed: 'paused' });
 
   const citizenPrefabs = await call('list_citizen_prefabs');
@@ -46,11 +48,18 @@ try {
   assert.equal(household.money, 12345);
   assert.equal(household.homeless, true);
   await call('set_household_name', { household_id: created.household, name: 'MCP Household Renamed' });
-  let householdProfile = await call('set_household_profile', { household_id: created.household, consumable_resources: 321, consumption_per_day: 12, shopping_today: 34, shopping_last_day: 56, salary_last_day: 789, leveling_spend_last_day: 90 });
+  let householdProfile = await call('set_household_profile', { household_id: created.household, consumable_resources: 321, consumption_per_day: 12, shopping_today: 34, shopping_last_day: 56, income_last_day: 789, leveling_spend_last_day: 90 });
   assert.equal(householdProfile.after.consumable_resource_units, 321);
+  assert.equal(householdProfile.after.income_last_day, 789);
+  let householdView = await call('get_household', { household_id: created.household });
+  assert.equal(householdView.income_last_day, 789);
+  householdProfile = await call('set_household_profile', { household_id: created.household, salary_last_day: 790 });
+  assert.equal(householdProfile.after.income_last_day, 790);
+  householdProfile = await call('set_household_profile', { household_id: created.household, income_last_day: 789 });
+  assert.equal(householdProfile.after.income_last_day, 789);
   await call('set_household_money', { household_id: created.household, money: 23456 });
   await call('set_household_need', { household_id: created.household, resource: 'Food', amount: 22 });
-  let householdView = await call('get_household', { household_id: created.household });
+  householdView = await call('get_household', { household_id: created.household });
   assert.equal(householdView.current_need.resource, 'Food');
   await call('set_household_need', { household_id: created.household, clear: true });
   await call('set_household_housing', { household_id: created.household, property_id: propertyId, rent: 77 });
@@ -116,7 +125,7 @@ try {
   created.citizen = created.household = created.company = null;
   await new Promise(resolve => setTimeout(resolve, 1500));
   const finalStatus = await call('get_game_status');
-  assert.equal(finalStatus.paused, false);
+  assert.equal(finalStatus.paused, status.paused);
   const summary = { ok: true, bridge_version: status.bridge_version, tools_exercised: new Set(results.map(x => x.tool)).size, schools_available: schools.total, trade_cost_crud: true };
   await appendFile(artifact, `\n## SUMMARY\n${JSON.stringify(summary, null, 2)}\n`);
   console.log(JSON.stringify(summary, null, 2));

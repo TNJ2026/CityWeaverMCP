@@ -124,7 +124,7 @@ namespace CitiesSkylines2Mod
             EntityManager.AddComponentData(definition, new CreationDefinition { m_Prefab = operation.Prefab, m_Original = operation.Target, m_Owner = operation.Owner, m_Flags = flags });
             var nodes = EntityManager.AddBuffer<Game.Areas.Node>(definition); var source = operation.Type == "delete" ? operation.OriginalPoints : operation.Points;
             foreach (var point in source) nodes.Add(new Game.Areas.Node(point, float.MinValue));
-            if (operation.Type != "delete" && source.Count > 0) nodes.Add(new Game.Areas.Node(source[0], float.MinValue));
+            if (operation.Type == "create" && source.Count > 0) nodes.Add(new Game.Areas.Node(source[0], float.MinValue));
             EntityManager.AddComponent<Updated>(definition);
         }
 

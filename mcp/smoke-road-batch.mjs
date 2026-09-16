@@ -32,7 +32,7 @@ try {
   const created = await apply('preview_road_route', {
     request_id: `batch-create-${suffix}`,
     road_prefab: 'Small Road',
-    points: [{ x: 1850, z: 2500 }, { x: 1930, z: 2500 }, { x: 2010, z: 2500 }]
+    points: [{ x: -1460, z: 225 }, { x: -1420, z: 225 }, { x: -1380, z: 225 }]
   });
   assert.equal(created.created_road_ids.length, 2, JSON.stringify(created));
   const edgeIds = created.created_road_ids;

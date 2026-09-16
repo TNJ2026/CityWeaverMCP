@@ -11,14 +11,15 @@ const call = async (name, args = {}) => {
 const ok = (value, label) => { assert.equal(value.ok, true, `${label}: ${JSON.stringify(value)}`); return value.data; };
 
 const status = ok(await call('get_game_status'), 'status');
-assert.equal(status.bridge_version, '1.10.0'); assert.equal(status.city_loaded, true);
-const tools = await client.listTools(); assert.equal(tools.tools.length, 188);
+assert.equal(status.bridge_version, '1.21.2'); assert.equal(status.city_loaded, true);
+const tools = await client.listTools(); assert.equal(tools.tools.length, 342);
 
 const initial = ok(await call('get_city_progression'), 'progression');
 const milestones = ok(await call('list_milestones'), 'milestones');
 const tree = ok(await call('list_development_tree', { limit: 500 }), 'development tree');
 const unlocks = ok(await call('get_unlock_summary'), 'unlock summary');
 const unlockPage = ok(await call('list_unlockable_prefabs', { state: 'all', limit: 20 }), 'unlock page');
+const unlockedPage = ok(await call('list_unlockable_prefabs', { state: 'unlocked', limit: 20 }), 'unlocked page');
 assert.ok(milestones.total > 0); assert.ok(tree.total > 0); assert.ok(unlocks.total > 0); assert.ok(unlockPage.items.length > 0);
 
 const runningXp = await call('set_experience_points', { total_xp: initial.experience.total });
@@ -39,7 +40,7 @@ try {
   const unlockedNode = tree.items.find(x => !x.locked);
   assert.ok(unlockedNode); purchaseResult = ok(await call('purchase_development_node', { node: unlockedNode.name }), 'idempotent node purchase');
   assert.equal(purchaseResult.already_unlocked, true);
-  const unlockedPrefab = unlockPage.items.find(x => !x.locked && !x.prefab_type.endsWith('.MilestonePrefab'));
+  const unlockedPrefab = unlockedPage.items.find(x => !x.prefab_type.endsWith('.MilestonePrefab'));
   assert.ok(unlockedPrefab); unlockResult = ok(await call('unlock_prefab', { prefab: unlockedPrefab.name, prefab_type: unlockedPrefab.prefab_type }), 'idempotent prefab unlock');
   assert.equal(unlockResult.already_unlocked, true);
 

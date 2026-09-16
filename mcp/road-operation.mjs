@@ -19,7 +19,7 @@ try {
   let result;
   if (mode === 'preview') {
     const input = JSON.parse((await readFile(first, 'utf8')).replace(/^\uFEFF/, ''));
-    const tool = input.edge_id ? (input.road_prefab ? 'preview_road_upgrade' : 'preview_road_demolition') : Array.isArray(input.points) ? 'preview_road_route' : 'preview_road';
+    const tool = input.edge_id ? (input.road_prefab ? 'preview_road_upgrade' : 'preview_road_demolition') : Array.isArray(input.points) ? 'preview_road_route' : input.columns ? 'preview_road_grid' : input.radius_m ? 'preview_road_ring' : 'preview_road';
     result = await call(tool, input);
   }
   else if (mode === 'build') result = await call('build_road', { operation_id: first, request_id, max_cost: Number(cost) });

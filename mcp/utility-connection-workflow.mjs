@@ -85,7 +85,8 @@ export function createUtilityConnectionWorkflow(queryGame = liveQueryGame) {
         if (!targets.length) throw new BridgeError('UTILITY_TARGET_NOT_FOUND', 'No compatible utility network target was found within search_radius_m.');
         const attempts = [];
         for (let index = 0; index < Math.min(args.max_preview_attempts, targets.length); index++) {
-          const target = targets[index]; const port = ports[index % Math.max(1, ports.length)];
+          const target = targets[index];
+          const port = target.facility_port || ports.find(item => item.node_id === target.facility_port_id) || ports[index % Math.max(1, ports.length)];
           const start = port?.position || facility.position; const end = target.target_position || target.position || target.end;
           const paths = args.routing === 'direct' ? [[start, end]] : args.routing === 'orthogonal' ? [[start, { x: end.x, z: start.z }, end]] : [[start, end], [start, { x: end.x, z: start.z }, end], [start, { x: start.x, z: end.z }, end]];
           for (const [pathIndex, path] of paths.entries()) {
@@ -109,7 +110,12 @@ export function createUtilityConnectionWorkflow(queryGame = liveQueryGame) {
               failure.attempts = attempts;
               throw failure;
             }
-            const result = { state: completed.state, facility_id: args.facility_id, connection, utility_prefab: previewArgs.utility_prefab, target, port: port || null, operation_id: operation.operation_id, attempts, cost: completed.cost || operation.cost || 0, result_edge_ids: completed.result_edge_ids || [] };
+            const resultEdgeIds = completed.created_utility_edge_ids?.length
+              ? completed.created_utility_edge_ids
+              : completed.result_edge_ids?.length
+                ? completed.result_edge_ids
+                : completed.created_road_ids || [];
+            const result = { state: completed.state, facility_id: args.facility_id, connection, utility_prefab: previewArgs.utility_prefab, target, port: port || null, operation_id: operation.operation_id, attempts, cost: completed.cost || operation.cost || 0, result_edge_ids: resultEdgeIds };
             requests.set(args.request_id, { fingerprint, result }); return result;
           }
         }

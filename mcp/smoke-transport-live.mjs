@@ -24,8 +24,8 @@ async function previewReady(id) { const op=await waitOperation(id); return op.st
 await client.connect(new StdioClientTransport({ command: process.execPath, args: [fileURLToPath(new URL('./server.mjs', import.meta.url))] }));
 const report={}; const created=[]; let seq=0;
 try {
-  const toolList=await client.listTools(); assert.equal(toolList.tools.length,110); report.toolCount=110;
-  const status=await call('get_game_status'); assert.equal(status.data.bridge_version,'1.4.0'); await call('set_simulation_speed',{speed:'paused'});
+  const toolList=await client.listTools(); assert.equal(toolList.tools.length,342); report.toolCount=342;
+  const status=await call('get_game_status'); assert.equal(status.data.bridge_version,'1.21.2'); await call('set_simulation_speed',{speed:'paused'});
   const prefabs=(await call('list_transport_line_prefabs',{search:''})).data.items;
   const stops=(await call('list_transport_stops',{})).data.items;
   const before=(await call('list_transport_lines')).data;
