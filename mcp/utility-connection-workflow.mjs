@@ -26,6 +26,7 @@ const point = p => ({ x: p.x, z: p.z });
 
 export function createUtilityConnectionWorkflow(queryGame = liveQueryGame) {
   const requests = new Map();
+  const prefabCache = new Map();
   let writeTail = Promise.resolve();
   const exclusive = async fn => { const previous = writeTail; let release; writeTail = new Promise(resolve => { release = resolve; }); await previous; try { return await fn(); } finally { release(); } };
 
@@ -59,9 +60,20 @@ export function createUtilityConnectionWorkflow(queryGame = liveQueryGame) {
         let targets = [];
         try { targets = (await queryGame('find_compatible_utility_targets', compact({ facility_id: args.facility_id, connection, utility_prefab: args.utility_prefab, search_radius_m: args.search_radius_m, limit: args.max_preview_attempts * 4 }))).data?.items || []; } catch (error) { if (!(error instanceof BridgeError) || error.code !== 'UNKNOWN_TOOL') throw error; }
         const networks = targets.length ? [] : (await queryGame('list_utility_networks', { network_type: 'all' })).data?.items || [];
-        const prefabsResponse = await queryGame('list_utility_network_prefabs', { network_type: 'all', include_markers: false, unlocked_only: true });
-        const prefabs = prefabsResponse.data?.items || [];
-        const selectedPrefab = args.utility_prefab ? prefabs.find(item => item.name?.toLowerCase() === args.utility_prefab.toLowerCase()) : prefabs.find(item => connectionMatchesPrefab(connection, item));
+        // A target returned by the native compatibility query already carries an exact prefab.
+        // Avoid a full prefab enumeration for the common existing-network path.
+        let selectedPrefab = args.utility_prefab && targets.length ? { name: args.utility_prefab } : targets[0]?.utility_prefab ? { name: targets[0].utility_prefab } : null;
+        if (!selectedPrefab) {
+          const sessionId = statusEnvelope.meta?.session_id || statusEnvelope.data?.session_id || 'unknown';
+          const cacheKey = `${sessionId}:utility-prefabs`;
+          let prefabs = prefabCache.get(cacheKey);
+          if (!prefabs) {
+            const prefabsResponse = await queryGame('list_utility_network_prefabs', { network_type: 'all', include_markers: false, unlocked_only: true });
+            prefabs = prefabsResponse.data?.items || [];
+            prefabCache.set(cacheKey, prefabs);
+          }
+          selectedPrefab = args.utility_prefab ? prefabs.find(item => item.name?.toLowerCase() === args.utility_prefab.toLowerCase()) : prefabs.find(item => connectionMatchesPrefab(connection, item));
+        }
         if (!selectedPrefab) throw new BridgeError('UTILITY_PREFAB_NOT_FOUND', 'No unlocked utility network prefab matches the requested connection.');
         if (!targets.length) {
           const origin = facility.position; const candidates = networks.map(network => {

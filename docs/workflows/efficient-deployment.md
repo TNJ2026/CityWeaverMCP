@@ -23,9 +23,9 @@ node tools/survey-space.mjs --auto-find residential --anchor -1138,528 --mode qu
 ### 基础设施与拥堵高层流程
 
 - `build_utility_backbone` 接受 `connections` 和 `segments`。前者按设施真实端口、`connection_layers` 和候选目标调用 `connect_utility_facility`；后者按 `preview_utility_network` → `apply_utility_operation` 建设明确的管线段。连接完成后才进入下一段，费用按连接/段/总额限制累计。
-- `repair_congested_corridor` 先调用 `analyze_road_traffic`。`strategy=upgrade` 使用批量升级，`parallel` 使用避障平行道路，`reroute` 使用带起终点的自动路径，`auto` 根据瓶颈建议选择升级或平行分流。每个动作都经过道路原生预览和 `build_road`，不会清车、拆路或自动回滚。
+- `repair_congested_corridor` 先调用 `analyze_road_traffic`。`strategy=upgrade` 在 2–64 条不重复道路且目标 prefab 相同的情况下合并为一次原生批量升级，`parallel` 使用避障平行道路，`reroute` 使用带起终点的单条自动路径，`auto` 只处理明确标记为 `upgrade_or_parallel_relief` 的瓶颈，跳过 `keep` 和 `monitor_or_optimize_intersection`。每个动作都经过道路原生预览和 `build_road`，不会清车、拆路或自动回滚。
 
-两个工具都返回逐阶段 `phases`、原生 `operation_id` 和费用；失败或 `outcome_unknown` 会停止后续写入。重复相同 `request_id` 与参数返回缓存结果，不同参数会报幂等冲突。
+两个工具都返回逐阶段 `phases`、原生 `operation_id` 和费用；每段开始前校验城市会话仍未变化，接驳会把 `max_total_cost` 的剩余额度传给底层提交。失败或 `outcome_unknown` 会停止后续写入。重复相同 `request_id` 与参数返回缓存结果，不同参数会报幂等冲突。
 
 ## 一次批量建设
 

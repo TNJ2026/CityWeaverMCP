@@ -4,11 +4,11 @@
 
 建筑功能使用游戏 `ToolOutputSystem` 的原生临时实体、错误组件和提交屏障。所有修改都采用预览、检查费用、提交、轮询的流程；只有 `completed` 表示永久实体已经验证。
 
-## 统一高层建筑工作流（MCP 1.20.0）
+## 统一高层建筑工作流（MCP 1.21.0）
 
 普通建筑、市政服务、公共交通设施和公用设施现在可共用四个 MCP 高层工具。它们由 MCP 进程编排现有原生事务，不是新的游戏内命令：
 
-- `plan_building_workflow`：用精确 `building_prefab` 和目标附近坐标发现所属领域，生成候选，跳过近似碰撞，依次执行原生预览直到一个候选进入 `preview_ready`，并附上可用的服务、教育、娱乐、标志性建筑或交通影响分析。它只保留临时预览，不永久施工。
+- `plan_building_workflow`：用精确 `building_prefab` 和目标附近坐标发现所属领域，生成候选，跳过近似碰撞，依次执行原生预览直到一个候选进入 `preview_ready`，并按 `consider_service_coverage` 附上可用的服务、教育、娱乐、标志性建筑或交通影响分析。关闭该选项可减少一次候选分析查询；它只保留临时预览，不永久施工。
 - `execute_building_plan`：用返回的 `plan_id` 和明确的 `max_cost` 提交，轮询到 `completed`，再用永久实体 ID 回读结果。默认恢复执行前模拟速度。
 - `cancel_building_plan`：取消尚未提交的临时预览。
 - `deploy_building_plans`：一次接收 1–32 项，每项串行完成规划、提交和回读；支持单项费用、每栋默认费用、总费用和遇错是否继续。

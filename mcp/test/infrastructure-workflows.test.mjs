@@ -47,6 +47,27 @@ test('utility backbone stops after outcome_unknown without trying later phases',
   assert.equal(calls.some(item => item.tool === 'preview_utility_network'), false);
 });
 
+test('utility backbone caps each connection by the remaining total budget', async () => {
+  const calls = [];
+  const query = async (tool, args) => {
+    calls.push({ tool, args });
+    if (tool === 'get_game_status') return response({ city_loaded: true, city_name: 'Test', paused: true, selected_speed: 0 });
+    throw new Error(`unexpected ${tool}`);
+  };
+  const workflow = createInfrastructureWorkflows(query, {
+    connectUtilityFacility: async args => ({ state: 'completed', cost: args.max_cost, facility_id: args.facility_id })
+  });
+  const result = await workflow.buildUtilityBackbone({
+    request_id: 'utility-backbone-budget', max_total_cost: 30, max_cost_per_connection: 100,
+    connections: [{ facility_id: entity(1) }, { facility_id: entity(2) }], resume_speed: 'original'
+  });
+  assert.equal(result.state, 'partial');
+  assert.equal(result.total_cost, 30);
+  assert.deepEqual(result.phases.map(item => item.state), ['completed', 'failed']);
+  assert.equal(result.phases[0].result.cost, 30);
+  assert.equal(result.phases[1].reason, 'COST_LIMIT_EXCEEDED');
+});
+
 test('congested corridor analyzes bottlenecks and applies upgrade idempotently', async () => {
   const calls = [];
   const query = async (tool, args) => {
@@ -67,6 +88,28 @@ test('congested corridor analyzes bottlenecks and applies upgrade idempotently',
   assert.deepEqual(calls.find(item => item.tool === 'preview_road_batch_upgrade').args.edge_ids, [entity(3)]);
 });
 
+test('congested corridor batches multiple upgrades into one native operation', async () => {
+  const calls = [];
+  const query = async (tool, args) => {
+    calls.push({ tool, args });
+    if (tool === 'get_game_status') return response({ city_loaded: true, city_name: 'Test', paused: true, selected_speed: 0 });
+    if (tool === 'analyze_road_traffic') return response({ items: [
+      { edge_id: entity(11), recommended_action: 'upgrade_or_parallel_relief' },
+      { edge_id: entity(12), recommended_action: 'upgrade_or_parallel_relief' }
+    ] });
+    if (tool === 'preview_road_batch_upgrade') return response({ operation_id: '6'.repeat(32), state: 'preview_ready', cost: 90 });
+    if (tool === 'build_road') return response({ operation_id: '6'.repeat(32), state: 'completed', cost: 90, created_road_ids: [entity(13), entity(14)] });
+    throw new Error(`unexpected ${tool}`);
+  };
+  const workflow = createInfrastructureWorkflows(query);
+  const result = await workflow.repairCongestedCorridor({ request_id: 'corridor-repair-batch', strategy: 'upgrade', road_prefab: 'Large Road', resume_speed: 'original' });
+  assert.equal(result.state, 'completed');
+  assert.equal(result.action_count, 1);
+  assert.deepEqual(calls.filter(item => item.tool === 'preview_road_batch_upgrade')[0].args.edge_ids, [entity(11), entity(12)]);
+  assert.equal(calls.filter(item => item.tool === 'preview_road_batch_upgrade').length, 1);
+  assert.equal(calls.filter(item => item.tool === 'build_road').length, 1);
+});
+
 test('congested corridor preserves failed preview and does not apply', async () => {
   const calls = [];
   const query = async (tool, args) => {
@@ -81,4 +124,43 @@ test('congested corridor preserves failed preview and does not apply', async () 
   assert.equal(result.state, 'partial');
   assert.equal(result.phases[0].state, 'outcome_unknown');
   assert.equal(calls.some(item => item.tool === 'build_road'), false);
+});
+
+test('congested auto skips roads that are only recommended for monitoring', async () => {
+  const calls = [];
+  const query = async (tool, args) => {
+    calls.push({ tool, args });
+    if (tool === 'get_game_status') return response({ city_loaded: true, city_name: 'Test', paused: true, selected_speed: 0 });
+    if (tool === 'analyze_road_traffic') return response({ items: [
+      { edge_id: entity(5), recommended_action: 'keep', priority_score: 1 },
+      { edge_id: entity(6), recommended_action: 'monitor_or_optimize_intersection', priority_score: 2 }
+    ] });
+    throw new Error(`unexpected ${tool}`);
+  };
+  const workflow = createInfrastructureWorkflows(query);
+  const result = await workflow.repairCongestedCorridor({ request_id: 'corridor-repair-skip', strategy: 'auto', road_prefab: 'Large Road', resume_speed: 'original' });
+  assert.equal(result.state, 'completed');
+  assert.equal(result.action_count, 0);
+  assert(result.phases.every(item => item.state === 'skipped'));
+  assert.equal(calls.some(item => item.tool.startsWith('preview_road')), false);
+});
+
+test('reroute strategy creates one corridor action even when analysis returns many roads', async () => {
+  const calls = [];
+  const query = async (tool, args) => {
+    calls.push({ tool, args });
+    if (tool === 'get_game_status') return response({ city_loaded: true, city_name: 'Test', paused: true, selected_speed: 0 });
+    if (tool === 'analyze_road_traffic') return response({ items: [
+      { edge_id: entity(7), recommended_action: 'upgrade_or_parallel_relief' },
+      { edge_id: entity(8), recommended_action: 'upgrade_or_parallel_relief' }
+    ] });
+    if (tool === 'preview_road_autoroute') return response({ operation_id: '5'.repeat(32), state: 'preview_ready', cost: 10 });
+    if (tool === 'build_road') return response({ operation_id: '5'.repeat(32), state: 'completed', cost: 10, created_road_ids: [entity(10)] });
+    throw new Error(`unexpected ${tool}`);
+  };
+  const workflow = createInfrastructureWorkflows(query);
+  const result = await workflow.repairCongestedCorridor({ request_id: 'corridor-repair-reroute', strategy: 'reroute', road_prefab: 'Large Road', start: { x: 0, z: 0 }, end: { x: 64, z: 0 }, resume_speed: 'original' });
+  assert.equal(result.state, 'completed');
+  assert.equal(result.analyzed_count, 2);
+  assert.equal(calls.filter(item => item.tool === 'preview_road_autoroute').length, 1);
 });

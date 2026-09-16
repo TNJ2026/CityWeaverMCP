@@ -67,6 +67,22 @@ test('missing bridge is explicit', async t => {
   await assert.rejects(queryGame('get_game_status', {}, { endpointPath: path.join(directory, 'missing.json') }), { code: 'BRIDGE_NOT_FOUND' });
 });
 
+test('connection failure invalidates cached endpoint for immediate rediscovery', async t => {
+  const response = { ok: true, meta: { session_id: 'restarted' }, data: { connected: true } };
+  const { endpointPath, endpoint } = await fixture(t, socket => socket.end(JSON.stringify(response) + '\n'));
+  const unavailable = net.createServer();
+  unavailable.listen(0, '127.0.0.1');
+  await once(unavailable, 'listening');
+  const unavailablePort = unavailable.address().port;
+  await new Promise(resolve => unavailable.close(resolve));
+
+  await writeFile(endpointPath, JSON.stringify({ ...endpoint, port: unavailablePort }));
+  await assert.rejects(queryGame('get_game_status', {}, { endpointPath }), { code: 'GAME_UNAVAILABLE' });
+
+  await writeFile(endpointPath, JSON.stringify(endpoint));
+  assert.deepEqual(await queryGame('get_game_status', {}, { endpointPath }), response);
+});
+
 test('deadline aborts unresponsive game', async t => {
   const { endpointPath } = await fixture(t, () => {});
   await assert.rejects(queryGame('get_game_status', {}, { endpointPath, timeoutMs: 30 }), { code: 'GAME_TIMEOUT' });

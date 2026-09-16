@@ -11,13 +11,28 @@ export function defaultEndpointPath() {
   return process.env.CSII_BRIDGE_FILE || path.join(os.homedir(), 'AppData', 'LocalLow', 'Colossal Order', 'Cities Skylines II', 'ModsData', 'CitiesSkylines2Mod', 'bridge.json');
 }
 
-export async function queryGame(tool, args = {}, options = {}) {
-  let endpoint;
-  try { endpoint = JSON.parse(await readFile(options.endpointPath || defaultEndpointPath(), 'utf8')); }
-  catch (error) {
+const endpointCache = new Map();
+const ENDPOINT_CACHE_TTL_MS = 100;
+
+async function readEndpoint(endpointPath) {
+  const now = Date.now();
+  const cached = endpointCache.get(endpointPath);
+  if (cached && now - cached.loadedAt < ENDPOINT_CACHE_TTL_MS) return cached.endpoint;
+  try {
+    const endpoint = JSON.parse(await readFile(endpointPath, 'utf8'));
+    endpointCache.set(endpointPath, { endpoint, loadedAt: now });
+    return endpoint;
+  } catch (error) {
+    endpointCache.delete(endpointPath);
     throw new BridgeError(error.code === 'ENOENT' ? 'BRIDGE_NOT_FOUND' : 'INVALID_ENDPOINT',
       error.code === 'ENOENT' ? 'Game query bridge is not running. Start the game with the updated mod.' : 'Cannot read bridge endpoint metadata. Restart the game.');
   }
+}
+
+export async function queryGame(tool, args = {}, options = {}) {
+  const endpointPath = options.endpointPath || defaultEndpointPath();
+  let endpoint;
+  endpoint = await readEndpoint(endpointPath);
   if (endpoint.protocol_version !== 1 || endpoint.host !== '127.0.0.1' ||
       !Number.isInteger(endpoint.port) || endpoint.port < 1 || endpoint.port > 65535 ||
       typeof endpoint.token !== 'string' || !/^[A-Za-z0-9+/]{43}=$/.test(endpoint.token)) {
@@ -39,7 +54,10 @@ export async function queryGame(tool, args = {}, options = {}) {
     };
     const timer = setTimeout(() => finish(new BridgeError('GAME_TIMEOUT', 'Game did not answer in time. Wait for loading to finish.')), options.timeoutMs ?? 14000);
     socket.on('connect', () => socket.write(payload));
-    socket.on('error', () => finish(new BridgeError('GAME_UNAVAILABLE', 'Cannot connect to the game query bridge. It may have exited; restart the game if needed.')));
+    socket.on('error', () => {
+      endpointCache.delete(endpointPath);
+      finish(new BridgeError('GAME_UNAVAILABLE', 'Cannot connect to the game query bridge. It may have exited; restart the game if needed.'));
+    });
     socket.on('end', () => finish(new BridgeError('INCOMPLETE_RESPONSE', 'Game bridge closed without a complete response.')));
     socket.on('data', chunk => {
       size += chunk.length;

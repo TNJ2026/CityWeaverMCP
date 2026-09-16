@@ -42,6 +42,7 @@ test('discovers native port, retries rejected preview, commits and restores spee
   assert.equal(result.attempts.length, 1);
   assert.deepEqual(calls.filter(call => call.tool === 'set_simulation_speed').map(call => call.input.speed), ['paused', 'fast']);
   assert.equal(calls.filter(call => call.tool === 'preview_utility_network').length, 2);
+  assert.equal(calls.filter(call => call.tool === 'list_utility_network_prefabs').length, 0, 'native targets provide the exact prefab without a full enumeration');
   const again = await workflow.connect(args);
   assert.deepEqual(again, result);
   assert.equal(calls.filter(call => call.tool === 'preview_utility_network').length, 2, 'idempotent retry does not resubmit native preview');

@@ -91,6 +91,21 @@ test('auto discovery prefers city-service workflow and supports cancellation', a
   assert.equal(calls.filter(call => call.tool === 'cancel_city_service_preview').length, 1);
 });
 
+test('building workflow skips optional service impact analysis when disabled', async () => {
+  const query = async (tool, args) => {
+    if (tool === 'get_game_status') return response({ city_loaded: true, city_name: 'Fixture City', paused: true, selected_speed: 0 });
+    if (tool === 'list_city_service_prefabs') return response({ items: [{ name: 'FixtureSchool', kind: 'education', placement_flags: 'RoadSide, OnGround' }] });
+    if (tool === 'plan_city_service_site') return response({ candidates: [{ position: { x: 50, y: 5, z: 60 }, road_edge_id: edgeId, rotation_degrees: 0, approximate_collision: false }] });
+    if (tool === 'preview_city_service_placement') return response({ operation_id: '7'.repeat(32), state: 'preview_ready', cost: 5000 });
+    if (tool.startsWith('analyze_')) throw new Error('impact analysis should be disabled');
+    throw new Error(`Unexpected tool ${tool}`);
+  };
+  const workflow = createBuildingWorkflow(query);
+  const plan = await workflow.createPlan(planningArgs({ request_id: 'workflow-no-impact-001', building_prefab: 'FixtureSchool', category: 'city_service', consider_service_coverage: false }));
+  assert.equal(plan.state, 'preview_ready');
+  assert.equal(plan.impact, null);
+});
+
 test('execution recovers an already completed native operation and reads it back', async () => {
   const entityId = `${sessionId}:30:1`;
   let paused = false;

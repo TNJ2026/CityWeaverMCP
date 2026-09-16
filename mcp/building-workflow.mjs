@@ -47,12 +47,15 @@ export function createBuildingWorkflow(queryGame = liveQueryGame) {
     try { return await fn(); } finally { release(); }
   };
 
-  async function waitOperation(config, operationId, target, timeoutMs) {
+  async function waitOperation(config, operationId, target, timeoutMs, expectedSessionId) {
     const started = Date.now();
     let delay = 50;
     let last;
     while (Date.now() - started < timeoutMs) {
-      last = (await queryGame(config.get, { operation_id: operationId })).data;
+      const envelope = await queryGame(config.get, { operation_id: operationId });
+      const actualSessionId = envelope.meta?.session_id || envelope.data?.session_id;
+      if (expectedSessionId && actualSessionId && actualSessionId !== expectedSessionId) throw new BridgeError('CITY_SESSION_CHANGED', 'The loaded city session changed while waiting for the building operation.');
+      last = envelope.data;
       if (last?.state === target) return last;
       if (FAILURE_STATES.has(last?.state)) return last;
       await sleep(delay);
@@ -81,7 +84,8 @@ export function createBuildingWorkflow(queryGame = liveQueryGame) {
     return match;
   }
 
-  async function analyze(category, prefab, candidate, radius) {
+  async function analyze(category, prefab, candidate, radius, enabled = true) {
+    if (category === 'city_service' && !enabled) return null;
     const position = { x: candidate.position.x, z: candidate.position.z };
     try {
       if (category === 'transport_facility') return (await queryGame('analyze_transport_catchment', { position, radius_m: radius })).data;
@@ -153,7 +157,7 @@ export function createBuildingWorkflow(queryGame = liveQueryGame) {
           try {
             const queued = await queryGame(previewTool, previewArgs);
             operation = queued.data?.state === 'preview_ready' ? queued.data
-              : await waitOperation(config, queued.data.operation_id, 'preview_ready', args.operation_timeout_ms);
+              : await waitOperation(config, queued.data.operation_id, 'preview_ready', args.operation_timeout_ms, sessionId);
           } catch (error) {
             attempts.push({ candidate_index: index, state: 'error', error: error instanceof BridgeError ? `${error.code}: ${error.message}` : error.message });
             continue;
@@ -163,7 +167,7 @@ export function createBuildingWorkflow(queryGame = liveQueryGame) {
             continue;
           }
           const planId = id('bplan');
-          const impact = await analyze(discovered.category, discovered.prefab, candidate, args.impact_radius_m);
+          const impact = await analyze(discovered.category, discovered.prefab, candidate, args.impact_radius_m, args.consider_service_coverage);
           const publicPlan = {
             plan_id: planId, state: 'preview_ready', session_id: sessionId, city: status.city_name,
             category: discovered.category, building_prefab: args.building_prefab, prefab: discovered.prefab,
@@ -215,7 +219,7 @@ export function createBuildingWorkflow(queryGame = liveQueryGame) {
     stored.executionRequestId = executionRequestId;
     const applied = await queryGame(stored.config.apply, { operation_id: plan.operation_id, request_id: stored.previewRequestId, max_cost: maxCost });
     const done = applied.data?.state === 'completed' ? applied.data
-      : await waitOperation(stored.config, plan.operation_id, 'completed', stored.operationTimeoutMs);
+      : await waitOperation(stored.config, plan.operation_id, 'completed', stored.operationTimeoutMs, stored.public.session_id);
     return readBack(done);
   }
 

@@ -92,7 +92,7 @@
 
 ## 放置、移动、升级和拆除
 
-新增设施优先使用 MCP 1.20.0 的统一高层流程：`plan_building_workflow` 会自动把学校、医院、公园等识别为 `city_service`，选址并调用对应覆盖分析；检查计划后用 `execute_building_plan` 提交。不需要人工审阅每个候选时，可用 `deploy_building_plans` 串行部署最多 32 个设施。未提交计划用 `cancel_building_plan` 释放。计划仅在当前 MCP 进程和城市会话内有效，仍受原生预览约五分钟有效期限制。
+新增设施优先使用 MCP 1.21.0 的统一高层流程：`plan_building_workflow` 会自动把学校、医院、公园等识别为 `city_service`，选址并按 `consider_service_coverage` 决定是否调用对应覆盖分析；检查计划后用 `execute_building_plan` 提交。不需要人工审阅每个候选时，可用 `deploy_building_plans` 串行部署最多 32 个设施。未提交计划用 `cancel_building_plan` 释放。计划仅在当前 MCP 进程和城市会话内有效，仍受原生预览约五分钟有效期限制。
 
 教育设施使用 `analyze_education_demand`，公园/娱乐设施使用 `analyze_attraction_impact`，其他服务设施使用 `analyze_service_coverage`。这些结果是选址代理；容量、道路可达性、专用网络、噪声/污染和模拟后的真实效果仍需结合 prefab 数据、原生预览与建成后状态判断。移动、升级和拆除继续使用下述领域工具。
 

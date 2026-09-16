@@ -28,7 +28,7 @@
 22. `preview_road_interchange` 接收两条平面投影相交、高差至少 4 米的永久道路，自动选择对称接入点并生成四条三次贝塞尔匝道。`ramp_distance_m` 为 32–160 米；规划器延长曲线控制柄来满足匝道坡度，四条匝道共用一次原生事务。
 23. `preview_road_parking` 以 `none`、`parallel` 或 `angled` 把同一道路家族切换到游戏提供的原生停车变体。它会真正改变车道布局；没有对应变体、变体未解锁或一次请求混入多个道路家族时直接拒绝。停车费是行政区政策，不属于单条道路。
 24. `inspect_road_lanes` 返回实际子车道、速度、转向、公交专用、流量和瓶颈数据。停车同时报告记录总数及 `usable_parking_lane_count`；普通道路可能拥有 `VirtualLane` 停车占位，只有非虚拟且未禁用的记录计入可用停车道。`analyze_road_traffic` 可按瓶颈、车道流量偏移和累计交通数据排序并给出扩容、平行分流或路口优化建议。
-25. `repair_congested_corridor` 是拥堵修复高层流程：先分析瓶颈，再按 `upgrade`、`parallel`、`reroute` 或 `auto` 串行执行原生道路预览与 `build_road`。`reroute` 必须提供起终点；`parallel` 可设置方向、间距和避障；`upgrade` 使用一个目标道路 prefab。工具不拆除原路、不清车、不改限速，也不在 `outcome_unknown` 时换 request ID 重提。
+25. `repair_congested_corridor` 是拥堵修复高层流程：先分析瓶颈，再按 `upgrade`、`parallel`、`reroute` 或 `auto` 执行原生道路预览与 `build_road`。`upgrade` 对 2–64 条不重复道路会合并为一次 `preview_road_batch_upgrade`，避免前一条升级后后续旧 edge ID 失效；`reroute` 必须提供起终点且只为走廊创建一次绕行；`parallel` 可设置方向、间距和避障。`auto` 会跳过 `keep` 与 `monitor_or_optimize_intersection`，只对明确的扩容/分流瓶颈执行写入。工具不拆除原路、不清车、不改限速，也不在 `outcome_unknown` 时换 request ID 重提。
 26. `preview_road_policies` 原子修改道路名及选定汽车车道的限速、公交专用和转向旗标。提交前再次比对预览快照；任一目标变化会拒绝整批提交，写入中出错会回滚已写项目。路边停车使用 `preview_road_parking`。
 26. `preview_road_undo` 对同一城市会话内已完成的独立新路、拆除、反向、同源预制件升级和直接策略生成精确逆操作。拆分既有道路的创建操作会被安全拒绝自动撤销，因为游戏的完成集合包含既有道路替换片段；这类操作应按返回道路类型和目标显式拆除。
 27. `preview_road_elevation` 输入 1–64 个永久道路 `edge_ids` 和 `clearance_m`，按实时地形高度整体移动道路中心线。它保留道路的平面曲线、预制件、边实体及共享节点拓扑；提交时原子更新所有唯一节点、四点贝塞尔曲线和高程组件，并触发游戏重建道路几何与车道。预览后任一节点变化会拒绝提交，写入异常会恢复原节点、曲线和高程。地面道路完成更新后，游戏可能自动把紧邻地形贴合到道路基底；高架桥仍应使用新建道路的 8 米以上 `elevation_m`。

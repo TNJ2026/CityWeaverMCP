@@ -26,11 +26,13 @@ export function createInfrastructureWorkflows(queryGame = liveQueryGame, depende
     try { return await fn(); } finally { release(); }
   };
 
-  async function waitOperation(tool, operationId, timeoutMs) {
+  async function waitOperation(tool, operationId, timeoutMs, expectedSessionId) {
     if (!operationId) throw workflowError('MISSING_OPERATION_ID', `Native ${tool} response did not include operation_id.`);
     const started = Date.now(); let delay = 100; let last;
     while (Date.now() - started < timeoutMs) {
-      last = (await queryGame(tool, { operation_id: operationId })).data;
+      const envelope = await queryGame(tool, { operation_id: operationId });
+      checkResponseSession(expectedSessionId, envelope);
+      last = envelope.data;
       if (TERMINAL_FAILURES.has(last?.state) || last?.state === 'preview_ready' || last?.state === 'completed') return last;
       await sleep(delay); delay = Math.min(800, Math.round(delay * 1.5));
     }
@@ -51,6 +53,24 @@ export function createInfrastructureWorkflows(queryGame = liveQueryGame, depende
     }
   }
 
+  async function assertCitySession(expectedSessionId) {
+    const envelope = await queryGame('get_game_status', {});
+    const status = envelope.data || {};
+    if (!status.city_loaded) throw workflowError('CITY_NOT_READY', 'The playable city was unloaded during the workflow.');
+    const actualSessionId = sessionIdOf(envelope);
+    if (expectedSessionId && actualSessionId && actualSessionId !== expectedSessionId) {
+      throw workflowError('CITY_SESSION_CHANGED', 'The loaded city session changed during the workflow; stop and re-discover entity IDs.');
+    }
+    return envelope;
+  }
+
+  const checkResponseSession = (expectedSessionId, envelope) => {
+    const actualSessionId = sessionIdOf(envelope);
+    if (expectedSessionId && actualSessionId && actualSessionId !== expectedSessionId) {
+      throw workflowError('CITY_SESSION_CHANGED', 'The loaded city session changed during the workflow; stop and re-discover entity IDs.');
+    }
+  };
+
   function checkIdempotency(requestId, fingerprint) {
     const prior = requests.get(requestId);
     if (prior && prior.fingerprint !== fingerprint) throw workflowError('IDEMPOTENCY_CONFLICT', 'request_id was already used with different workflow arguments.');
@@ -64,16 +84,28 @@ export function createInfrastructureWorkflows(queryGame = liveQueryGame, depende
         const phases = []; let totalCost = 0; let stopped = false;
         for (const [index, item] of (args.connections || []).entries()) {
           if (stopped) break;
+          await assertCitySession(sessionId);
           const requestId = childRequestId(args.request_id, `connection-${index + 1}`);
+          const totalLimit = args.max_total_cost ?? Number.MAX_SAFE_INTEGER;
+          const remaining = totalLimit - totalCost;
+          if (remaining <= 0) {
+            phases.push({ phase: 'connection', index, state: 'failed', reason: 'COST_LIMIT_EXCEEDED', request_id: requestId });
+            stopped = true; break;
+          }
           try {
             const connected = await connectUtilityFacility({ ...item, request_id: requestId,
               operation_timeout_ms: item.operation_timeout_ms ?? args.operation_timeout_ms,
-              max_cost: item.max_cost ?? args.max_cost_per_connection,
+              max_cost: Math.min(item.max_cost ?? args.max_cost_per_connection, remaining),
               search_radius_m: item.search_radius_m ?? args.search_radius_m,
               max_preview_attempts: item.max_preview_attempts ?? args.max_preview_attempts,
               routing: item.routing ?? args.routing });
             phases.push({ phase: 'connection', index, state: connected.state, result: connected, request_id: requestId });
             totalCost += connected.cost || 0;
+            if (totalCost > totalLimit) {
+              phases.at(-1).state = 'partial';
+              phases.at(-1).reason = 'COST_LIMIT_EXCEEDED';
+              stopped = true;
+            }
             if (connected.state !== 'completed') stopped = true;
           } catch (error) {
             const state = error?.code === 'OUTCOME_UNKNOWN' ? 'outcome_unknown' : 'failed';
@@ -83,12 +115,14 @@ export function createInfrastructureWorkflows(queryGame = liveQueryGame, depende
         }
         if (!stopped) {
           for (const [index, item] of (args.segments || []).entries()) {
+            await assertCitySession(sessionId);
             const requestId = childRequestId(args.request_id, `segment-${index + 1}`);
             let operation;
             try {
               const preview = await queryGame('preview_utility_network', { request_id: requestId, utility_prefab: item.utility_prefab || args.utility_prefab, points: item.points });
+              checkResponseSession(sessionId, preview);
               operation = preview.data?.state && (preview.data.state === 'preview_ready' || TERMINAL_FAILURES.has(preview.data.state))
-                ? preview.data : await waitOperation('get_utility_operation', preview.data?.operation_id, args.operation_timeout_ms);
+                ? preview.data : await waitOperation('get_utility_operation', preview.data?.operation_id, args.operation_timeout_ms, sessionId);
             } catch (error) {
               phases.push({ phase: 'segment', index, state: error?.code === 'OUTCOME_UNKNOWN' ? 'outcome_unknown' : 'failed', request_id: requestId, error: error instanceof BridgeError ? `${error.code}: ${error.message}` : error.message });
               stopped = true; break;
@@ -104,7 +138,8 @@ export function createInfrastructureWorkflows(queryGame = liveQueryGame, depende
             }
             try {
               const applied = await queryGame('apply_utility_operation', { operation_id: operation.operation_id, request_id: requestId, max_cost: item.max_cost ?? args.max_cost_per_segment });
-              const completed = applied.data?.state === 'completed' ? applied.data : await waitOperation('get_utility_operation', operation.operation_id, args.operation_timeout_ms);
+              checkResponseSession(sessionId, applied);
+              const completed = applied.data?.state === 'completed' ? applied.data : await waitOperation('get_utility_operation', operation.operation_id, args.operation_timeout_ms, sessionId);
               phases.push({ phase: 'segment', index, state: completed.state, request_id: requestId, operation_id: operation.operation_id, result_edge_ids: completed.result_edge_ids || [], cost: completed.cost || cost, errors: completed.errors || [] });
               totalCost += completed.cost || cost;
               if (completed.state !== 'completed') { stopped = true; break; }
@@ -126,9 +161,54 @@ export function createInfrastructureWorkflows(queryGame = liveQueryGame, depende
     return exclusive(async () => {
       const result = await withPausedCity(async ({ status, sessionId }) => {
         const analysis = await queryGame('analyze_road_traffic', { edge_ids: args.edge_ids, limit: args.limit });
-        const items = analysis.data?.items || []; const phases = []; let totalCost = 0;
+        checkResponseSession(sessionId, analysis);
+        const analyzedItems = analysis.data?.items || [];
+        const items = args.strategy === 'reroute' ? analyzedItems.slice(0, 1) : analyzedItems;
+        const phases = []; let totalCost = 0;
+        const batchUpgrade = items.length > 1 && items.length <= 64
+          && new Set(items.map(item => item.edge_id)).size === items.length
+          && (args.strategy === 'upgrade' || (args.strategy === 'auto' && items.every(item => item.recommended_action === 'upgrade_or_parallel_relief')));
+        if (batchUpgrade) {
+          await assertCitySession(sessionId);
+          const requestId = childRequestId(args.request_id, 'upgrade-batch');
+          let operation;
+          try {
+            const preview = await queryGame('preview_road_batch_upgrade', { request_id: requestId, edge_ids: items.map(item => item.edge_id), road_prefab: args.road_prefab });
+            checkResponseSession(sessionId, preview);
+            operation = preview.data?.state && (preview.data.state === 'preview_ready' || TERMINAL_FAILURES.has(preview.data.state))
+              ? preview.data : await waitOperation('get_road_operation', preview.data?.operation_id, args.operation_timeout_ms, sessionId);
+          } catch (error) {
+            phases.push({ phase: 'repair', strategy: 'upgrade', edge_ids: items.map(item => item.edge_id), state: error?.code === 'OUTCOME_UNKNOWN' ? 'outcome_unknown' : 'failed', request_id: requestId, operation_id: error.operation_id, error: error instanceof BridgeError ? `${error.code}: ${error.message}` : error.message });
+            return { state: 'partial', workflow: 'repair_congested_corridor', city: status.city_name, session_id: sessionId, analyzed_count: analyzedItems.length, action_count: 1, total_cost: 0, phases };
+          }
+          if (operation.state !== 'preview_ready') {
+            phases.push({ phase: 'repair', strategy: 'upgrade', edge_ids: items.map(item => item.edge_id), state: operation.state, request_id: requestId, operation_id: operation.operation_id, errors: operation.errors || [] });
+            return { state: 'partial', workflow: 'repair_congested_corridor', city: status.city_name, session_id: sessionId, analyzed_count: analyzedItems.length, action_count: 1, total_cost: 0, phases };
+          }
+          const cost = operation.cost || 0;
+          if (cost > (args.max_cost_per_action ?? Number.MAX_SAFE_INTEGER) || cost > (args.max_total_cost ?? Number.MAX_SAFE_INTEGER)) {
+            phases.push({ phase: 'repair', strategy: 'upgrade', edge_ids: items.map(item => item.edge_id), state: 'failed', reason: 'COST_LIMIT_EXCEEDED', request_id: requestId, operation_id: operation.operation_id, cost });
+            return { state: 'partial', workflow: 'repair_congested_corridor', city: status.city_name, session_id: sessionId, analyzed_count: analyzedItems.length, action_count: 1, total_cost: 0, phases };
+          }
+          try {
+            const applied = await queryGame('build_road', { operation_id: operation.operation_id, request_id: requestId, max_cost: args.max_cost_per_action });
+            checkResponseSession(sessionId, applied);
+            const completed = applied.data?.state === 'completed' ? applied.data : await waitOperation('get_road_operation', operation.operation_id, args.operation_timeout_ms, sessionId);
+            phases.push({ phase: 'repair', strategy: 'upgrade', edge_ids: items.map(item => item.edge_id), state: completed.state, request_id: requestId, operation_id: operation.operation_id, created_road_ids: completed.created_road_ids || [], cost: completed.cost || cost, errors: completed.errors || [] });
+            totalCost = completed.cost || cost;
+          } catch (error) {
+            phases.push({ phase: 'repair', strategy: 'upgrade', edge_ids: items.map(item => item.edge_id), state: error?.code === 'OUTCOME_UNKNOWN' ? 'outcome_unknown' : 'failed', request_id: requestId, operation_id: operation.operation_id, error: error instanceof BridgeError ? `${error.code}: ${error.message}` : error.message });
+          }
+          const failed = phases.some(item => ['failed', 'outcome_unknown', 'cancelled', 'expired'].includes(item.state));
+          return { state: failed ? 'partial' : 'completed', workflow: 'repair_congested_corridor', city: status.city_name, session_id: sessionId, analyzed_count: analyzedItems.length, action_count: 1, total_cost: totalCost, phases };
+        }
         for (const [index, item] of items.entries()) {
           const strategy = args.strategy === 'auto' ? (item.recommended_action === 'upgrade_or_parallel_relief' ? 'upgrade' : 'parallel') : args.strategy;
+          if (args.strategy === 'auto' && item.recommended_action !== 'upgrade_or_parallel_relief') {
+            phases.push({ phase: 'repair', index, edge_id: item.edge_id, strategy: 'none', state: 'skipped', reason: item.recommended_action || 'NOT_ACTIONABLE' });
+            continue;
+          }
+          await assertCitySession(sessionId);
           const requestId = childRequestId(args.request_id, `action-${index + 1}`);
           let operation;
           try {
@@ -137,8 +217,9 @@ export function createInfrastructureWorkflows(queryGame = liveQueryGame, depende
             else if (strategy === 'parallel') preview = await queryGame('preview_road_parallel', { request_id: requestId, edge_ids: [item.edge_id], side: args.side, offset_m: args.offset_m, max_offset_m: args.max_offset_m, road_prefab: args.road_prefab, avoid_obstacles: args.avoid_obstacles });
             else if (strategy === 'reroute') preview = await queryGame('preview_road_autoroute', { request_id: requestId, road_prefab: args.road_prefab, start: args.start, end: args.end, strategy: 'balanced', grid_size_m: args.grid_size_m, max_detour_m: args.max_detour_m, zoning_alignment: args.zoning_alignment });
             else throw workflowError('INVALID_WORKFLOW_INPUT', `Unsupported repair strategy ${strategy}.`);
+            checkResponseSession(sessionId, preview);
             operation = preview.data?.state && (preview.data.state === 'preview_ready' || TERMINAL_FAILURES.has(preview.data.state))
-              ? preview.data : await waitOperation('get_road_operation', preview.data?.operation_id, args.operation_timeout_ms);
+              ? preview.data : await waitOperation('get_road_operation', preview.data?.operation_id, args.operation_timeout_ms, sessionId);
           } catch (error) {
             phases.push({ phase: 'repair', index, edge_id: item.edge_id, strategy, state: error?.code === 'OUTCOME_UNKNOWN' ? 'outcome_unknown' : 'failed', request_id: requestId, operation_id: error.operation_id, error: error instanceof BridgeError ? `${error.code}: ${error.message}` : error.message });
             break;
@@ -148,7 +229,8 @@ export function createInfrastructureWorkflows(queryGame = liveQueryGame, depende
           if (cost > (args.max_cost_per_action ?? Number.MAX_SAFE_INTEGER) || totalCost + cost > (args.max_total_cost ?? Number.MAX_SAFE_INTEGER)) { phases.push({ phase: 'repair', index, edge_id: item.edge_id, strategy, state: 'failed', reason: 'COST_LIMIT_EXCEEDED', request_id: requestId, operation_id: operation.operation_id, cost }); break; }
           try {
             const applied = await queryGame('build_road', { operation_id: operation.operation_id, request_id: requestId, max_cost: args.max_cost_per_action });
-            const completed = applied.data?.state === 'completed' ? applied.data : await waitOperation('get_road_operation', operation.operation_id, args.operation_timeout_ms);
+            checkResponseSession(sessionId, applied);
+            const completed = applied.data?.state === 'completed' ? applied.data : await waitOperation('get_road_operation', operation.operation_id, args.operation_timeout_ms, sessionId);
             phases.push({ phase: 'repair', index, edge_id: item.edge_id, strategy, state: completed.state, request_id: requestId, operation_id: operation.operation_id, created_road_ids: completed.created_road_ids || [], cost: completed.cost || cost, errors: completed.errors || [] });
             totalCost += completed.cost || cost;
             if (completed.state !== 'completed') break;
@@ -157,7 +239,7 @@ export function createInfrastructureWorkflows(queryGame = liveQueryGame, depende
           }
         }
         const failed = phases.some(item => ['failed', 'outcome_unknown', 'cancelled', 'expired'].includes(item.state));
-        return { state: failed || phases.length < items.length ? 'partial' : 'completed', workflow: 'repair_congested_corridor', city: status.city_name, session_id: sessionId, analyzed_count: items.length, total_cost: totalCost, phases };
+        return { state: failed || phases.length < items.length ? 'partial' : 'completed', workflow: 'repair_congested_corridor', city: status.city_name, session_id: sessionId, analyzed_count: analyzedItems.length, action_count: phases.filter(item => item.state !== 'skipped').length, total_cost: totalCost, phases };
       }, args.resume_speed);
       requests.set(args.request_id, { fingerprint, result }); return result;
     });

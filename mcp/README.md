@@ -82,7 +82,7 @@ entity_id 包含城市会话与实体版本，切换/重新加载存档会失效
 %USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\ModsData\CitiesSkylines2Mod\bridge.json
 ```
 
-MCP 每次请求重新读取该文件，支持游戏重启后重连。这个文件是连接凭据，不要提交到仓库或粘贴到对话。测试时可通过环境变量 `CSII_BRIDGE_FILE` 指定其他端点文件。
+MCP 对该文件使用 100ms 的短时缓存，以减少高频工具调用中的重复磁盘读取；缓存到期后重新读取，连接失败时立即失效并在下一次请求读取新端点，因此仍支持游戏重启后快速重连。这个文件是连接凭据，不要提交到仓库或粘贴到对话。测试时可通过环境变量 `CSII_BRIDGE_FILE` 指定其他端点文件。
 
 每条请求是一行 JSON，包含 protocol_version=1、token、tool、arguments；每连接只处理一条请求。请求限制 8 KiB，客户端响应限制 2 MiB；最多 8 个并发连接，队列限制 32 条附近（并发入队最多额外 7 条），每次主线程回调最多处理两条。查询等候 10 秒超时。网络线程不访问 ECS；暂停游戏仍可通过主线程 dispatcher 响应，加载和退出期间明确报错。
 
