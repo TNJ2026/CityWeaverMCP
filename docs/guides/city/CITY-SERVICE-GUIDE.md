@@ -122,3 +122,6 @@
 垃圾填埋场属于带区域/从属对象的特殊设施。一次对其升级模块执行移除时游戏进程退出，因此该特定组合不作为已验证支持；普通消防站升级移除已经通过。灾害触发、渡轮航线依赖设施以及需要先建设地铁轨道的 `RoadEdge` 建筑仍依赖对应游戏条件，不由本批接口自动创建这些前置网络。
 
 可重复测试脚本位于 `mcp/smoke-city-services-live.mjs`、`mcp/smoke-city-services-transactions.mjs` 和 `mcp/smoke-city-service-upgrade-cycle.mjs`。
+# 高层组团部署
+
+需要一次放置多座警察、消防、医院、学校、邮政或其他公共服务设施时，使用 `deploy_service_cluster`。它会逐座执行覆盖/需求分析、候选选址、原生 preview/apply 和实体回读；可选 `district_ids` 会在设施完成后设置服务行政区。返回 `phases`/`results` 和费用，失败或 `outcome_unknown` 会停止后续阶段，不能换 `request_id` 盲目重提。

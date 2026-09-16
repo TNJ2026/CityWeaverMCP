@@ -10,6 +10,16 @@ node tools/survey-space.mjs --auto-find residential --anchor -1138,528 --mode qu
 
 `quick` 模式并发读取地块、地形、风和污染，但不分页扫描全城建筑；报告会显示 `UNVERIFIED`。把候选点交给道路或建筑原生 preview 后，才能确认没有实体碰撞。首次选址、复杂旧城或需要列出冲突建筑时使用 `--mode full`。
 
+## 领域高层编排
+
+当一次请求跨越多个建设阶段时，使用 MCP 高层工具而不是在客户端并发拼接底层调用：
+
+- `deploy_service_cluster`：按服务建筑逐项完成影响分析、选址、原生预览、提交和回读，可将完成的设施分配到指定行政区。
+- `deploy_industrial_campus`：先建工业网格，再建可选工业建筑，最后为已建成 owner 创建填埋储存区或专门产业采集区；区域 prefab 必须来自 `list_building_areas`。
+- `deploy_transit_corridor`：先放交通设施，再创建轨道，最后按真实 `stop_ids` 创建线路。
+
+三个工具都保持写事务串行，返回 `phases` 和费用。某阶段 `failed`、`cancelled`、`expired` 或 `outcome_unknown` 时停止后续阶段；未知结果只能查询原 operation，不能换新的 `request_id` 盲目重试。它们不执行跨领域自动拆除或退款回滚，恢复速度只在流程结束时按 `resume_speed` 处理。
+
 ## 一次批量建设
 
 ### MCP 高层工具

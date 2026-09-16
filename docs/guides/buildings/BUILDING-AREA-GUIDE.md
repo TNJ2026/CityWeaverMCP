@@ -45,3 +45,6 @@ CityWeaverMCP 1.20.0 提供独立的建筑附属区域事务，适用于垃圾�
 - 区域 prefab 必须来自 owner 建筑 prefab 的原生声明。不要用行政区或 zoning 替代，也不要通过通用 ECS 直接改写永久 `Owner`、`SubArea` 或 `Node`。
 - `list_building_areas` 的 `resource_amount`、`max_concentration`、`stored_amount` 等是当前模拟值。创建完成只证明边界已提交；必须运行模拟后再判断产量、容量利用率和实际效果。
 - 该工具不自动铺路、建货运网络、清理污染、购买地图格或调整地形。缺少前置条件时先处理对应领域，再重新预览。
+# 工业园高层流程
+
+`deploy_industrial_campus` 将工业网格、工业建筑和附属区域串成固定顺序。`areas[].building_id` 或 `building_index` 指定 owner；省略 `area_prefab` 时工具读取 `list_building_areas` 的 `available_area_prefabs`，不会猜测 prefab。每个区域仍单独 preview/apply，阶段结果和 `result_area_id` 会返回；失败不触发自动拆除。

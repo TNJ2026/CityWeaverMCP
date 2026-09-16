@@ -9,12 +9,13 @@
 | 道路与路口 | `list_road_prefabs`、`preview_road`、`preview_road_route`、`preview_road_grid`、`preview_road_autoroute`；曲线、平行路、环路、自动接入、立交、高架/隧道、升级、拆除、反向、装饰、停车变体、路口规则、道路政策和部分撤销 | `docs/guides/roads/ROAD-GUIDE.md` |
 | 建筑 | `list_building_prefabs`、`plan_building_workflow`、`execute_building_plan`、`deploy_building_plans`、`plan_building_site`、`plan_building_row`、`preview_building_placement`；支持端到端编排放置、批量、移动、替换、升级/移除、重建、拆除、命名与政策 | `docs/guides/buildings/BUILDING-GUIDE.md` |
 | 建筑附属区域 | `list_building_areas`、`preview_building_area`、`get_building_area_operation`、`apply_building_area_operation`；填埋储存区、专门产业采集区及其他 owner prefab 允许的区域 | `docs/guides/buildings/BUILDING-AREA-GUIDE.md` |
+| 高层建设编排 | `deploy_industrial_campus` 固定工业网格、工业建筑和 owner 附属区域顺序；`deploy_transit_corridor` 固定交通设施、轨道、线路顺序；阶段失败停止后续阶段 | `docs/workflows/efficient-deployment.md` |
 | 土地分区 | `analyze_zoning_cells`、`preview_zoning`、`apply_zoning`；按道路侧向、深度筛选，批量划区、替换、清除 | `docs/guides/areas/ZONING-GUIDE.md` |
 | 行政区 | 边界创建、重画、删除、命名、政策、点定位和服务覆盖；`set_district_name`、`set_district_policy`、`set_service_districts` | `docs/guides/areas/DISTRICT-GUIDE.md` |
 | 公交线路 | `list_transport_line_prefabs`、`list_transport_lines`；创建、站序、线路与站名、颜色、班表、票价、车辆数、编号、均匀发车、请求车辆与返场、删除 | `docs/guides/transport/TRANSPORT-GUIDE.md` |
 | 公交设施和轨道 | `list_transport_facility_prefabs`、`list_transport_facilities`、`analyze_transport_catchment`、`list_transport_track_prefabs`、`preview_transport_track`；站点/车辆段/机场/港口的建筑事务，火车/地铁/电车轨道连接和拆除 | `docs/guides/transport/TRANSPORT-INFRASTRUCTURE-GUIDE.md` |
 | 电水污水与管网 | `list_utility_facility_prefabs`、`list_utility_facilities`、`list_utility_connection_points`、`find_compatible_utility_targets`、`connect_utility_facility`、`list_utility_networks`；按真实设施端口和连接层完成电力、供水、污水、通信、独立管网、资源管道查询和建设 | `docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md` |
-| 公共服务 | `list_city_service_prefabs`、`list_city_service_facilities`、`analyze_service_coverage`、`analyze_education_demand`、`analyze_attraction_impact`；医疗、消防、警察、教育、垃圾、殡葬、维护、公园、邮政、停车、福利、研究、应急，支持选址与建筑事务 | `docs/guides/city/CITY-SERVICE-GUIDE.md` |
+| 公共服务 | `list_city_service_prefabs`、`list_city_service_facilities`、`analyze_service_coverage`、`analyze_education_demand`、`analyze_attraction_impact`、`deploy_service_cluster`；医疗、消防、警察、教育、垃圾、殡葬、维护、公园、邮政、停车、福利、研究、应急，支持选址与建筑事务 | `docs/guides/city/CITY-SERVICE-GUIDE.md` |
 | 城市财政 | `get_city_economy`、`get_tax_settings`、`list_service_budgets`、`list_service_fees`、`get_loan_status`；税率、预算、服务费、贷款预览与应用 | `docs/guides/economy/ECONOMY-GUIDE.md` |
 | 发展需求 | `get_zone_demand`、`get_resource_demand`；人口、住房、就业、教育、分区需求与原生影响因子，无限需求控制 | `docs/guides/city/DEVELOPMENT-GUIDE.md` |
 | 进度解锁 | `list_unlockable_prefabs`、`unlock_prefab`、`set_experience_points`、`set_development_points`；XP、里程碑、发展树、节点购买、原生解锁 | `docs/guides/city/PROGRESSION-GUIDE.md` |
