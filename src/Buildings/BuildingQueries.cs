@@ -32,11 +32,11 @@ namespace CitiesSkylines2Mod
     public sealed class BuildingOperation
     {
         public string Id = Guid.NewGuid().ToString("N"), Session, RequestId, Fingerprint;
-        public string Type, State = "queued", Error, CommitRequestId, PrefabName, OriginalPrefabName;
+        public string Type, State = "queued", Error, CommitRequestId, PrefabName, OriginalPrefabName, UpgradePlacementMode, UpgradePlacementSide;
         public Entity Prefab, Target, OriginalPrefab, ParentRoad;
         public float3 Position, OriginalPosition;
         public quaternion Rotation, OriginalRotation;
-        public float RotationDegrees;
+        public float RotationDegrees, UpgradePlacementOffset;
         public long Cost, MaxCost;
         public readonly JArray Errors = new JArray();
         public readonly JArray Warnings = new JArray();
@@ -54,6 +54,9 @@ namespace CitiesSkylines2Mod
             ["building_prefab"] = PrefabName, ["original_building_prefab"] = OriginalPrefabName,
             ["target_building_id"] = EntityId(Target), ["road_edge_id"] = EntityId(ParentRoad), ["position"] = Point(Position),
             ["original_position"] = Target != Entity.Null ? Point(OriginalPosition) : null,
+            ["upgrade_placement_mode"] = Type == "upgrade" ? UpgradePlacementMode : null,
+            ["upgrade_placement_side"] = Type == "upgrade" ? UpgradePlacementSide : null,
+            ["upgrade_placement_offset_m"] = Type == "upgrade" ? new JValue(UpgradePlacementOffset) : null,
             ["rotation_degrees"] = RotationDegrees, ["cost"] = Cost, ["max_cost"] = MaxCost,
             ["errors"] = Errors.DeepClone(), ["warnings"] = Warnings.DeepClone(), ["error"] = Error,
             ["preview_entity_count"] = PreviewEntities.Count, ["expected_building_count"] = ExpectedResultCount,
@@ -138,12 +141,144 @@ namespace CitiesSkylines2Mod
                             ["floating"] = (place.m_Flags & Game.Objects.PlacementFlags.Floating) != 0, ["road_node"] = (place.m_Flags & Game.Objects.PlacementFlags.RoadNode) != 0,
                             ["road_edge"] = (place.m_Flags & Game.Objects.PlacementFlags.RoadEdge) != 0, ["unique"] = (place.m_Flags & Game.Objects.PlacementFlags.Unique) != 0 }; }
                     if (upgrade) { var data = em.GetComponentData<Game.Prefabs.ServiceUpgradeData>(entity); row["upgrade_cost"] = data.m_UpgradeCost; row["forbid_multiple"] = data.m_ForbidMultiple;
-                        row["max_placement_distance_m"] = data.m_MaxPlacementDistance; row["compatible_building_count"] = em.HasBuffer<ServiceUpgradeBuilding>(entity) ? em.GetBuffer<ServiceUpgradeBuilding>(entity, true).Length : 0; }
+                        row["max_placement_distance_m"] = data.m_MaxPlacementDistance; row["max_placement_offset_cells"] = data.m_MaxPlacementOffset;
+                        row["compatible_building_count"] = em.HasBuffer<ServiceUpgradeBuilding>(entity) ? em.GetBuffer<ServiceUpgradeBuilding>(entity, true).Length : 0; }
                     if (em.HasComponent<ObjectGeometryData>(entity)) { var geometry = em.GetComponentData<ObjectGeometryData>(entity); row["size_m"] = new JObject { ["x"] = geometry.m_Size.x, ["y"] = geometry.m_Size.y, ["z"] = geometry.m_Size.z }; }
                     rows.Add(row);
                 }
             rows.Sort((a, b) => string.CompareOrdinal((string)a["name"], (string)b["name"]));
             return new JObject { ["total"] = rows.Count, ["offset"] = offset, ["next_offset"] = offset + limit < rows.Count ? new JValue(offset + limit) : null, ["items"] = new JArray(rows.Skip(offset).Take(limit)) };
+        }
+
+        private static JObject UpgradeRangePoint(float3 center, float2 right, float2 forward, float localX, float localZ)
+        {
+            var point = center.xz + right * localX + forward * localZ;
+            return new JObject { ["x"] = point.x, ["y"] = center.y, ["z"] = point.y };
+        }
+
+        private static JArray UpgradeValidationOutline(float3 center, float2 forward, float width, float length, float roundness, bool circular)
+        {
+            var result = new JArray(); var right = MathUtils.Right(forward); const int arcSteps = 8;
+            if (circular)
+            {
+                for (int i = 0; i < arcSteps * 4; i++)
+                {
+                    float angle = math.PI * 2f * i / (arcSteps * 4);
+                    result.Add(UpgradeRangePoint(center, right, forward, math.cos(angle) * roundness, math.sin(angle) * roundness));
+                }
+                return result;
+            }
+            float radius = math.max(0, roundness - 8f), halfWidth = width * .5f, halfLength = length * .5f;
+            if (radius < .001f)
+            {
+                result.Add(UpgradeRangePoint(center, right, forward, halfWidth, halfLength));
+                result.Add(UpgradeRangePoint(center, right, forward, -halfWidth, halfLength));
+                result.Add(UpgradeRangePoint(center, right, forward, -halfWidth, -halfLength));
+                result.Add(UpgradeRangePoint(center, right, forward, halfWidth, -halfLength));
+                return result;
+            }
+            var centers = new[] { new float2(halfWidth - radius, halfLength - radius), new float2(-halfWidth + radius, halfLength - radius),
+                new float2(-halfWidth + radius, -halfLength + radius), new float2(halfWidth - radius, -halfLength + radius) };
+            for (int corner = 0; corner < 4; corner++) for (int i = 0; i < arcSteps; i++)
+            {
+                float angle = math.radians(90f * corner + 90f * i / (arcSteps - 1));
+                result.Add(UpgradeRangePoint(center, right, forward, centers[corner].x + math.cos(angle) * radius, centers[corner].y + math.sin(angle) * radius));
+            }
+            return result;
+        }
+
+        private static bool UpgradeRangeContains(float3 center, float2 forward, float width, float length, float roundness, bool circular, float2 point)
+        {
+            var delta = point - center.xz;
+            if (circular) return math.length(delta) <= roundness + .001f;
+            float radius = math.max(0, roundness - 8f);
+            var local = math.abs(new float2(math.dot(delta, MathUtils.Right(forward)), math.dot(delta, forward)));
+            local = math.max(0, local - new float2(width * .5f, length * .5f) + radius);
+            return math.length(local) <= radius + .001f;
+        }
+
+        private static bool UpgradeFootprintInsideRange(float3 center, float2 forward, float width, float length, float roundness, bool circular, BuildingData module, float3 position, quaternion rotation)
+        {
+            var corners = BuildingUtils.CalculateCorners(position, rotation, (float2)module.m_LotSize * 4f - .4f);
+            return UpgradeRangeContains(center, forward, width, length, roundness, circular, corners.a.xz) &&
+                UpgradeRangeContains(center, forward, width, length, roundness, circular, corners.b.xz) &&
+                UpgradeRangeContains(center, forward, width, length, roundness, circular, corners.c.xz) &&
+                UpgradeRangeContains(center, forward, width, length, roundness, circular, corners.d.xz);
+        }
+
+        private static JObject UpgradeSnapSegment(string side, float3 a, float3 b, float phase, float trimOrExtension, float3 ownerPosition, quaternion ownerRotation)
+        {
+            float3 delta = b - a; float lineLength = math.length(delta.xz); float3 direction = math.normalizesafe(delta, new float3(1, 0, 0));
+            float minT = -trimOrExtension, maxT = lineLength + trimOrExtension;
+            var start = a + direction * minT; var end = a + direction * maxT; var points = new JArray();
+            var inverse = math.inverse(ownerRotation); var offsets = new List<float> { minT, maxT };
+            int first = (int)math.ceil((minT + phase) / 8f), last = (int)math.floor((maxT + phase) / 8f);
+            for (int k = first; k <= last; k++) offsets.Add(k * 8f - phase);
+            foreach (var t in offsets.Distinct().OrderBy(x => x))
+            {
+                var position = a + direction * t; var local = math.mul(inverse, position - ownerPosition);
+                float lateral = side == "back" || side == "front" ? local.x : local.z;
+                points.Add(new JObject { ["position"] = PointJson(position), ["placement_offset_m"] = lateral,
+                    ["clamped_endpoint"] = math.abs(t - minT) < .001f || math.abs(t - maxT) < .001f });
+            }
+            return new JObject { ["side"] = side, ["start"] = PointJson(start), ["end"] = PointJson(end), ["length_m"] = math.distance(start.xz, end.xz), ["snap_points"] = points };
+        }
+
+        private JObject UpgradePlacementGeometry(EntityManager em, Entity buildingEntity, Entity buildingPrefab, Entity upgradePrefab, Game.Prefabs.ServiceUpgradeData upgradeData, World world)
+        {
+            if (!em.HasComponent<BuildingData>(buildingPrefab) || !em.HasComponent<BuildingData>(upgradePrefab) || !em.HasComponent<Game.Objects.Transform>(buildingEntity))
+                return new JObject { ["mode"] = em.HasComponent<BuildingExtensionData>(upgradePrefab) ? "fixed_extension" : "native_only", ["placement_range"] = null, ["owner_side_snap"] = null };
+            var owner = em.GetComponentData<BuildingData>(buildingPrefab); var module = em.GetComponentData<BuildingData>(upgradePrefab);
+            var transform = em.GetComponentData<Game.Objects.Transform>(buildingEntity); var forward3 = math.forward(transform.m_Rotation);
+            JObject range = null; float rangeWidth = 0, rangeLength = 0, rangeRoundness = 0; bool rangeCircular = false; float2 rangeForward2 = default(float2);
+            if (upgradeData.m_MaxPlacementDistance != 0f)
+            {
+                BuildingUtils.CalculateUpgradeRangeValues(transform.m_Rotation, owner, module, upgradeData, out var rangeForward, out var width, out var length, out var roundness, out var circular);
+                rangeWidth = width; rangeLength = length; rangeRoundness = roundness; rangeCircular = circular; rangeForward2 = rangeForward.xz;
+                range = new JObject { ["shape"] = circular ? "circle" : "rounded_rectangle", ["center"] = PointJson(transform.m_Position),
+                    ["forward"] = new JObject { ["x"] = rangeForward.x, ["z"] = rangeForward.z }, ["width_m"] = width, ["length_m"] = length,
+                    ["validation_corner_radius_m"] = circular ? roundness : math.max(0, roundness - 8f), ["circular"] = circular,
+                    ["display"] = circular ? new JObject { ["diameter_m"] = width } : new JObject { ["center_line_length_m"] = length - roundness * 2f, ["stroke_width_m"] = width, ["normalized_roundness"] = roundness * 2f / width },
+                    ["validation_outline"] = UpgradeValidationOutline(transform.m_Position, rangeForward.xz, width, length, roundness, circular),
+                    ["note"] = "The native validator requires all four upgrade lot corners to remain inside this rounded range; collision and terrain checks are separate." };
+            }
+            int maxOffset = module.m_LotSize.x - 1;
+            if (upgradeData.m_MaxPlacementOffset >= 0) maxOffset = upgradeData.m_MaxPlacementOffset;
+            int2 expandedLot = owner.m_LotSize + module.m_LotSize.y; var corners = BuildingUtils.CalculateCorners(transform, expandedLot);
+            float phase = ((module.m_LotSize.x - module.m_LotSize.y) & 1) != 0 ? 4f : 0f;
+            float trimOrExtension = math.min(2 * maxOffset - module.m_LotSize.y - module.m_LotSize.x, module.m_LotSize.y - module.m_LotSize.x) * 4f;
+            var segments = new JArray {
+                UpgradeSnapSegment("back", corners.a, corners.b, phase, trimOrExtension, transform.m_Position, transform.m_Rotation),
+                UpgradeSnapSegment("left", corners.b, corners.c, phase, trimOrExtension, transform.m_Position, transform.m_Rotation),
+                UpgradeSnapSegment("front", corners.c, corners.d, phase, trimOrExtension, transform.m_Position, transform.m_Rotation),
+                UpgradeSnapSegment("right", corners.d, corners.a, phase, trimOrExtension, transform.m_Position, transform.m_Rotation) };
+            var roadCandidates = new JArray(); JObject roadRejected = null;
+            if (upgradeData.m_MaxPlacementDistance != 0f)
+            {
+                float radius = math.min(3000, math.max(rangeWidth, rangeLength) * .75f + 64f);
+                var sites = FindBuildingSites(upgradePrefab, PrefabHalfExtents(em, upgradePrefab), transform.m_Position.xz, radius, "either", 128, world, out roadRejected);
+                var formatter = new BuildingOperation { Session = m_Session };
+                foreach (var site in sites)
+                {
+                    if (site.Collision || roadCandidates.Count >= 32) continue;
+                    try
+                    {
+                        var curve = em.GetComponentData<Curve>(site.Edge).m_Bezier; MathUtils.Distance(curve.xz, site.RoadPosition.xz, out float t);
+                        var plan = RoadsidePlacement(upgradePrefab, site.Edge, t, site.Side == "left" ? 1 : -1, true, 8, world);
+                        if (!UpgradeFootprintInsideRange(transform.m_Position, rangeForward2, rangeWidth, rangeLength, rangeRoundness, rangeCircular, module, plan.Position, plan.Rotation)) continue;
+                        roadCandidates.Add(new JObject { ["position"] = PointJson(plan.Position), ["rotation_degrees"] = plan.RotationDegrees,
+                            ["road_edge_id"] = formatter.EntityId(site.Edge), ["road_side"] = plan.Side, ["road_prefab"] = plan.RoadPrefab,
+                            ["terrain_relief_m"] = plan.TerrainMax - plan.TerrainMin, ["foundation_leveling_required"] = plan.FoundationLevelingRequired });
+                    }
+                    catch (QueryException) { }
+                }
+            }
+            return new JObject { ["mode"] = upgradeData.m_MaxPlacementDistance != 0f ? "owner_side_and_road_side" : "owner_side", ["owner_position"] = PointJson(transform.m_Position),
+                ["owner_forward"] = new JObject { ["x"] = forward3.x, ["z"] = forward3.z }, ["owner_lot_cells"] = new JObject { ["width"] = owner.m_LotSize.x, ["depth"] = owner.m_LotSize.y },
+                ["upgrade_lot_cells"] = new JObject { ["width"] = module.m_LotSize.x, ["depth"] = module.m_LotSize.y }, ["placement_range"] = range,
+                ["owner_side_snap"] = new JObject { ["max_placement_offset_cells"] = upgradeData.m_MaxPlacementOffset, ["effective_max_placement_offset_cells"] = maxOffset,
+                    ["snap_step_m"] = 8, ["snap_phase_m"] = phase, ["trim_or_extension_m"] = trimOrExtension, ["segments"] = segments },
+                ["road_side_candidates"] = roadCandidates, ["road_candidate_rejections"] = roadRejected };
         }
 
         private JObject ListBuildingUpgrades(JObject args, World world)
@@ -168,8 +303,9 @@ namespace CitiesSkylines2Mod
                 if (!matches || !prefabs.TryGetPrefab<PrefabBase>(entity, out var prefab)) continue;
                 var data = em.GetComponentData<Game.Prefabs.ServiceUpgradeData>(entity); int installedCount = installedPrefabs.Count(x => x == entity); bool locked = PrefabLocked(em, entity);
                 rows.Add(new JObject { ["name"] = prefab.name, ["locked"] = locked, ["upgrade_cost"] = data.m_UpgradeCost, ["forbid_multiple"] = data.m_ForbidMultiple,
-                    ["max_placement_distance_m"] = data.m_MaxPlacementDistance, ["installed_count"] = installedCount,
-                    ["can_install"] = !locked && (!data.m_ForbidMultiple || installedCount == 0) });
+                    ["max_placement_distance_m"] = data.m_MaxPlacementDistance, ["max_placement_offset_cells"] = data.m_MaxPlacementOffset, ["installed_count"] = installedCount,
+                    ["can_install"] = !locked && (!data.m_ForbidMultiple || installedCount == 0),
+                    ["placement_geometry"] = UpgradePlacementGeometry(em, buildingEntity, buildingPrefab, entity, data, world) });
             }
             rows.Sort((a, b) => string.CompareOrdinal((string)a["name"], (string)b["name"]));
             return new JObject { ["building_id"] = new BuildingOperation { Session = m_Session }.EntityId(buildingEntity), ["building_prefab"] = prefabs.GetPrefab<PrefabBase>(buildingPrefab).name,
@@ -720,19 +856,81 @@ namespace CitiesSkylines2Mod
                 }
                 if (em.HasComponent<BuildingData>(op.OriginalPrefab) && em.HasComponent<BuildingData>(op.Prefab))
                 {
-                    // Match ObjectToolSystem's first OwnerSide snap line: center the module
-                    // against the host's local back edge and face it toward the host.
                     var host = em.GetComponentData<BuildingData>(op.OriginalPrefab);
                     var module = em.GetComponentData<BuildingData>(op.Prefab);
-                    var local = new float3(0, 0, -(host.m_LotSize.y + module.m_LotSize.y) * 4f);
+                    var placementMode = ((string)args["placement_mode"] ?? "owner_side").ToLowerInvariant();
+                    if (placementMode != "owner_side" && placementMode != "road_side")
+                        throw new QueryException("INVALID_ARGUMENT", "placement_mode must be owner_side or road_side.");
+                    op.UpgradePlacementMode = placementMode;
+                    if (placementMode == "road_side")
+                    {
+                        if (upgradeData.m_MaxPlacementDistance == 0f)
+                            throw new QueryException("UPGRADE_ROADSIDE_UNSUPPORTED", "This upgrade has no native roadside placement range; use owner_side.");
+                        if (!(args["position"] is JObject roadPosition) || args["road_edge_id"] == null)
+                            throw new QueryException("INVALID_ARGUMENT", "road_side upgrade placement requires position, rotation_degrees and road_edge_id from placement_geometry.road_side_candidates.");
+                        var edge = ParseEntity((string)args["road_edge_id"], em);
+                        if (!em.HasComponent<Curve>(edge)) throw new QueryException("NOT_A_ROAD_EDGE", "road_edge_id must identify a permanent road edge.");
+                        var requested = new float2(BuildingNumber(roadPosition, "x", 0, -7168, 7168), BuildingNumber(roadPosition, "z", 0, -7168, 7168));
+                        var curve = em.GetComponentData<Curve>(edge).m_Bezier; MathUtils.Distance(curve.xz, requested, out float t); var road = MathUtils.Position(curve, t);
+                        float u = 1 - t; var derivative = 3 * (curve.b - curve.a) * u * u + 6 * (curve.c - curve.b) * u * t + 3 * (curve.d - curve.c) * t * t;
+                        var tangent = math.normalizesafe(derivative.xz, new float2(1, 0)); var normal = new float2(-tangent.y, tangent.x);
+                        float sign = math.dot(requested - road.xz, normal) >= 0 ? 1 : -1; var plan = RoadsidePlacement(op.Prefab, edge, t, sign, true, 8, world);
+                        float requestedRotation = BuildingNumber(args, "rotation_degrees", plan.RotationDegrees, -360, 360);
+                        if (math.distance(requested, plan.Position.xz) > 1f) throw new QueryException("BUILDING_ENTRANCE_MISALIGNED", "Use a road_side candidate returned for this upgrade; its entrance must remain within 1 metre of the computed road frontage.");
+                        if (AngleDifference(requestedRotation, plan.RotationDegrees) > 2f) throw new QueryException("BUILDING_ENTRANCE_WRONG_DIRECTION", "The roadside upgrade must face its selected road within 2 degrees.");
+                        op.ParentRoad = edge; op.Position = plan.Position; op.Rotation = plan.Rotation; op.RotationDegrees = plan.RotationDegrees;
+                        op.UpgradePlacementSide = "road_" + plan.Side; op.UpgradePlacementOffset = 0;
+                    }
+                    else
+                    {
+                    var side = ((string)args["placement_side"] ?? "back").ToLowerInvariant();
+                    var offset = BuildingNumber(args, "placement_offset_m", 0, -512, 512);
+                    float3 local;
+                    float localRotationDegrees;
+                    switch (side)
+                    {
+                        case "back":
+                            local = new float3(offset, 0, -(host.m_LotSize.y + module.m_LotSize.y) * 4f);
+                            localRotationDegrees = 0;
+                            break;
+                        case "right":
+                            local = new float3((host.m_LotSize.x + module.m_LotSize.y) * 4f, 0, offset);
+                            localRotationDegrees = -90;
+                            break;
+                        case "left":
+                            local = new float3(-(host.m_LotSize.x + module.m_LotSize.y) * 4f, 0, offset);
+                            localRotationDegrees = 90;
+                            break;
+                        case "front":
+                            local = new float3(offset, 0, (host.m_LotSize.y + module.m_LotSize.y) * 4f);
+                            localRotationDegrees = 180;
+                            break;
+                        default:
+                            throw new QueryException("INVALID_ARGUMENT", "placement_side must be back, right, left, or front.");
+                    }
+                    op.UpgradePlacementSide = side;
+                    op.UpgradePlacementOffset = offset;
                     op.Position = op.OriginalPosition + math.mul(op.OriginalRotation, local);
-                    op.Rotation = op.OriginalRotation;
+                    op.Rotation = math.mul(op.OriginalRotation, quaternion.RotateY(math.radians(localRotationDegrees)));
+                    var forward = math.forward(op.Rotation);
+                    op.RotationDegrees = math.degrees(math.atan2(forward.x, forward.z));
+                    }
                 }
                 else if (em.HasComponent<BuildingExtensionData>(op.Prefab))
                 {
+                    if (((string)args["placement_mode"] ?? "owner_side").ToLowerInvariant() == "road_side")
+                        throw new QueryException("UPGRADE_PLACEMENT_FIXED", "This BuildingExtensionData upgrade has a fixed transform and cannot use road_side placement.");
+                    var offset = BuildingNumber(args, "placement_offset_m", 0, -512, 512);
+                    if (math.abs(offset) > .001f)
+                        throw new QueryException("UPGRADE_PLACEMENT_FIXED", "This BuildingExtensionData upgrade has a fixed transform and does not accept placement_offset_m.");
                     var extension = em.GetComponentData<BuildingExtensionData>(op.Prefab);
+                    op.UpgradePlacementMode = "fixed";
+                    op.UpgradePlacementSide = "fixed";
+                    op.UpgradePlacementOffset = 0;
                     op.Position = op.OriginalPosition + math.mul(op.OriginalRotation, extension.m_Position);
                     op.Rotation = op.OriginalRotation;
+                    var forward = math.forward(op.Rotation);
+                    op.RotationDegrees = math.degrees(math.atan2(forward.x, forward.z));
                 }
             }
             else { op.Prefab = op.OriginalPrefab; op.PrefabName = op.OriginalPrefabName; }

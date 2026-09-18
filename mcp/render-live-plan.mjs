@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { queryGame } from './bridge-client.mjs';
@@ -10,11 +10,14 @@ import { readPurchasedSurfaceWater } from './planning-water.mjs';
 import { readPurchasedTerrain } from './planning-terrain.mjs';
 
 const outputPath = process.argv[2];
-const interactiveOutputPath = process.argv[3];
+const svgOutputPath = process.argv[3]?.startsWith('--') ? null : process.argv[3];
 const includeGridProposal = process.argv.includes('--propose-grid');
+const planArgumentIndex = process.argv.indexOf('--plan');
+const importedPlanPath = planArgumentIndex >= 0 ? process.argv[planArgumentIndex + 1] : null;
 if (!outputPath) {
-  throw new Error('Usage: node render-live-plan.mjs <output.svg>');
+  throw new Error('Usage: node render-live-plan.mjs <output.html> [output.svg] [--plan plan.json] [--propose-grid]');
 }
+if (planArgumentIndex >= 0 && !importedPlanPath) throw new Error('--plan requires a JSON file path.');
 
 async function query(tool, args = {}) {
   const response = await queryGame(tool, args);
@@ -123,6 +126,7 @@ function purchasedBounds(tiles) {
 }
 
 const status = await query('get_game_status');
+const importedPlanDocument = importedPlanPath ? JSON.parse(await readFile(importedPlanPath, 'utf8')) : null;
 const [roadEntities, buildingEntities, trackData, utilityData, tileData, roadCatalog, zoneCatalog, cityConfiguration] = await Promise.all([
   queryPaged('query_entities', {
     category: 'roads',
@@ -132,15 +136,15 @@ const [roadEntities, buildingEntities, trackData, utilityData, tileData, roadCat
   queryPaged('query_buildings', { building_type: 'all' }),
   query('list_transport_tracks', { track_type: '' }),
   query('list_utility_networks', { network_type: 'all' }),
-  query('list_map_tiles', { state: 'owned', offset: 0, limit: 529 }),
+  query('list_map_tiles', { state: 'all', offset: 0, limit: 529 }),
   query('list_road_prefabs', { search: '', offset: 0, limit: 100 }),
   query('list_zone_types', { search: '', unlocked_only: true }),
   query('get_city_configuration'),
 ]);
 
-const purchasedTiles = tileData.items ?? [];
+const mapTiles = tileData.items ?? [];
+const purchasedTiles = mapTiles.filter(tile => tile.owned === true);
 if (purchasedTiles.length === 0) throw new Error('The live city returned no purchased map tiles.');
-const ownedTileBounds = purchasedTiles.map((tile) => tile.bounds);
 
 const roads = roadEntities.flatMap((item) => {
   const bezier = item.components?.['Game.Net.Curve']?.fields?.m_Bezier;
@@ -162,6 +166,8 @@ const buildings = buildingEntities.flatMap((item) => {
   if (!position) return [];
   return [{
     id: item.entity_id,
+    name: item.name,
+    prefab_name: item.prefab_name,
     position,
     kind: buildingKind(item),
     status: 'existing',
@@ -186,9 +192,12 @@ const utilities = (utilityData.items ?? []).flatMap((item) => {
   const start = vec(item.start);
   const end = vec(item.end);
   if (!start || !end) return [];
-  const elevation = Number(item.elevation_m ?? (start.y + end.y) / 2);
+  const elevation = typeof item.elevation_m === 'object'
+    ? Math.min(Number(item.elevation_m?.start), Number(item.elevation_m?.end))
+    : Number(item.elevation_m ?? (start.y + end.y) / 2);
   return [{
     id: item.entity_id,
+    prefab: item.prefab,
     points: [start, end],
     network_type: String(item.network_type ?? item.type ?? 'utility').toLowerCase(),
     elevation_class: elevation < -2 ? 'underground' : 'surface',
@@ -196,15 +205,16 @@ const utilities = (utilityData.items ?? []).flatMap((item) => {
   }];
 });
 
-const visibleRoads = roads.filter((road) => ownedTileBounds.some((tile) => boundsIntersect(itemBounds(Object.values(road.curve)), tile)));
-const visibleBuildings = buildings.filter((building) => ownedTileBounds.some((tile) => boundsIntersect(itemBounds([building.position]), tile)));
-const visibleTracks = tracks.filter((track) => ownedTileBounds.some((tile) => boundsIntersect(itemBounds(track.points), tile)));
-const visibleUtilities = utilities.filter((utility) => ownedTileBounds.some((tile) => boundsIntersect(itemBounds(utility.points), tile)));
+const visibleRoads = roads;
+const visibleBuildings = buildings;
+const visibleTracks = tracks;
+const visibleUtilities = utilities;
 
 const snapshot = {
   session_id: status.session_id,
   city_name: status.city_name,
-  bounds: purchasedBounds(purchasedTiles),
+  bounds: purchasedBounds(mapTiles),
+  map_tiles: mapTiles.map((tile) => ({ tile_id: tile.tile_id, bounds: tile.bounds, owned: tile.owned === true, starting_tile: tile.starting_tile === true, purchasable: tile.purchasable_by_adjacency === true })),
   purchased_tiles: purchasedTiles.map((tile) => ({ tile_id: tile.tile_id, bounds: tile.bounds })),
   roads: visibleRoads,
   buildings: visibleBuildings,
@@ -212,52 +222,63 @@ const snapshot = {
   utilities: visibleUtilities,
 };
 
-const surfaceWater = await readPurchasedSurfaceWater(query, snapshot.purchased_tiles, {
-  bounds: snapshot.bounds, cell_size_m: 24, water_threshold_m: 0.03,
+const surfaceWater = await readPurchasedSurfaceWater(query, snapshot.map_tiles, {
+  bounds: snapshot.bounds,
+  cell_size_m: importedPlanDocument?.water_cell_size_m ?? 24,
+  water_threshold_m: 0.03,
 });
 snapshot.waters = surfaceWater.waters;
 snapshot.water_metadata = surfaceWater.metadata;
-const terrain = await readPurchasedTerrain(query, snapshot.purchased_tiles, { bounds: snapshot.bounds, cell_size_m: 64 });
+const terrain = await readPurchasedTerrain(query, snapshot.map_tiles, {
+  bounds: snapshot.bounds,
+  cell_size_m: importedPlanDocument?.terrain_cell_size_m ?? 64,
+});
 snapshot.terrain = terrain.terrain;
 snapshot.terrain_metadata = terrain.metadata;
 
-const proposal = includeGridProposal ? bindGridProposal(proposeGridPlan(snapshot, {
+const proposalBounds = purchasedBounds(purchasedTiles);
+const proposalSnapshot = { ...snapshot, bounds: proposalBounds };
+const proposal = !importedPlanDocument && includeGridProposal ? bindGridProposal(proposeGridPlan(proposalSnapshot, {
   district_kind: 'residential', columns: 2, rows: 3, block_width_m: 96, block_height_m: 96,
   road_width_m: 8, building_clearance_m: 12,
 }), {
   road_prefabs: roadCatalog.items ?? [],
   zone_types: zoneCatalog.items ?? [],
 }, { district_kind: 'residential', density: 'low', theme_preference: 'auto', city_theme: cityConfiguration.theme }) : null;
-const plan = proposal?.plan ?? {};
+const plan = importedPlanDocument?.plan ?? importedPlanDocument ?? proposal?.plan ?? {};
+const planningBounds = importedPlanDocument?.bounds ?? proposalBounds;
 
 const renderOptions = {
   bounds: snapshot.bounds,
-  width: 1800,
-  height: 1100,
-  title: proposal
+  planning_bounds: planningBounds,
+  width: importedPlanDocument?.render?.width ?? 1800,
+  height: importedPlanDocument?.render?.height ?? 1100,
+  title: importedPlanDocument?.render?.title ?? (proposal
     ? `${status.city_name ?? '当前城市'}｜北美低密住宅 2×3 网格（只读草案，尚未预览）`
-    : `${status.city_name ?? '当前城市'}｜现状基础设施规划图`,
-  view: 'combined',
+    : `${status.city_name ?? '当前城市'}｜现状基础设施规划图`),
+  view: importedPlanDocument?.render?.view ?? 'combined',
   include_existing: true,
   legend: true,
 };
 const rendered = renderCityPlan(snapshot, plan, renderOptions);
+const webpage = renderCityPlanInteractive(snapshot, plan, renderOptions);
 
 await mkdir(path.dirname(outputPath), { recursive: true });
-await writeFile(outputPath, rendered.svg, 'utf8');
-if (interactiveOutputPath) {
-  const interactive = renderCityPlanInteractive(snapshot, plan, renderOptions);
-  await mkdir(path.dirname(interactiveOutputPath), { recursive: true });
-  await writeFile(interactiveOutputPath, interactive.html, 'utf8');
+await writeFile(outputPath, webpage.html, 'utf8');
+if (svgOutputPath) {
+  await mkdir(path.dirname(svgOutputPath), { recursive: true });
+  await writeFile(svgOutputPath, rendered.svg, 'utf8');
 }
 
 console.log(JSON.stringify({
   output_path: path.resolve(outputPath),
-  interactive_output_path: interactiveOutputPath ? path.resolve(interactiveOutputPath) : null,
+  svg_output_path: svgOutputPath ? path.resolve(svgOutputPath) : null,
   city_name: status.city_name,
   city_theme: cityConfiguration.theme,
+  imported_plan_path: importedPlanPath ? path.resolve(importedPlanPath) : null,
   counts: {
     purchased_tiles: purchasedTiles.length,
+    map_tiles: mapTiles.length,
     roads: visibleRoads.length,
     buildings: visibleBuildings.length,
     tracks: visibleTracks.length,
@@ -266,6 +287,8 @@ console.log(JSON.stringify({
     terrain_cells: snapshot.terrain?.cells?.length ?? 0,
   },
   bounds: snapshot.bounds,
+  plan_id: rendered.plan_id,
+  validation: rendered.validation,
   proposal: proposal ? {
     proposal_id: proposal.proposal_id,
     placement: proposal.placement,

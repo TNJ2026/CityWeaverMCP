@@ -11,7 +11,7 @@ const call = async (name, args = {}) => {
 const ok = (value, label) => { assert.equal(value.ok, true, `${label}: ${JSON.stringify(value)}`); return value.data; };
 
 const status = ok(await call('get_game_status'), 'status');
-assert.equal(status.bridge_version, '1.22.0'); assert.equal(status.city_loaded, true);
+assert.equal(status.bridge_version, '1.22.1'); assert.equal(status.city_loaded, true);
 const tools = await client.listTools(); assert.equal(tools.tools.length, 342);
 
 const initial = ok(await call('get_city_progression'), 'progression');

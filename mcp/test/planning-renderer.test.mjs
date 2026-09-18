@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { renderCityPlan } from '../planning-renderer.mjs';
+import { computeCityPlanId, renderCityPlan } from '../planning-renderer.mjs';
 import { renderCityPlanInteractive } from '../planning-interactive.mjs';
 import { validateCityPlan } from '../planning-validator.mjs';
 import { proposeGridPlan } from '../planning-proposer.mjs';
@@ -33,7 +33,9 @@ test('renders a 2x3 grid with surface and underground infrastructure', () => {
   assert.match(result.svg, /#2563eb/);
   assert.match(result.svg, /#a855f7/);
   assert.match(result.svg, /#fb7185/);
-  assert.match(result.svg, />Fixture School<\/text>/);
+  assert.match(result.svg, /class="planned building service exact-hollow-footprint"/);
+  assert.match(result.svg, /<title>Fixture School<\/title>/);
+  assert.doesNotMatch(result.svg, /class="building-type-label"[^>]*>Fixture School<\/text>/);
   assert.match(result.svg, /公共设施/);
   assert.equal(result.snapshot_session_id, 'fixture-session');
 });
@@ -55,9 +57,49 @@ test('combined view overlays underground infrastructure as dashed lines', () => 
   }, {}, { bounds, view: 'combined' });
 
   assert.match(result.svg, /id="combined"/);
-  assert.match(result.svg, /clip-owned-combined/);
+  assert.match(result.svg, /class="map-tile-grid"/);
+  assert.doesNotMatch(result.svg, /clip-owned-combined/);
   assert.doesNotMatch(result.svg, /id="underground" clip-path/);
   assert.match(result.svg, /stroke-dasharray="5 4"/);
+});
+
+test('maps physical road width at the same X/Z world scale', () => {
+  const bounds = { min_x: 0, min_z: 0, max_x: 100, max_z: 100 };
+  const result = renderCityPlan({ bounds, roads: [], buildings: [], tracks: [], utilities: [] }, {
+    roads: [{ id: 'ten-metre-road', width_m: 10, points: [{ x: 10, z: 50 }, { x: 90, z: 50 }] }],
+  }, { bounds, width: 1000, height: 1000, view: 'surface' });
+
+  // The responsive three-row legend leaves an 830-unit map panel: 10 m becomes 83 SVG units.
+  assert.match(result.svg, /data-object-id="ten-metre-road" data-width-m="10" data-width-svg="83\.0000"/);
+  assert.match(result.svg, /class="line-geometry"[^>]+stroke-width="83\.0000"/);
+  assert.match(result.svg, /class="line-hit-area"/);
+});
+
+test('renders non-zoned buildings as exact-scale hollow footprints', () => {
+  const bounds = { min_x: 0, min_z: 0, max_x: 100, max_z: 100 };
+  const result = renderCityPlan({ bounds, roads: [], buildings: [], tracks: [], utilities: [] }, {
+    buildings: [{ id: 'clinic', label: '规划诊所', kind: 'service', position: { x: 50, z: 50 }, rotation_degrees: 90, size_m: { x: 20, z: 30 } }],
+  }, { bounds, width: 1000, height: 1000, view: 'surface' });
+
+  assert.match(result.svg, /class="planned building service exact-hollow-footprint"/);
+  assert.match(result.svg, /data-object-id="clinic" data-width-m="20" data-depth-m="30"/);
+  assert.match(result.svg, /rotate\(-90\.00\)/);
+  assert.match(result.svg, /width="166\.0000" height="249\.0000"[^>]+fill="none"[^>]+stroke-width="\.35"/);
+  assert.doesNotMatch(result.svg, /stroke-dasharray="5 3"/);
+  assert.match(result.svg, /class="building-type-label"[^>]*font-size="[\d.]+"[^>]*>诊所<\/text>/);
+  assert.ok(result.svg.indexOf('building-label-layer') > result.svg.indexOf('class="building-footprint-geometry"'));
+});
+
+test('renders a proposed building removal as a muted solid footprint', () => {
+  const bounds = { min_x: 0, min_z: 0, max_x: 100, max_z: 100 };
+  const result = renderCityPlan({ bounds, roads: [], buildings: [], tracks: [], utilities: [] }, {
+    buildings: [{ id: 'oversized-hospital', label: '医院（建议拆除）', kind: 'service', recommended_action: 'remove', position: { x: 50, z: 50 }, size_m: { x: 40, z: 30 } }],
+  }, { bounds, width: 1000, height: 1000, view: 'surface' });
+
+  assert.match(result.svg, /class="planned building service exact-hollow-footprint removal-candidate"/);
+  assert.match(result.svg, /data-recommended-action="remove"/);
+  assert.match(result.svg, /stroke="#64748b"/);
+  assert.doesNotMatch(result.svg, /removal-candidate[^>]+stroke-dasharray/);
 });
 
 test('interactive plan exposes accessible layer filters and selectable objects', () => {
@@ -68,12 +110,49 @@ test('interactive plan exposes accessible layer filters and selectable objects',
   }, { bounds, view: 'combined', title: '交互规划' });
 
   assert.equal(result.mime_type, 'text/html');
-  assert.doesNotMatch(result.html, /<!doctype|<html|<body/i);
+  assert.equal(result.static_webpage, true);
+  assert.match(result.html, /^<!doctype html>/i);
+  assert.match(result.html, /<html lang="zh-CN">/);
+  assert.match(result.html, /<body>/);
   assert.match(result.html, /data-filter="layer"/);
   assert.match(result.html, /data-layer="roads"/);
   assert.match(result.html, /aria-live="polite"/);
   assert.match(result.html, /规划支路/);
   assert.match(result.html, /几何校验未发现问题/);
+  assert.match(result.html, /data-map-action="reset"/);
+  assert.match(result.html, /\[data-plan-object\] \{ cursor: pointer; outline: none; \}/);
+  assert.match(result.html, /addEventListener\('wheel'/);
+  assert.match(result.html, /addEventListener\('pointermove'/);
+  assert.equal(result.interaction.zoom.max, 10);
+});
+
+test('renders the complete tile grid without clipping unowned land or water', () => {
+  const bounds = { min_x: 0, min_z: 0, max_x: 200, max_z: 100 };
+  const planningBounds = { min_x: 0, min_z: 0, max_x: 100, max_z: 100 };
+  const plan = {};
+  const result = renderCityPlan({
+    bounds,
+    map_tiles: [
+      { tile_id: 'owned', owned: true, bounds: { min_x: 0, min_z: 0, max_x: 100, max_z: 100 } },
+      { tile_id: 'future', owned: false, bounds: { min_x: 100, min_z: 0, max_x: 200, max_z: 100 } },
+    ],
+    purchased_tiles: [{ tile_id: 'owned', owned: true, bounds: { min_x: 0, min_z: 0, max_x: 100, max_z: 100 } }],
+    roads: [{ id: 'outside-owned-road', points: [{ x: 120, z: 50 }, { x: 180, z: 50 }] }],
+    buildings: [], tracks: [], utilities: [],
+    waters: [{ id: 'future-lake', polygons: [[{ x: 130, z: 10 }, { x: 190, z: 10 }, { x: 190, z: 40 }, { x: 130, z: 40 }]] }],
+  }, plan, { bounds, planning_bounds: planningBounds, view: 'surface' });
+
+  assert.equal(result.counts.map_tiles, 2);
+  assert.equal(result.counts.purchased_tiles, 1);
+  assert.deepEqual(result.coordinate_mapping, { axis: 'world_xz', aspect_ratio: '1:1', world_width_m: 200, world_height_m: 100 });
+  assert.deepEqual(result.planning_bounds, planningBounds);
+  assert.equal(result.plan_id, computeCityPlanId(planningBounds, plan));
+  assert.match(result.svg, /class="map-tile unowned"/);
+  assert.match(result.svg, /class="map-tile unowned"[^>]+stroke-opacity="\.32"/);
+  assert.match(result.svg, /class="metric-grid-line"[^>]+stroke-opacity="\.35"/);
+  assert.match(result.svg, /data-object-id="outside-owned-road"/);
+  assert.match(result.svg, /data-object-id="future-lake"/);
+  assert.doesNotMatch(result.svg, /clip-owned/);
 });
 
 test('renders native road-preview state, cost, warnings and snapped origin', () => {
@@ -112,6 +191,30 @@ test('planning validation reports purchased-area violations and building overlap
   assert.equal(validation.warning_count, 2);
   assert(validation.issues.some(issue => issue.object_id === 'outside-road' && issue.code === 'OUTSIDE_PURCHASED_AREA'));
   assert(validation.issues.some(issue => issue.object_id === 'building-a' && issue.code === 'PLANNED_BUILDING_OVERLAP'));
+});
+
+test('planning validation reports a road crossing a planned building footprint', () => {
+  const bounds = { min_x: 0, min_z: 0, max_x: 200, max_z: 200 };
+  const result = validateCityPlan({ bounds }, {
+    roads: [{ id: 'crossing-road', width_m: 16, points: [{ x: 0, z: 100 }, { x: 200, z: 100 }] }],
+    buildings: [{ id: 'school', position: { x: 100, z: 100 }, size_m: { x: 40, z: 32 } }],
+  }, bounds);
+  assert.equal(result.warning_count, 1);
+  assert.equal(result.issues[0].code, 'PLANNED_BUILDING_ROAD_OVERLAP');
+  assert.deepEqual(result.issues[0].related_object_ids, ['crossing-road']);
+});
+
+test('planning validation checks utilities claimed as built against permanent geometry', () => {
+  const bounds = { min_x: 0, min_z: 0, max_x: 200, max_z: 200 };
+  const snapshot = { bounds, utilities: [{ prefab: 'Fixture Pipe', network_type: 'water', points: [{ x: 0, z: 20 }, { x: 100, z: 20 }] }] };
+  const result = validateCityPlan(snapshot, { utilities: [
+    { id: 'matching', label: '已建｜匹配', prefab: 'Fixture Pipe', network_type: 'water', points: [{ x: 0, z: 20 }, { x: 100, z: 20 }] },
+    { id: 'missing', construction_status: 'built', prefab: 'Fixture Pipe', network_type: 'water', points: [{ x: 0, z: 80 }, { x: 100, z: 80 }] },
+  ] }, bounds);
+  const mismatches = result.issues.filter(issue => issue.code === 'BUILT_UTILITY_GEOMETRY_MISMATCH');
+  assert.equal(mismatches.length, 1);
+  assert.equal(mismatches[0].object_id, 'missing');
+  assert.equal(mismatches[0].geometry_coverage, 0);
 });
 
 test('grid proposer selects a purchased, low-conflict site near the road network', () => {
@@ -271,6 +374,22 @@ test('water rendering uses an even-odd path for shoreline islands', () => {
   }, {}, { bounds, view: 'surface' });
   assert.match(result.svg, /fill-rule="evenod[d]"/);
   assert.match(result.svg, /data-object-id="lake"/);
+});
+
+test('renders mountain elevation tint, contours and slope overlays', () => {
+  const bounds = { min_x: 0, min_z: 0, max_x: 30, max_z: 30 };
+  const samples = [];
+  for (let z = 0; z < 3; z++) for (let x = 0; x < 3; x++) samples.push({ x: x * 10, z: z * 10, height_m: (x + z) * 10 });
+  const cells = terrainCells(samples, 3, 3, 10, [{ bounds }], bounds);
+  const result = renderCityPlan({ bounds, roads: [], buildings: [], tracks: [], utilities: [], terrain: { cell_size_m: 10, cells } }, {}, { bounds, view: 'surface' });
+
+  assert.match(result.svg, /class="existing terrain elevation-tint"/);
+  assert.match(result.svg, /data-object-id="terrain-contours" data-contour-interval-m="10"/);
+  assert.match(result.svg, /class="contour-line/);
+  assert.match(result.svg, /data-elevation-m="20"/);
+  assert.match(result.svg, /terrain steep_terrain/);
+  assert.match(result.svg, />高程底色<\/text>/);
+  assert.match(result.svg, />等高线<\/text>/);
 });
 
 test('surface-water reader clips wet cells to purchased tiles', async () => {

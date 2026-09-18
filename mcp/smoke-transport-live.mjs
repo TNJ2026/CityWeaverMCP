@@ -25,7 +25,7 @@ await client.connect(new StdioClientTransport({ command: process.execPath, args:
 const report={}; const created=[]; let seq=0;
 try {
   const toolList=await client.listTools(); assert.equal(toolList.tools.length,342); report.toolCount=342;
-  const status=await call('get_game_status'); assert.equal(status.data.bridge_version,'1.22.0'); await call('set_simulation_speed',{speed:'paused'});
+  const status=await call('get_game_status'); assert.equal(status.data.bridge_version,'1.22.1'); await call('set_simulation_speed',{speed:'paused'});
   const prefabs=(await call('list_transport_line_prefabs',{search:''})).data.items;
   const stops=(await call('list_transport_stops',{})).data.items;
   const before=(await call('list_transport_lines')).data;

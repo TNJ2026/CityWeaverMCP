@@ -18,7 +18,7 @@ const errorCode = async (name, args) => {
 const report = {};
 try {
   const status = await call('get_game_status');
-  assert.equal(status.bridge_version, '1.22.0');
+  assert.equal(status.bridge_version, '1.22.1');
   report.overview = await call('get_map_overview');
   const all = await call('list_map_tiles', { state: 'all', limit: 529 });
   const owned = await call('list_map_tiles', { state: 'owned', limit: 529 });

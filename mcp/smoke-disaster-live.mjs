@@ -16,7 +16,7 @@ let tornadoId;
 const extraIds = [];
 try {
   const status = data(await call('get_game_status'));
-  assert.equal(status.bridge_version, '1.22.0');
+  assert.equal(status.bridge_version, '1.22.1');
   assert.equal(status.city_loaded, true);
   const prefabs = data(await call('list_disaster_prefabs'));
   assert.equal(prefabs.total, 8);

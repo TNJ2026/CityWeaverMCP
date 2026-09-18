@@ -84,7 +84,10 @@ export function bindGridProposal(proposalInput, catalogs = {}, preferences = {})
     }
   }
 
-  if (road) grid.road_prefab = road.name;
+  if (road) {
+    grid.road_prefab = road.name;
+    if (Number.isFinite(Number(road.width_m)) && Number(road.width_m) > 0) grid.road_width_m = Number(road.width_m);
+  }
   if (zone) grid.zone_type = zone.name;
   const bindingsReady = Boolean(road && zone);
   const previewDraft = bindingsReady ? {

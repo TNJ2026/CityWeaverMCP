@@ -34,20 +34,29 @@ export function renderCityPlanInteractive(snapshot, plan, options = {}) {
     : '几何校验未发现问题；正式施工仍需通过游戏原生 preview。';
   const validationJson = JSON.stringify(validation.issues).replaceAll('<', '\\u003c');
 
-  const html = `<div id="${rootId}" class="city-plan-v2">
+  const html = `<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${title}</title>
   <style>
+    :root { color-scheme: light; --background: #fff; --foreground: #0f172a; --muted: #e2e8f0; --border: #94a3b8; --ring: #2563eb; --blue: #38bdf8; --green: #16a34a; --destructive: #dc2626; --viz-series-1: #22c55e; --viz-series-2: #2563eb; --viz-series-3: #f59e0b; --viz-series-4: #a855f7; --viz-series-5: #ef4444; --viz-series-6: #0f766e; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 18px; background: #f1f5f9; color: var(--foreground); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
     #${rootId} { color: var(--foreground); width: 100%; }
     #${rootId} .city-plan-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     #${rootId} .city-plan-heading h2 { margin: 0; }
-    #${rootId} .city-plan-map-wrap { margin-top: 12px; border: 1px solid var(--border); overflow: hidden; background: var(--background); }
-    #${rootId} .city-plan-map { display: block; width: 100%; height: auto; }
+    #${rootId} .city-plan-map-wrap { margin-top: 12px; border: 1px solid var(--border); overflow: hidden; background: var(--background); cursor: grab; touch-action: none; user-select: none; }
+    #${rootId} .city-plan-map-wrap.is-dragging { cursor: grabbing; }
+    #${rootId} .city-plan-map { display: block; width: 100%; height: min(78vh, 1000px); min-height: 480px; }
     #${rootId} .city-plan-map .existing { opacity: .52; }
     #${rootId} .city-plan-map .planned { opacity: .96; }
-    #${rootId} .city-plan-map [data-plan-object] { cursor: pointer; }
+    #${rootId} .city-plan-map [data-plan-object] { cursor: pointer; outline: none; }
     #${rootId} .city-plan-map [data-plan-object][hidden] { display: none; }
     #${rootId} .city-plan-map [data-plan-object].is-selected { filter: drop-shadow(0 0 4px var(--ring)); opacity: 1; }
-    #${rootId} .city-plan-map path.has-error, #${rootId} .city-plan-map polygon.has-error, #${rootId} .city-plan-map .has-error rect { stroke: var(--destructive) !important; }
-    #${rootId} .city-plan-map path.has-warning, #${rootId} .city-plan-map polygon.has-warning, #${rootId} .city-plan-map .has-warning rect { stroke: var(--viz-series-3) !important; }
+    #${rootId} .city-plan-map path.has-error, #${rootId} .city-plan-map polygon.has-error, #${rootId} .city-plan-map .has-error rect, #${rootId} .city-plan-map .has-error .line-geometry { stroke: var(--destructive) !important; }
+    #${rootId} .city-plan-map path.has-warning, #${rootId} .city-plan-map polygon.has-warning, #${rootId} .city-plan-map .has-warning rect, #${rootId} .city-plan-map .has-warning .line-geometry { stroke: var(--viz-series-3) !important; }
     #${rootId} .city-plan-native { margin-top: 8px; }
     #${rootId} .city-plan-detail { margin-top: 12px; }
     #${rootId} .city-plan-detail p { margin: 0; }
@@ -56,8 +65,17 @@ export function renderCityPlanInteractive(snapshot, plan, options = {}) {
     #${rootId} .city-plan-line { width: 24px; border-top: 3px solid var(--foreground); }
     #${rootId} .city-plan-line.planned-key { border-top-color: var(--viz-series-1); }
     #${rootId} .city-plan-line.underground-key { border-top-style: dashed; }
+    #${rootId} .viz-controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 12px; }
+    #${rootId} .form-check { display: inline-flex; align-items: center; gap: 5px; }
+    #${rootId} .map-actions { margin-left: auto; display: inline-flex; gap: 6px; }
+    #${rootId} button { border: 1px solid var(--border); border-radius: 6px; background: var(--background); color: var(--foreground); padding: 5px 10px; cursor: pointer; }
+    #${rootId} .card { background: var(--background); border: 1px solid var(--border); border-radius: 7px; padding: 10px 12px; }
+    #${rootId} .text-muted { color: #64748b; }
     @media (max-width: 520px) { #${rootId} .city-plan-heading { align-items: flex-start; } }
   </style>
+</head>
+<body>
+<main id="${rootId}" class="city-plan-v2">
   <div class="city-plan-heading">
     <h2>${title}</h2>
     <span class="text-small text-muted">规划 ${counts.roads} 条道路 · ${counts.zones} 个分区 · ${counts.buildings} 栋建筑</span>
@@ -73,6 +91,7 @@ export function renderCityPlanInteractive(snapshot, plan, options = {}) {
     <label class="form-check"><input class="form-check-input" type="checkbox" data-filter="layer" value="terrain" checked><span class="form-check-label">坡度</span></label>
     <label class="form-check"><input class="form-check-input" type="checkbox" data-filter="status" value="existing" checked><span class="form-check-label">现状</span></label>
     <label class="form-check"><input class="form-check-input" type="checkbox" data-filter="status" value="planned" checked><span class="form-check-label">规划</span></label>
+    <span class="map-actions" aria-label="地图视图控制"><button type="button" data-map-action="zoom-out" aria-label="缩小">−</button><button type="button" data-map-action="reset">复位</button><button type="button" data-map-action="zoom-in" aria-label="放大">＋</button></span>
   </div>
   <div class="city-plan-legend text-small" aria-label="线型说明">
     <span class="city-plan-key"><span class="city-plan-line"></span>现状</span>
@@ -88,6 +107,8 @@ export function renderCityPlanInteractive(snapshot, plan, options = {}) {
       const controls = [...root.querySelectorAll('input[data-filter]')];
       const objects = [...root.querySelectorAll('[data-plan-object]')];
       const selection = root.querySelector('[data-selection]');
+      const mapWrap = root.querySelector('.city-plan-map-wrap');
+      const svg = root.querySelector('.city-plan-map');
       const issues = ${validationJson};
       const issuesByObject = new Map();
       for (const issue of issues) {
@@ -133,8 +154,60 @@ export function renderCityPlanInteractive(snapshot, plan, options = {}) {
         selection.textContent = name + ' · ' + object.dataset.layer + ' · ' + object.dataset.kind + ' · ' + status + nativeText + issueText;
       };
       for (const input of controls) input.addEventListener('change', () => applyFilters(true));
+      const baseView = { x: 0, y: 0, width: ${rendered.bounds ? Number(options.width ?? 1600) : 1600}, height: ${rendered.bounds ? Number(options.height ?? 1000) : 1000} };
+      const view = { ...baseView };
+      const maxZoom = 10;
+      let pointer = null;
+      let dragged = false;
+      const clampView = () => {
+        view.width = Math.max(baseView.width / maxZoom, Math.min(baseView.width, view.width));
+        view.height = Math.max(baseView.height / maxZoom, Math.min(baseView.height, view.height));
+        view.x = Math.max(baseView.x, Math.min(baseView.x + baseView.width - view.width, view.x));
+        view.y = Math.max(baseView.y, Math.min(baseView.y + baseView.height - view.height, view.y));
+        svg.setAttribute('viewBox', [view.x, view.y, view.width, view.height].join(' '));
+      };
+      const zoomAt = (factor, clientX, clientY) => {
+        const rect = svg.getBoundingClientRect();
+        const px = (clientX - rect.left) / Math.max(1, rect.width);
+        const py = (clientY - rect.top) / Math.max(1, rect.height);
+        const nextWidth = view.width / factor;
+        const nextHeight = view.height / factor;
+        view.x += (view.width - nextWidth) * px;
+        view.y += (view.height - nextHeight) * py;
+        view.width = nextWidth; view.height = nextHeight; clampView();
+      };
+      mapWrap.addEventListener('wheel', event => {
+        event.preventDefault();
+        zoomAt(event.deltaY < 0 ? 1.18 : 1 / 1.18, event.clientX, event.clientY);
+      }, { passive: false });
+      mapWrap.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, vx: view.x, vy: view.y };
+        dragged = false; mapWrap.classList.add('is-dragging'); mapWrap.setPointerCapture(event.pointerId);
+      });
+      mapWrap.addEventListener('pointermove', event => {
+        if (!pointer || pointer.id !== event.pointerId) return;
+        const rect = svg.getBoundingClientRect();
+        const dx = event.clientX - pointer.x, dy = event.clientY - pointer.y;
+        if (Math.hypot(dx, dy) > 3) dragged = true;
+        view.x = pointer.vx - dx * view.width / Math.max(1, rect.width);
+        view.y = pointer.vy - dy * view.height / Math.max(1, rect.height);
+        clampView();
+      });
+      const stopDrag = event => {
+        if (!pointer || pointer.id !== event.pointerId) return;
+        pointer = null; mapWrap.classList.remove('is-dragging');
+      };
+      mapWrap.addEventListener('pointerup', stopDrag);
+      mapWrap.addEventListener('pointercancel', stopDrag);
+      for (const button of root.querySelectorAll('[data-map-action]')) button.addEventListener('click', () => {
+        const action = button.dataset.mapAction;
+        if (action === 'reset') Object.assign(view, baseView);
+        else zoomAt(action === 'zoom-in' ? 1.25 : 0.8, svg.getBoundingClientRect().left + svg.clientWidth / 2, svg.getBoundingClientRect().top + svg.clientHeight / 2);
+        clampView();
+      });
       for (const object of objects) {
-        object.addEventListener('click', () => selectObject(object));
+        object.addEventListener('click', event => { if (dragged) { event.preventDefault(); return; } selectObject(object); });
         object.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectObject(object); } });
       }
       window.addEventListener('openai:set_globals', event => {
@@ -147,9 +220,12 @@ export function renderCityPlanInteractive(snapshot, plan, options = {}) {
         applyFilters(false);
       });
       applyFilters(false);
+      clampView();
     })();
   </script>
-</div>`;
+</main>
+</body>
+</html>`;
 
-  return { ...rendered, html, mime_type: 'text/html' };
+  return { ...rendered, html, mime_type: 'text/html', static_webpage: true, interaction: { pan: true, zoom: { min: 1, max: 10 }, reset: true } };
 }

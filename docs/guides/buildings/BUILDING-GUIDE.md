@@ -29,7 +29,7 @@ Agent 使用高层流程时还应遵守以下边界：
 ## 查询与规划
 
 - `list_building_prefabs`：列出建筑或服务升级 prefab，包含精确名称、锁定状态、造价、占地格、物理尺寸、道路/通行需求、可用接入侧和完整放置类型。`kind=building` 与 `kind=upgrade` 严格分离，升级模块不会被误当成独立建筑放置。
-- `list_building_upgrades`：输入一个永久主体建筑 ID，返回所有兼容升级、安装费用、锁定状态、能否重复安装、当前安装数量，以及已安装升级实体 ID。
+- `list_building_upgrades`：输入一个永久主体建筑 ID，返回所有兼容升级、安装费用、锁定状态、能否重复安装、当前安装数量及已安装实体。对可移动升级还返回原生 `placement_geometry`：高亮范围、四角范围校验轮廓、主体四侧吸附段和合法 `placement_offset_m`；原生允许长距离放置时还包含范围内的 `road_side_candidates`。
 - `get_building_state`：读取建筑自定义名称、启用状态、是否支持开关，以及当前原生建筑政策。
 - `plan_building_site`：只为同时带 `RoadSide` 和 `OnGround` 放置规则的建筑，沿允许分区/沿街接入的地面道路生成候选位置。它读取道路实际宽度和表面标高，过滤高速公路、超过 15% 的道路坡度、道路与地形高差超过 2 米、建筑占地高差超过 3 米的地点，并返回各类拒绝数量。岸线、水面、道路节点和道路边缘等特殊建筑应根据 `placement` 字段选择精确坐标，再交给原生预览校验。
 - `plan_building_row`：在 1–64 条指定道路的一侧或两侧规划最多 32 栋同类建筑。间距使用 prefab 的完整物理尺寸和占地尺寸，碰撞使用带旋转的矩形分离轴检测；每块地基采样 3×3 个地形点，并计算道路表面目标高度、地形高差、入口距离和入口朝向误差。
@@ -52,7 +52,7 @@ Agent 使用高层流程时还应遵守以下边界：
 - `preview_building_batch_placement`：接收 `plan_building_row` 的结果，最多批量放置 32 栋同类建筑。它会重新检查入口距道路误差不超过 1 米、朝向误差不超过 2 度、道路与地形高度、地基高差和批次内碰撞，然后在一个 MCP operation 内逐栋执行原生预检；全部通过后才允许提交，提交时逐栋应用并返回每个永久建筑实体 ID。
 - `preview_building_move`：移动并旋转已有建筑。普通地面建筑可只传 `x/z` 并由游戏读取地形高度；浮水、岸线、道路边缘和节点建筑可传规划器返回的 `x/y/z`，并用 `snap_target_id` 绑定道路、轨道、航线边或网络节点。
 - `preview_building_replacement`：在一次原生提交中拆除旧建筑并在原位置放置新 prefab。
-- `preview_building_upgrade`：给服务建筑安装兼容升级模块。
+- `preview_building_upgrade`：给服务建筑安装兼容升级模块。`placement_mode=owner_side` 使用升级列表返回的主体侧吸附点及 `placement_side`/`placement_offset_m`；`placement_mode=road_side` 必须原样使用 `road_side_candidates` 的 `position`、`rotation_degrees` 和 `road_edge_id`。道路可以位于主体与模块之间，但模块不得覆盖道路，且候选仍须经过原生碰撞、地形与净空预览。
 - `preview_building_rebuild`：修复已摧毁建筑。
 - `preview_building_demolition`：拆除建筑。
 - `preview_building_upgrade_removal`：移除已安装的服务升级实体。

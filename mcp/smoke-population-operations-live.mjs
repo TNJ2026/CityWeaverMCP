@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 import { queryGame } from './bridge-client.mjs';
 
-const artifact = new URL('../artifacts/population-operations-live-1.22.0.log', import.meta.url);
+const artifact = new URL('../artifacts/population-operations-live-1.22.1.log', import.meta.url);
 await mkdir(new URL('../artifacts/', import.meta.url), { recursive: true });
 await writeFile(artifact, 'Cities Skylines II population operations live test\n');
 const created = { citizen: null, household: null, company: null };
@@ -26,7 +26,7 @@ async function cleanup() {
 
 try {
   const status = await call('get_game_status');
-  assert.equal(status.bridge_version, '1.22.0');
+  assert.equal(status.bridge_version, '1.22.1');
   originalSpeed = status.paused ? 'paused' : 'normal';
   await call('set_simulation_speed', { speed: 'paused' });
 

@@ -27,7 +27,7 @@ let originalMoney;
 let selectedPolicy;
 try {
   const status = await call('get_game_status');
-  assert.equal(status.bridge_version, '1.22.0');
+  assert.equal(status.bridge_version, '1.22.1');
   await call('set_simulation_speed', { speed: 'paused' });
   original = await call('get_city_configuration');
   if (original.unlimited_money) await call('set_city_configuration', { unlimited_money: false });

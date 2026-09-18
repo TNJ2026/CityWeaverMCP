@@ -128,6 +128,10 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   let calls = 0;
   const { endpointPath } = await fixture(t, (socket, request) => {
     calls++;
+    if (request.tool === 'list_map_tiles') {
+      socket.end(JSON.stringify({ ok: true, meta: { session_id: 'fixture' }, data: { total: 1, items: [{ tile_id: 'fixture-tile', owned: true, starting_tile: true, purchasable_by_adjacency: false, bounds: { min_x: 0, min_z: 0, max_x: 400, max_z: 400 } }] } }) + '\n');
+      return;
+    }
     socket.end(JSON.stringify({ ok: true, meta: { session_id: 'fixture' }, data: { tool: request.tool, args: request.arguments } }) + '\n');
   });
   const client = new Client({ name: 'test', version: '1.0.0' });
@@ -142,19 +146,19 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   const focus = { target: { x: 120, z: -240 }, width_m: 400, depth_m: 300, duration_seconds: 1 };
   assert.deepEqual((await client.callTool({ name: 'focus_camera', arguments: focus })).structuredContent.data.args, focus);
   assert(tools.some(tool => tool.name === 'get_planning_map_snapshot'), 'planning geometry snapshot tool is registered');
-  assert(tools.some(tool => tool.name === 'render_city_plan'), 'SVG city-plan renderer is registered');
+  assert(tools.some(tool => tool.name === 'render_city_plan'), 'static city-plan webpage renderer is registered');
   assert(tools.some(tool => tool.name === 'propose_grid_plan'), 'read-only grid-plan proposer is registered');
   assert(tools.some(tool => tool.name === 'propose_city_plan'), 'read-only multilayer city-plan proposer is registered');
   const renderedPlan = await client.callTool({ name: 'render_city_plan', arguments: {
-    bounds: { min_x: 0, min_z: 0, max_x: 400, max_z: 400 }, include_existing: false,
+    bounds: { min_x: 0, min_z: 0, max_x: 400, max_z: 400 }, include_existing: false, include_water: false, include_terrain: false,
     plan: { grids: [{ origin: { x: 40, z: 40 }, columns: 2, rows: 3, zone_type: 'Fixture Residential', zone_kind: 'residential', native_preview: { operation_id: 'a'.repeat(32), state: 'preview_ready', cost: 50, warnings: [], errors: [], snapped_origin: { x: 40, z: 40 } } }] }
   } });
   assert.equal(renderedPlan.isError, false);
-  assert(renderedPlan.content.some(item => item.type === 'image' && item.mimeType === 'image/svg+xml'));
+  assert(renderedPlan.content.some(item => item.type === 'resource' && item.resource.mimeType === 'text/html'));
   assert.match(renderedPlan.structuredContent.data.plan_id, /^cplan-[a-f0-9]{16}$/);
   assert.equal(renderedPlan.structuredContent.data.native_preview_summary.state, 'preview_ready');
   const interactivePlan = await client.callTool({ name: 'render_city_plan', arguments: {
-    bounds: { min_x: 0, min_z: 0, max_x: 400, max_z: 400 }, include_existing: false,
+    bounds: { min_x: 0, min_z: 0, max_x: 400, max_z: 400 }, include_existing: false, include_water: false, include_terrain: false,
     plan: { roads: [{ id: 'fixture-road', label: 'Fixture Road', points: [{ x: 20, z: 20 }, { x: 200, z: 20 }] }] },
     render: { format: 'interactive_html', view: 'combined' }
   } });
@@ -297,6 +301,15 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   const commit = { operation_id: 'a'.repeat(32), request_id: 'commit-test-001', max_cost: 5000 };
   const applied = await client.callTool({ name: 'build_road', arguments: commit });
   assert.deepEqual(applied.structuredContent.data.args, commit);
+  const facilityId = 'c'.repeat(32) + ':10:1';
+  const sideUpgrade = { request_id: 'school-upgrade-side-001', facility_id: facilityId, upgrade_prefab: 'Fixture School Wing', placement_side: 'right', placement_offset_m: 4 };
+  assert.deepEqual((await client.callTool({ name: 'preview_city_service_upgrade', arguments: sideUpgrade })).structuredContent.data.args, { ...sideUpgrade, placement_mode: 'owner_side' });
+  const defaultSideUpgrade = { request_id: 'school-upgrade-side-002', facility_id: facilityId, upgrade_prefab: 'Fixture Sport Park' };
+  assert.deepEqual((await client.callTool({ name: 'preview_city_service_upgrade', arguments: defaultSideUpgrade })).structuredContent.data.args,
+    { ...defaultSideUpgrade, placement_mode: 'owner_side', placement_side: 'back', placement_offset_m: 0 });
+  const roadsideUpgrade = { request_id: 'school-upgrade-road-001', facility_id: facilityId, upgrade_prefab: 'Fixture Sport Park', placement_mode: 'road_side', position: { x: 120, z: 80 }, rotation_degrees: 90, road_edge_id: 'd'.repeat(32) + ':11:1' };
+  assert.deepEqual((await client.callTool({ name: 'preview_city_service_upgrade', arguments: roadsideUpgrade })).structuredContent.data.args,
+    { ...roadsideUpgrade, placement_side: 'back', placement_offset_m: 0 });
   const beforeBadRoad = calls;
   for (const request of [
     { name: 'preview_road', arguments: { ...road, start: { x: 99999, z: 0 } } },
@@ -315,6 +328,8 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
     { name: 'build_road', arguments: { ...commit, max_cost: -1 } },
     { name: 'get_road_operation', arguments: { operation_id: 'unknown' } }
   ]) assert.equal((await client.callTool(request)).isError, true);
+  assert.equal((await client.callTool({ name: 'preview_city_service_upgrade', arguments: { ...sideUpgrade, request_id: 'school-upgrade-side-bad', placement_side: 'diagonal' } })).isError, true);
+  assert.equal((await client.callTool({ name: 'preview_city_service_upgrade', arguments: { ...sideUpgrade, request_id: 'school-upgrade-offset-bad', placement_offset_m: 513 } })).isError, true);
   assert.equal(calls, beforeBadRoad, 'Invalid road requests must not reach the game.');
 });
 

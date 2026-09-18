@@ -47,7 +47,7 @@
 
 移动和拆除分别使用 `preview_transport_facility_move` 与 `preview_transport_facility_delete`，随后走相同的读取、提交和验证流程。预览未提交时可用 `cancel_transport_facility_preview` 清理。
 
-`list_transport_facility_upgrades`、`preview_transport_facility_upgrade` 和 `preview_transport_facility_upgrade_removal` 覆盖兼容升级模块；名称、启停和政策使用 `set_transport_facility_name`、`set_transport_facility_active`、`list_transport_facility_policies` 与 `set_transport_facility_policy`。
+`list_transport_facility_upgrades`、`preview_transport_facility_upgrade` 和 `preview_transport_facility_upgrade_removal` 覆盖兼容升级模块；名称、启停和政策使用 `set_transport_facility_name`、`set_transport_facility_active`、`list_transport_facility_policies` 与 `set_transport_facility_policy`。升级列表复用通用建筑升级几何，返回主体侧吸附点，并在原生范围允许时返回 `road_side_candidates`。主体侧模式使用返回的 `placement_side` 与 `placement_offset_m`；道路侧模式必须把候选的 `position`、`rotation_degrees` 和 `road_edge_id` 原样传给 `preview_transport_facility_upgrade`。隔着道路仍保持设施所有权，但不能覆盖道路，最终以原生预览为准。
 
 ## 轨道
 

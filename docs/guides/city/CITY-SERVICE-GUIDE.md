@@ -115,6 +115,12 @@
 - `preview_city_service_delete`：拆除设施及游戏管理的从属对象。
 - `cancel_city_service_preview`：取消尚未提交的预览。
 
+从 1.22.1 起，`preview_city_service_upgrade` 和 `preview_building_upgrade` 支持 `placement_side`：`back`、`right`、`left`、`front`，默认 `back`。它控制带 `OwnerSide` 规则的升级模块贴在主体建筑哪一侧，并自动换算世界坐标和朝向。`placement_offset_m` 可让模块沿所选安装边横向移动，默认 `0`；`back/front` 的正值沿主体本地 `+X`，`right/left` 的正值沿主体本地 `+Z`。例如主体未旋转时，在背面向东平移 4 米可传 `placement_side: "back", placement_offset_m: 4`。操作结果通过 `upgrade_placement_side` 和 `upgrade_placement_offset_m` 回显实际请求；原生预览仍负责最终碰撞、地形和净空校验。安装多个大尺寸升级时，应先根据各模块实时 `size_m` 规划不同侧面，逐个执行“预览 → 提交 → 永久回读”，不要把所有模块叠放在默认后侧。固定位置的 `BuildingExtensionData` 升级不接受非零偏移，操作结果会返回 `upgrade_placement_side: fixed`。
+
+`list_building_upgrades` 会针对当前主体的实时位置与朝向返回 `placement_geometry`。`placement_range` 来自游戏用于界面高亮和 `LongDistance` 校验的原生计算，包含圆形或圆角矩形参数、显示参数以及可直接绘图的 `validation_outline`；游戏要求升级建筑占地的四角全部位于该范围内。`owner_side_snap` 单独返回四条主体边吸附段、8 米吸附步长、可能出现的 4 米相位、端点裁剪或延伸量，以及每个原生候选点对应的 `placement_offset_m`。范围合规并不替代道路、地形、已有建筑和子对象碰撞的原生预览。
+
+当升级的 `max_placement_distance_m` 非零时，`placement_geometry.road_side_candidates` 还会列出范围内可沿道路放置的候选，包括道路实体、道路侧、精确位置、旋转和地形状态。将候选原样传给 `preview_building_upgrade` 或 `preview_city_service_upgrade`，并设置 `placement_mode: "road_side"`；工具会保持附属建筑归属于原主体，同时把道路作为原生吸附目标。因此主体与升级模块之间可以隔着道路，但模块占地不能压住道路，且仍须通过原生碰撞和范围校验。
+
 请求具有会话内幂等性。应用前若预览已过期、城市恢复运行、费用超过 `max_cost`，或者目标被其他操作修改，接口会拒绝提交。升级和原生重建可能改变实体 ID；完成后应使用操作返回的 `result_entity_ids` 或重新查询设施。
 
 ## 已验证边界

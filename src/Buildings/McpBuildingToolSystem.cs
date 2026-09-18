@@ -174,9 +174,10 @@ namespace CitiesSkylines2Mod
             }
             else if (op.Type == "place" || op.Type == "move" || op.Type == "upgrade" || op.Type == "rebuild")
             {
-                // Preserve the native roadside snap parent for top-level placement/move.
-                // Upgrade and rebuild definitions are owned by the target building itself.
-                var snapParent = op.Type == "place" || op.Type == "move" ? op.ParentRoad : Entity.Null;
+                // Preserve the native roadside snap parent independently from upgrade ownership.
+                // This lets a road-side upgrade remain owned by its host while snapping across a road.
+                var snapParent = op.Type == "place" || op.Type == "move" ||
+                    (op.Type == "upgrade" && op.UpgradePlacementMode == "road_side") ? op.ParentRoad : Entity.Null;
                 m_ControlPoints.Clear(); var point = new ControlPoint { m_Position = op.Position, m_HitPosition = op.Position, m_Rotation = op.Rotation, m_OriginalEntity = snapParent, m_ElementIndex = new int2(-1) }; m_ControlPoints.Add(point);
                 Entity prefab = op.Type == "rebuild" ? Entity.Null : op.Type == "move" ? op.OriginalPrefab : op.Prefab;
                 Entity owner = op.Type == "upgrade" || op.Type == "rebuild" ? op.Target : Entity.Null;

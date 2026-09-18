@@ -52,8 +52,8 @@ node tools/survey-space.mjs --auto-find residential --anchor -1138,528 --mode qu
   "columns": 3,
   "rows": 3,
   "road_prefab": "Small Road",
-  "horizontal_road_prefab": "Four-Lane Road",
-  "vertical_road_prefab": "Four-Lane Road",
+  "horizontal_road_prefab": "Small Road",
+  "vertical_road_prefab": "Small Road",
   "perimeter_road_prefab": "Six-Lane Road",
   "connection_road_prefab": "Four-Lane Road",
   "auto_connect": true,
@@ -63,6 +63,14 @@ node tools/survey-space.mjs --auto-find residential --anchor -1138,528 --mode qu
 ```
 
 调用前先用 `list_road_prefabs`、`list_zone_types` 和 `list_building_prefabs` 发现当前城市的精确名称；示例道路名不一定在每个主题、DLC 或存档中存在。该高层工具返回网格、连接道路、分区、建筑和增长循环的汇总；底层 operation 仍按各自领域轮询至 `completed`。
+
+### 网格道路宽度规则
+
+- 一个网格组团的内部横向和纵向道路应优先使用同一道路 prefab；至少必须保持相同的实际道路宽度。若因公交、停车或绿化需要使用不同变体，也只能选用同宽变体，并在原生预览后核对车道和分区格。
+- 内部道路从一个网格节点到另一个网格节点必须保持连续等宽，不得在网格内部突然扩宽或收窄，也不得把某一段内部道路升级成不同宽度。需要增加通行能力时，优先调整外围道路、增设平行集散路或减少内部直连，而不是改变内部网格宽度。
+- 允许拓宽网格外围道路。宽度变化应发生在网格边界节点或外围路口，并检查转向车道、路口净空、建筑退距和分区格是否被破坏。
+- 网格连接外部道路的接驳路、集散路可以比内部道路更宽。接驳路应从网格外围节点出发，不得从网格内部中途扩宽后再穿出；其外部接入点继续遵循“已有路口 → 已有转角/端点 → 道路中段”的节点优先级。
+- `horizontal_road_prefab`、`vertical_road_prefab`、`perimeter_road_prefab` 和 `connection_road_prefab` 都必须使用当前城市实时发现的精确 prefab。若横纵内部 prefab 的实际宽度不同，规划预检应拒绝或要求用户明确修改方案，而不是静默生成不等宽网格。
 
 最小用法：
 

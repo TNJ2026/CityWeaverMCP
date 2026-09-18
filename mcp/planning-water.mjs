@@ -179,7 +179,7 @@ export function vectorizeSurfaceWater(cells, cellSize, options = {}) {
       area_m2: area,
       shoreline_length_m: perimeter(body.outer) + body.holes.reduce((sum, ring) => sum + perimeter(ring), 0),
       shoreline_vertices: body.outer.length + body.holes.reduce((sum, ring) => sum + ring.length, 0),
-      maximum_depth_m: depths.length ? Math.max(...depths) : null,
+      maximum_depth_m: depths.length ? depths.reduce((maximum, depth) => Math.max(maximum, depth), -Infinity) : null,
       geometry_method: 'marching_squares_depth_interpolation',
       status: 'existing',
     };
