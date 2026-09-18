@@ -1,0 +1,281 @@
+{
+  "bounds": {
+    "min_x": -2181.565,
+    "min_z": -311.652,
+    "max_x": -311.652,
+    "max_z": 1558.261
+  },
+  "include_existing": true,
+  "include_water": true,
+  "water_cell_size_m": 4,
+  "include_terrain": true,
+  "terrain_cell_size_m": 64,
+  "max_features_per_layer": 5000,
+  "plan": {
+    "roads": [],
+    "grids": [],
+    "zones": [
+      {
+        "id": "res-low-southwest",
+        "kind": "低密住宅组团（西南）",
+        "polygon": [
+          { "x": -1968, "z": 128 },
+          { "x": -1776, "z": 128 },
+          { "x": -1776, "z": 320 },
+          { "x": -1968, "z": 320 }
+        ]
+      },
+      {
+        "id": "res-low-northwest",
+        "kind": "低密住宅组团（西北）",
+        "polygon": [
+          { "x": -1968, "z": 800 },
+          { "x": -1776, "z": 800 },
+          { "x": -1776, "z": 992 },
+          { "x": -1968, "z": 992 }
+        ]
+      },
+      {
+        "id": "res-medium-southeast",
+        "kind": "中密住宅组团（东南）",
+        "polygon": [
+          { "x": -1088, "z": 128 },
+          { "x": -848, "z": 128 },
+          { "x": -848, "z": 320 },
+          { "x": -1088, "z": 320 }
+        ]
+      },
+      {
+        "id": "res-medium-northeast",
+        "kind": "中密住宅组团（东北）",
+        "polygon": [
+          { "x": -1088, "z": 800 },
+          { "x": -848, "z": 800 },
+          { "x": -848, "z": 992 },
+          { "x": -1088, "z": 992 }
+        ]
+      },
+      {
+        "id": "commercial-west",
+        "kind": "商业组团（西）",
+        "polygon": [
+          { "x": -1632, "z": 400 },
+          { "x": -1472, "z": 400 },
+          { "x": -1472, "z": 480 },
+          { "x": -1632, "z": 480 }
+        ]
+      },
+      {
+        "id": "commercial-east",
+        "kind": "商业组团（东）",
+        "polygon": [
+          { "x": -1344, "z": 400 },
+          { "x": -1184, "z": 400 },
+          { "x": -1184, "z": 480 },
+          { "x": -1344, "z": 480 }
+        ]
+      },
+      {
+        "id": "office-core",
+        "kind": "办公组团",
+        "polygon": [
+          { "x": -1536, "z": 624 },
+          { "x": -1456, "z": 624 },
+          { "x": -1456, "z": 704 },
+          { "x": -1536, "z": 704 }
+        ]
+      },
+      {
+        "id": "industrial-northeast",
+        "kind": "工业组团",
+        "polygon": [
+          { "x": -1064, "z": 1192 },
+          { "x": -824, "z": 1192 },
+          { "x": -824, "z": 1352 },
+          { "x": -1064, "z": 1352 }
+        ]
+      }
+    ],
+    "buildings": [
+      {
+        "id": "service-elementary-existing",
+        "label": "已建｜西侧小学 ElementarySchool02",
+        "prefab": "ElementarySchool02",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -1600.00024, "y": 512.0078, "z": 631.750244 },
+        "rotation_degrees": 0.000036,
+        "size_m": { "x": 71.6, "z": 47.6 }
+      },
+      {
+        "id": "service-police-central",
+        "label": "S6-01｜中心警察局 PoliceStation02",
+        "prefab": "PoliceStation02",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -1500.00012, "z": 535.75 },
+        "rotation_degrees": 0.000027,
+        "size_m": { "x": 39.6, "z": 39.6 }
+      },
+      {
+        "id": "service-fire-central",
+        "label": "S6-02｜中心消防站 FireHouse02",
+        "prefab": "FireHouse02",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -1449.99988, "z": 539.75 },
+        "rotation_degrees": 0,
+        "size_m": { "x": 23.6, "z": 31.6 }
+      },
+      {
+        "id": "service-hospital-central",
+        "label": "S6-03｜中心医院 Hospital01（四周保留升级净空）",
+        "prefab": "Hospital01",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -1347.74988, "z": 700 },
+        "rotation_degrees": -90,
+        "size_m": { "x": 183.6, "z": 79.6 }
+      },
+      {
+        "id": "service-high-school-central",
+        "label": "S6-04｜中学 HighSchool02（升级位向东预留）",
+        "prefab": "HighSchool02",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -1200, "z": 739.75 },
+        "rotation_degrees": 0,
+        "size_m": { "x": 95.6, "z": 63.6 }
+      },
+      {
+        "id": "service-elementary-east",
+        "label": "S6-05｜东侧小学 ElementarySchool02",
+        "prefab": "ElementarySchool02",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -1000, "z": 531.75 },
+        "rotation_degrees": 0,
+        "size_m": { "x": 71.6, "z": 47.6 }
+      },
+      {
+        "id": "service-post-central",
+        "label": "S6-06｜邮局 PostOffice02",
+        "prefab": "PostOffice02",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -1148.25, "z": 650.0116 },
+        "rotation_degrees": 90,
+        "size_m": { "x": 23.6, "z": 31.6 }
+      },
+      {
+        "id": "transport-bus-station-central",
+        "label": "S6-07｜公交站/换乘枢纽 BusStation02",
+        "prefab": "BusStation02",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -1436.25, "z": 849.999939 },
+        "rotation_degrees": 90,
+        "size_m": { "x": 31.6, "z": 47.6 }
+      },
+      {
+        "id": "transport-bus-depot-north",
+        "label": "S6-08｜公交车辆段 BusDepot01（公交运营前置依赖）",
+        "prefab": "BusDepot01",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -1550, "z": 1120.25 },
+        "rotation_degrees": -180,
+        "size_m": { "x": 143.6, "z": 71.6 }
+      },
+      {
+        "id": "service-fire-industrial",
+        "label": "S6-09｜工业消防站 FireHouse02",
+        "prefab": "FireHouse02",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -940.000061, "z": 1243.75 },
+        "rotation_degrees": 0,
+        "size_m": { "x": 23.6, "z": 31.6 }
+      },
+      {
+        "id": "service-landfill-northwest",
+        "label": "S6-10｜垃圾填埋场 Landfill01（储存区向北预留）",
+        "prefab": "Landfill01",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -1872, "z": 1144.25 },
+        "rotation_degrees": 180,
+        "size_m": { "x": 135.6, "z": 119.6 }
+      },
+      {
+        "id": "service-cemetery-west",
+        "label": "S6-11｜墓园 Cemetery02",
+        "prefab": "Cemetery02",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -2084.25, "z": 600 },
+        "rotation_degrees": 90,
+        "size_m": { "x": 111.6, "z": 47.6 }
+      },
+      {
+        "id": "utility-telecom-west",
+        "label": "S6-12｜电信塔 TelecomTower01",
+        "prefab": "TelecomTower01",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -2051.99976, "z": 859.7497 },
+        "rotation_degrees": 0,
+        "size_m": { "x": 55.6, "z": 55.6 }
+      },
+      {
+        "id": "park-southwest",
+        "label": "S6-13｜西南组团公园 CityPark06",
+        "prefab": "CityPark06",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -1839.99976, "z": 348.249969 },
+        "rotation_degrees": 180,
+        "size_m": { "x": 39.6, "z": 39.6 }
+      },
+      {
+        "id": "park-northwest",
+        "label": "S6-14｜西北组团公园 CityPark06",
+        "prefab": "CityPark06",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -1839.99976, "z": 924.2499 },
+        "rotation_degrees": 180,
+        "size_m": { "x": 39.6, "z": 39.6 }
+      },
+      {
+        "id": "park-southeast",
+        "label": "S6-15｜东南组团公园 CityPark06",
+        "prefab": "CityPark06",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -879.999939, "z": 348.25 },
+        "rotation_degrees": 180,
+        "size_m": { "x": 39.6, "z": 39.6 }
+      },
+      {
+        "id": "park-northeast",
+        "label": "S6-16｜东北组团公园 CityPark06",
+        "prefab": "CityPark06",
+        "kind": "service",
+        "planning_status": "bound",
+        "position": { "x": -879.999939, "z": 863.75 },
+        "rotation_degrees": 0,
+        "size_m": { "x": 39.6, "z": 39.6 }
+      }
+    ],
+    "tracks": [],
+    "utilities": []
+  },
+  "render": {
+    "format": "svg",
+    "width": 1800,
+    "height": 1800,
+    "title": "韦福德｜当前已购区域公共服务施工图",
+    "view": "surface"
+  }
+}

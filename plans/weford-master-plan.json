@@ -1,0 +1,2579 @@
+{
+  "bounds": { "min_x": -2181.565, "min_z": -311.652, "max_x": -311.652, "max_z": 1558.261 },
+  "include_existing": true,
+  "include_water": true,
+  "water_cell_size_m": 4,
+  "include_terrain": true,
+  "terrain_cell_size_m": 64,
+  "max_features_per_layer": 5000,
+  "plan": {
+    "roads": [
+      { "id": "outer-ring", "label": "四车道双向外环 1280×1008m", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "width_m": 24, "points": [{"x":-2048,"z":64},{"x":-768,"z":64},{"x":-768,"z":1072},{"x":-2048,"z":1072},{"x":-2048,"z":64}] },
+      { "id": "inner-ring", "label": "四车道双向内环 560×432m", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "width_m": 24, "points": [{"x":-1680,"z":352},{"x":-1120,"z":352},{"x":-1120,"z":784},{"x":-1680,"z":784},{"x":-1680,"z":352}] },
+      { "id": "collector-ew", "label": "东西四车道集散轴", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "width_m": 24, "points": [{"x":-2048,"z":568},{"x":-768,"z":568}] },
+      { "id": "collector-ns", "label": "南北四车道公交/服务轴", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "width_m": 24, "points": [{"x":-1400,"z":64},{"x":-1400,"z":1072}] },
+      { "id": "freight-spine", "label": "工业西侧四车道货运边界路（两侧禁分区）", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "width_m": 24, "points": [{"x":-1120,"z":1072},{"x":-1120,"z":1392}] },
+      { "id": "utility-west", "label": "西南清洁公用设施支路", "prefab": "Small Road", "planning_status": "bound", "construction_status": "built", "width_m": 16, "points": [{"x":-2048,"z":64},{"x":-2048,"z":-160},{"x":-1920,"z":-160}] },
+      { "id": "logistics-north", "label": "北部后勤服务路", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "width_m": 24, "points": [{"x":-1984,"z":1152},{"x":-800,"z":1152}] },
+      { "id":"access-g0-west", "label":"低密住宅西南组团出口 1 → 外环", "prefab":"Small Road", "planning_status":"bound", "construction_status":"built", "construction_order":100, "width_m":16, "points":[{"x":-1968,"z":176,"edge_id":"524da0afe975468bb665359dbde115bc:51874:249"},{"x":-2048,"z":176,"edge_id":"524da0afe975468bb665359dbde115bc:55503:3"}] },
+      { "id":"access-g0-inner", "label":"低密住宅西南组团出口 2 → 内环", "prefab":"Small Road", "planning_status":"bound", "construction_status":"built", "construction_order":101, "width_m":16, "points":[{"x":-1776,"z":320,"edge_id":"524da0afe975468bb665359dbde115bc:51873:65"},{"x":-1680,"z":320},{"x":-1680,"z":352,"edge_id":"524da0afe975468bb665359dbde115bc:55556:13"}] },
+      { "id":"access-g1-west", "label":"低密住宅西北组团出口 1 → 外环西侧", "prefab":"Small Road", "planning_status":"bound", "construction_status":"built", "construction_order":102, "width_m":16, "points":[{"x":-1968,"z":848,"edge_id":"524da0afe975468bb665359dbde115bc:56293:9"},{"x":-2048,"z":848,"edge_id":"524da0afe975468bb665359dbde115bc:52586:57"}] },
+      { "id":"access-g1-north", "label":"低密住宅西北组团出口 2 → 外环北侧", "prefab":"Small Road", "planning_status":"bound", "construction_status":"built", "construction_order":103, "width_m":16, "points":[{"x":-1824,"z":992,"edge_id":"524da0afe975468bb665359dbde115bc:56292:9"},{"x":-1824,"z":1072,"edge_id":"524da0afe975468bb665359dbde115bc:52570:43"}] },
+      { "id":"access-g2-east-south", "label":"中密住宅东南组团四车道出口 1 → 外环", "prefab":"Medium Road", "planning_status":"bound", "construction_status":"built", "construction_order":104, "width_m":24, "points":[{"x":-848,"z":176,"edge_id":"524da0afe975468bb665359dbde115bc:66438:3"},{"x":-768,"z":176,"edge_id":"524da0afe975468bb665359dbde115bc:52562:11"}] },
+      { "id":"access-g2-east-north", "label":"中密住宅东南组团四车道出口 2 → 外环", "prefab":"Medium Road", "planning_status":"bound", "construction_status":"built", "construction_order":105, "width_m":24, "points":[{"x":-848,"z":272,"edge_id":"524da0afe975468bb665359dbde115bc:66439:3"},{"x":-768,"z":272,"edge_id":"524da0afe975468bb665359dbde115bc:52577:43"}] },
+      { "id":"access-g3-north-west", "label":"中密住宅东北组团四车道出口 1 → 外环", "prefab":"Medium Road", "planning_status":"bound", "construction_status":"built", "construction_order":106, "width_m":24, "points":[{"x":-1048,"z":992,"edge_id":"524da0afe975468bb665359dbde115bc:69910:79"},{"x":-1048,"z":1072,"edge_id":"524da0afe975468bb665359dbde115bc:54803:49"}] },
+      { "id":"access-g3-north-east", "label":"中密住宅东北组团四车道出口 2 → 外环", "prefab":"Medium Road", "planning_status":"bound", "construction_status":"built", "construction_order":107, "width_m":24, "points":[{"x":-888,"z":992,"edge_id":"524da0afe975468bb665359dbde115bc:69912:73"},{"x":-888,"z":1072,"edge_id":"524da0afe975468bb665359dbde115bc:52566:9"}] },
+      { "id":"access-g4-south", "label":"商业西组团出口 1 → 内环南侧", "prefab":"Small Road", "planning_status":"bound", "construction_status":"built", "construction_order":108, "width_m":16, "points":[{"x":-1592,"z":400,"edge_id":"524da0afe975468bb665359dbde115bc:70902:45"},{"x":-1592,"z":352,"edge_id":"524da0afe975468bb665359dbde115bc:55508:5"}] },
+      { "id":"access-g4-east", "label":"商业西组团出口 2 → 南北集散轴", "prefab":"Small Road", "planning_status":"bound", "construction_status":"built", "construction_order":109, "width_m":16, "points":[{"x":-1472,"z":440,"edge_id":"524da0afe975468bb665359dbde115bc:70908:45"},{"x":-1400,"z":440,"edge_id":"524da0afe975468bb665359dbde115bc:56407:21"}] },
+      { "id":"access-g4-north", "label":"商业西组团出口 3 → 东西集散轴", "prefab":"Small Road", "planning_status":"bound", "construction_status":"built", "construction_order":110, "width_m":16, "points":[{"x":-1592,"z":480,"edge_id":"524da0afe975468bb665359dbde115bc:70904:45"},{"x":-1592,"z":568,"edge_id":"524da0afe975468bb665359dbde115bc:56950:19"}] },
+      { "id":"access-g5-south", "label":"商业东组团出口 1 → 内环南侧", "prefab":"Small Road", "planning_status":"bound", "construction_status":"built", "construction_order":111, "width_m":16, "points":[{"x":-1304,"z":400,"edge_id":"524da0afe975468bb665359dbde115bc:71187:29"},{"x":-1304,"z":352,"edge_id":"524da0afe975468bb665359dbde115bc:56414:19"}] },
+      { "id":"access-g5-east", "label":"商业东组团出口 2 → 内环东侧", "prefab":"Small Road", "planning_status":"bound", "construction_status":"built", "construction_order":112, "width_m":16, "points":[{"x":-1184,"z":440,"edge_id":"524da0afe975468bb665359dbde115bc:71193:31"},{"x":-1120,"z":440,"edge_id":"524da0afe975468bb665359dbde115bc:55511:5"}] },
+      { "id":"access-g6-west", "label":"办公组团出口 1 → 内环西侧", "prefab":"Small Road", "planning_status":"bound", "construction_status":"built", "construction_order":113, "width_m":16, "points":[{"x":-1536,"z":664,"edge_id":"524da0afe975468bb665359dbde115bc:72199:23"},{"x":-1680,"z":664,"edge_id":"524da0afe975468bb665359dbde115bc:55527:29"}] },
+      { "id":"access-g6-east", "label":"办公组团出口 2 → 南北集散轴", "prefab":"Small Road", "planning_status":"bound", "construction_status":"built", "construction_order":114, "width_m":16, "points":[{"x":-1456,"z":664,"edge_id":"524da0afe975468bb665359dbde115bc:72200:23"},{"x":-1400,"z":664,"edge_id":"524da0afe975468bb665359dbde115bc:56408:13"}] },
+      { "id":"access-g7-west-south", "label":"工业组团货运出口 1 → 货运干线", "prefab":"Medium Road", "planning_status":"bound", "construction_status":"built", "construction_order":115, "width_m":24, "points":[{"x":-1064,"z":1232,"edge_id":"524da0afe975468bb665359dbde115bc:73189:3"},{"x":-1120,"z":1232,"edge_id":"524da0afe975468bb665359dbde115bc:54475:7"}] },
+      { "id":"access-g7-west-north", "label":"工业组团货运出口 2 → 货运干线", "prefab":"Medium Road", "planning_status":"bound", "construction_status":"built", "construction_order":116, "width_m":24, "points":[{"x":-1064,"z":1272,"node_id":"524da0afe975468bb665359dbde115bc:73172:3"},{"x":-1120,"z":1272,"node_id":"524da0afe975468bb665359dbde115bc:52772:45"}] },
+      { "id":"access-g7-logistics", "label":"工业组团服务出口 → 北部后勤路", "prefab":"Medium Road", "planning_status":"bound", "construction_status":"built", "construction_order":117, "width_m":24, "points":[{"x":-1024,"z":1192,"edge_id":"524da0afe975468bb665359dbde115bc:73180:3"},{"x":-1024,"z":1152,"edge_id":"524da0afe975468bb665359dbde115bc:54468:69"}] },
+      { "id":"access-logistics-city", "label":"城市客运入口支路：后勤路 → 外环北侧", "prefab":"Medium Road", "planning_status":"bound", "construction_status":"built", "construction_order":118, "width_m":24, "points":[{"x":-1984,"z":1152,"edge_id":"524da0afe975468bb665359dbde115bc:54100:43"},{"x":-1984,"z":1072,"edge_id":"524da0afe975468bb665359dbde115bc:52585:85"}] },
+      { "id":"access-highway-inbound", "label":"外部高速进城单向匝道 → 工业货运干线", "prefab":"Highway Oneway - 2 lanes", "planning_status":"bound", "construction_status":"built", "construction_order":119, "width_m":12, "points":[{"x":-1124.44421,"z":1418.89673,"node_id":"524da0afe975468bb665359dbde115bc:192547:1"},{"x":-1160,"z":1416},{"x":-1160,"z":1392},{"x":-1120,"z":1392,"node_id":"524da0afe975468bb665359dbde115bc:54604:9"}] },
+      { "id":"access-highway-outbound", "label":"工业货运干线 → 外部高速出城单向匝道", "prefab":"Highway Oneway - 2 lanes", "planning_status":"bound", "construction_status":"built", "construction_order":120, "width_m":12, "points":[{"x":-1120,"z":1360,"edge_id":"524da0afe975468bb665359dbde115bc:54796:5"},{"x":-1088,"z":1360},{"x":-1088,"z":1416.94092},{"x":-1104.54175,"z":1416.94092,"node_id":"524da0afe975468bb665359dbde115bc:192573:1"}] }
+    ],
+    "grids": [
+      { "id":"grid-0", "origin":{"x":-1968,"z":128}, "columns":2, "rows":2, "block_width_m":96, "block_height_m":96, "road_prefab":"Small Road", "road_width_m":16, "zone_type":"NA Residential Low", "zone_kind":"residential", "construction_status":"built" },
+      { "id":"grid-1", "origin":{"x":-1968,"z":800}, "columns":2, "rows":2, "block_width_m":96, "block_height_m":96, "road_prefab":"Small Road", "road_width_m":16, "zone_type":"NA Residential Low", "zone_kind":"residential", "construction_status":"built" },
+      { "id":"grid-2", "origin":{"x":-1088,"z":128}, "columns":3, "rows":2, "block_width_m":80, "block_height_m":96, "road_prefab":"Small Road", "horizontal_road_prefab":"Medium Road", "road_width_m":16, "zone_type":"NA Residential Medium Row", "zone_kind":"residential", "construction_status":"built" },
+      { "id":"grid-3", "origin":{"x":-1088,"z":800}, "columns":3, "rows":2, "block_width_m":80, "block_height_m":96, "road_prefab":"Small Road", "horizontal_road_prefab":"Medium Road", "road_width_m":16, "zone_type":"NA Residential Medium Row", "zone_kind":"residential", "construction_status":"built" },
+      { "id":"grid-4", "origin":{"x":-1632,"z":400}, "columns":2, "rows":1, "block_width_m":80, "block_height_m":80, "road_prefab":"Small Road", "road_width_m":16, "zone_type":"NA Commercial Low", "zone_kind":"commercial", "construction_status":"built" },
+      { "id":"grid-5", "origin":{"x":-1344,"z":400}, "columns":2, "rows":1, "block_width_m":80, "block_height_m":80, "road_prefab":"Small Road", "road_width_m":16, "zone_type":"NA Commercial Low", "zone_kind":"commercial", "construction_status":"built" },
+      { "id":"grid-6", "origin":{"x":-1536,"z":624}, "columns":1, "rows":1, "block_width_m":80, "block_height_m":80, "road_prefab":"Small Road", "road_width_m":16, "zone_type":"Office Low", "zone_kind":"office", "construction_status":"built" },
+      { "id":"grid-7", "origin":{"x":-1064,"z":1192}, "columns":3, "rows":2, "block_width_m":80, "block_height_m":80, "road_prefab":"Small Road", "horizontal_road_prefab":"Medium Road", "road_width_m":16, "zone_type":"Industrial Manufacturing", "zone_kind":"industrial", "construction_status":"built" }
+    ],
+    "zones": [
+      { "id":"service-core", "kind":"公共服务与升级预留", "polygon":[{"x":-1664,"z":520},{"x":-1136,"z":520},{"x":-1136,"z":768},{"x":-1664,"z":768}] },
+      { "id":"industrial-buffer", "kind":"工业污染与扩建缓冲（不含高速及货运走廊）", "polygon":[{"x":-1080,"z":1176},{"x":-720,"z":1176},{"x":-720,"z":1400},{"x":-1080,"z":1400}] },
+      { "id":"landfill-storage-reserve", "kind":"填埋场储存区预留", "polygon":[{"x":-1412,"z":1204},{"x":-1252,"z":1204},{"x":-1252,"z":1340},{"x":-1412,"z":1340}] }
+    ],
+    "buildings": [
+      { "id":"elementary-school-built", "label":"小学 ElementarySchool02（含升级预留）", "prefab":"ElementarySchool02", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"city_service", "position":{"x":-1600.00024,"y":512.0078,"z":631.750244}, "rotation_degrees":0.00003597795, "size_m":{"x":71.6,"z":47.6} },
+      { "id":"high-school-repair", "label":"已建｜中学（T形路口南侧，教学楼扩建位于右侧）", "prefab":"HighSchool02", "planning_status":"bound", "construction_status":"built", "permanent_entity_id":"6249f0b9a8b044ca81211160b0bdbc42:196412:1", "kind":"service", "category":"city_service", "position":{"x":-1340,"y":512.0078,"z":1028}, "rotation_degrees":0, "size_m":{"x":95.6,"z":63.6}, "road_connection":{"road_id":"outer-north","side":"south","clearance_m":0.2,"permanent_edge_id":"6249f0b9a8b044ca81211160b0bdbc42:188102:1"}, "installed_upgrades":[{"prefab":"HighSchool02 Classroom Extension Building","entity_id":"6249f0b9a8b044ca81211160b0bdbc42:209877:1","construction_status":"built","placement_side":"right","position":{"x":-1268,"y":512.0078,"z":1036},"rotation_degrees":-90.00001,"size_m":{"x":47.6,"z":47.6}}], "blocked_upgrades":[{"prefab":"HighSchool02 Sport Park","state":"failed","error":"GAME_REJECTED_BUILDING","operation_id":"73253ff1d3f24158a7e48c61873c984b","placement_side":"back","attempted_position":{"x":-1340,"y":512.0078,"z":900},"size_m":{"x":103.6,"z":191.6},"reason":"后侧运动公园与下方 Medium Road 原生碰撞；未提交。"}] },
+      { "id":"police-station", "label":"已建｜警察局", "prefab":"PoliceStation02", "planning_status":"bound", "construction_status":"built", "permanent_entity_id":"c304cbd7c9054a0d9d502dd7a9a95215:200632:95", "kind":"service", "category":"city_service", "position":{"x":-1543.99988,"y":512.0078,"z":535.75,"edge_id":"c304cbd7c9054a0d9d502dd7a9a95215:180934:1"}, "rotation_degrees":0.00007714089, "size_m":{"x":39.6,"z":39.6} },
+      { "id":"fire-house", "label":"已建｜消防站", "prefab":"FireHouse02", "planning_status":"bound", "construction_status":"built", "permanent_entity_id":"c304cbd7c9054a0d9d502dd7a9a95215:220318:13", "kind":"service", "category":"city_service", "position":{"x":-1503.99988,"y":512.0078,"z":596.249939,"edge_id":"c304cbd7c9054a0d9d502dd7a9a95215:180934:1"}, "rotation_degrees":-179.999969, "size_m":{"x":23.6,"z":31.6} },
+      { "id":"medical-clinic", "label":"已建｜诊所", "prefab":"MedicalClinic02", "planning_status":"bound", "construction_status":"built", "permanent_entity_id":"c304cbd7c9054a0d9d502dd7a9a95215:222782:25", "kind":"service", "category":"city_service", "position":{"x":-1312.00012,"y":512.0703,"z":535.750061,"edge_id":"c304cbd7c9054a0d9d502dd7a9a95215:59041:1"}, "rotation_degrees":-0.00007675334, "size_m":{"x":39.6,"z":39.6} },
+      { "id":"city-park", "label":"已建｜城市公园", "prefab":"CityPark03", "planning_status":"bound", "construction_status":"built", "permanent_entity_id":"c304cbd7c9054a0d9d502dd7a9a95215:181589:7", "kind":"service", "category":"city_service", "position":{"x":-1872,"y":512.0078,"z":612.25,"edge_id":"c304cbd7c9054a0d9d502dd7a9a95215:59046:1"}, "rotation_degrees":-180, "size_m":{"x":79.6,"z":63.6} },
+      { "id":"community-pool", "label":"已建｜社区泳池", "prefab":"CommunityPool01", "planning_status":"bound", "construction_status":"built", "permanent_entity_id":"c304cbd7c9054a0d9d502dd7a9a95215:223552:9", "kind":"service", "category":"city_service", "position":{"x":-927.99884,"y":512.0078,"z":608.249939,"edge_id":"c304cbd7c9054a0d9d502dd7a9a95215:59039:1"}, "rotation_degrees":180, "size_m":{"x":55.6,"z":55.6} },
+      { "id":"bus-depot", "label":"已建｜公交车场", "prefab":"BusDepot01", "planning_status":"bound", "construction_status":"built", "permanent_entity_id":"c304cbd7c9054a0d9d502dd7a9a95215:223921:11", "kind":"service", "category":"transport_facility", "position":{"x":-1536,"y":512.0078,"z":1023.75,"edge_id":"c304cbd7c9054a0d9d502dd7a9a95215:59816:1"}, "rotation_degrees":0, "size_m":{"x":143.6,"z":71.6} },
+      { "id":"water-tower-built", "label":"已建｜水塔 WaterTower02（清洁上风向）", "prefab":"WaterTower02", "planning_status":"bound", "kind":"service", "position":{"x":-1920,"y":512.0078,"z":-143.75}, "rotation_degrees":180, "size_m":{"x":15.6,"z":15.6} },
+      { "id":"transformer-near-hv-entry", "label":"已建｜路边变电站 TransformerStation02（高压已接入，低压支网待建）", "prefab":"TransformerStation02", "planning_status":"bound", "kind":"service", "position":{"x":-1984,"y":512.0078,"z":1180.25,"edge_id":"524da0afe975468bb665359dbde115bc:54100:43"}, "rotation_degrees":180, "size_m":{"x":23.6,"z":31.6} },
+      { "id":"coal-power-plant", "label":"小型燃煤电站 SmallCoalPowerPlant01", "prefab":"SmallCoalPowerPlant01", "planning_status":"bound", "kind":"service", "position":{"x":-1504,"z":1328}, "size_m":{"x":136,"z":152} },
+      { "id":"coastal-sewage-outlet", "label":"已建｜东侧岸线排污口 SewageOutlet01（纯污水骨干已接入）", "prefab":"SewageOutlet01", "planning_status":"bound", "kind":"service", "position":{"x":-643.564941,"y":507.533264,"z":1230.348}, "rotation_degrees":-89.58029, "size_m":{"x":15.6,"z":15.6} },
+      { "id":"landfill", "label":"已建｜填埋场", "prefab":"Landfill01", "planning_status":"bound", "construction_status":"built", "permanent_entity_id":"c304cbd7c9054a0d9d502dd7a9a95215:224999:5", "kind":"service", "category":"city_service", "position":{"x":-1192.25,"y":512.0078,"z":1271.99976,"edge_id":"c304cbd7c9054a0d9d502dd7a9a95215:54322:1"}, "rotation_degrees":90, "size_m":{"x":135.6,"z":119.6} },
+      { "id":"cemetery", "label":"已建｜墓园", "prefab":"Cemetery02", "planning_status":"bound", "construction_status":"built", "permanent_entity_id":"c304cbd7c9054a0d9d502dd7a9a95215:226333:3", "kind":"service", "category":"city_service", "position":{"x":-1840.00012,"y":512.0078,"z":1108.25,"edge_id":"c304cbd7c9054a0d9d502dd7a9a95215:180922:1"}, "rotation_degrees":-180, "size_m":{"x":111.6,"z":47.6} }
+    ],
+    "utilities": [
+      {
+        "id": "water-backbone-built",
+        "label": "已建｜水塔真实端口 → 地下清水骨干",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1920,
+            "z": -147.75,
+            "node_id": "524da0afe975468bb665359dbde115bc:54456:585"
+          },
+          {
+            "x": -1920,
+            "z": -40
+          },
+          {
+            "x": -1920,
+            "z": 64
+          },
+          {
+            "x": -1746.667,
+            "z": 64
+          },
+          {
+            "x": -1573.333,
+            "z": 64
+          },
+          {
+            "x": -1400,
+            "z": 64
+          },
+          {
+            "x": -1400,
+            "z": 232
+          },
+          {
+            "x": -1400,
+            "z": 400
+          },
+          {
+            "x": -1400,
+            "z": 568
+          },
+          {
+            "x": -1400,
+            "z": 736
+          },
+          {
+            "x": -1400,
+            "z": 904
+          },
+          {
+            "x": -1400.039429,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "sewage-backbone-built",
+        "label": "已建｜地下纯污水骨干 → 海岸排污口真实端口",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 64
+          },
+          {
+            "x": -1400,
+            "z": 224
+          },
+          {
+            "x": -1400,
+            "z": 384
+          },
+          {
+            "x": -1400,
+            "z": 544
+          },
+          {
+            "x": -1400,
+            "z": 704
+          },
+          {
+            "x": -1400,
+            "z": 864
+          },
+          {
+            "x": -1400,
+            "z": 1040
+          },
+          {
+            "x": -1400,
+            "z": 1072
+          },
+          {
+            "x": -1240,
+            "z": 1072
+          },
+          {
+            "x": -1080,
+            "z": 1072
+          },
+          {
+            "x": -920,
+            "z": 1072
+          },
+          {
+            "x": -768,
+            "z": 1072
+          },
+          {
+            "x": -705.782471,
+            "z": 1151.174
+          },
+          {
+            "x": -647.5648,
+            "z": 1230.37732,
+            "node_id": "524da0afe975468bb665359dbde115bc:54707:525"
+          }
+        ]
+      },
+      {
+        "id": "hv-entry-to-transformer-built",
+        "label": "已建｜外部高压入口 → 变电站真实高压端口（高压不进内环）",
+        "prefab": "High-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -2022.22437,
+            "z": 1515.79565,
+            "node_id": "524da0afe975468bb665359dbde115bc:191767:1"
+          },
+          {
+            "x": -2022.22437,
+            "z": 1344
+          },
+          {
+            "x": -1984,
+            "z": 1344
+          },
+          {
+            "x": -1984,
+            "z": 1196.25,
+            "node_id": "524da0afe975468bb665359dbde115bc:54717:405"
+          }
+        ]
+      },
+      {
+        "id": "lv-transformer-port-spur",
+        "label": "P1 变电站真实低压端口 → 北部后勤支网",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "construction_status": "built",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1980,
+            "z": 1165.25,
+            "node_id": "c304cbd7c9054a0d9d502dd7a9a95215:182566:1"
+          },
+          {
+            "x": -1980,
+            "z": 1152
+          }
+        ]
+      },
+      {
+        "id": "water-outer-west",
+        "label": "P1 外环西半环｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 1072
+          },
+          {
+            "x": -1560,
+            "z": 1072
+          },
+          {
+            "x": -1720,
+            "z": 1072
+          },
+          {
+            "x": -1820,
+            "z": 1072
+          },
+          {
+            "x": -1980,
+            "z": 1072
+          },
+          {
+            "x": -2048,
+            "z": 1072
+          },
+          {
+            "x": -2048,
+            "z": 880
+          },
+          {
+            "x": -2048,
+            "z": 688
+          },
+          {
+            "x": -2048,
+            "z": 496
+          },
+          {
+            "x": -2048,
+            "z": 304
+          },
+          {
+            "x": -2048,
+            "z": 112
+          },
+          {
+            "x": -2048,
+            "z": 64
+          },
+          {
+            "x": -1856,
+            "z": 64
+          },
+          {
+            "x": -1664,
+            "z": 64
+          },
+          {
+            "x": -1472,
+            "z": 64
+          },
+          {
+            "x": -1400,
+            "z": 64
+          }
+        ]
+      },
+      {
+        "id": "water-outer-east",
+        "label": "P1 外环东半环｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 1072
+          },
+          {
+            "x": -1240,
+            "z": 1072
+          },
+          {
+            "x": -1080,
+            "z": 1072
+          },
+          {
+            "x": -936,
+            "z": 1072
+          },
+          {
+            "x": -768,
+            "z": 1072
+          },
+          {
+            "x": -768,
+            "z": 880
+          },
+          {
+            "x": -768,
+            "z": 688
+          },
+          {
+            "x": -768,
+            "z": 496
+          },
+          {
+            "x": -768,
+            "z": 304
+          },
+          {
+            "x": -768,
+            "z": 112
+          },
+          {
+            "x": -768,
+            "z": 64
+          },
+          {
+            "x": -960,
+            "z": 64
+          },
+          {
+            "x": -1152,
+            "z": 64
+          },
+          {
+            "x": -1344,
+            "z": 64
+          },
+          {
+            "x": -1400,
+            "z": 64
+          }
+        ]
+      },
+      {
+        "id": "water-inner-feed",
+        "label": "P1 外环北侧 → 内环供给支线｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 1072
+          },
+          {
+            "x": -1400,
+            "z": 928
+          },
+          {
+            "x": -1400,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "water-inner-loop",
+        "label": "P1 内环闭合支网｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 784
+          },
+          {
+            "x": -1560,
+            "z": 784
+          },
+          {
+            "x": -1680,
+            "z": 784
+          },
+          {
+            "x": -1680,
+            "z": 640
+          },
+          {
+            "x": -1680,
+            "z": 496
+          },
+          {
+            "x": -1680,
+            "z": 352
+          },
+          {
+            "x": -1520,
+            "z": 352
+          },
+          {
+            "x": -1360,
+            "z": 352
+          },
+          {
+            "x": -1200,
+            "z": 352
+          },
+          {
+            "x": -1120,
+            "z": 352
+          },
+          {
+            "x": -1120,
+            "z": 496
+          },
+          {
+            "x": -1120,
+            "z": 640
+          },
+          {
+            "x": -1120,
+            "z": 784
+          },
+          {
+            "x": -1280,
+            "z": 784
+          },
+          {
+            "x": -1400,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "water-collector-ew",
+        "label": "P1 东西集散轴支网｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -2048,
+            "z": 568
+          },
+          {
+            "x": -1856,
+            "z": 568
+          },
+          {
+            "x": -1664,
+            "z": 568
+          },
+          {
+            "x": -1472,
+            "z": 568
+          },
+          {
+            "x": -1400,
+            "z": 568
+          },
+          {
+            "x": -1280,
+            "z": 568
+          },
+          {
+            "x": -1088,
+            "z": 568
+          },
+          {
+            "x": -896,
+            "z": 568
+          },
+          {
+            "x": -768,
+            "z": 568
+          }
+        ]
+      },
+      {
+        "id": "water-res-low-southwest",
+        "label": "P2 西南低密住宅组团支网｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -2048,
+            "z": 224
+          },
+          {
+            "x": -1968,
+            "z": 224
+          },
+          {
+            "x": -1872,
+            "z": 224
+          },
+          {
+            "x": -1776,
+            "z": 224
+          },
+          {
+            "x": -1680,
+            "z": 352
+          }
+        ]
+      },
+      {
+        "id": "water-res-low-northwest",
+        "label": "P2 西北低密住宅组团支网｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -2048,
+            "z": 896
+          },
+          {
+            "x": -1968,
+            "z": 896
+          },
+          {
+            "x": -1872,
+            "z": 896
+          },
+          {
+            "x": -1776,
+            "z": 896
+          },
+          {
+            "x": -1680,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "water-res-med-southeast",
+        "label": "P2 东南中密住宅组团支网｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 224
+          },
+          {
+            "x": -1240,
+            "z": 224
+          },
+          {
+            "x": -1088,
+            "z": 224
+          },
+          {
+            "x": -928,
+            "z": 224
+          },
+          {
+            "x": -768,
+            "z": 224
+          }
+        ]
+      },
+      {
+        "id": "water-res-med-northeast",
+        "label": "P2 东北中密住宅组团支网｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 896
+          },
+          {
+            "x": -1240,
+            "z": 896
+          },
+          {
+            "x": -1088,
+            "z": 896
+          },
+          {
+            "x": -928,
+            "z": 896
+          },
+          {
+            "x": -768,
+            "z": 896
+          }
+        ]
+      },
+      {
+        "id": "water-commercial",
+        "label": "P2 两个商业组团支网｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1680,
+            "z": 440
+          },
+          {
+            "x": -1520,
+            "z": 440
+          },
+          {
+            "x": -1400,
+            "z": 440
+          },
+          {
+            "x": -1280,
+            "z": 440
+          },
+          {
+            "x": -1120,
+            "z": 440
+          }
+        ]
+      },
+      {
+        "id": "water-civic-office",
+        "label": "P2 办公与公共服务组团支网｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1680,
+            "z": 664
+          },
+          {
+            "x": -1520,
+            "z": 664
+          },
+          {
+            "x": -1400,
+            "z": 664
+          },
+          {
+            "x": -1280,
+            "z": 664
+          },
+          {
+            "x": -1120,
+            "z": 664
+          }
+        ]
+      },
+      {
+        "id": "water-logistics",
+        "label": "P3 北部后勤道路支网｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1980,
+            "z": 1072
+          },
+          {
+            "x": -1980,
+            "z": 1152
+          },
+          {
+            "x": -1820,
+            "z": 1152
+          },
+          {
+            "x": -1660,
+            "z": 1152
+          },
+          {
+            "x": -1500,
+            "z": 1152
+          },
+          {
+            "x": -1340,
+            "z": 1152
+          },
+          {
+            "x": -1180,
+            "z": 1152
+          },
+          {
+            "x": -1020,
+            "z": 1152
+          },
+          {
+            "x": -860,
+            "z": 1152
+          },
+          {
+            "x": -800,
+            "z": 1152
+          }
+        ]
+      },
+      {
+        "id": "water-industrial",
+        "label": "P3 工业组团十字支网｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1120,
+            "z": 1072
+          },
+          {
+            "x": -1120,
+            "z": 1152
+          },
+          {
+            "x": -1120,
+            "z": 1272
+          },
+          {
+            "x": -960,
+            "z": 1272
+          },
+          {
+            "x": -800,
+            "z": 1272
+          },
+          {
+            "x": -768,
+            "z": 1272
+          }
+        ]
+      },
+      {
+        "id": "water-west-services",
+        "label": "P3 公交场与墓园支网｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1840,
+            "z": 1152
+          },
+          {
+            "x": -1840,
+            "z": 1312
+          },
+          {
+            "x": -1840,
+            "z": 1376
+          }
+        ]
+      },
+      {
+        "id": "water-coal-plant",
+        "label": "P3 电站预留支网｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1504,
+            "z": 1152
+          },
+          {
+            "x": -1504,
+            "z": 1312
+          },
+          {
+            "x": -1504,
+            "z": 1328
+          }
+        ]
+      },
+      {
+        "id": "water-landfill",
+        "label": "P3 填埋场预留支网｜清水",
+        "prefab": "Small Water Pipe",
+        "planning_status": "bound",
+        "network_type": "water",
+        "level": "underground",
+        "points": [
+          {
+            "x": -832,
+            "z": 1152
+          },
+          {
+            "x": -832,
+            "z": 1328
+          }
+        ]
+      },
+      {
+        "id": "sewage-outer-west",
+        "label": "P1 外环西半环｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 1072
+          },
+          {
+            "x": -1560,
+            "z": 1072
+          },
+          {
+            "x": -1720,
+            "z": 1072
+          },
+          {
+            "x": -1820,
+            "z": 1072
+          },
+          {
+            "x": -1980,
+            "z": 1072
+          },
+          {
+            "x": -2048,
+            "z": 1072
+          },
+          {
+            "x": -2048,
+            "z": 880
+          },
+          {
+            "x": -2048,
+            "z": 688
+          },
+          {
+            "x": -2048,
+            "z": 496
+          },
+          {
+            "x": -2048,
+            "z": 304
+          },
+          {
+            "x": -2048,
+            "z": 112
+          },
+          {
+            "x": -2048,
+            "z": 64
+          },
+          {
+            "x": -1856,
+            "z": 64
+          },
+          {
+            "x": -1664,
+            "z": 64
+          },
+          {
+            "x": -1472,
+            "z": 64
+          },
+          {
+            "x": -1400,
+            "z": 64
+          }
+        ]
+      },
+      {
+        "id": "sewage-outer-east",
+        "label": "P1 外环东半环｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 1072
+          },
+          {
+            "x": -1240,
+            "z": 1072
+          },
+          {
+            "x": -1080,
+            "z": 1072
+          },
+          {
+            "x": -936,
+            "z": 1072
+          },
+          {
+            "x": -768,
+            "z": 1072
+          },
+          {
+            "x": -768,
+            "z": 880
+          },
+          {
+            "x": -768,
+            "z": 688
+          },
+          {
+            "x": -768,
+            "z": 496
+          },
+          {
+            "x": -768,
+            "z": 304
+          },
+          {
+            "x": -768,
+            "z": 112
+          },
+          {
+            "x": -768,
+            "z": 64
+          },
+          {
+            "x": -960,
+            "z": 64
+          },
+          {
+            "x": -1152,
+            "z": 64
+          },
+          {
+            "x": -1344,
+            "z": 64
+          },
+          {
+            "x": -1400,
+            "z": 64
+          }
+        ]
+      },
+      {
+        "id": "sewage-inner-feed",
+        "label": "P1 外环北侧 → 内环供给支线｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 1072
+          },
+          {
+            "x": -1400,
+            "z": 928
+          },
+          {
+            "x": -1400,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "sewage-inner-loop",
+        "label": "P1 内环闭合支网｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 784
+          },
+          {
+            "x": -1560,
+            "z": 784
+          },
+          {
+            "x": -1680,
+            "z": 784
+          },
+          {
+            "x": -1680,
+            "z": 640
+          },
+          {
+            "x": -1680,
+            "z": 496
+          },
+          {
+            "x": -1680,
+            "z": 352
+          },
+          {
+            "x": -1520,
+            "z": 352
+          },
+          {
+            "x": -1360,
+            "z": 352
+          },
+          {
+            "x": -1200,
+            "z": 352
+          },
+          {
+            "x": -1120,
+            "z": 352
+          },
+          {
+            "x": -1120,
+            "z": 496
+          },
+          {
+            "x": -1120,
+            "z": 640
+          },
+          {
+            "x": -1120,
+            "z": 784
+          },
+          {
+            "x": -1280,
+            "z": 784
+          },
+          {
+            "x": -1400,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "sewage-collector-ew",
+        "label": "P1 东西集散轴支网｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -2048,
+            "z": 568
+          },
+          {
+            "x": -1856,
+            "z": 568
+          },
+          {
+            "x": -1664,
+            "z": 568
+          },
+          {
+            "x": -1472,
+            "z": 568
+          },
+          {
+            "x": -1400,
+            "z": 568
+          },
+          {
+            "x": -1280,
+            "z": 568
+          },
+          {
+            "x": -1088,
+            "z": 568
+          },
+          {
+            "x": -896,
+            "z": 568
+          },
+          {
+            "x": -768,
+            "z": 568
+          }
+        ]
+      },
+      {
+        "id": "sewage-res-low-southwest",
+        "label": "P2 西南低密住宅组团支网｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -2048,
+            "z": 224
+          },
+          {
+            "x": -1968,
+            "z": 224
+          },
+          {
+            "x": -1872,
+            "z": 224
+          },
+          {
+            "x": -1776,
+            "z": 224
+          },
+          {
+            "x": -1680,
+            "z": 352
+          }
+        ]
+      },
+      {
+        "id": "sewage-res-low-northwest",
+        "label": "P2 西北低密住宅组团支网｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -2048,
+            "z": 896
+          },
+          {
+            "x": -1968,
+            "z": 896
+          },
+          {
+            "x": -1872,
+            "z": 896
+          },
+          {
+            "x": -1776,
+            "z": 896
+          },
+          {
+            "x": -1680,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "sewage-res-med-southeast",
+        "label": "P2 东南中密住宅组团支网｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 224
+          },
+          {
+            "x": -1240,
+            "z": 224
+          },
+          {
+            "x": -1088,
+            "z": 224
+          },
+          {
+            "x": -928,
+            "z": 224
+          },
+          {
+            "x": -768,
+            "z": 224
+          }
+        ]
+      },
+      {
+        "id": "sewage-res-med-northeast",
+        "label": "P2 东北中密住宅组团支网｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 896
+          },
+          {
+            "x": -1240,
+            "z": 896
+          },
+          {
+            "x": -1088,
+            "z": 896
+          },
+          {
+            "x": -928,
+            "z": 896
+          },
+          {
+            "x": -768,
+            "z": 896
+          }
+        ]
+      },
+      {
+        "id": "sewage-commercial",
+        "label": "P2 两个商业组团支网｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1680,
+            "z": 440
+          },
+          {
+            "x": -1520,
+            "z": 440
+          },
+          {
+            "x": -1400,
+            "z": 440
+          },
+          {
+            "x": -1280,
+            "z": 440
+          },
+          {
+            "x": -1120,
+            "z": 440
+          }
+        ]
+      },
+      {
+        "id": "sewage-civic-office",
+        "label": "P2 办公与公共服务组团支网｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1680,
+            "z": 664
+          },
+          {
+            "x": -1520,
+            "z": 664
+          },
+          {
+            "x": -1400,
+            "z": 664
+          },
+          {
+            "x": -1280,
+            "z": 664
+          },
+          {
+            "x": -1120,
+            "z": 664
+          }
+        ]
+      },
+      {
+        "id": "sewage-logistics",
+        "label": "P3 北部后勤道路支网｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1980,
+            "z": 1072
+          },
+          {
+            "x": -1980,
+            "z": 1152
+          },
+          {
+            "x": -1820,
+            "z": 1152
+          },
+          {
+            "x": -1660,
+            "z": 1152
+          },
+          {
+            "x": -1500,
+            "z": 1152
+          },
+          {
+            "x": -1340,
+            "z": 1152
+          },
+          {
+            "x": -1180,
+            "z": 1152
+          },
+          {
+            "x": -1020,
+            "z": 1152
+          },
+          {
+            "x": -860,
+            "z": 1152
+          },
+          {
+            "x": -800,
+            "z": 1152
+          }
+        ]
+      },
+      {
+        "id": "sewage-industrial",
+        "label": "P3 工业组团十字支网｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1120,
+            "z": 1072
+          },
+          {
+            "x": -1120,
+            "z": 1152
+          },
+          {
+            "x": -1120,
+            "z": 1272
+          },
+          {
+            "x": -960,
+            "z": 1272
+          },
+          {
+            "x": -800,
+            "z": 1272
+          },
+          {
+            "x": -768,
+            "z": 1272
+          }
+        ]
+      },
+      {
+        "id": "sewage-west-services",
+        "label": "P3 公交场与墓园支网｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1840,
+            "z": 1152
+          },
+          {
+            "x": -1840,
+            "z": 1312
+          },
+          {
+            "x": -1840,
+            "z": 1376
+          }
+        ]
+      },
+      {
+        "id": "sewage-coal-plant",
+        "label": "P3 电站预留支网｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1504,
+            "z": 1152
+          },
+          {
+            "x": -1504,
+            "z": 1312
+          },
+          {
+            "x": -1504,
+            "z": 1328
+          }
+        ]
+      },
+      {
+        "id": "sewage-landfill",
+        "label": "P3 填埋场预留支网｜纯污水",
+        "prefab": "Small Sewage Pipe",
+        "planning_status": "bound",
+        "network_type": "sewage",
+        "level": "underground",
+        "points": [
+          {
+            "x": -832,
+            "z": 1152
+          },
+          {
+            "x": -832,
+            "z": 1328
+          }
+        ]
+      },
+      {
+        "id": "lv-outer-west-part1",
+        "label": "P1 外环西半环｜低压配电（1/3）",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 1072
+          },
+          {
+            "x": -1480,
+            "z": 1072
+          },
+          {
+            "x": -1560,
+            "z": 1072
+          },
+          {
+            "x": -1640,
+            "z": 1072
+          },
+          {
+            "x": -1720,
+            "z": 1072
+          },
+          {
+            "x": -1770,
+            "z": 1072
+          },
+          {
+            "x": -1820,
+            "z": 1072
+          },
+          {
+            "x": -1900,
+            "z": 1072
+          },
+          {
+            "x": -1980,
+            "z": 1072
+          },
+          {
+            "x": -2048,
+            "z": 1072
+          },
+          {
+            "x": -2048,
+            "z": 1008
+          },
+          {
+            "x": -2048,
+            "z": 944
+          },
+          {
+            "x": -2048,
+            "z": 880
+          },
+          {
+            "x": -2048,
+            "z": 816
+          },
+          {
+            "x": -2048,
+            "z": 752
+          },
+          {
+            "x": -2048,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "lv-outer-west-part2",
+        "label": "P1 外环西半环｜低压配电（2/3）",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -2048,
+            "z": 688
+          },
+          {
+            "x": -2048,
+            "z": 624
+          },
+          {
+            "x": -2048,
+            "z": 560
+          },
+          {
+            "x": -2048,
+            "z": 496
+          },
+          {
+            "x": -2048,
+            "z": 432
+          },
+          {
+            "x": -2048,
+            "z": 368
+          },
+          {
+            "x": -2048,
+            "z": 304
+          },
+          {
+            "x": -2048,
+            "z": 240
+          },
+          {
+            "x": -2048,
+            "z": 176
+          },
+          {
+            "x": -2048,
+            "z": 112
+          },
+          {
+            "x": -2048,
+            "z": 64
+          },
+          {
+            "x": -1984,
+            "z": 64
+          },
+          {
+            "x": -1920,
+            "z": 64
+          },
+          {
+            "x": -1856,
+            "z": 64
+          },
+          {
+            "x": -1792,
+            "z": 64
+          },
+          {
+            "x": -1728,
+            "z": 64
+          }
+        ]
+      },
+      {
+        "id": "lv-outer-west-part3",
+        "label": "P1 外环西半环｜低压配电（3/3）",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1728,
+            "z": 64
+          },
+          {
+            "x": -1664,
+            "z": 64
+          },
+          {
+            "x": -1600,
+            "z": 64
+          },
+          {
+            "x": -1536,
+            "z": 64
+          },
+          {
+            "x": -1472,
+            "z": 64
+          },
+          {
+            "x": -1400,
+            "z": 64
+          }
+        ]
+      },
+      {
+        "id": "lv-outer-east-part1",
+        "label": "P1 外环东半环｜低压配电（1/3）",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 1072
+          },
+          {
+            "x": -1320,
+            "z": 1072
+          },
+          {
+            "x": -1240,
+            "z": 1072
+          },
+          {
+            "x": -1160,
+            "z": 1072
+          },
+          {
+            "x": -1080,
+            "z": 1072
+          },
+          {
+            "x": -1008,
+            "z": 1072
+          },
+          {
+            "x": -936,
+            "z": 1072
+          },
+          {
+            "x": -852,
+            "z": 1072
+          },
+          {
+            "x": -768,
+            "z": 1072
+          },
+          {
+            "x": -768,
+            "z": 1008
+          },
+          {
+            "x": -768,
+            "z": 944
+          },
+          {
+            "x": -768,
+            "z": 880
+          },
+          {
+            "x": -768,
+            "z": 816
+          },
+          {
+            "x": -768,
+            "z": 752
+          },
+          {
+            "x": -768,
+            "z": 688
+          },
+          {
+            "x": -768,
+            "z": 624
+          }
+        ]
+      },
+      {
+        "id": "lv-outer-east-part2",
+        "label": "P1 外环东半环｜低压配电（2/3）",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -768,
+            "z": 624
+          },
+          {
+            "x": -768,
+            "z": 560
+          },
+          {
+            "x": -768,
+            "z": 496
+          },
+          {
+            "x": -768,
+            "z": 432
+          },
+          {
+            "x": -768,
+            "z": 368
+          },
+          {
+            "x": -768,
+            "z": 304
+          },
+          {
+            "x": -768,
+            "z": 240
+          },
+          {
+            "x": -768,
+            "z": 176
+          },
+          {
+            "x": -768,
+            "z": 112
+          },
+          {
+            "x": -768,
+            "z": 64
+          },
+          {
+            "x": -832,
+            "z": 64
+          },
+          {
+            "x": -896,
+            "z": 64
+          },
+          {
+            "x": -960,
+            "z": 64
+          },
+          {
+            "x": -1024,
+            "z": 64
+          },
+          {
+            "x": -1088,
+            "z": 64
+          },
+          {
+            "x": -1152,
+            "z": 64
+          }
+        ]
+      },
+      {
+        "id": "lv-outer-east-part3",
+        "label": "P1 外环东半环｜低压配电（3/3）",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1152,
+            "z": 64
+          },
+          {
+            "x": -1216,
+            "z": 64
+          },
+          {
+            "x": -1280,
+            "z": 64
+          },
+          {
+            "x": -1344,
+            "z": 64
+          },
+          {
+            "x": -1400,
+            "z": 64
+          }
+        ]
+      },
+      {
+        "id": "lv-inner-feed",
+        "label": "P1 外环北侧 → 内环供给支线｜低压配电",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 1072
+          },
+          {
+            "x": -1400,
+            "z": 1000
+          },
+          {
+            "x": -1400,
+            "z": 928
+          },
+          {
+            "x": -1400,
+            "z": 856
+          },
+          {
+            "x": -1400,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "lv-inner-loop-part1",
+        "label": "P1 内环闭合支网｜低压配电（1/2）",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 784
+          },
+          {
+            "x": -1480,
+            "z": 784
+          },
+          {
+            "x": -1560,
+            "z": 784
+          },
+          {
+            "x": -1620,
+            "z": 784
+          },
+          {
+            "x": -1680,
+            "z": 784
+          },
+          {
+            "x": -1680,
+            "z": 712
+          },
+          {
+            "x": -1680,
+            "z": 640
+          },
+          {
+            "x": -1680,
+            "z": 568
+          },
+          {
+            "x": -1680,
+            "z": 496
+          },
+          {
+            "x": -1680,
+            "z": 424
+          },
+          {
+            "x": -1680,
+            "z": 352
+          },
+          {
+            "x": -1600,
+            "z": 352
+          },
+          {
+            "x": -1520,
+            "z": 352
+          },
+          {
+            "x": -1440,
+            "z": 352
+          },
+          {
+            "x": -1360,
+            "z": 352
+          },
+          {
+            "x": -1280,
+            "z": 352
+          }
+        ]
+      },
+      {
+        "id": "lv-inner-loop-part2",
+        "label": "P1 内环闭合支网｜低压配电（2/2）",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1280,
+            "z": 352
+          },
+          {
+            "x": -1200,
+            "z": 352
+          },
+          {
+            "x": -1120,
+            "z": 352
+          },
+          {
+            "x": -1120,
+            "z": 424
+          },
+          {
+            "x": -1120,
+            "z": 496
+          },
+          {
+            "x": -1120,
+            "z": 568
+          },
+          {
+            "x": -1120,
+            "z": 640
+          },
+          {
+            "x": -1120,
+            "z": 712
+          },
+          {
+            "x": -1120,
+            "z": 784
+          },
+          {
+            "x": -1200,
+            "z": 784
+          },
+          {
+            "x": -1280,
+            "z": 784
+          },
+          {
+            "x": -1340,
+            "z": 784
+          },
+          {
+            "x": -1400,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "lv-collector-ew-part1",
+        "label": "P1 东西集散轴支网｜低压配电（1/2）",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -2048,
+            "z": 568
+          },
+          {
+            "x": -1984,
+            "z": 568
+          },
+          {
+            "x": -1920,
+            "z": 568
+          },
+          {
+            "x": -1856,
+            "z": 568
+          },
+          {
+            "x": -1792,
+            "z": 568
+          },
+          {
+            "x": -1728,
+            "z": 568
+          },
+          {
+            "x": -1664,
+            "z": 568
+          },
+          {
+            "x": -1600,
+            "z": 568
+          },
+          {
+            "x": -1536,
+            "z": 568
+          },
+          {
+            "x": -1472,
+            "z": 568
+          },
+          {
+            "x": -1400,
+            "z": 568
+          },
+          {
+            "x": -1340,
+            "z": 568
+          },
+          {
+            "x": -1280,
+            "z": 568
+          },
+          {
+            "x": -1216,
+            "z": 568
+          },
+          {
+            "x": -1152,
+            "z": 568
+          },
+          {
+            "x": -1088,
+            "z": 568
+          }
+        ]
+      },
+      {
+        "id": "lv-collector-ew-part2",
+        "label": "P1 东西集散轴支网｜低压配电（2/2）",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1088,
+            "z": 568
+          },
+          {
+            "x": -1024,
+            "z": 568
+          },
+          {
+            "x": -960,
+            "z": 568
+          },
+          {
+            "x": -896,
+            "z": 568
+          },
+          {
+            "x": -832,
+            "z": 568
+          },
+          {
+            "x": -768,
+            "z": 568
+          }
+        ]
+      },
+      {
+        "id": "lv-res-low-southwest",
+        "label": "P2 西南低密住宅组团支网｜低压配电",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -2048,
+            "z": 224
+          },
+          {
+            "x": -1968,
+            "z": 224
+          },
+          {
+            "x": -1920,
+            "z": 224
+          },
+          {
+            "x": -1872,
+            "z": 224
+          },
+          {
+            "x": -1824,
+            "z": 224
+          },
+          {
+            "x": -1776,
+            "z": 224
+          },
+          {
+            "x": -1728,
+            "z": 288
+          },
+          {
+            "x": -1680,
+            "z": 352
+          }
+        ]
+      },
+      {
+        "id": "lv-res-low-northwest",
+        "label": "P2 西北低密住宅组团支网｜低压配电",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -2048,
+            "z": 896
+          },
+          {
+            "x": -1968,
+            "z": 896
+          },
+          {
+            "x": -1920,
+            "z": 896
+          },
+          {
+            "x": -1872,
+            "z": 896
+          },
+          {
+            "x": -1824,
+            "z": 896
+          },
+          {
+            "x": -1776,
+            "z": 896
+          },
+          {
+            "x": -1728,
+            "z": 840
+          },
+          {
+            "x": -1680,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "lv-res-med-southeast",
+        "label": "P2 东南中密住宅组团支网｜低压配电",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 224
+          },
+          {
+            "x": -1320,
+            "z": 224
+          },
+          {
+            "x": -1240,
+            "z": 224
+          },
+          {
+            "x": -1164,
+            "z": 224
+          },
+          {
+            "x": -1088,
+            "z": 224
+          },
+          {
+            "x": -1008,
+            "z": 224
+          },
+          {
+            "x": -928,
+            "z": 224
+          },
+          {
+            "x": -848,
+            "z": 224
+          },
+          {
+            "x": -768,
+            "z": 224
+          }
+        ]
+      },
+      {
+        "id": "lv-res-med-northeast",
+        "label": "P2 东北中密住宅组团支网｜低压配电",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1400,
+            "z": 896
+          },
+          {
+            "x": -1320,
+            "z": 896
+          },
+          {
+            "x": -1240,
+            "z": 896
+          },
+          {
+            "x": -1164,
+            "z": 896
+          },
+          {
+            "x": -1088,
+            "z": 896
+          },
+          {
+            "x": -1008,
+            "z": 896
+          },
+          {
+            "x": -928,
+            "z": 896
+          },
+          {
+            "x": -848,
+            "z": 896
+          },
+          {
+            "x": -768,
+            "z": 896
+          }
+        ]
+      },
+      {
+        "id": "lv-commercial",
+        "label": "P2 两个商业组团支网｜低压配电",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1680,
+            "z": 440
+          },
+          {
+            "x": -1600,
+            "z": 440
+          },
+          {
+            "x": -1520,
+            "z": 440
+          },
+          {
+            "x": -1460,
+            "z": 440
+          },
+          {
+            "x": -1400,
+            "z": 440
+          },
+          {
+            "x": -1340,
+            "z": 440
+          },
+          {
+            "x": -1280,
+            "z": 440
+          },
+          {
+            "x": -1200,
+            "z": 440
+          },
+          {
+            "x": -1120,
+            "z": 440
+          }
+        ]
+      },
+      {
+        "id": "lv-civic-office",
+        "label": "P2 办公与公共服务组团支网｜低压配电",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1680,
+            "z": 664
+          },
+          {
+            "x": -1600,
+            "z": 664
+          },
+          {
+            "x": -1520,
+            "z": 664
+          },
+          {
+            "x": -1460,
+            "z": 664
+          },
+          {
+            "x": -1400,
+            "z": 664
+          },
+          {
+            "x": -1340,
+            "z": 664
+          },
+          {
+            "x": -1280,
+            "z": 664
+          },
+          {
+            "x": -1200,
+            "z": 664
+          },
+          {
+            "x": -1120,
+            "z": 664
+          }
+        ]
+      },
+      {
+        "id": "lv-logistics-part1",
+        "label": "P3 北部后勤道路支网｜低压配电（1/2）",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1980,
+            "z": 1072
+          },
+          {
+            "x": -1980,
+            "z": 1152
+          },
+          {
+            "x": -1900,
+            "z": 1152
+          },
+          {
+            "x": -1820,
+            "z": 1152
+          },
+          {
+            "x": -1740,
+            "z": 1152
+          },
+          {
+            "x": -1660,
+            "z": 1152
+          },
+          {
+            "x": -1580,
+            "z": 1152
+          },
+          {
+            "x": -1500,
+            "z": 1152
+          },
+          {
+            "x": -1420,
+            "z": 1152
+          },
+          {
+            "x": -1340,
+            "z": 1152
+          },
+          {
+            "x": -1260,
+            "z": 1152
+          },
+          {
+            "x": -1180,
+            "z": 1152
+          },
+          {
+            "x": -1100,
+            "z": 1152
+          },
+          {
+            "x": -1020,
+            "z": 1152
+          },
+          {
+            "x": -940,
+            "z": 1152
+          },
+          {
+            "x": -860,
+            "z": 1152
+          }
+        ]
+      },
+      {
+        "id": "lv-logistics-part2",
+        "label": "P3 北部后勤道路支网｜低压配电（2/2）",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -860,
+            "z": 1152
+          },
+          {
+            "x": -800,
+            "z": 1152
+          }
+        ]
+      },
+      {
+        "id": "lv-industrial",
+        "label": "P3 工业组团十字支网｜低压配电",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1120,
+            "z": 1072
+          },
+          {
+            "x": -1120,
+            "z": 1152
+          },
+          {
+            "x": -1120,
+            "z": 1212
+          },
+          {
+            "x": -1120,
+            "z": 1272
+          },
+          {
+            "x": -1040,
+            "z": 1272
+          },
+          {
+            "x": -960,
+            "z": 1272
+          },
+          {
+            "x": -880,
+            "z": 1272
+          },
+          {
+            "x": -800,
+            "z": 1272
+          },
+          {
+            "x": -768,
+            "z": 1272
+          }
+        ]
+      },
+      {
+        "id": "lv-west-services",
+        "label": "P3 公交场与墓园支网｜低压配电",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1840,
+            "z": 1152
+          },
+          {
+            "x": -1840,
+            "z": 1232
+          },
+          {
+            "x": -1840,
+            "z": 1312
+          },
+          {
+            "x": -1840,
+            "z": 1376
+          }
+        ]
+      },
+      {
+        "id": "lv-coal-plant",
+        "label": "P3 电站预留支网｜低压配电",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -1504,
+            "z": 1152
+          },
+          {
+            "x": -1504,
+            "z": 1232
+          },
+          {
+            "x": -1504,
+            "z": 1312
+          },
+          {
+            "x": -1504,
+            "z": 1328
+          }
+        ]
+      },
+      {
+        "id": "lv-landfill",
+        "label": "P3 填埋场预留支网｜低压配电",
+        "prefab": "Low-voltage Ground Cable",
+        "planning_status": "bound",
+        "network_type": "electricity",
+        "level": "underground",
+        "points": [
+          {
+            "x": -832,
+            "z": 1152
+          },
+          {
+            "x": -832,
+            "z": 1240
+          },
+          {
+            "x": -832,
+            "z": 1328
+          }
+        ]
+      }
+    ]
+  },
+  "render": { "title":"韦福德施工图｜三网独立支网修订版", "width":2000, "height":1500, "view":"combined", "format":"svg" }
+}

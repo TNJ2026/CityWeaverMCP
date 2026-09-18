@@ -1,0 +1,111 @@
+{
+  "note": "韦福德公共服务设施的唯一权威目标清单。增删设施、调整某脚本的处理范围请改这里，不要在各脚本里另建 prefab 数组或写死坐标。",
+  "active_plan": "public-services",
+  "plans": {
+    "public-services": {
+      "path": "../../plans/weford-public-services-construction-plan.json",
+      "label": "S6 公共服务施工清单",
+      "note": "16 项待建 + 1 项已建小学，坐标与 weford-public-services-construction-manifest.md 一致。含 Hospital01；不含 MedicalClinic02 / CityPark03 / CommunityPool01。"
+    },
+    "master": {
+      "path": "../../plans/weford-master-plan.json",
+      "label": "早期设施总图",
+      "note": "9 项标 construction_status=built，另有 4 项无状态的水电设施。坐标与 S6 清单逐项不同。含 MedicalClinic02 / CityPark03 / CommunityPool01；不含 Hospital01。"
+    }
+  },
+  "plan_compatibility": "两套方案的坐标不通用，不要混用。本清单里每个 target 用 plans 字段声明自己属于哪套方案；脚本只处理当前方案适用的项。",
+  "script_names": {
+    "relocation": "plan-public-service-relocation.mjs：只读重新选址，不提交施工",
+    "preview": "preview-public-service-plan.mjs：创建原生临时预览后取消，不产生永久实体",
+    "refresh": "refresh-public-service-road-bindings.mjs：只读刷新规划建筑附近的实时道路候选",
+    "construction": "build-public-services-from-plan.mjs：写入游戏，可能永久提交建筑",
+    "verify": "verify-public-services-phase.mjs：只读回读设施与城市摘要，用于阶段验收"
+  },
+  "preview_candidate_policy": {
+    "note": "preview 脚本在运行时用原生规划器按规划坐标现场取候选，因此清单里不保存任何坐标、路网 ID 或会话 ID。这里只放取候选时可调的参数。",
+    "search_radius_m": 96,
+    "candidate_count": 12,
+    "road_side": "either",
+    "attempt_limit": 2,
+    "consider_service_coverage": false
+  },
+  "targets": [
+    {
+      "prefab": "PoliceStation02",
+      "script_id": "police-station",
+      "domain": "city_service",
+      "plans": ["public-services", "master"],
+      "scripts": ["relocation", "preview", "construction", "verify"]
+    },
+    {
+      "prefab": "FireHouse02",
+      "script_id": "fire-house",
+      "domain": "city_service",
+      "plans": ["public-services", "master"],
+      "scripts": ["relocation", "preview", "construction", "verify"]
+    },
+    {
+      "prefab": "MedicalClinic02",
+      "script_id": "medical-clinic",
+      "domain": "city_service",
+      "plans": ["master"],
+      "scripts": ["relocation", "preview", "construction", "verify"]
+    },
+    {
+      "prefab": "Hospital01",
+      "script_id": "hospital",
+      "domain": "city_service",
+      "plans": ["public-services"],
+      "scripts": ["relocation", "preview", "refresh", "construction", "verify"]
+    },
+    {
+      "prefab": "CityPark03",
+      "script_id": "city-park",
+      "domain": "city_service",
+      "plans": ["master"],
+      "scripts": ["relocation", "preview", "refresh", "construction", "verify"]
+    },
+    {
+      "prefab": "CommunityPool01",
+      "script_id": "community-pool",
+      "domain": "city_service",
+      "plans": ["master"],
+      "scripts": ["relocation", "preview", "refresh", "construction", "verify"]
+    },
+    {
+      "prefab": "BusDepot01",
+      "script_id": "bus-depot",
+      "domain": "transport_facility",
+      "plans": ["public-services", "master"],
+      "scripts": ["relocation", "preview", "refresh", "construction", "verify"]
+    },
+    {
+      "prefab": "Landfill01",
+      "script_id": "landfill",
+      "domain": "city_service",
+      "plans": ["public-services", "master"],
+      "scripts": ["relocation", "preview", "refresh", "construction", "verify"]
+    },
+    {
+      "prefab": "Cemetery02",
+      "script_id": "cemetery",
+      "domain": "city_service",
+      "plans": ["public-services", "master"],
+      "scripts": ["relocation", "preview", "refresh", "construction", "verify"]
+    },
+    {
+      "prefab": "ElementarySchool02",
+      "script_id": "elementary-school",
+      "domain": "city_service",
+      "plans": ["public-services", "master"],
+      "scripts": ["verify"]
+    },
+    {
+      "prefab": "HighSchool02",
+      "script_id": "high-school",
+      "domain": "city_service",
+      "plans": ["public-services", "master"],
+      "scripts": ["verify"]
+    }
+  ]
+}
