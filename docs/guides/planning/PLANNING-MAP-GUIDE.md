@@ -287,7 +287,7 @@ node tools/scratch/<脚本>.mjs [--plan public-services|master] [--plan-file <�
 
 清单里每个目标用 `plans` 字段声明自己属于哪套方案，脚本只处理当前方案适用的项。**属于本方案、尚未建成、却在规划文件里找不到坐标的目标会在脚本开始时显式报错并列出项名**，不会跑到中途才失败。
 
-规划文件的必需结构：`bounds`（施工与验收范围）加 `plan.buildings[]`，每栋建筑至少有 `id`、`prefab`、`position`（`x`/`z` 为米制世界坐标）。清单按 `plan_id` 精确匹配、缺失时回落按 `prefab` 匹配，因此 `id` 必须非空且唯一。
+规划文件的必需结构：`bounds`（施工与验收范围）加 `plan.buildings[]`，每栋建筑至少有 `id`、`prefab`、`position`（`x`/`z` 为米制世界坐标）。目标清单通过 `plan_ids.<方案键>` 精确绑定每套方案中的建筑；显式 ID 不存在时立即报错，不会回落到同 prefab 的另一栋建筑。仅兼容未声明 `plan_ids` 的旧清单时才按 prefab 回落，因此规划内 `id` 必须非空且唯一，重复 prefab 尤其必须配置精确 ID。施工跳过和阶段验收同时核对 prefab 与目标位置，不能因为规划范围内存在另一栋同 prefab 建筑而误判完成。
 
 **新增或替换规划文件的做法**：`render_city_plan` 只返回自包含 HTML 与 `plan_id`，结构化 `plan` 由调用方持有，不会自动落盘。把决定沿用的 `bounds` + `plan` 存进 `plans/`，在清单的 `plans` 目录里登记路径与方案键，再跑一次 `node tools/tests/test-plan-targets.mjs`。`artifacts/` 仍是一次性产物目录（会被 Git 忽略），不要在那里放权威规划。
 

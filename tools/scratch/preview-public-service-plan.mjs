@@ -2,6 +2,7 @@ import { queryGame } from '../../mcp/bridge-client.mjs';
 import {
   PlanTargetError,
   assertScriptResolved,
+  createRunId,
   describePlanWithStamp,
   loadTargets,
   parseArgs,
@@ -89,6 +90,7 @@ await runMain(async () => {
   });
   const policy = loaded.previewCandidatePolicy;
   const attemptLimit = Math.max(1, Number(policy.attempt_limit) || 1);
+  const runId = createRunId('planpreview');
 
   assertScriptResolved(loaded, 'preview');
   const targets = selectTargets(loaded, 'preview');
@@ -131,7 +133,7 @@ await runMain(async () => {
     let selected = null;
     for (const [index, candidate] of candidates.slice(0, attemptLimit).entries()) {
       const queued = await queryGame(tools.preview, {
-        request_id: `planpreview-${target.script_id}-${index + 1}`,
+        request_id: `${runId}-${target.script_id}-${index + 1}`,
         building_prefab: target.prefab,
         position: candidate.position,
         rotation_degrees: candidate.rotation_degrees,
@@ -185,6 +187,7 @@ await runMain(async () => {
 
   process.stdout.write(`${JSON.stringify({
     plan: await describePlanWithStamp(loaded),
+    run_id: runId,
     policy,
     city: status.data?.city_name,
     session_id: status.meta?.session_id,

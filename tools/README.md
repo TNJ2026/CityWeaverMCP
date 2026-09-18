@@ -131,8 +131,8 @@ node tools/launcher-cdp.mjs ignore-warning
 
 - `lib/physics-rules.mjs`：内部几何规则库，不是 CLI。导出网格/道路常量，以及 `snapToCell`、`snapPoint`、`horizontalDistance`、`calculateGrade`、`validateRoadSegment`、`subdivideRoute`、`calculateGridFootprint`、`checkAABBOverlap`、`evaluateWindRelationship`、`calculateSafeIndustrialLocation` 和 `validateDistrictConfig`。
 - `presets/district-archetypes.json`：正式街区预设，当前包含低密住宅 `3x2`、商业 `3x3`、工业 `3x2` 和中密住宅 `4x3`。预设值是规划起点，prefab 和适用性仍需实时验证。
-- `lib/plan-targets.mjs`：规划目标解析库，不是 CLI。导出 `loadTargets`、`selectTargets`、`describePlan`、`describePlanWithStamp`、`assertScriptResolved`、`parseArgs`、`PlanTargetError`、`DEFAULT_PREVIEW_POLICY`，以及统一失败处理的 `formatFailure`、`runMain`。
-- `presets/weford-public-services.json`：Weford 公共服务施工的唯一权威目标清单。用命名方案（`public-services` / `master`）指向仓库根 `plans/` 下两套坐标不通用的规划文件；每个目标用 `plans` 声明归属、用 `scripts` 声明参与哪些脚本。清单里不保存任何坐标、路网 ID 或会话 ID：坐标从规划文件解析，原生候选由 `preview` 脚本在运行时现场请求，取候选参数放在 `preview_candidate_policy`。
+- `lib/plan-targets.mjs`：规划目标解析库，不是 CLI。导出 `loadTargets`、`selectTargets`、`describePlan`、`describePlanWithStamp`、`assertScriptResolved`、`matchesPlannedBuilding`、`createRunId`、`parseArgs`、`PlanTargetError`、`DEFAULT_PREVIEW_POLICY`，以及统一失败处理的 `formatFailure`、`runMain`。
+- `presets/weford-public-services.json`：Weford 公共服务施工的唯一权威目标清单。用命名方案（`public-services` / `master`）指向仓库根 `plans/` 下两套坐标不通用的规划文件；每个目标用 `plans` 声明归属、用 `plan_ids` 绑定各方案中的唯一建筑、用 `scripts` 声明参与哪些脚本。清单里不保存任何坐标、路网 ID 或会话 ID：坐标从规划文件解析，原生候选由 `preview` 脚本在运行时现场请求，取候选参数放在 `preview_candidate_policy`。
 - `district-template.json`：可复制修改的通用部署配置示例，其中空 `node_id` 不能直接作为既有道路连接使用。
 - `deploy-industrial-plan.json`：某次城市会话使用过的工业部署配置，含会话绑定道路实体 ID；只能作为结构示例，执行前必须替换坐标和 ID。
 - `upgrade-prefabs.json`：历史游戏会话导出的 prefab/升级数据快照，不是部署输入，也不代表当前运行版本。

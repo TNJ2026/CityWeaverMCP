@@ -9,6 +9,7 @@ import {
   describePlanWithStamp,
   formatFailure,
   loadTargets,
+  matchesPlannedBuilding,
   parseArgs,
   runMain,
   selectTargets,
@@ -17,7 +18,7 @@ import {
 // 写入游戏：从规划文件抽取待建公共服务，走规划图分阶段施工流程，可能永久提交建筑。
 // 只有用户明确授权当前存档施工后才能运行。
 //
-// 目标与坐标来自权威清单 + 规划文件。已在游戏内存在的设施按 prefab 跳过；
+// 目标与坐标来自权威清单 + 规划文件。只有同 prefab 且位于目标坐标 2 米内的设施才跳过；
 // 属于本方案、尚未建成、却在规划文件里找不到坐标的设施会在开始施工前显式报错，
 // 不会再跑到中途崩在某一栋上。
 //
@@ -53,14 +54,18 @@ await runMain(async () => {
     include_utilities: false,
     max_features_per_layer: 5000,
   });
-  const existingPrefabs = new Set((snapshot.data?.buildings ?? []).map(item => item.prefab));
-
   const targets = selectTargets(loaded, 'construction');
-  const skippedExisting = targets.filter(target => existingPrefabs.has(target.prefab)).map(target => target.prefab);
+  assertScriptResolved(loaded, 'construction');
 
-  assertScriptResolved(loaded, 'construction', { ignorePrefabs: skippedExisting });
+  const existingBuildings = snapshot.data?.buildings ?? [];
+  const isExistingTarget = target => existingBuildings.some(item => matchesPlannedBuilding(target, item));
+  const skippedExistingTargets = targets.filter(isExistingTarget).map(target => ({
+    prefab: target.prefab,
+    plan_id: target.plan_id,
+  }));
+  const skippedExisting = skippedExistingTargets.map(target => target.prefab);
 
-  const pendingTargets = targets.filter(target => !existingPrefabs.has(target.prefab));
+  const pendingTargets = targets.filter(target => !isExistingTarget(target));
   const buildings = pendingTargets.map((target, index) => ({
     ...target.building,
     id: target.script_id,
@@ -104,6 +109,7 @@ await runMain(async () => {
       construction_ready: prepared.construction_ready,
       batch_count: prepared.native_batch_count,
       skipped_existing: skippedExisting,
+      skipped_existing_targets: skippedExistingTargets,
       order: prepared.execution_order.map(item => ({ batch_id: item.batch_id, prefab: item.building_prefab })),
     });
     if (!prepared.construction_ready) throw new Error('该公共服务阶段尚未满足施工条件。');
