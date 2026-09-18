@@ -1,6 +1,8 @@
 import { queryGame } from '../../mcp/bridge-client.mjs';
 import {
+  assertCityMatches,
   assertScriptResolved,
+  cityGuardOptions,
   describePlanWithStamp,
   loadTargets,
   parseArgs,
@@ -10,8 +12,9 @@ import {
 
 // 只读重新选址：为当前规划方案中的每座设施请求原生候选点，不提交任何施工。
 // 目标清单与坐标来自 tools/presets/weford-public-services.json + 规划文件，脚本内不写死。
+// 坐标只对清单里 expected_city 声明的那个城有效，城市不符会直接中止（CITY_MISMATCH）。
 //
-// 用法：node tools/scratch/plan-public-service-relocation.mjs [--plan master]
+// 用法：node tools/scratch/plan-public-service-relocation.mjs [--plan master] [--allow-city-mismatch]
 
 await runMain(async () => {
   const args = parseArgs();
@@ -25,6 +28,7 @@ await runMain(async () => {
   if (targets.length === 0) throw new Error('relocation 在当前规划方案下没有任何目标。');
 
   const status = await queryGame('get_game_status', {});
+  assertCityMatches(loaded, status.data?.city_name, cityGuardOptions(args));
   const results = [];
 
   for (const target of targets) {

@@ -131,8 +131,8 @@ node tools/launcher-cdp.mjs ignore-warning
 
 - `lib/physics-rules.mjs`：内部几何规则库，不是 CLI。导出网格/道路常量，以及 `snapToCell`、`snapPoint`、`horizontalDistance`、`calculateGrade`、`validateRoadSegment`、`subdivideRoute`、`calculateGridFootprint`、`checkAABBOverlap`、`evaluateWindRelationship`、`calculateSafeIndustrialLocation` 和 `validateDistrictConfig`。
 - `presets/district-archetypes.json`：正式街区预设，当前包含低密住宅 `3x2`、商业 `3x3`、工业 `3x2` 和中密住宅 `4x3`。预设值是规划起点，prefab 和适用性仍需实时验证。
-- `lib/plan-targets.mjs`：规划目标解析库，不是 CLI。导出 `loadTargets`、`selectTargets`、`describePlan`、`describePlanWithStamp`、`assertScriptResolved`、`matchesPlannedBuilding`、`createRunId`、`parseArgs`、`PlanTargetError`、`DEFAULT_PREVIEW_POLICY`，以及统一失败处理的 `formatFailure`、`runMain`。
-- `presets/weford-public-services.json`：Weford 公共服务施工的唯一权威目标清单。用命名方案（`public-services` / `master`）指向仓库根 `plans/` 下两套坐标不通用的规划文件；每个目标用 `plans` 声明归属、用 `plan_ids` 绑定各方案中的唯一建筑、用 `scripts` 声明参与哪些脚本。清单里不保存任何坐标、路网 ID 或会话 ID：坐标从规划文件解析，原生候选由 `preview` 脚本在运行时现场请求，取候选参数放在 `preview_candidate_policy`。
+- `lib/plan-targets.mjs`：规划目标解析库，不是 CLI。导出 `loadTargets`、`selectTargets`、`describePlan`、`describePlanWithStamp`、`assertScriptResolved`、`assertCityMatches`、`cityGuardOptions`、`matchesPlannedBuilding`、`createRunId`、`parseArgs`、`PlanTargetError`、`DEFAULT_PREVIEW_POLICY`，以及统一失败处理的 `formatFailure`、`runMain`。
+- `presets/weford-public-services.json`：Weford 公共服务施工的唯一权威目标清单。用命名方案（`public-services` / `master`）指向仓库根 `plans/` 下两套坐标不通用的规划文件；每个目标用 `plans` 声明归属、用 `plan_ids` 绑定各方案中的唯一建筑、用 `scripts` 声明参与哪些脚本。清单里不保存任何坐标、路网 ID 或会话 ID：坐标从规划文件解析，原生候选由 `preview` 脚本在运行时现场请求，取候选参数放在 `preview_candidate_policy`。顶层 `expected_city` 声明这些坐标属于哪个城市，各脚本启动时比对当前城市，不符即中止。
 - `district-template.json`：可复制修改的通用部署配置示例，其中空 `node_id` 不能直接作为既有道路连接使用。
 - `deploy-industrial-plan.json`：某次城市会话使用过的工业部署配置，含会话绑定道路实体 ID；只能作为结构示例，执行前必须替换坐标和 ID。
 - `upgrade-prefabs.json`：历史游戏会话导出的 prefab/升级数据快照，不是部署输入，也不代表当前运行版本。
@@ -147,9 +147,9 @@ node tools/tests/test-plan-targets.mjs
 
 - `test-physics-rules.mjs` 是离线数学和配置校验测试，不连接游戏。
 - `test-spatial-survey.mjs` 使用固定坐标查询实时城市，属于只读实机测试；换地图后断言可能不成立。
-- `test-plan-targets.mjs` 离线校验 Weford 目标清单：两套方案各自的可解析项数、五个脚本的分组数量、缺失项能否被显式检出、`plans/` 规划文件的结构与 `id` 完整性，以及「清单内不含任何坐标 / 路网 ID / 会话 ID」。不连接游戏。
+- `test-plan-targets.mjs` 离线校验 Weford 目标清单：两套方案各自的可解析项数、五个脚本的分组数量、缺失项能否被显式检出、`plans/` 规划文件的结构与 `id` 完整性、城市闸门（`CITY_MISMATCH` / `--allow-city-mismatch` / 未声明时跳过），以及「清单内不含任何坐标 / 路网 ID / 会话 ID」与「五个脚本都接了城市闸门、build 的闸门排在写入之前」。不连接游戏。
 - `scratch/deploy_civic_hub.mjs` 和 `scratch/deploy_deathcare.mjs` 是固定方案、固定坐标的一次性写入脚本，不是正式入口。未经逐行检查当前目标、费用和用户授权不得运行。
-- `scratch/` 下的 5 个公共服务脚本（`plan-public-service-relocation`、`preview-public-service-plan`、`refresh-public-service-road-bindings`、`build-public-services-from-plan`、`verify-public-services-phase`）已改为数据驱动：目标来自 `presets/weford-public-services.json`，坐标来自仓库根 `plans/` 的规划文件，支持 `--plan public-services|master` 切换数据源。脚本内不含坐标、路网 ID 或会话 ID；`preview-public-service-plan.mjs` 的候选在运行时现场请求。其中 `build-public-services-from-plan.mjs` 是唯一会写入游戏的脚本。
+- `scratch/` 下的 5 个公共服务脚本（`plan-public-service-relocation`、`preview-public-service-plan`、`refresh-public-service-road-bindings`、`build-public-services-from-plan`、`verify-public-services-phase`）已改为数据驱动：目标来自 `presets/weford-public-services.json`，坐标来自仓库根 `plans/` 的规划文件，支持 `--plan public-services|master` 切换数据源。脚本内不含坐标、路网 ID 或会话 ID；`preview-public-service-plan.mjs` 的候选在运行时现场请求。五个脚本启动时都先比对清单 `expected_city` 与当前城市，不符即 `CITY_MISMATCH` 中止（可用 `--allow-city-mismatch` 显式放行）。其中 `build-public-services-from-plan.mjs` 是唯一会写入游戏的脚本。
 - `ilspy/` 是本地反编译工具及依赖，已被 Git 忽略，不属于城市自动化接口。
 
 ## 核心参数限制与几何边界

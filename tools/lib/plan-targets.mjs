@@ -16,6 +16,9 @@ import { fileURLToPath } from 'node:url';
  *   显式 ID 不存在时必须报错，不能悄悄绑定同 prefab 的另一栋建筑。
  * - 属于本方案却解析不到的项不会被静默跳过，一律进 unresolved 并在脚本启动时显式报错。
  * - 坐标一律来自规划文件，脚本内不得再写死位置。
+ * - 规划与城市强绑定：坐标只对某一个存档有效，配置用 expected_city 声明是哪个城，
+ *   脚本首件事就是拿 get_game_status 的 city_name 比对，不符即中止（见 assertCityMatches）。
+ *   没有这道闸，跑错城市的表现是「规划器正常返回 0 候选」，看起来像没路，极难自查。
  * - 清单里不保存任何会话相关数据：原生候选（含 road_edge_id）由脚本在运行时现场请求，
  *   因此不存在「换存档后 ID 失效」这一类需要预先比对会话的状态。
  */
@@ -165,6 +168,9 @@ export async function loadTargets({ configPath = DEFAULT_CONFIG, planKey = null,
     unresolved,
     notApplicable,
     scriptNames: config.script_names ?? {},
+    expectedCity: typeof config.expected_city === 'string' && config.expected_city.trim()
+      ? config.expected_city.trim()
+      : null,
     previewCandidatePolicy: { ...DEFAULT_PREVIEW_POLICY, ...(config.preview_candidate_policy ?? {}) },
   };
 }
@@ -223,6 +229,42 @@ export function assertScriptResolved(loaded, scriptName, { ignorePrefabs = [] } 
       })),
       available_plans: Object.keys(loaded.planCatalog),
       hint: '确认 --plan 指向与本次施工同源的规划方案；两套方案的坐标不通用。',
+    },
+  );
+}
+
+/**
+ * 把 --allow-city-mismatch 这类布尔开关归一化成选项对象。
+ * parseArgs 把裸开关解析成 true、把带值开关解析成字符串，这里统一收口。
+ */
+export function cityGuardOptions(args = {}) {
+  const raw = args['allow-city-mismatch'];
+  return { allowMismatch: raw === true || raw === 'true' || raw === '1' };
+}
+
+/**
+ * 规划坐标只对一个存档有效，跑错城市的失败方式极隐蔽：原生规划器照常工作，
+ * 只是在目标区域找不到任何可接入道路，于是每个目标都返回 0 候选——看起来像「没路」
+ * 或「规划器坏了」，实际是「根本不是这个城」。所以脚本必须先过这道闸。
+ *
+ * 配置没有声明 expected_city（或声明为空）时跳过比对，老清单继续可用。
+ */
+export function assertCityMatches(loaded, actualCityName, { allowMismatch = false } = {}) {
+  const expected = loaded?.expectedCity ?? null;
+  if (!expected || allowMismatch) return;
+  const actual = typeof actualCityName === 'string' && actualCityName.trim()
+    ? actualCityName.trim()
+    : null;
+  if (actual === expected) return;
+  throw new PlanTargetError(
+    'CITY_MISMATCH',
+    `规划针对「${expected}」，当前加载的城市是「${actual ?? '未知'}」`,
+    {
+      expected_city: expected,
+      actual_city: actual,
+      plan_key: loaded?.planKey ?? null,
+      plan: loaded?.planPath ?? null,
+      hint: '在游戏里加载规划对应的存档后重试。确需对别的城市试跑可加 --allow-city-mismatch。',
     },
   );
 }
