@@ -71,6 +71,10 @@ namespace CityWeaver
         public DateTime Created = DateTime.UtcNow, Expires = DateTime.UtcNow.AddMinutes(5);
         public JArray Errors = new JArray();
         public List<Entity> CreatedEdges = new List<Entity>();
+        // Existing road edges that the game split because this operation joined them mid-edge.
+        // They are kept as part of the operation but are not part of the requested road, so they
+        // stay out of CreatedEdges to keep undo scoped to what the caller actually asked for.
+        public List<Entity> SplitRemnantEdges = new List<Entity>();
         public List<RoadSegmentPlan> Segments = new List<RoadSegmentPlan>();
         public bool Terminal => State == "completed" || State == "failed" || State == "cancelled" || State == "expired" || State == "outcome_unknown";
         public string EntityId(Entity e) => e == Entity.Null ? null : Session + ":" + e.Index + ":" + e.Version;
@@ -148,6 +152,7 @@ namespace CityWeaver
             ["errors"] = Errors.DeepClone(), ["error"] = Error,
             ["expires_at_utc"] = Expires.ToString("O"), ["commit_dispatched"] = ApplyDispatched,
             ["created_road_ids"] = new JArray(CreatedEdges.Select(EntityId)),
+            ["split_remnant_road_ids"] = new JArray(SplitRemnantEdges.Select(EntityId)),
             ["can_commit"] = State == "preview_ready" && !CancelRequested && !CommitRequested,
             ["note"] = "A preview is temporary. Only completed confirms permanent road entities. Poll this ID after a timeout; do not submit another placement." };
         private string EndpointKind(Entity target, float split) => target == Entity.Null ? "new_node" : split > 0 && split < 1 ? "road_edge" : "road_node";

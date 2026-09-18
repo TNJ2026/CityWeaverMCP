@@ -23,6 +23,11 @@ namespace CityWeaver
         private string m_LastSignature;
         private EntityQuery m_TempQuery, m_RoadQuery, m_WarningQuery;
         private readonly List<Entity> m_Candidates = new List<Entity>();
+        // When a new road joins the middle of an existing road, the game splits that existing
+        // edge and the two halves appear as brand-new preview edges carrying the *old* road's
+        // prefab. They are legitimate and must be kept (dropping them would truncate the old
+        // road), so they are accepted but accounted for separately from the requested road.
+        private readonly List<Entity> m_SplitRemnants = new List<Entity>();
         public override string toolID => "McpRoad";
         public bool Busy => m_Operation != null;
         private bool IsDemolish => m_Operation.OperationType.EndsWith("demolish", StringComparison.Ordinal);
@@ -53,7 +58,8 @@ namespace CityWeaver
         {
             if (Busy) throw new QueryException("TOOL_BUSY", "Another road operation is active.");
             if (!m_TempQuery.IsEmptyIgnoreFilter) throw new QueryException("TOOL_BUSY", "Another tool preview is still present; return to the default selection tool and wait.");
-            m_Operation = operation; m_Phase = 0; m_Ticks = 0; m_StableTicks = 0; m_LastSignature = null; m_Candidates.Clear();
+            m_Operation = operation; m_Phase = 0; m_Ticks = 0; m_StableTicks = 0; m_LastSignature = null;
+            m_Candidates.Clear(); m_SplitRemnants.Clear(); operation.SplitRemnantEdges.Clear();
             applyMode = ApplyMode.Clear;
             m_ToolSystem.activeTool = this;
             Mod.log.Info("Road preview queued: " + operation.Id + " prefab=" + operation.PrefabName);
@@ -130,7 +136,7 @@ namespace CityWeaver
                 if (op.Errors.Count > 0) { Fail("GAME_REJECTED_ROAD"); return; }
                 if (op.ZoningAligned && op.PlannerStrategy != null && !PlannedZoningValid()) { Fail("ZONING_ALIGNMENT_INVALID"); return; }
                 op.State = "preview_ready"; m_Phase = 3; m_Ticks = 0;
-                Mod.log.Info("Road preview ready: " + op.Id + " cost=" + op.Cost + " edges=" + m_Candidates.Count);
+                Mod.log.Info("Road preview ready: " + op.Id + " cost=" + op.Cost + " edges=" + m_Candidates.Count + " split_remnants=" + m_SplitRemnants.Count);
                 return;
             }
             if (m_Phase == 3)
@@ -442,7 +448,7 @@ namespace CityWeaver
         }
         private bool ReadPreview(out string signature)
         {
-            var op = m_Operation; op.Errors.Clear(); op.Cost = 0; m_Candidates.Clear();
+            var op = m_Operation; op.Errors.Clear(); op.Cost = 0; m_Candidates.Clear(); m_SplitRemnants.Clear();
             var targetPreviews = new HashSet<Entity>(); int generatedPreviewCount = 0;
             if (!m_ErrorQuery.IsEmptyIgnoreFilter) op.Errors.Add("GAME_VALIDATION_ERROR");
             if (!m_WarningQuery.IsEmptyIgnoreFilter) op.Errors.Add("GAME_VALIDATION_WARNING");
@@ -509,12 +515,19 @@ namespace CityWeaver
                         m_Candidates.Add(e); continue;
                     }
                     if (op.OperationType != "create" || temp.m_Original != Entity.Null || (temp.m_Flags & (TempFlags.Delete | TempFlags.Cancel)) != 0) continue;
-                    if (!ExpectedRoadPrefab(EntityManager.GetComponentData<PrefabRef>(e).m_Prefab)) { op.Errors.Add("UNEXPECTED_ROAD_PREVIEW"); continue; }
+                    if (!ExpectedRoadPrefab(generatedPrefab))
+                    {
+                        if (!IsSplitRemnantOfExistingRoad(e, generatedPrefab)) { op.Errors.Add("UNEXPECTED_ROAD_PREVIEW"); continue; }
+                        m_SplitRemnants.Add(e); continue;
+                    }
                     m_Candidates.Add(e);
                 }
             }
             m_Candidates.Sort((a, b) => a.Index.CompareTo(b.Index));
-            signature = op.Cost + ":" + targetPreviews.Count + ":" + string.Join(",", m_Candidates.ConvertAll(e => e.Index + ":" + e.Version)) + ":" + op.Errors.ToString(Newtonsoft.Json.Formatting.None);
+            m_SplitRemnants.Sort((a, b) => a.Index.CompareTo(b.Index));
+            op.SplitRemnantEdges = new List<Entity>(m_SplitRemnants);
+            signature = op.Cost + ":" + targetPreviews.Count + ":" + string.Join(",", m_Candidates.ConvertAll(e => e.Index + ":" + e.Version))
+                + ":" + string.Join(",", m_SplitRemnants.ConvertAll(e => e.Index + ":" + e.Version)) + ":" + op.Errors.ToString(Newtonsoft.Json.Formatting.None);
             // Adjacent changes can be coalesced and lose a one-to-one Temp/original mapping in the
             // native network preview. This tool starts from an empty Temp set, rejects all game
             // errors and building removals, and verifies every permanent target after Apply.
@@ -532,6 +545,36 @@ namespace CityWeaver
             }
             return false;
         }
+        // A new road that joins the middle of an older, different-prefab road makes the game split
+        // that older edge at a freshly inserted node. Both halves come back as new preview edges
+        // whose prefab is the OLD road's prefab, so ExpectedRoadPrefab rejects them even though the
+        // game itself raised no error. Such edges are legitimate and must be kept: dropping them
+        // would truncate the road the caller joined.
+        //
+        // A split always yields exactly the two halves of one edge, so a split remnant is always
+        // node-adjacent to a sibling preview edge carrying the very same prefab. A genuinely wrong
+        // prefab cannot satisfy that, because the operation only ever generates its own prefab.
+        private bool IsSplitRemnantOfExistingRoad(Entity edge, Entity prefab)
+        {
+            if (!EntityManager.Exists(edge) || !EntityManager.HasComponent<Edge>(edge)) return false;
+            var endpoints = EntityManager.GetComponentData<Edge>(edge);
+            if (endpoints.m_Start == Entity.Null && endpoints.m_End == Entity.Null) return false;
+            using (var roads = m_RoadQuery.ToEntityArray(Allocator.Temp))
+            {
+                for (int i = 0; i < roads.Length; i++)
+                {
+                    var other = roads[i];
+                    if (other == edge || !EntityManager.HasComponent<PrefabRef>(other) || !EntityManager.HasComponent<Edge>(other)) continue;
+                    if (EntityManager.GetComponentData<PrefabRef>(other).m_Prefab != prefab) continue;
+                    var sibling = EntityManager.GetComponentData<Edge>(other);
+                    if (SharesAnyNode(endpoints, sibling)) return true;
+                }
+            }
+            return false;
+        }
+        private static bool SharesAnyNode(Edge a, Edge b) =>
+            (a.m_Start != Entity.Null && (a.m_Start == b.m_Start || a.m_Start == b.m_End)) ||
+            (a.m_End != Entity.Null && (a.m_End == b.m_Start || a.m_End == b.m_End));
         private void CreateDefinition()
         {
             var op = m_Operation; m_Definitions.Clear();
