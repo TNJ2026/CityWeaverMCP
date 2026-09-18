@@ -7,6 +7,12 @@ import {
 } from '../../mcp/city-plan-construction-workflow.mjs';
 import { computeCityPlanId } from '../../mcp/planning-renderer.mjs';
 import { formatFailure, parseArgs, runMain } from '../lib/plan-targets.mjs';
+import {
+  filterAlreadyBuiltBatches,
+  findCompletedPlannedBuildingIds,
+  mayContinueAfterPreviewFailure,
+  samplePolyline,
+} from '../lib/construction-safety.mjs';
 
 // 写入游戏：把 plans/ 下的规划文件按「规划图分阶段施工」流程落到当前存档。
 // 只有用户明确授权施工后才能运行。
@@ -111,9 +117,9 @@ await runMain(async () => {
   // 交叉点上的边中点会恰好落在另一条路的线上。这里用**覆盖率**：
   // 规划道路每 8 m 取一个采样点，至少 80% 的点落在永久道路 4 m 内才算已建成。
   const plannedRoadPrefabs = new Set((plan.roads ?? []).map(road => road.prefab));
-  const plannedBuildingPrefabs = new Set((plan.buildings ?? []).map(building => building.prefab));
   const permanentRoads = (await snapshotInBounds('roads')).filter(road => plannedRoadPrefabs.has(road.prefab));
-  const reentrantBuildings = (await snapshotInBounds('buildings')).filter(building => plannedBuildingPrefabs.has(building.prefab));
+  const permanentBuildings = await snapshotInBounds('buildings');
+  const reentrantBuildingIds = findCompletedPlannedBuildingIds(plan.buildings, permanentBuildings);
 
   function sampleCurve(curve, step = 8) {
     const points = [];
@@ -142,21 +148,9 @@ await runMain(async () => {
   }
 
   const permanentPoints = permanentRoads.flatMap(road => sampleCurve(road.curve, 8));
-  const pointToPolyline = (point, points) => {
-    let best = Infinity;
-    for (let index = 1; index < points.length; index += 1) {
-      const a = points[index - 1], b = points[index];
-      const dx = b.x - a.x, dz = b.z - a.z;
-      const lengthSq = dx * dx + dz * dz;
-      const t = lengthSq === 0 ? 0 : Math.max(0, Math.min(1, ((point.x - a.x) * dx + (point.z - a.z) * dz) / lengthSq));
-      best = Math.min(best, Math.hypot(point.x - (a.x + t * dx), point.z - (a.z + t * dz)));
-    }
-    return best;
-  };
-
   const reentrantRoads = [];
   for (const planned of plan.roads ?? []) {
-    const samples = sampleCurve({ a: planned.points[0], d: planned.points.at(-1), b: planned.points[1], c: planned.points.at(-2) }, 8);
+    const samples = samplePolyline(planned.points, 8);
     const covered = samples.filter(sample => permanentPoints.some(point => Math.hypot(point.x - sample.x, point.z - sample.z) <= 4)).length;
     if (covered / samples.length >= 0.8) reentrantRoads.push(planned.id);
   }
@@ -165,8 +159,8 @@ await runMain(async () => {
   if ((wantedTypes.has('grid') || wantedTypes.has('route')) && !skipAlreadyBuilt && reentrantRoads.length > maxExisting) {
     fatal('PLAN_BOUNDS_ALREADY_BUILT', `规划范围内已有 ${reentrantRoads.length} 条规划道路建成（上限 ${maxExisting}）：${reentrantRoads.join(', ')}。再跑一次会重复建路；确认要重跑请加 --max-existing ${reentrantRoads.length}。`, { existing_roads: reentrantRoads.length, existing_road_ids: reentrantRoads, max_existing: maxExisting });
   }
-  if (wantedTypes.has('building') && !skipAlreadyBuilt && reentrantBuildings.length > maxExisting) {
-    fatal('PLAN_BOUNDS_ALREADY_BUILT', `规划范围内已有 ${reentrantBuildings.length} 栋与规划同 prefab 的建筑（上限 ${maxExisting}）；确认要重跑请加 --max-existing ${reentrantBuildings.length}。`, { existing_buildings: reentrantBuildings.length, max_existing: maxExisting });
+  if (wantedTypes.has('building') && !skipAlreadyBuilt && reentrantBuildingIds.length > maxExisting) {
+    fatal('PLAN_BOUNDS_ALREADY_BUILT', `规划范围内已有 ${reentrantBuildingIds.length} 栋规划建筑建成（上限 ${maxExisting}）：${reentrantBuildingIds.join(', ')}。再跑一次会重复建造；确认要重跑请加 --max-existing ${reentrantBuildingIds.length}。`, { existing_buildings: reentrantBuildingIds.length, existing_building_ids: reentrantBuildingIds, max_existing: maxExisting });
   }
 
   mkdirSync(resolve('artifacts'), { recursive: true });
@@ -183,7 +177,7 @@ await runMain(async () => {
     paused: Boolean(status.paused),
     money,
     existing_roads_in_bounds: reentrantRoads.length,
-    existing_buildings_in_bounds: reentrantBuildings.length,
+    existing_buildings_in_bounds: reentrantBuildingIds.length,
     skip_already_built: skipAlreadyBuilt,
     log: logPath,
   });
@@ -219,13 +213,20 @@ await runMain(async () => {
     fatal('PLAN_NOT_CONSTRUCTION_READY', `施工前置检查未通过：${prepared.virtual_sandbox?.state ?? 'unknown'}。`, { errors: prepared.virtual_sandbox?.errors ?? [] });
   }
 
-  const stageBatches = batches.filter(batch => wantedTypes.has(batch.batch_type) && !(skipAlreadyBuilt && reentrantRoads.includes(batch.batch_id)));
-  if (!stageBatches.length) fatal('STAGE_EMPTY', `规划里没有属于阶段 ${stage} 的批次。`, {});
+  const stageBatches = filterAlreadyBuiltBatches(
+    batches.filter(batch => wantedTypes.has(batch.batch_type)),
+    { skip: skipAlreadyBuilt, roadIds: reentrantRoads, buildingIds: reentrantBuildingIds },
+  );
   output('stage_plan', {
     batch_count: stageBatches.length,
-    skipped_already_built: skipAlreadyBuilt ? reentrantRoads : [],
+    skipped_already_built: skipAlreadyBuilt ? { roads: reentrantRoads, buildings: reentrantBuildingIds } : { roads: [], buildings: [] },
     orders: stageBatches.map(batch => ({ sequence: batch.sequence, batch_id: batch.batch_id, batch_type: batch.batch_type, label: batch.label, prefab: batch.prefab_names?.[0] ?? batch.building_prefab ?? batch.utility_prefab ?? null })),
   });
+  if (!stageBatches.length) {
+    if (!skipAlreadyBuilt) fatal('STAGE_EMPTY', `规划里没有属于阶段 ${stage} 的批次。`, {});
+    output('stage_complete', { stage, reason: 'all_batches_already_built', permanent_changes: false });
+    return;
+  }
 
   // --dry-run：只走到这里。已经完成的都是只读检查（状态、哈希、快照、虚拟沙盒），
   // 没有创建任何预览，也没有碰模拟速度。
@@ -266,7 +267,10 @@ await runMain(async () => {
     });
 
     if (!preview.success || preview.state !== 'preview_ready' || (preview.native_preview?.errors ?? []).length || preview.native_preview?.error) {
-      if (preview.cancel_action) await queryGame(preview.cancel_action.tool, preview.cancel_action.arguments);
+      // outcome_unknown 的原生状态不可再写；保留原 operation 供回查。
+      if (preview.cancel_action && preview.state !== 'outcome_unknown') {
+        await queryGame(preview.cancel_action.tool, preview.cancel_action.arguments);
+      }
       blocked.push({
         batch_id: batch.batch_id,
         label: batch.label,
@@ -277,7 +281,7 @@ await runMain(async () => {
         error: preview.native_preview?.error ?? null,
       });
       output('blocked', { batch_id: batch.batch_id, label: batch.label, state: preview.state, errors: preview.native_preview?.errors, error: preview.native_preview?.error });
-      if (!continueOnFailure) {
+      if (!mayContinueAfterPreviewFailure(preview.state, continueOnFailure)) {
         output('stopped', { reason: 'preview_not_ready', batch_id: batch.batch_id, completed, blocked, total_cost: totalCost });
         process.exitCode = 2;
         break;

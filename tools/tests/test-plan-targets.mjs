@@ -349,6 +349,12 @@ check('preview 的还原写在 finally 里（中途出错也还原）',
   previewSource.includes('finally')
   && (previewSource.match(/restoreSimulationSpeed\(\)/g) ?? []).length >= 2,
   `restore 调用 ${(previewSource.match(/restoreSimulationSpeed\(\)/g) ?? []).length} 次`);
+const normalWrite = previewSource.indexOf("set_simulation_speed', { speed: 'normal' }");
+const changedFlag = previewSource.indexOf('speedChanged = true', normalWrite);
+const pausedWrite = previewSource.indexOf("set_simulation_speed', { speed: 'paused' }");
+check('第一次速度写入成功后立即启用 finally 还原保护',
+  normalWrite >= 0 && changedFlag > normalWrite && changedFlag < pausedWrite,
+  `normal=${normalWrite} changed=${changedFlag} paused=${pausedWrite}`);
 check('preview 输出里报告了还原结果',
   previewSource.includes('restored:')
   && previewSource.includes('restore_speed:'));
