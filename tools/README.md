@@ -133,6 +133,7 @@ node tools/launcher-cdp.mjs ignore-warning
 - `presets/district-archetypes.json`：正式街区预设，当前包含低密住宅 `3x2`、商业 `3x3`、工业 `3x2` 和中密住宅 `4x3`。预设值是规划起点，prefab 和适用性仍需实时验证。
 - `lib/plan-targets.mjs`：规划目标解析库，不是 CLI。导出 `loadTargets`、`selectTargets`、`describePlan`、`describePlanWithStamp`、`assertScriptResolved`、`assertCityMatches`、`cityGuardOptions`、`matchesPlannedBuilding`、`createRunId`、`parseArgs`、`PlanTargetError`、`DEFAULT_PREVIEW_POLICY`，以及统一失败处理的 `formatFailure`、`runMain`。
 - `presets/weford-public-services.json`：Weford 公共服务施工的唯一权威目标清单。用命名方案（`public-services` / `master`）指向仓库根 `plans/` 下两套坐标不通用的规划文件；每个目标用 `plans` 声明归属、用 `plan_ids` 绑定各方案中的唯一建筑、用 `scripts` 声明参与哪些脚本。清单里不保存任何坐标、路网 ID 或会话 ID：坐标从规划文件解析，原生候选由 `preview` 脚本在运行时现场请求，取候选参数放在 `preview_candidate_policy`。顶层 `expected_city` 声明这些坐标属于哪个城市，各脚本启动时比对当前城市，不符即中止。
+- `lib/simulation-speed.mjs`：模拟速度的状态捕获与还原，不是 CLI。导出 `SIMULATION_SPEEDS`、`describeSimulationSpeed`、`speedToRestore`。记录一条实测事实：`set_simulation_speed` 收字符串枚举，而 `get_game_status` 报的数字索引**不是** 0/1/2/3 —— `fastest` 是 4。脚本改过速度就必须用这里还原，不要再抄一份映射。
 - `district-template.json`：可复制修改的通用部署配置示例，其中空 `node_id` 不能直接作为既有道路连接使用。
 - `deploy-industrial-plan.json`：某次城市会话使用过的工业部署配置，含会话绑定道路实体 ID；只能作为结构示例，执行前必须替换坐标和 ID。
 - `upgrade-prefabs.json`：历史游戏会话导出的 prefab/升级数据快照，不是部署输入，也不代表当前运行版本。
@@ -143,13 +144,21 @@ node tools/launcher-cdp.mjs ignore-warning
 node tools/tests/test-physics-rules.mjs
 node tools/tests/test-spatial-survey.mjs
 node tools/tests/test-plan-targets.mjs
+node tools/tests/test-town-plan.mjs
+node tools/tests/test-region-plan.mjs
 ```
 
 - `test-physics-rules.mjs` 是离线数学和配置校验测试，不连接游戏。
 - `test-spatial-survey.mjs` 使用固定坐标查询实时城市，属于只读实机测试；换地图后断言可能不成立。
-- `test-plan-targets.mjs` 离线校验 Weford 目标清单：两套方案各自的可解析项数、五个脚本的分组数量、缺失项能否被显式检出、`plans/` 规划文件的结构与 `id` 完整性、城市闸门（`CITY_MISMATCH` / `--allow-city-mismatch` / 未声明时跳过），以及「清单内不含任何坐标 / 路网 ID / 会话 ID」与「五个脚本都接了城市闸门、build 的闸门排在写入之前」。不连接游戏。
+- `test-region-plan.mjs` 校验 `plans/egelin-region-plan.json`（三区规划）。除了哈希、8 米对齐、id 唯一、边界包含这些常规项，重点是四条**图上看不出来**的不变量：**所有道路都必须是单段直线**（折线长度 = 首末直线距离，手写多段控制点造成的 ±4 m 起伏也会被拦下）、**路网必须是单一连通分量**（支路端点没真正落到相邻路上，整条路看着接上了其实谁都不连）、**分区进深必须落在 `[0, 48] m`（自路面外缘算起）**，以及**对外机动车出口必须是真的**（读 `access_points` 自述，反查坐标是否真落在 `via`/`to` 两条路的交点上、`to` 是否真属别的片区、两处出口间距是否 ≥400 m、每处接入路能否独立走到三区大道）。实机部分除了已购地图格与实时目录比对，还会**用实时道路折线**量主干道起点是否落在 8 米吸附容差内（不写死任何高速坐标，换存档也不会假通过）。
+- `test-town-plan.mjs` 校验 `plans/egelin-plateau-town-plan.json`：离线检查 `plan_id` 与 `bounds+plan` 的哈希一致、坐标全部有限、8 米格对齐、id 唯一、规划对象都在规划边界内、户数与人口口径可复算；游戏在跑时追加实机检查——规划几何落在当前已购地图格内（0 错误），道路 prefab、分区名与建筑 prefab 都能在当前城市目录里找到。桥未启动时自动跳过实机部分。规划文件是按「埃格林」这个城画的，换存档后实机断言会（正确地）失败。
+- `test-plan-targets.mjs` 离线校验 Weford 目标清单：两套方案各自的可解析项数、五个脚本的分组数量、缺失项能否被显式检出、`plans/` 规划文件的结构与 `id` 完整性、城市闸门（`CITY_MISMATCH` / `--allow-city-mismatch` / 未声明时跳过）、模拟速度映射的往返还原（`fastest` = 4 这条防线），以及「清单内不含任何坐标 / 路网 ID / 会话 ID」、「五个脚本都接了城市闸门、build 的闸门排在写入之前」、「preview 会还原它改过的速度」。不连接游戏。
 - `scratch/deploy_civic_hub.mjs` 和 `scratch/deploy_deathcare.mjs` 是固定方案、固定坐标的一次性写入脚本，不是正式入口。未经逐行检查当前目标、费用和用户授权不得运行。
-- `scratch/` 下的 5 个公共服务脚本（`plan-public-service-relocation`、`preview-public-service-plan`、`refresh-public-service-road-bindings`、`build-public-services-from-plan`、`verify-public-services-phase`）已改为数据驱动：目标来自 `presets/weford-public-services.json`，坐标来自仓库根 `plans/` 的规划文件，支持 `--plan public-services|master` 切换数据源。脚本内不含坐标、路网 ID 或会话 ID；`preview-public-service-plan.mjs` 的候选在运行时现场请求。五个脚本启动时都先比对清单 `expected_city` 与当前城市，不符即 `CITY_MISMATCH` 中止（可用 `--allow-city-mismatch` 显式放行）。其中 `build-public-services-from-plan.mjs` 是唯一会写入游戏的脚本。
+- `scratch/generate-town-plan.mjs` 是只读的城镇规划生成器，不连接游戏：把脚本内的一份「街区级用途表」（20×10 个 96 米街区）展开成 `render_city_plan` / 规划图施工流程可用的道路、分区与建筑 JSON，写入仓库根 `plans/egelin-plateau-town-plan.json`，并打印户数与人口核算；坐标、道路 prefab、街区用途都在脚本顶部集中定义。生成物已纳入版本控制，改动脚本后要重新生成并重新渲染。
+- `scratch/generate-region-plan.mjs` 是只读的三区规划生成器（住宅/商业/工业各自独立、只用道路连通；片区**内部按黄金街区排成规整格子**，格子尺寸由 `GOLDEN_*` 与 `GRID` 反推，不手写坐标），写入 `plans/egelin-region-plan.json`。道路**全部是单段直线**（住宅区曾用正弦扰动的波形支路，已按用户要求拉直；`wavyLine` 函数保留未删，把某条路的 `kind` 改回 `'wave'`、去掉 `points`、补上 `axis/from/to/amp/phase/segments` 即可恢复）。五件事值得注意：①**吸附必须排在细分之前**——吸附会把端点挪动几十米，先细分的话那一段会重新超过 200 米上限；②生成器自带**路网连通性硬校验**，不通过直接抛错，不再靠人眼看图；③分区窗口直接用引擎实测口径 `[0, 48] m`（自路面外缘），改动这个窗口会同时改变分区面积与人口核算，测试按同一口径复算；④**`kind: 'line'` 不等于几何是直线**——控制点写成多段折线照样会弯（工业区原来就是刻意做的 ±4 m 起伏），回归测试因此单独断言「折线长度 = 首末直线距离」；⑤**片区边界必须是 8 的整数倍**——分区栅格化从 `min_x` 起步长 8，宽度不是 8 的倍数时最后一列会把多边形挤出边界（`DISTRICT_BOUNDS` 已按此取整）。另外，栅格线表里的 `to_x` / `tie_to` 用来把某条街**延长出去**（当前只有住宅第 7 条东西街：向东延到厂区西界的油场接入路，充当住宅区第二处对外机动车出口），延长段走在片区之间的空地上、两侧不划区，不会污染任何片区的分区面积。
+- `scratch/zoom-plan-views.mjs` 是配套的只读截图辅助：把交互规划页的初始视图与放大上限按「片区/全区」逐个覆写，生成若干局部放大 HTML 供无头 Chrome 逐片核对。**画布尺寸必须取规划自己的 `render.width/height`**（本规划是 2200×1400，不是默认的 1600×1000），否则视图会整体跑偏到地图另一角。页面默认把放大上限锁在 10×，任何片区视图都会被 `clampView` 夹回「几乎全城」，所以脚本会连同上限一起放开。
+- `scratch/survey-site.mjs` 是只读选址勘察：按矩形采样地形高程与地表水体、列出已购地图格，打印可建性网格与最大平地连通分量。踩过的两个参数坑：`sample_terrain` 单次上限 256 个坐标（要分块）、`read_surface_water_mask` 的 `limit` 上限 1024 且 `cell_size_m` 不得小于 64。
+- `scratch/` 下的 5 个公共服务脚本（`plan-public-service-relocation`、`preview-public-service-plan`、`refresh-public-service-road-bindings`、`build-public-services-from-plan`、`verify-public-services-phase`）已改为数据驱动：目标来自 `presets/weford-public-services.json`，坐标来自仓库根 `plans/` 的规划文件，支持 `--plan public-services|master` 切换数据源。脚本内不含坐标、路网 ID 或会话 ID；`preview-public-service-plan.mjs` 的候选在运行时现场请求。五个脚本启动时都先比对清单 `expected_city` 与当前城市，不符即 `CITY_MISMATCH` 中止（可用 `--allow-city-mismatch` 显式放行）。`preview` 会临时暂停城市以稳定执行原生预览，跑完**一律还原**成进来时的速度（中途出错也还原），实测结果记在输出的 `simulation` 段；其余脚本静止不动速度，`build` 的暂停/还原由 `city-plan-construction-workflow` 负责并在输出里报告。其中 `build-public-services-from-plan.mjs` 是唯一会写入游戏的脚本。
 - `ilspy/` 是本地反编译工具及依赖，已被 Git 忽略，不属于城市自动化接口。
 
 ## 核心参数限制与几何边界
