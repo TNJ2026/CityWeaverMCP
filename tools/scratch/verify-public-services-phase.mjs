@@ -1,6 +1,8 @@
 import { queryGame } from '../../mcp/bridge-client.mjs';
 import {
+  assertCityMatches,
   assertScriptResolved,
+  cityGuardOptions,
   describePlanWithStamp,
   loadTargets,
   matchesPlannedBuilding,
@@ -11,8 +13,9 @@ import {
 
 // 只读阶段验收：回读规划范围内的设施与城市摘要。
 // 目标清单与读取范围都来自权威清单 + 规划文件，脚本内不写死 prefab 或 bounds。
+// 城市不符时中止（CITY_MISMATCH）——在别的城市上跑只会得到「全部缺失」的假结论。
 //
-// 用法：node tools/scratch/verify-public-services-phase.mjs [--plan master]
+// 用法：node tools/scratch/verify-public-services-phase.mjs [--plan master] [--allow-city-mismatch]
 
 await runMain(async () => {
   const args = parseArgs();
@@ -26,8 +29,10 @@ await runMain(async () => {
 
   if (!loaded.bounds) throw new Error('规划文件里没有 bounds，无法确定验收范围。');
 
-  const [status, summary, buildings] = await Promise.all([
-    queryGame('get_game_status', {}),
+  const status = await queryGame('get_game_status', {});
+  assertCityMatches(loaded, status.data?.city_name, cityGuardOptions(args));
+
+  const [summary, buildings] = await Promise.all([
     queryGame('get_city_summary', {}),
     queryGame('get_planning_map_snapshot', {
       bounds: loaded.bounds,

@@ -5,7 +5,9 @@ import {
   DEFAULT_CONFIG,
   DEFAULT_PREVIEW_POLICY,
   PlanTargetError,
+  assertCityMatches,
   assertScriptResolved,
+  cityGuardOptions,
   createRunId,
   describePlan,
   loadTargets,
@@ -222,6 +224,83 @@ check('缺失项断言带可操作信息',
   && Array.isArray(missingError?.details?.missing)
   && Array.isArray(missingError?.details?.available_plans),
   missingError ? `code=${missingError.code}` : '未抛错');
+
+process.stdout.write('\n--- 城市闸门：规划坐标只对 expected_city 有效 ---\n');
+check('清单声明了 expected_city', loaded.expectedCity === '韦福德', String(loaded.expectedCity));
+check('loadTargets 暴露 expectedCity', Object.hasOwn(loaded, 'expectedCity'));
+
+let cityMismatchError = null;
+try {
+  assertCityMatches(loaded, '埃格林');
+} catch (error) {
+  cityMismatchError = error;
+}
+check('城市不符报 CITY_MISMATCH',
+  cityMismatchError instanceof PlanTargetError && cityMismatchError.code === 'CITY_MISMATCH',
+  cityMismatchError ? `code=${cityMismatchError.code}` : '未抛错');
+check('CITY_MISMATCH 带可操作信息',
+  cityMismatchError?.details?.expected_city === '韦福德'
+  && cityMismatchError?.details?.actual_city === '埃格林'
+  && typeof cityMismatchError?.details?.hint === 'string');
+
+let cityOkError = null;
+try {
+  assertCityMatches(loaded, '韦福德');
+} catch (error) {
+  cityOkError = error;
+}
+check('城市相符不抛错', cityOkError === null, cityOkError?.message ?? '');
+
+let cityUnknownError = null;
+try {
+  assertCityMatches(loaded, null);
+} catch (error) {
+  cityUnknownError = error;
+}
+check('城市名取不到（null）也拦下', cityUnknownError?.code === 'CITY_MISMATCH');
+
+let cityOverrideError = null;
+try {
+  assertCityMatches(loaded, '埃格林', cityGuardOptions({ 'allow-city-mismatch': true }));
+} catch (error) {
+  cityOverrideError = error;
+}
+check('--allow-city-mismatch 可显式放行', cityOverrideError === null, cityOverrideError?.message ?? '');
+
+let citySkippedError = null;
+try {
+  assertCityMatches({ expectedCity: null }, '任意城');
+} catch (error) {
+  citySkippedError = error;
+}
+check('未声明 expected_city 时跳过比对（老清单兼容）',
+  citySkippedError === null, citySkippedError?.message ?? '');
+
+check('cityGuardOptions 只认显式真值',
+  cityGuardOptions({}).allowMismatch === false
+  && cityGuardOptions({ 'allow-city-mismatch': true }).allowMismatch === true
+  && cityGuardOptions({ 'allow-city-mismatch': 'false' }).allowMismatch === false);
+
+process.stdout.write('\n--- 五个脚本都接上了城市闸门 ---\n');
+const scratchDirectory = path.resolve(path.dirname(loaded.configPath), '..', 'scratch');
+const scratchSources = {};
+for (const name of [
+  'plan-public-service-relocation',
+  'preview-public-service-plan',
+  'refresh-public-service-road-bindings',
+  'build-public-services-from-plan',
+  'verify-public-services-phase',
+]) {
+  const source = await readFile(path.join(scratchDirectory, `${name}.mjs`), 'utf8');
+  scratchSources[name] = source;
+  const calls = (source.match(/assertCityMatches\(/g) ?? []).length;
+  check(`${name} 调用了 assertCityMatches`, calls >= 1, `调用 ${calls} 次`);
+}
+check('build 的城市闸门排在任何写入动作之前',
+  scratchSources['build-public-services-from-plan'].indexOf('assertCityMatches(')
+  < scratchSources['build-public-services-from-plan'].indexOf('prepareCityPlanConstruction('));
+check('清单文本声明了 expected_city',
+  (await readFile(loaded.configPath, 'utf8')).includes('"expected_city"'));
 
 if (failures > 0) {
   process.stdout.write(`\n${failures} 项失败\n`);

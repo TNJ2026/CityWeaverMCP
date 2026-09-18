@@ -5,7 +5,9 @@ import {
 } from '../../mcp/city-plan-construction-workflow.mjs';
 import { computeCityPlanId } from '../../mcp/planning-renderer.mjs';
 import {
+  assertCityMatches,
   assertScriptResolved,
+  cityGuardOptions,
   describePlanWithStamp,
   formatFailure,
   loadTargets,
@@ -22,7 +24,9 @@ import {
 // 属于本方案、尚未建成、却在规划文件里找不到坐标的设施会在开始施工前显式报错，
 // 不会再跑到中途崩在某一栋上。
 //
-// 用法：node tools/scratch/build-public-services-from-plan.mjs [--plan master]
+// 坐标只对清单里 expected_city 声明的那个城有效，城市不符会在任何一次写入之前中止。
+//
+// 用法：node tools/scratch/build-public-services-from-plan.mjs [--plan master] [--allow-city-mismatch]
 
 // 施工过程中的进度累计，供中断时报告「已经建成什么」。
 const completed = [];
@@ -45,6 +49,11 @@ await runMain(async () => {
   const timeout = 30_000;
 
   output('plan', await describePlanWithStamp(loaded));
+
+  // 写入游戏之前先确认城市对得上。规划坐标只对 expected_city 声明的存档有效，
+  // 在别的城市上跑会把这些坐标当成空地或干脆建到不相干的位置。
+  const status = await queryGame('get_game_status', {});
+  assertCityMatches(loaded, status.data?.city_name, cityGuardOptions(args));
 
   const snapshot = await queryGame('get_planning_map_snapshot', {
     bounds,

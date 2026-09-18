@@ -1,7 +1,9 @@
 import { queryGame } from '../../mcp/bridge-client.mjs';
 import {
   PlanTargetError,
+  assertCityMatches,
   assertScriptResolved,
+  cityGuardOptions,
   createRunId,
   describePlanWithStamp,
   loadTargets,
@@ -16,8 +18,9 @@ import {
 // 候选（含 road_edge_id）一律运行时生成，清单里不保存坐标、路网 ID 或会话 ID，
 // 因此没有「换存档后 ID 失效」这回事：本脚本永远跟随当前城市的路网拓扑。
 // 取候选的参数在 tools/presets/weford-public-services.json 的 preview_candidate_policy 里调。
+// 坐标只对清单里 expected_city 声明的那个城有效，城市不符会在取候选之前中止（CITY_MISMATCH）。
 //
-// 用法：node tools/scratch/preview-public-service-plan.mjs [--plan master]
+// 用法：node tools/scratch/preview-public-service-plan.mjs [--plan master] [--allow-city-mismatch]
 
 const TERMINAL_STATES = ['preview_ready', 'failed', 'cancelled', 'expired', 'outcome_unknown'];
 
@@ -110,6 +113,8 @@ await runMain(async () => {
       { hint: '先用 node mcp/query.mjs get_game_status 确认游戏已启动且模组已部署。' },
     );
   }
+
+  assertCityMatches(loaded, status.data?.city_name, cityGuardOptions(args));
 
   // 原生预览在暂停的城市上更稳定，沿用既有流程的做法。
   await queryGame('set_simulation_speed', { speed: 'normal' });

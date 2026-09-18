@@ -1,5 +1,7 @@
 {
   "note": "韦福德公共服务设施的唯一权威目标清单。增删设施、调整某脚本的处理范围请改这里，不要在各脚本里另建 prefab 数组或写死坐标。",
+  "expected_city": "韦福德",
+  "expected_city_note": "这两套规划的坐标只对「韦福德」这个存档有效。各脚本启动时会用 get_game_status 的 city_name 比对；不一致即报 CITY_MISMATCH 并在动到游戏之前中止。确需对别的城市试跑可加 --allow-city-mismatch。留空字符串则跳过比对。",
   "active_plan": "public-services",
   "plans": {
     "public-services": {

@@ -273,8 +273,10 @@
 统一入口：
 
 ```text
-node tools/scratch/<脚本>.mjs [--plan public-services|master] [--plan-file <路径>]
+node tools/scratch/<脚本>.mjs [--plan public-services|master] [--plan-file <路径>] [--allow-city-mismatch]
 ```
+
+**规划只对一个城市有效。** 这两套坐标是照着「韦福德」那个存档量的，清单用 `expected_city` 声明城市名；各脚本启动时先用 `get_game_status` 的 `city_name` 比对，不符即报 `CITY_MISMATCH` 并在动到游戏之前中止。这道闸不能省——在别的城市上跑，原生规划器不会报任何错，只是在目标区域找不到可接入道路，于是每个目标都返回 0 候选：看起来像「没路」或「规划器坏了」，实际是「根本不是这个城」。确需对别的城市试跑可加 `--allow-city-mismatch` 显式放行；把 `expected_city` 留空则跳过比对。
 
 ### 两套并存的规划方案
 
@@ -293,11 +295,12 @@ node tools/scratch/<脚本>.mjs [--plan public-services|master] [--plan-file <�
 
 ### 复现与安全
 
-- 参数错误、未知方案键、目标解析失败、游戏桥未启动都会在动到游戏之前中止：stdout 输出单个 `{"event":"fatal","code":...,"message":...,"details":{...}}` JSON，退出码为 1。`code` 可直接判断分支（`PLAN_KEY_UNKNOWN`、`PLAN_TARGET_MISSING`、`NO_PREVIEW_TARGETS`、`BRIDGE_NOT_FOUND`），只有 `build-public-services-from-plan.mjs` 会额外带上 `completed` / `total_cost` 以便中断后清点。
+- 参数错误、未知方案键、目标解析失败、城市不符、游戏桥未启动都会在动到游戏之前中止：stdout 输出单个 `{"event":"fatal","code":...,"message":...,"details":{...}}` JSON，退出码为 1。`code` 可直接判断分支（`PLAN_KEY_UNKNOWN`、`PLAN_TARGET_MISSING`、`NO_PREVIEW_TARGETS`、`CITY_MISMATCH`、`BRIDGE_NOT_FOUND`），只有 `build-public-services-from-plan.mjs` 会额外带上 `completed` / `total_cost` 以便中断后清点。
+- 城市闸门在写入之前生效：`build-public-services-from-plan.mjs` 先打印 `plan` 事件，随后立刻比对城市，比不过就直接 `fatal` 中止，不会开始任何预览或提交。判断「跑的是哪个城」看输出里的 `city` 字段（`refresh` / `verify` 会带，`CITY_MISMATCH` 的 `details` 里同时给出期望值与实际值）。
 - `preview` 脚本的候选在运行时向原生规划器现场请求，`road_edge_id` 由当次会话产生，模型侧不保存。因此换存档、重载城市或道路拓扑变化**不会留下失效 ID**，脚本每次自动跟随当前路网；代价是它必须在游戏运行时执行，桥未启动即拒绝。取候选的半径、数量、尝试次数与道路侧在清单的 `preview_candidate_policy` 里调。
 - `--plan master` 只切换数据源，不改变脚本的副作用等级；`build-public-services-from-plan.mjs` 依然是唯一会写入游戏的脚本。
 - 目标清单的改动以 `tools/presets/weford-public-services.json` 为唯一入口，不要在各脚本里另加 prefab 数组。`node tools/tests/test-plan-targets.mjs` 校验清单与两套方案的解析结果，并断言清单里不存在任何坐标、路网 ID 或会话 ID。
-- 跨城市复用前，仍需替换清单与 `plans/` 规划文件；清单其余部分与脚本无需改动。
+- 跨城市复用前，需同时替换清单、`plans/` 规划文件与清单里的 `expected_city`；清单其余部分与脚本无需改动。换城市后不更新 `expected_city`，脚本会在启动时直接以 `CITY_MISMATCH` 拦下，提醒你这一步还没做完。
 
 ## 数据边界
 

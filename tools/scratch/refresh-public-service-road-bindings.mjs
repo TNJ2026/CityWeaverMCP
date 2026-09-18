@@ -1,6 +1,8 @@
 import { queryGame } from '../../mcp/bridge-client.mjs';
 import {
+  assertCityMatches,
   assertScriptResolved,
+  cityGuardOptions,
   describePlanWithStamp,
   loadTargets,
   parseArgs,
@@ -10,8 +12,9 @@ import {
 
 // 只读刷新规划建筑附近的实时道路候选，用于确认规划坐标在当道路拓扑下仍然可接入。
 // 目标与坐标来自权威清单 + 规划文件；脚本内不写死 prefab 或位置。
+// 坐标只对清单里 expected_city 声明的那个城有效，城市不符会在取候选之前中止（CITY_MISMATCH）。
 //
-// 用法：node tools/scratch/refresh-public-service-road-bindings.mjs [--plan master]
+// 用法：node tools/scratch/refresh-public-service-road-bindings.mjs [--plan master] [--allow-city-mismatch]
 
 await runMain(async () => {
   const args = parseArgs();
@@ -22,6 +25,9 @@ await runMain(async () => {
 
   assertScriptResolved(loaded, 'refresh');
   const targets = selectTargets(loaded, 'refresh');
+
+  const status = await queryGame('get_game_status', {});
+  assertCityMatches(loaded, status.data?.city_name, cityGuardOptions(args));
 
   const results = [];
 
@@ -64,6 +70,8 @@ await runMain(async () => {
 
   process.stdout.write(`${JSON.stringify({
     plan: await describePlanWithStamp(loaded),
+    city: status.data?.city_name,
+    session_id: status.meta?.session_id,
     results,
   }, null, 2)}\n`);
 });
