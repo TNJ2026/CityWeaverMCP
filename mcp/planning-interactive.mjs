@@ -21,6 +21,31 @@ function themeSvg(svg) {
   return themed.replace('<svg ', '<svg class="city-plan-map" role="img" aria-label="交互式城市规划图" ');
 }
 
+// 把规划边界换算成 SVG 画布像素矩形，用作交互页的初始视图。
+// 只影响打开时的取景；底图仍是全图，平移/缩放范围不变。无规划边界时返回 null。
+// 视图长宽用同一个缩放系数，保持 SVG 的 X/Z 等比例，不会因为取景而变形。
+function focusViewOf(worldBounds, planningBounds, options = {}, maxZoom = 10) {
+  if (!worldBounds || !planningBounds) return null;
+  const width = Number(options.width ?? 1600), height = Number(options.height ?? 1000);
+  const worldWidth = worldBounds.max_x - worldBounds.min_x, worldHeight = worldBounds.max_z - worldBounds.min_z;
+  const planWidth = planningBounds.max_x - planningBounds.min_x, planHeight = planningBounds.max_z - planningBounds.min_z;
+  if (!(worldWidth > 0) || !(worldHeight > 0) || !(planWidth > 0) || !(planHeight > 0)) return null;
+  const scale = Math.min(width / worldWidth, height / worldHeight);
+  const left = (width - worldWidth * scale) / 2, top = (height - worldHeight * scale) / 2;
+  const centerX = left + ((planningBounds.min_x + planningBounds.max_x) / 2 - worldBounds.min_x) * scale;
+  const centerY = top + (worldBounds.max_z - (planningBounds.min_z + planningBounds.max_z) / 2) * scale;
+  const margin = 1 + 2 * Number(options.focus_margin ?? 0.06);
+  let viewWidth = planWidth * scale * margin, viewHeight = planHeight * scale * margin;
+  // 保持缩放上限内的等比：先按最紧的一边放大到可见上限，再整体收进画布。
+  const grow = Math.max(1, (width / maxZoom) / viewWidth, (height / maxZoom) / viewHeight);
+  viewWidth *= grow; viewHeight *= grow;
+  const shrink = Math.min(1, width / viewWidth, height / viewHeight);
+  viewWidth *= shrink; viewHeight *= shrink;
+  return { x: centerX - viewWidth / 2, y: centerY - viewHeight / 2, width: viewWidth, height: viewHeight };
+}
+
+const MAX_ZOOM = 10;
+
 export function renderCityPlanInteractive(snapshot, plan, options = {}) {
   const rendered = renderCityPlan(snapshot, plan, options);
   const rootId = `city-plan-${rendered.plan_id.replace(/[^a-z0-9-]/gi, '')}`;
@@ -33,6 +58,8 @@ export function renderCityPlanInteractive(snapshot, plan, options = {}) {
     ? `校验发现 ${validation.error_count} 个错误、${validation.warning_count} 个警告。选择对象查看详情。`
     : '几何校验未发现问题；正式施工仍需通过游戏原生 preview。';
   const validationJson = JSON.stringify(validation.issues).replaceAll('<', '\\u003c');
+  // 初始视图聚焦规划边界：全图底图与平移/缩放范围不变，只是打开时对准规划范围。
+  const focusViewJson = JSON.stringify(focusViewOf(rendered.bounds, options.planning_bounds, options, MAX_ZOOM));
 
   const html = `<!doctype html>
 <html lang="zh-CN">
@@ -91,7 +118,7 @@ export function renderCityPlanInteractive(snapshot, plan, options = {}) {
     <label class="form-check"><input class="form-check-input" type="checkbox" data-filter="layer" value="terrain" checked><span class="form-check-label">坡度</span></label>
     <label class="form-check"><input class="form-check-input" type="checkbox" data-filter="status" value="existing" checked><span class="form-check-label">现状</span></label>
     <label class="form-check"><input class="form-check-input" type="checkbox" data-filter="status" value="planned" checked><span class="form-check-label">规划</span></label>
-    <span class="map-actions" aria-label="地图视图控制"><button type="button" data-map-action="zoom-out" aria-label="缩小">−</button><button type="button" data-map-action="reset">复位</button><button type="button" data-map-action="zoom-in" aria-label="放大">＋</button></span>
+    <span class="map-actions" aria-label="地图视图控制"><button type="button" data-map-action="zoom-out" aria-label="缩小">−</button><button type="button" data-map-action="reset" aria-label="复位到规划视图">复位</button><button type="button" data-map-action="zoom-in" aria-label="放大">＋</button><button type="button" data-map-action="fit-all" aria-label="显示全地图">全图</button></span>
   </div>
   <div class="city-plan-legend text-small" aria-label="线型说明">
     <span class="city-plan-key"><span class="city-plan-line"></span>现状</span>
@@ -155,8 +182,10 @@ export function renderCityPlanInteractive(snapshot, plan, options = {}) {
       };
       for (const input of controls) input.addEventListener('change', () => applyFilters(true));
       const baseView = { x: 0, y: 0, width: ${rendered.bounds ? Number(options.width ?? 1600) : 1600}, height: ${rendered.bounds ? Number(options.height ?? 1000) : 1000} };
-      const view = { ...baseView };
-      const maxZoom = 10;
+      const focusView = ${focusViewJson};
+      const homeView = focusView || baseView;
+      const view = { ...homeView };
+      const maxZoom = ${MAX_ZOOM};
       let pointer = null;
       let dragged = false;
       const clampView = () => {
@@ -202,7 +231,8 @@ export function renderCityPlanInteractive(snapshot, plan, options = {}) {
       mapWrap.addEventListener('pointercancel', stopDrag);
       for (const button of root.querySelectorAll('[data-map-action]')) button.addEventListener('click', () => {
         const action = button.dataset.mapAction;
-        if (action === 'reset') Object.assign(view, baseView);
+        if (action === 'reset') Object.assign(view, homeView);
+        else if (action === 'fit-all') Object.assign(view, baseView);
         else zoomAt(action === 'zoom-in' ? 1.25 : 0.8, svg.getBoundingClientRect().left + svg.clientWidth / 2, svg.getBoundingClientRect().top + svg.clientHeight / 2);
         clampView();
       });
