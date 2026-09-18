@@ -9,8 +9,13 @@
 
 export const CELL_SIZE = 8.0; // 1 CS2 grid cell = 8m x 8m
 export const MAX_ZONING_DEPTH_CELLS = 6; // Max zoning depth = 6 cells
-export const MAX_ZONING_DEPTH_M = 48.0; // 6 cells * 8m = 48m
+// 6 cells * 8m = 48m，量自「路面外缘」而非中心线。
+// 依据：反编译 Game.Zones.BlockSystem 把块中心放在 道路外缘 + 24m(=3格, 块深一半)，
+// 且 block.m_Size.y 恒为 6；沿线格宽同为 8m，单块最长 10 格(80m)、至少 2 格(16m)。
+export const MAX_ZONING_DEPTH_M = 48.0;
+// 两条对开道路“路缘到路缘”96m 时进深刚好背靠背对接；换算中心线间距要加两条半宽。
 export const OPTIMAL_BLOCK_WIDTH_M = 96.0; // 2 * 48m = 12 cells (100% zoning efficiency)
+export const OPTIMAL_BLOCK_WIDTH_NOTE = 'edge-to-edge gap; centreline = 96 + (W1 + W2) / 2';
 export const OPTIMAL_RESIDENTIAL_BLOCK_HEIGHT_M = 160.0; // 20 cells
 export const OPTIMAL_COMMERCIAL_BLOCK_HEIGHT_M = 96.0; // 12 cells
 
