@@ -73,7 +73,7 @@ description: 通过 CityWeaverMCP 查询和操作《都市：天际线 II》的�
 - 新增普通建筑、市政服务、交通设施或公用设施优先使用 `plan_building_workflow` / `execute_building_plan`；已授权的一组建筑可用 `deploy_building_plans`。移动、升级、拆除及专用网络仍使用领域工具。可升级建筑用 `reserve_upgrade_prefabs` 预留组合占地；不需要覆盖代理时将 `consider_service_coverage` 设为 `false`，但不能跳过原生放置预览。
 - 安装可移动升级前先调用对应升级列表读取 `placement_geometry`。主体侧安装使用返回的吸附段和 `placement_offset_m`；原生范围允许隔路放置时，只使用 `road_side_candidates` 返回的精确道路、位置与朝向进入 `placement_mode=road_side`。候选与范围检查都不能替代原生 preview。
 - 垃圾填埋场储存区和专门产业采集区是建筑附属区域，不是行政区或 zoning。先由 `list_building_areas` 发现 owner 允许的精确区域 prefab。
-- NxN 小区优先使用 `deploy_grid_district`。道路类型、分区名称和建筑 prefab 都从当前城市发现；按密度从小批次开始，普通开发单元通常预留 2 个机动车出口连接片区集散路。高层编排仍必须经过原生 preview 和永久回读。
+- NxN 开发单元优先使用 `deploy_grid_district`。道路类型、分区名称和建筑 prefab 都从当前城市发现；规模按实时条件计算并从可验证的小批次开始，普通开发单元通常预留 2 个机动车出口连接片区集散路。高层编排仍必须经过原生 preview 和永久回读。
 - 用户只要求“规划、画图、看看方案”时，先用 `propose_grid_plan` / `propose_city_plan` / `render_city_plan`，不得因此调用施工工具。规划网页以全部可购买地图格为固定底图，但规划授权和施工仍限于已购区域；水岸线默认按 8 米原生水深样本插值，可用 `water_cell_size_m` 下调至 2 米，结果出现 `adaptive_resolution=true` 时必须按实际 `cell_size_m` 报告精度。`propose_city_plan` 自动添加的服务建筑、轨道和管网是概念占位，必须后续绑定精确 prefab、端口和连接层。用户确认整张规划图并要求按图施工道路时，用相同的 `bounds`、结构化 `plan` 和渲染返回的 `plan_id` 调用 `prepare_city_plan_construction`；只有哈希一致才建立虚拟路网沙盒，先检查宽度边界、8 米对齐和端点拓扑，再把每个网格保留为一次原生批次、把超长路线仅按原生上限拆批。随后沿 `advance_city_plan_construction` 的 `preview_batch` / `commit_batch` 逐批执行最终坐标原生预览、提交和永久道路回读；虚拟沙盒不在地下或其他位置建设道路，也不得从 SVG 像素反推坐标。用户要求单个网格原生预检但尚未授权施工时，用 `prepare_grid_native_preview`；它只保留临时道路 preview，可通过 `render` 把费用、状态、警告、错误和吸附原点标注回规划图，不调用 `build_road`、`preview_zoning` 或 apply。获得施工授权后用 `advance_grid_construction` 依次执行 `commit_roads` → `preview_zoning` → `apply_zoning`，每次只推进一个阶段并优先沿用返回的 `next_action`；分区预览必须使用道路完成后回读的永久 edge ID。任一阶段失败、超时、`outcome_unknown` 或永久回读不完整都停止，已完成道路不得自动拆除。
 - 跨领域批量建设可使用 `deploy_service_cluster`、`deploy_industrial_campus`、`deploy_transit_corridor`、`build_utility_backbone`、`repair_congested_corridor`；它们按固定阶段串行执行并返回 `phases`。阶段失败或 `outcome_unknown` 时停止后续工作，不更换 `request_id` 重试，也不提供跨领域自动回滚。`build_utility_backbone` 将设施端口接驳与显式骨架管线按顺序建设，并在每次接驳前按剩余 `max_total_cost` 限幅、对管线段执行总额和 `max_cost_per_segment` 预检；`repair_congested_corridor` 先分析瓶颈，`auto` 只处理明确的扩容/分流建议，2–64 条升级道路会合并为一次原生批量事务，`reroute` 对一条走廊只创建一次绕行。
 - 公共服务采用“分级分散、小规模集中”：小学、诊所、社区警务和消防按实际需求与道路阻隔分散；医院、大学、总部和大型后勤设施集中在区域节点或外围，并分别检查覆盖、道路容量、升级占地和财政负担，详见[城市公共服务设施指南](../../docs/guides/city/CITY-SERVICE-GUIDE.md)。
@@ -90,7 +90,7 @@ description: 通过 CityWeaverMCP 查询和操作《都市：天际线 II》的�
 - **变电站安全岛隔离**：变电站宜远离住宅，并在独立地块以专用支路连入路网；高压接驳需按当前 prefab 连接层和原生预览确认，详见 [公共设施与管网指南](../../docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md#生命线工程隔离与接驳铁律)。
 - **工业重载直连物流通道**：工业区应由高速公路出入口通过专用 4 车道干道直连以实现重卡零穿城，详见 [道路指南](../../docs/guides/roads/ROAD-GUIDE.md#重载工业集疏运专用通道与防平行干涉原则)。
 - **拥堵分流与同宽回退**：先确认真实瓶颈和下游容量；扩宽受阻时评估非对称、无停车、路口优化或平行通道，并跨完整可比高峰验收，详见 [道路指南](../../docs/guides/roads/ROAD-GUIDE.md#拥堵走廊改造与空间受限回退)。
-- **小区密度与连接**：低密从 `2×2`、中密从 `3×2`、高密从 `2×2` 起步；内部道路密连、小区之间受控疏连，稳定后再扩展到推荐的 `3×2`/`3×3`，详见 [从零建城工作流](../../docs/workflows/new-city.md#小区网格规模与连接方式)。
+- **开发单元规模与连接**：不按密度写死 NxN 起步值或扩展档位，依据实时可建设面积、出入口、需求、预算、公交和服务承载计算；内部道路密连、开发单元之间受控疏连，规模采用工作流中的统一建议上限，详见 [从零建城工作流](../../docs/workflows/new-city.md#开发单元网格规模与连接方式)。
 - **从零建城状态推进**：按“基线 → 骨架与生命线 → 启动循环 → 服务稳定 → 受控增长”推进；任何失败或结果未知进入 `R 恢复`，不以预览成功或命令提交代替验收，详见 [状态机与失败回退](../../docs/workflows/new-city.md#统一阶段状态机)。
 - **MCP 关键参数与错误回退**：道路起终点顶层传参、模拟速度全小写枚举及 `GAME_REJECTED_BUILDING` 错误处置规范，详见 [操作与事务工作流](../../docs/workflows/operations.md#mcp-关键参数规范与实战避坑)。
 
