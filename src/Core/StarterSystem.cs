@@ -1,6 +1,6 @@
 using Game;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     // Verify the simulation update path once without changing city data.
     public partial class StarterSystem : GameSystemBase

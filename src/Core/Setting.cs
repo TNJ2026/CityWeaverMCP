@@ -4,9 +4,9 @@ using Game.Modding;
 using Game.Settings;
 using System.Collections.Generic;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
-    [FileLocation(nameof(CitiesSkylines2Mod))]
+    [FileLocation(nameof(CityWeaver))]
     [SettingsUIGroupOrder(kConnection, kGeneral)]
     public class Setting : ModSetting
     {

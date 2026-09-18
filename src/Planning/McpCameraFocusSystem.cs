@@ -3,7 +3,7 @@ using Game.Rendering;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     // Runs in the rendering phase, so camera motion continues while simulation is paused.
     public partial class McpCameraFocusSystem : GameSystemBase

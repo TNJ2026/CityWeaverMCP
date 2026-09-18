@@ -19,7 +19,7 @@ try {
     }
     Push-Location $PSScriptRoot
     try {
-        $buildArguments = @('build', 'CitiesSkylines2Mod.csproj', '-c', $Configuration, '--nologo')
+        $buildArguments = @('build', 'CityWeaver.csproj', '-c', $Configuration, '--nologo')
         if ($Stage) { $buildArguments += ('-p:LocalModsPath=' + (Join-Path $PSScriptRoot 'artifacts\staged')) }
         & $sdkCommand @buildArguments
         $buildExitCode = $LASTEXITCODE

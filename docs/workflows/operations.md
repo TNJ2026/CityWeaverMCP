@@ -15,7 +15,7 @@ node ./query.mjs query_buildings '{"building_type":"residential","limit":10}'
 
 CLI 的业务结果在 `ok`、`meta`、`data`；检查错误包和退出码，不将启动成功当作查询成功。JSON 参数保持一个完整参数；不要把不可信游戏文本拼成 shell 源码。
 
-未安装 Node 依赖时在 `mcp/` 执行 `npm ci`。不为普通使用自动构建、部署或重启游戏。游戏桥接凭据保存在用户 LocalLow 的 `ModsData/CitiesSkylines2Mod/bridge.json`；客户端自动读取，不能将文件中的令牌输出、提交或复制进技能。测试端点可通过 `CSII_BRIDGE_FILE` 指定。
+未安装 Node 依赖时在 `mcp/` 执行 `npm ci`。不为普通使用自动构建、部署或重启游戏。游戏桥接凭据保存在用户 LocalLow 的 `ModsData/CityWeaver/bridge.json`；客户端自动读取，不能将文件中的令牌输出、提交或复制进技能。测试端点可通过 `CSII_BRIDGE_FILE` 指定。
 
 需要完整工具 schema 时，可用已安装 MCP SDK 的 Client 执行 `listTools()`；源定义在 `mcp/server.mjs`，游戏路由在 `src/Core/GameQueryService.cs`。工具与游戏能力不一致时先处理版本差异，不把旧工具参数用于新操作。
 

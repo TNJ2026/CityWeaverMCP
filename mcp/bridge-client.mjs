@@ -8,7 +8,7 @@ export class BridgeError extends Error {
 }
 
 export function defaultEndpointPath() {
-  return process.env.CSII_BRIDGE_FILE || path.join(os.homedir(), 'AppData', 'LocalLow', 'Colossal Order', 'Cities Skylines II', 'ModsData', 'CitiesSkylines2Mod', 'bridge.json');
+  return process.env.CSII_BRIDGE_FILE || path.join(os.homedir(), 'AppData', 'LocalLow', 'Colossal Order', 'Cities Skylines II', 'ModsData', 'CityWeaver', 'bridge.json');
 }
 
 const endpointCache = new Map();

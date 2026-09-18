@@ -15,7 +15,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     public sealed class TransportLineOperation
     {

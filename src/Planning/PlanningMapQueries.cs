@@ -9,7 +9,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     public sealed partial class GameQueryService
     {

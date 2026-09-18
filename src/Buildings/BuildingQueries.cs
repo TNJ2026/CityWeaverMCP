@@ -16,7 +16,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     public sealed class BuildingPlacementPlan
     {

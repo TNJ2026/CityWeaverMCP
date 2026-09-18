@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 using Unity.Collections;
 using Unity.Entities;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     public sealed partial class GameQueryService
     {

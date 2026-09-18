@@ -17,7 +17,7 @@ using NetCarLane = Game.Net.CarLane;
 using NetParkingLane = Game.Net.ParkingLane;
 using NetSubLane = Game.Net.SubLane;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     public sealed class RoadDirectChange
     {

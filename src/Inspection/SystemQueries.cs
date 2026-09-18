@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 using Unity.Entities;
 using Unity.Jobs;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     public sealed partial class GameQueryService
     {

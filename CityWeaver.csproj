@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<AssemblyName>CityWeaver</AssemblyName>
+		<RootNamespace>CityWeaver</RootNamespace>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Version>1.22.1</Version>
 		<AssemblyVersion>1.22.1.0</AssemblyVersion>

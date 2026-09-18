@@ -10,7 +10,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     public sealed partial class McpTransportLineToolSystem:ToolBaseSystem
     {

@@ -11,7 +11,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     // An ordinary ToolBaseSystem participates in the game's output/apply barriers.
     // No direct permanent road or money writes and no patch to the stock tool are needed.

@@ -1,8 +1,8 @@
-# CitiesSkylines2Mod
+# CityWeaver
 
 Agent 使用技能：[cities-skylines2](skills/cities-skylines2/SKILL.md)，负责功能路由和核心操作约束；完整指南与城市工作流统一维护在 [docs](docs/README.md)。技能目录可放入个人技能目录；本机已安装至 `C:/Users/cheng/.codex/skills/cities-skylines2`，可通过 `$cities-skylines2` 显式使用。维护时先更新仓库文档和技能入口，再同步安装副本。
 
-使用本机官方 `csiimod` 模板创建的《都市：天际线 II》最小代码模组。
+《都市：天际线 II》CityWeaver 代码模组与 MCP 城市自动化桥接项目。
 
 已扩展 MCP 查询与道路操作桥接，使用方式、数据口径及测试命令见 [MCP 开发说明](mcp/README.md)。
 0.2.0 增加组件发现、29 类实体查询、通用字段和缓冲区读取，详见 [扩展查询指南](mcp/QUERY-GUIDE.md)。
@@ -19,7 +19,7 @@ MCP 工具清单以运行时 `tools/list` 为准。规划工具可基于当前�
 - [`src/README.md`](src/README.md)：完整源码目录职责说明。
 - `mcp/`：Node.js STDIO MCP 服务、诊断工具和自动测试。
 - [`tools/`](tools/README.md)：空间勘察、批量街区部署、启动器辅助、规则库和测试工具。
-- `CitiesSkylines2Mod.csproj`：保留官方引用、源码生成器和后处理构建流程。
+- `CityWeaver.csproj`：保留官方引用、源码生成器和后处理构建流程。
 - `Properties/`：官方发布模板；其中描述、游戏版本等仍为占位配置，发布前需填写。
 
 ## 本机环境（2026-09-13 检查）
@@ -55,14 +55,14 @@ MCP 工具清单以运行时 `tools/list` 为准。规划工具可基于当前�
 构建会自动运行官方 Mod Post Processor，然后部署到：
 
 ```text
-%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Mods\CitiesSkylines2Mod
+%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Mods\CityWeaver
 ```
 
 官方部署目标会替换该模组部署目录，因此请将源码保留在本项目中。
 
 ## 游戏内验收
 
-1. 构建后启动或重启游戏，查看设置菜单中是否出现 CitiesSkylines2Mod。
+1. 构建后启动或重启游戏，查看设置菜单中是否出现 CityWeaver。
 2. 保持“启用测试消息”开启，点击“写入测试日志”。
 3. 新建测试城市或加载测试存档，开始模拟。
 4. 检查用户数据目录下的 `Logs`，应能找到加载消息、`settings button works` 和 `StarterSystem received its first simulation update`。

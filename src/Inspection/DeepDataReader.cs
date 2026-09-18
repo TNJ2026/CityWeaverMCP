@@ -6,7 +6,7 @@ using System.Reflection;
 using Newtonsoft.Json.Linq;
 using Unity.Entities;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     // Only known container accessors are invoked. Never dispose or mutate game-owned storage.
     public sealed class DeepDataReader

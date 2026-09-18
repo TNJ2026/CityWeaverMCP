@@ -11,7 +11,7 @@ using Colossal.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     // Newline-delimited JSON on an ephemeral loopback port; MCP lives outside Unity.
     public sealed class LocalQueryBridge : IDisposable
@@ -67,7 +67,7 @@ namespace CitiesSkylines2Mod
                 m_Listener = new TcpListener(IPAddress.Loopback, 0);
                 m_Listener.Start(8);
                 var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "..", "LocalLow", "Colossal Order", "Cities Skylines II", "ModsData", "CitiesSkylines2Mod");
+                    "..", "LocalLow", "Colossal Order", "Cities Skylines II", "ModsData", "CityWeaver");
                 Directory.CreateDirectory(directory);
                 m_EndpointPath = Path.Combine(directory, "bridge.json");
                 File.WriteAllText(m_EndpointPath, new JObject {

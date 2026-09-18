@@ -79,7 +79,7 @@ entity_id 包含城市会话与实体版本，切换/重新加载存档会失效
 游戏内端口由系统动态分配，只绑定 `127.0.0.1`。每次模组启动生成随机 256 位令牌；端口与令牌写入：
 
 ```text
-%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\ModsData\CitiesSkylines2Mod\bridge.json
+%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\ModsData\CityWeaver\bridge.json
 ```
 
 MCP 对该文件使用 100ms 的短时缓存，以减少高频工具调用中的重复磁盘读取；缓存到期后重新读取，连接失败时立即失效并在下一次请求读取新端点，因此仍支持游戏重启后快速重连。这个文件是连接凭据，不要提交到仓库或粘贴到对话。测试时可通过环境变量 `CSII_BRIDGE_FILE` 指定其他端点文件。

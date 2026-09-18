@@ -14,7 +14,7 @@ using Newtonsoft.Json.Linq;
 using Unity.Collections;
 using Unity.Entities;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     public sealed class QueryException : Exception
     {

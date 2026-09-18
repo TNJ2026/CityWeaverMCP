@@ -14,7 +14,7 @@ using Unity.Mathematics;
 using EventMarker = Game.Events.Event;
 using WeatherEvent = Game.Events.WeatherPhenomenon;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     internal sealed class DisasterOperation
     {

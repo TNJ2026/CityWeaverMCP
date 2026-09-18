@@ -12,7 +12,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     public sealed partial class McpTerrainToolSystem : ToolBaseSystem
     {

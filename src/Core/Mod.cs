@@ -5,11 +5,11 @@ using Game.SceneFlow;
 using Colossal.IO.AssetDatabase;
 using Game.Rendering;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     public class Mod : IMod
     {
-        public static ILog log = LogManager.GetLogger($"{nameof(CitiesSkylines2Mod)}.{nameof(Mod)}").SetShowsErrorsInUI(false);
+        public static ILog log = LogManager.GetLogger($"{nameof(CityWeaver)}.{nameof(Mod)}").SetShowsErrorsInUI(false);
         private Setting m_Setting;
         private GameQueryService m_Queries;
         private LocalQueryBridge m_Bridge;
@@ -27,7 +27,7 @@ namespace CitiesSkylines2Mod
             GameManager.instance.localizationManager.AddSource("zh-HANS", new LocaleEN(m_Setting, true));
 
 
-            AssetDatabase.global.LoadSettings(nameof(CitiesSkylines2Mod), m_Setting, new Setting(this));
+            AssetDatabase.global.LoadSettings(nameof(CityWeaver), m_Setting, new Setting(this));
             updateSystem.UpdateAt<StarterSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateBefore<McpCameraFocusSystem, CameraUpdateSystem>(SystemUpdatePhase.Rendering);
             updateSystem.UpdateBefore<McpRoadToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);

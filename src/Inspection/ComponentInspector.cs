@@ -6,7 +6,7 @@ using System.Reflection;
 using Newtonsoft.Json.Linq;
 using Unity.Entities;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     // Reads value components through EntityManager, never pointers or arbitrary properties/methods.
     public sealed class ComponentInspector

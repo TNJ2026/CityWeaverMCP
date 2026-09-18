@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 using Unity.Entities;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace CitiesSkylines2Mod
+namespace CityWeaver
 {
     public static class BlobReader
     {
