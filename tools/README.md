@@ -131,6 +131,8 @@ node tools/launcher-cdp.mjs ignore-warning
 
 - `lib/physics-rules.mjs`：内部几何规则库，不是 CLI。导出网格/道路常量，以及 `snapToCell`、`snapPoint`、`horizontalDistance`、`calculateGrade`、`validateRoadSegment`、`subdivideRoute`、`calculateGridFootprint`、`checkAABBOverlap`、`evaluateWindRelationship`、`calculateSafeIndustrialLocation` 和 `validateDistrictConfig`。
 - `presets/district-archetypes.json`：正式街区预设，当前包含低密住宅 `3x2`、商业 `3x3`、工业 `3x2` 和中密住宅 `4x3`。预设值是规划起点，prefab 和适用性仍需实时验证。
+- `lib/plan-targets.mjs`：规划目标解析库，不是 CLI。导出 `loadTargets`、`selectTargets`、`describePlan`、`describePlanWithStamp`、`assertScriptResolved`、`parseArgs`、`PlanTargetError`、`DEFAULT_PREVIEW_POLICY`，以及统一失败处理的 `formatFailure`、`runMain`。
+- `presets/weford-public-services.json`：Weford 公共服务施工的唯一权威目标清单。用命名方案（`public-services` / `master`）指向仓库根 `plans/` 下两套坐标不通用的规划文件；每个目标用 `plans` 声明归属、用 `scripts` 声明参与哪些脚本。清单里不保存任何坐标、路网 ID 或会话 ID：坐标从规划文件解析，原生候选由 `preview` 脚本在运行时现场请求，取候选参数放在 `preview_candidate_policy`。
 - `district-template.json`：可复制修改的通用部署配置示例，其中空 `node_id` 不能直接作为既有道路连接使用。
 - `deploy-industrial-plan.json`：某次城市会话使用过的工业部署配置，含会话绑定道路实体 ID；只能作为结构示例，执行前必须替换坐标和 ID。
 - `upgrade-prefabs.json`：历史游戏会话导出的 prefab/升级数据快照，不是部署输入，也不代表当前运行版本。
@@ -140,11 +142,14 @@ node tools/launcher-cdp.mjs ignore-warning
 ```powershell
 node tools/tests/test-physics-rules.mjs
 node tools/tests/test-spatial-survey.mjs
+node tools/tests/test-plan-targets.mjs
 ```
 
 - `test-physics-rules.mjs` 是离线数学和配置校验测试，不连接游戏。
 - `test-spatial-survey.mjs` 使用固定坐标查询实时城市，属于只读实机测试；换地图后断言可能不成立。
+- `test-plan-targets.mjs` 离线校验 Weford 目标清单：两套方案各自的可解析项数、五个脚本的分组数量、缺失项能否被显式检出、`plans/` 规划文件的结构与 `id` 完整性，以及「清单内不含任何坐标 / 路网 ID / 会话 ID」。不连接游戏。
 - `scratch/deploy_civic_hub.mjs` 和 `scratch/deploy_deathcare.mjs` 是固定方案、固定坐标的一次性写入脚本，不是正式入口。未经逐行检查当前目标、费用和用户授权不得运行。
+- `scratch/` 下的 5 个公共服务脚本（`plan-public-service-relocation`、`preview-public-service-plan`、`refresh-public-service-road-bindings`、`build-public-services-from-plan`、`verify-public-services-phase`）已改为数据驱动：目标来自 `presets/weford-public-services.json`，坐标来自仓库根 `plans/` 的规划文件，支持 `--plan public-services|master` 切换数据源。脚本内不含坐标、路网 ID 或会话 ID；`preview-public-service-plan.mjs` 的候选在运行时现场请求。其中 `build-public-services-from-plan.mjs` 是唯一会写入游戏的脚本。
 - `ilspy/` 是本地反编译工具及依赖，已被 Git 忽略，不属于城市自动化接口。
 
 ## 核心参数限制与几何边界
@@ -153,11 +158,11 @@ node tools/tests/test-spatial-survey.mjs
 
 | 约束项 | 参数/范围 | 限制与行为 |
 | --- | --- | --- |
-| 单段道路长度 | $16\text{m} \sim 256\text{m}$ | 基础道路/曲线超出范围报 `INVALID_ROAD_LENGTH`；自动路线中的短分段可能报 `ROUTE_SEGMENT_TOO_SHORT`。长路线应使用路线工具或 `subdivideRoute` 切分 |
-| 管网折线段长度 | $\le 200\text{m}$，2~16 个点 | 单次预览折线点数在 2 到 16 之间，单段管线长度建议不超过 200m |
-| 节点吸附容差 | $\le 8\text{m}$ | 连接既有道路或管网 `node_id` 时，输入坐标必须在该节点 8 米范围内，否则拒绝吸附 |
+| 单段道路长度 | 16 米 ~ 256 米 | 基础道路/曲线超出范围报 `INVALID_ROAD_LENGTH`；自动路线中的短分段可能报 `ROUTE_SEGMENT_TOO_SHORT`。长路线应使用路线工具或 `subdivideRoute` 切分 |
+| 管网折线段长度 | ≤ 200 米，2~16 个点 | 单次预览折线点数在 2 到 16 之间，单段管线长度建议不超过 200m |
+| 节点吸附容差 | ≤ 8 米 | 连接既有道路或管网 `node_id` 时，输入坐标必须在该节点 8 米范围内，否则拒绝吸附 |
 | 8 米格网模数 | `x % 8 == 0, z % 8 == 0` | 街区西南角起点（`origin`）及街区长宽（`block_w`, `block_h`）必须严格为 8 的倍数 |
-| 建筑路口退距 | 建议从 $32\text{m}$ 起评估 | 退距和路段长度由建筑 prefab、道路几何及原生预览共同决定；宽体建筑应优先选择长直路段 |
+| 建筑路口退距 | 建议从 32 米起评估 | 退距和路段长度由建筑 prefab、道路几何及原生预览共同决定；宽体建筑应优先选择长直路段 |
 | 主题分区预设 | `list_zone_types` 精确值 | `--zone` 或 JSON 中的 `zone` 必须为主细分风格名称（如 `EU Residential Low`），严禁未映射的泛型名称 |
 | 模拟速度枚举 | 全小写字符串 | 仅接受 `"paused"`, `"normal"`, `"fast"`, `"fastest"` 四种全小写枚举 |
 

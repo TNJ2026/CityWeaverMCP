@@ -29,7 +29,7 @@
 1. 先调用 `render_city_plan`，向用户展示图片并保存返回的 `plan_id`。
 2. 用户确认后，用完全相同的 `bounds`、`plan` 和该 `approved_plan_id` 调用 `prepare_city_plan_construction`。任何坐标、prefab、依赖或顺序变化都会产生不同哈希并以 `PLAN_APPROVAL_MISMATCH` 拒绝。
 3. 准备结果先建立不写入游戏的虚拟施工沙盒，检查道路拓扑，并把道路、建筑和独立水电管网编译为确定性原生批次。它把网格展开为稳定对象 ID 用于图面和回读，但施工时仍把每个 `1×1` 至 `5×5` 网格保留为一次原生 `preview_road_grid`，不会逐路重复预览。
-4. 普通路线按 `construction_order` 和 `depends_on` 排序；执行器以 240 米为安全上限等分长直线，避免原生端点吸附和浮点换算后恰好 256 米的边界段被拒绝；只有整条路线超过原生 16 点限制时才拆成相邻批次。虚拟沙盒不会在地下或其他位置创建游戏道路。
+4. 普通路线按 `construction_order` 和 `depends_on` 排序；执行器以 240 米为安全上限等分长直线，避免原生端点吸附和浮点换算后恰好 256 米的边界段被拒绝；只有整条路线超过原生 16 点限制时才拆成相邻批次。虚拟沙盒不会在地下或其他位置创建游戏道路。路段长度四个口径的分工见[游戏物理规则](../../reference/GAME-PHYSICS-RULES.md) §1.4。
 5. 沿 `next_action` 调用 `advance_city_plan_construction(action="preview_batch")`。该步骤只从已批准规划读取 prefab 和最终世界坐标，按批次类型调用道路、建筑、市政服务、交通设施、公用设施或独立管网的游戏原生 preview，不允许调用方另传任意施工坐标。
 6. 检查返回的真实费用、警告、错误和吸附结果后，再沿 `next_action` 调用 `action="commit_batch"`。提交完成后工具按领域回读永久道路、建筑或管网；建筑还核对最终位置与旋转，全部符合才返回 `completed_verified` 并给出下一批。
 7. `failed`、`cancelled`、`expired`、`outcome_unknown` 或永久回读不完整都会停止序列并保持城市暂停；不得更换 request ID 盲目重试。
@@ -258,19 +258,46 @@
 
 所有 prefab 和分区名称仍应从当前城市发现。SVG 中的规划几何可作为后续施工输入参考，但正式建设必须重新走对应领域的原生 preview、费用检查和永久结果回读。
 
-## 当前 Weford 存档专用脚本
+## Weford 公共服务施工脚本
 
-以下脚本记录了本次 Weford 施工中使用的坐标、prefab、规划文件或实体 ID，只用于复现和诊断当前方案，不是 MCP 公共工具，也不得作为其他城市的通用入口：
+这 5 个脚本处理当前存档的公共服务施工，已从 `mcp/` 迁到 `tools/scratch/`，并改为数据驱动：**目标清单与坐标不再写在脚本里**，统一来自 `tools/presets/weford-public-services.json` 与它指向的 `plans/` 规划文件。脚本本身不含任何坐标、路网 ID 或会话 ID。
 
-| 脚本 | 作用与副作用 |
+| 脚本（`tools/scratch/`） | 作用与副作用 |
 | --- | --- |
-| `mcp/plan-public-service-relocation.mjs` | 只读重新选址；按脚本内坐标查询公共服务候选，不提交施工。 |
-| `mcp/preview-public-service-plan.mjs` | 为硬编码候选创建原生临时预览并取消/报告结果；不应视为永久建设。其实体 ID 绑定生成时的城市会话。 |
-| `mcp/refresh-public-service-road-bindings.mjs` | 只读刷新规划建筑附近的实时道路候选；读取 `artifacts/weford-master-plan.json`。 |
-| `mcp/build-public-services-from-plan.mjs` | **写入游戏**；从 Weford 规划抽取待建服务，调用规划图分阶段施工流程并可能永久提交建筑。只有用户明确授权当前存档施工后才能运行。 |
-| `mcp/verify-public-services-phase.mjs` | 只读回读固定范围内的设施和城市摘要，用于阶段验收。 |
+| `plan-public-service-relocation.mjs` | 只读重新选址；按规划坐标请求公共服务候选，不提交施工。 |
+| `preview-public-service-plan.mjs` | 只读探针：**运行时**按规划坐标现场取原生候选，逐个试建临时预览，命中后立即取消；不产生永久实体。 |
+| `refresh-public-service-road-bindings.mjs` | 只读刷新规划建筑附近的实时道路候选。 |
+| `build-public-services-from-plan.mjs` | **写入游戏**；从规划文件抽取待建服务，走规划图分阶段施工流程并可能永久提交建筑。只有用户明确授权当前存档施工后才能运行。 |
+| `verify-public-services-phase.mjs` | 只读回读规划范围内的设施与城市摘要，用于阶段验收。 |
 
-换存档、重新加载城市或道路拓扑变化后，脚本中的实体 ID、候选位置和已批准规划都可能失效；不得直接重放，应重新读取会话、实时 prefab、道路和规划哈希。若这些流程以后需要跨城市复用，应先移除硬编码坐标/ID，改成参数化入口，迁入正式 `tools` 或 MCP 工作流并补充测试；在此之前保持为明确的当前城市辅助脚本。
+统一入口：
+
+```text
+node tools/scratch/<脚本>.mjs [--plan public-services|master] [--plan-file <路径>]
+```
+
+### 两套并存的规划方案
+
+`plans/` 下有两个坐标不通用、设施集合也不同源的规划文件，已纳入版本控制。配置用命名方案表达它们，默认 `public-services`：
+
+| 方案键 | 规划文件（`plans/`） | 覆盖 |
+| --- | --- | --- |
+| `public-services`（默认） | `weford-public-services-construction-plan.json` | 16 项待建 + 1 项已建；含 `Hospital01`；不含 `MedicalClinic02` / `CityPark03` / `CommunityPool01` |
+| `master` | `weford-master-plan.json` | 9 项标 `built` + 4 项水电设施；含 `MedicalClinic02` / `CityPark03` / `CommunityPool01`；不含 `Hospital01` |
+
+清单里每个目标用 `plans` 字段声明自己属于哪套方案，脚本只处理当前方案适用的项。**属于本方案、尚未建成、却在规划文件里找不到坐标的目标会在脚本开始时显式报错并列出项名**，不会跑到中途才失败。
+
+规划文件的必需结构：`bounds`（施工与验收范围）加 `plan.buildings[]`，每栋建筑至少有 `id`、`prefab`、`position`（`x`/`z` 为米制世界坐标）。清单按 `plan_id` 精确匹配、缺失时回落按 `prefab` 匹配，因此 `id` 必须非空且唯一。
+
+**新增或替换规划文件的做法**：`render_city_plan` 只返回自包含 HTML 与 `plan_id`，结构化 `plan` 由调用方持有，不会自动落盘。把决定沿用的 `bounds` + `plan` 存进 `plans/`，在清单的 `plans` 目录里登记路径与方案键，再跑一次 `node tools/tests/test-plan-targets.mjs`。`artifacts/` 仍是一次性产物目录（会被 Git 忽略），不要在那里放权威规划。
+
+### 复现与安全
+
+- 参数错误、未知方案键、目标解析失败、游戏桥未启动都会在动到游戏之前中止：stdout 输出单个 `{"event":"fatal","code":...,"message":...,"details":{...}}` JSON，退出码为 1。`code` 可直接判断分支（`PLAN_KEY_UNKNOWN`、`PLAN_TARGET_MISSING`、`NO_PREVIEW_TARGETS`、`BRIDGE_NOT_FOUND`），只有 `build-public-services-from-plan.mjs` 会额外带上 `completed` / `total_cost` 以便中断后清点。
+- `preview` 脚本的候选在运行时向原生规划器现场请求，`road_edge_id` 由当次会话产生，模型侧不保存。因此换存档、重载城市或道路拓扑变化**不会留下失效 ID**，脚本每次自动跟随当前路网；代价是它必须在游戏运行时执行，桥未启动即拒绝。取候选的半径、数量、尝试次数与道路侧在清单的 `preview_candidate_policy` 里调。
+- `--plan master` 只切换数据源，不改变脚本的副作用等级；`build-public-services-from-plan.mjs` 依然是唯一会写入游戏的脚本。
+- 目标清单的改动以 `tools/presets/weford-public-services.json` 为唯一入口，不要在各脚本里另加 prefab 数组。`node tools/tests/test-plan-targets.mjs` 校验清单与两套方案的解析结果，并断言清单里不存在任何坐标、路网 ID 或会话 ID。
+- 跨城市复用前，仍需替换清单与 `plans/` 规划文件；清单其余部分与脚本无需改动。
 
 ## 数据边界
 
