@@ -1,0 +1,5417 @@
+{
+  "plan_id": "cplan-4894a1dce720eccd",
+  "city": "埃格林",
+  "name": "高原镇",
+  "target_population": 10000,
+  "bounds": {
+    "min_x": -2712,
+    "min_z": 312,
+    "max_x": -112,
+    "max_z": 1480
+  },
+  "render": {
+    "title": "埃格林｜高原镇 1 万人口规划（只读草案，未施工）",
+    "width": 2200,
+    "height": 1400,
+    "view": "surface",
+    "format": "static_html"
+  },
+  "water_cell_size_m": 24,
+  "terrain_cell_size_m": 64,
+  "accounting": {
+    "counts": {
+      "L": 139,
+      "S": 6,
+      "R": 44,
+      "C": 6,
+      "M": 4,
+      "D": 1
+    },
+    "residentialBlocks": 187,
+    "households": 4286,
+    "people": 10715,
+    "peopleRange": [
+      9429,
+      12001
+    ],
+    "residentialZoneAreaM2": 1196800,
+    "townAreaM2": 1843200,
+    "grid": {
+      "columns": 20,
+      "rows": 10,
+      "anchor": {
+        "x": -2200,
+        "z": 504
+      },
+      "blockM": 96
+    },
+    "peoplePerHousehold": 2.5,
+    "road_length_m": 43056,
+    "geometry_bbox": {
+      "min_x": -2696,
+      "min_z": 328,
+      "max_x": -128,
+      "max_z": 1464
+    }
+  },
+  "plan": {
+    "roads": [
+      {
+        "id": "st-v-0",
+        "label": "纵向街 0",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -2200,
+            "z": 504
+          },
+          {
+            "x": -2200,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-1",
+        "label": "纵向街 1",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -2104,
+            "z": 504
+          },
+          {
+            "x": -2104,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-2",
+        "label": "纵向街 2",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -2008,
+            "z": 504
+          },
+          {
+            "x": -2008,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-3",
+        "label": "纵向街 3",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -1912,
+            "z": 504
+          },
+          {
+            "x": -1912,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-4",
+        "label": "纵向街 4",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -1816,
+            "z": 504
+          },
+          {
+            "x": -1816,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-5",
+        "label": "纵向街 5",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -1720,
+            "z": 504
+          },
+          {
+            "x": -1720,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-6",
+        "label": "纵向街 6",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -1624,
+            "z": 504
+          },
+          {
+            "x": -1624,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-7",
+        "label": "纵向街 7",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -1528,
+            "z": 504
+          },
+          {
+            "x": -1528,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-8",
+        "label": "纵向街 8",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -1432,
+            "z": 504
+          },
+          {
+            "x": -1432,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-9",
+        "label": "纵向街 9",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -1336,
+            "z": 504
+          },
+          {
+            "x": -1336,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-10",
+        "label": "纵向街 10",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -1240,
+            "z": 504
+          },
+          {
+            "x": -1240,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-11",
+        "label": "纵向街 11",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -1144,
+            "z": 504
+          },
+          {
+            "x": -1144,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-12",
+        "label": "纵向街 12",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -1048,
+            "z": 504
+          },
+          {
+            "x": -1048,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-13",
+        "label": "纵向街 13",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -952,
+            "z": 504
+          },
+          {
+            "x": -952,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-14",
+        "label": "纵向街 14",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -856,
+            "z": 504
+          },
+          {
+            "x": -856,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-15",
+        "label": "纵向街 15",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -760,
+            "z": 504
+          },
+          {
+            "x": -760,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-16",
+        "label": "纵向街 16",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -664,
+            "z": 504
+          },
+          {
+            "x": -664,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-17",
+        "label": "纵向街 17",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -568,
+            "z": 504
+          },
+          {
+            "x": -568,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-18",
+        "label": "纵向街 18",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -472,
+            "z": 504
+          },
+          {
+            "x": -472,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-19",
+        "label": "纵向街 19",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": -376,
+            "z": 504
+          },
+          {
+            "x": -376,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-v-20",
+        "label": "纵向街 20（东缘大道）",
+        "prefab": "Medium Road",
+        "level": "surface",
+        "width_m": 24,
+        "construction_status": "planned",
+        "construction_order": 10,
+        "points": [
+          {
+            "x": -280,
+            "z": 504
+          },
+          {
+            "x": -280,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "st-h-0",
+        "label": "横向街 0",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 21,
+        "points": [
+          {
+            "x": -2200,
+            "z": 504
+          },
+          {
+            "x": -280,
+            "z": 504
+          }
+        ]
+      },
+      {
+        "id": "st-h-1",
+        "label": "横向街 1（主街）",
+        "prefab": "Medium Road",
+        "level": "surface",
+        "width_m": 24,
+        "construction_status": "planned",
+        "construction_order": 11,
+        "points": [
+          {
+            "x": -2200,
+            "z": 600
+          },
+          {
+            "x": -280,
+            "z": 600
+          }
+        ]
+      },
+      {
+        "id": "st-h-2",
+        "label": "横向街 2",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 21,
+        "points": [
+          {
+            "x": -2200,
+            "z": 696
+          },
+          {
+            "x": -280,
+            "z": 696
+          }
+        ]
+      },
+      {
+        "id": "st-h-3",
+        "label": "横向街 3",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 21,
+        "points": [
+          {
+            "x": -2200,
+            "z": 792
+          },
+          {
+            "x": -280,
+            "z": 792
+          }
+        ]
+      },
+      {
+        "id": "st-h-4",
+        "label": "横向街 4",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 21,
+        "points": [
+          {
+            "x": -2200,
+            "z": 888
+          },
+          {
+            "x": -280,
+            "z": 888
+          }
+        ]
+      },
+      {
+        "id": "st-h-5",
+        "label": "横向街 5",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 21,
+        "points": [
+          {
+            "x": -2200,
+            "z": 984
+          },
+          {
+            "x": -280,
+            "z": 984
+          }
+        ]
+      },
+      {
+        "id": "st-h-6",
+        "label": "横向街 6",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 21,
+        "points": [
+          {
+            "x": -2200,
+            "z": 1080
+          },
+          {
+            "x": -280,
+            "z": 1080
+          }
+        ]
+      },
+      {
+        "id": "st-h-7",
+        "label": "横向街 7",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 21,
+        "points": [
+          {
+            "x": -2200,
+            "z": 1176
+          },
+          {
+            "x": -280,
+            "z": 1176
+          }
+        ]
+      },
+      {
+        "id": "st-h-8",
+        "label": "横向街 8",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 21,
+        "points": [
+          {
+            "x": -2200,
+            "z": 1272
+          },
+          {
+            "x": -280,
+            "z": 1272
+          }
+        ]
+      },
+      {
+        "id": "st-h-9",
+        "label": "横向街 9",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 21,
+        "points": [
+          {
+            "x": -2200,
+            "z": 1368
+          },
+          {
+            "x": -280,
+            "z": 1368
+          }
+        ]
+      },
+      {
+        "id": "st-h-10",
+        "label": "横向街 10",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 21,
+        "points": [
+          {
+            "x": -2200,
+            "z": 1464
+          },
+          {
+            "x": -280,
+            "z": 1464
+          }
+        ]
+      },
+      {
+        "id": "belt-road",
+        "label": "产业与市政带支路",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 30,
+        "points": [
+          {
+            "x": -2696,
+            "z": 328
+          },
+          {
+            "x": -1304,
+            "z": 328
+          }
+        ]
+      },
+      {
+        "id": "belt-connector",
+        "label": "产业带接入支路",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "construction_status": "planned",
+        "construction_order": 31,
+        "points": [
+          {
+            "x": -2000,
+            "z": 328
+          },
+          {
+            "x": -2000,
+            "z": 504
+          }
+        ]
+      },
+      {
+        "id": "arterial-highway-link",
+        "label": "主街—高速接入道",
+        "prefab": "Medium Road",
+        "level": "surface",
+        "width_m": 24,
+        "construction_status": "planned",
+        "construction_order": 5,
+        "points": [
+          {
+            "x": -280,
+            "z": 600
+          },
+          {
+            "x": -128,
+            "z": 600
+          },
+          {
+            "x": -128,
+            "z": 544
+          }
+        ]
+      }
+    ],
+    "zones": [
+      {
+        "id": "blk-0-0",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2192,
+            "z": 512
+          },
+          {
+            "x": -2112,
+            "z": 512
+          },
+          {
+            "x": -2112,
+            "z": 592
+          },
+          {
+            "x": -2192,
+            "z": 592
+          }
+        ]
+      },
+      {
+        "id": "blk-1-0",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2096,
+            "z": 512
+          },
+          {
+            "x": -2016,
+            "z": 512
+          },
+          {
+            "x": -2016,
+            "z": 592
+          },
+          {
+            "x": -2096,
+            "z": 592
+          }
+        ]
+      },
+      {
+        "id": "blk-2-0",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2000,
+            "z": 512
+          },
+          {
+            "x": -1920,
+            "z": 512
+          },
+          {
+            "x": -1920,
+            "z": 592
+          },
+          {
+            "x": -2000,
+            "z": 592
+          }
+        ]
+      },
+      {
+        "id": "blk-3-0",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1904,
+            "z": 512
+          },
+          {
+            "x": -1824,
+            "z": 512
+          },
+          {
+            "x": -1824,
+            "z": 592
+          },
+          {
+            "x": -1904,
+            "z": 592
+          }
+        ]
+      },
+      {
+        "id": "blk-4-0",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1808,
+            "z": 512
+          },
+          {
+            "x": -1728,
+            "z": 512
+          },
+          {
+            "x": -1728,
+            "z": 592
+          },
+          {
+            "x": -1808,
+            "z": 592
+          }
+        ]
+      },
+      {
+        "id": "blk-5-0",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1712,
+            "z": 512
+          },
+          {
+            "x": -1632,
+            "z": 512
+          },
+          {
+            "x": -1632,
+            "z": 592
+          },
+          {
+            "x": -1712,
+            "z": 592
+          }
+        ]
+      },
+      {
+        "id": "blk-6-0",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1616,
+            "z": 512
+          },
+          {
+            "x": -1536,
+            "z": 512
+          },
+          {
+            "x": -1536,
+            "z": 592
+          },
+          {
+            "x": -1616,
+            "z": 592
+          }
+        ]
+      },
+      {
+        "id": "blk-7-0",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1520,
+            "z": 512
+          },
+          {
+            "x": -1440,
+            "z": 512
+          },
+          {
+            "x": -1440,
+            "z": 592
+          },
+          {
+            "x": -1520,
+            "z": 592
+          }
+        ]
+      },
+      {
+        "id": "blk-8-0",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1424,
+            "z": 512
+          },
+          {
+            "x": -1344,
+            "z": 512
+          },
+          {
+            "x": -1344,
+            "z": 592
+          },
+          {
+            "x": -1424,
+            "z": 592
+          }
+        ]
+      },
+      {
+        "id": "blk-9-0",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1328,
+            "z": 512
+          },
+          {
+            "x": -1248,
+            "z": 512
+          },
+          {
+            "x": -1248,
+            "z": 592
+          },
+          {
+            "x": -1328,
+            "z": 592
+          }
+        ]
+      },
+      {
+        "id": "blk-16-0",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -656,
+            "z": 512
+          },
+          {
+            "x": -576,
+            "z": 512
+          },
+          {
+            "x": -576,
+            "z": 592
+          },
+          {
+            "x": -656,
+            "z": 592
+          }
+        ]
+      },
+      {
+        "id": "blk-17-0",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -560,
+            "z": 512
+          },
+          {
+            "x": -480,
+            "z": 512
+          },
+          {
+            "x": -480,
+            "z": 592
+          },
+          {
+            "x": -560,
+            "z": 592
+          }
+        ]
+      },
+      {
+        "id": "blk-18-0",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -464,
+            "z": 512
+          },
+          {
+            "x": -384,
+            "z": 512
+          },
+          {
+            "x": -384,
+            "z": 592
+          },
+          {
+            "x": -464,
+            "z": 592
+          }
+        ]
+      },
+      {
+        "id": "blk-19-0",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -368,
+            "z": 512
+          },
+          {
+            "x": -288,
+            "z": 512
+          },
+          {
+            "x": -288,
+            "z": 592
+          },
+          {
+            "x": -368,
+            "z": 592
+          }
+        ]
+      },
+      {
+        "id": "blk-0-1",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -2192,
+            "z": 608
+          },
+          {
+            "x": -2112,
+            "z": 608
+          },
+          {
+            "x": -2112,
+            "z": 688
+          },
+          {
+            "x": -2192,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-1-1",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -2096,
+            "z": 608
+          },
+          {
+            "x": -2016,
+            "z": 608
+          },
+          {
+            "x": -2016,
+            "z": 688
+          },
+          {
+            "x": -2096,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-2-1",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -2000,
+            "z": 608
+          },
+          {
+            "x": -1920,
+            "z": 608
+          },
+          {
+            "x": -1920,
+            "z": 688
+          },
+          {
+            "x": -2000,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-3-1",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1904,
+            "z": 608
+          },
+          {
+            "x": -1824,
+            "z": 608
+          },
+          {
+            "x": -1824,
+            "z": 688
+          },
+          {
+            "x": -1904,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-4-1",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1808,
+            "z": 608
+          },
+          {
+            "x": -1728,
+            "z": 608
+          },
+          {
+            "x": -1728,
+            "z": 688
+          },
+          {
+            "x": -1808,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-5-1",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1712,
+            "z": 608
+          },
+          {
+            "x": -1632,
+            "z": 608
+          },
+          {
+            "x": -1632,
+            "z": 688
+          },
+          {
+            "x": -1712,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-6-1",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1616,
+            "z": 608
+          },
+          {
+            "x": -1536,
+            "z": 608
+          },
+          {
+            "x": -1536,
+            "z": 688
+          },
+          {
+            "x": -1616,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-7-1",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1520,
+            "z": 608
+          },
+          {
+            "x": -1440,
+            "z": 608
+          },
+          {
+            "x": -1440,
+            "z": 688
+          },
+          {
+            "x": -1520,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-8-1",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1424,
+            "z": 608
+          },
+          {
+            "x": -1344,
+            "z": 608
+          },
+          {
+            "x": -1344,
+            "z": 688
+          },
+          {
+            "x": -1424,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-9-1",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1328,
+            "z": 608
+          },
+          {
+            "x": -1248,
+            "z": 608
+          },
+          {
+            "x": -1248,
+            "z": 688
+          },
+          {
+            "x": -1328,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-10-1",
+        "kind": "EU Commercial Low",
+        "polygon": [
+          {
+            "x": -1232,
+            "z": 608
+          },
+          {
+            "x": -1152,
+            "z": 608
+          },
+          {
+            "x": -1152,
+            "z": 688
+          },
+          {
+            "x": -1232,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-11-1",
+        "kind": "EU Commercial Low",
+        "polygon": [
+          {
+            "x": -1136,
+            "z": 608
+          },
+          {
+            "x": -1056,
+            "z": 608
+          },
+          {
+            "x": -1056,
+            "z": 688
+          },
+          {
+            "x": -1136,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-12-1",
+        "kind": "EU Commercial Low",
+        "polygon": [
+          {
+            "x": -1040,
+            "z": 608
+          },
+          {
+            "x": -960,
+            "z": 608
+          },
+          {
+            "x": -960,
+            "z": 688
+          },
+          {
+            "x": -1040,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-13-1",
+        "kind": "EU Commercial Low",
+        "polygon": [
+          {
+            "x": -944,
+            "z": 608
+          },
+          {
+            "x": -864,
+            "z": 608
+          },
+          {
+            "x": -864,
+            "z": 688
+          },
+          {
+            "x": -944,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-14-1",
+        "kind": "EU Commercial Low",
+        "polygon": [
+          {
+            "x": -848,
+            "z": 608
+          },
+          {
+            "x": -768,
+            "z": 608
+          },
+          {
+            "x": -768,
+            "z": 688
+          },
+          {
+            "x": -848,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-15-1",
+        "kind": "EU Commercial Low",
+        "polygon": [
+          {
+            "x": -752,
+            "z": 608
+          },
+          {
+            "x": -672,
+            "z": 608
+          },
+          {
+            "x": -672,
+            "z": 688
+          },
+          {
+            "x": -752,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-16-1",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -656,
+            "z": 608
+          },
+          {
+            "x": -576,
+            "z": 608
+          },
+          {
+            "x": -576,
+            "z": 688
+          },
+          {
+            "x": -656,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-17-1",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -560,
+            "z": 608
+          },
+          {
+            "x": -480,
+            "z": 608
+          },
+          {
+            "x": -480,
+            "z": 688
+          },
+          {
+            "x": -560,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-18-1",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -464,
+            "z": 608
+          },
+          {
+            "x": -384,
+            "z": 608
+          },
+          {
+            "x": -384,
+            "z": 688
+          },
+          {
+            "x": -464,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-19-1",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -368,
+            "z": 608
+          },
+          {
+            "x": -288,
+            "z": 608
+          },
+          {
+            "x": -288,
+            "z": 688
+          },
+          {
+            "x": -368,
+            "z": 688
+          }
+        ]
+      },
+      {
+        "id": "blk-0-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -2192,
+            "z": 704
+          },
+          {
+            "x": -2112,
+            "z": 704
+          },
+          {
+            "x": -2112,
+            "z": 784
+          },
+          {
+            "x": -2192,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-1-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -2096,
+            "z": 704
+          },
+          {
+            "x": -2016,
+            "z": 704
+          },
+          {
+            "x": -2016,
+            "z": 784
+          },
+          {
+            "x": -2096,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-2-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -2000,
+            "z": 704
+          },
+          {
+            "x": -1920,
+            "z": 704
+          },
+          {
+            "x": -1920,
+            "z": 784
+          },
+          {
+            "x": -2000,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-3-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1904,
+            "z": 704
+          },
+          {
+            "x": -1824,
+            "z": 704
+          },
+          {
+            "x": -1824,
+            "z": 784
+          },
+          {
+            "x": -1904,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-4-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1808,
+            "z": 704
+          },
+          {
+            "x": -1728,
+            "z": 704
+          },
+          {
+            "x": -1728,
+            "z": 784
+          },
+          {
+            "x": -1808,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-5-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1712,
+            "z": 704
+          },
+          {
+            "x": -1632,
+            "z": 704
+          },
+          {
+            "x": -1632,
+            "z": 784
+          },
+          {
+            "x": -1712,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-6-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1616,
+            "z": 704
+          },
+          {
+            "x": -1536,
+            "z": 704
+          },
+          {
+            "x": -1536,
+            "z": 784
+          },
+          {
+            "x": -1616,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-7-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1520,
+            "z": 704
+          },
+          {
+            "x": -1440,
+            "z": 704
+          },
+          {
+            "x": -1440,
+            "z": 784
+          },
+          {
+            "x": -1520,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-8-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1424,
+            "z": 704
+          },
+          {
+            "x": -1344,
+            "z": 704
+          },
+          {
+            "x": -1344,
+            "z": 784
+          },
+          {
+            "x": -1424,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-9-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1328,
+            "z": 704
+          },
+          {
+            "x": -1248,
+            "z": 704
+          },
+          {
+            "x": -1248,
+            "z": 784
+          },
+          {
+            "x": -1328,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-10-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1232,
+            "z": 704
+          },
+          {
+            "x": -1152,
+            "z": 704
+          },
+          {
+            "x": -1152,
+            "z": 784
+          },
+          {
+            "x": -1232,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-11-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1136,
+            "z": 704
+          },
+          {
+            "x": -1056,
+            "z": 704
+          },
+          {
+            "x": -1056,
+            "z": 784
+          },
+          {
+            "x": -1136,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-12-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1040,
+            "z": 704
+          },
+          {
+            "x": -960,
+            "z": 704
+          },
+          {
+            "x": -960,
+            "z": 784
+          },
+          {
+            "x": -1040,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-13-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -944,
+            "z": 704
+          },
+          {
+            "x": -864,
+            "z": 704
+          },
+          {
+            "x": -864,
+            "z": 784
+          },
+          {
+            "x": -944,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-14-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -848,
+            "z": 704
+          },
+          {
+            "x": -768,
+            "z": 704
+          },
+          {
+            "x": -768,
+            "z": 784
+          },
+          {
+            "x": -848,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-15-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -752,
+            "z": 704
+          },
+          {
+            "x": -672,
+            "z": 704
+          },
+          {
+            "x": -672,
+            "z": 784
+          },
+          {
+            "x": -752,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-16-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -656,
+            "z": 704
+          },
+          {
+            "x": -576,
+            "z": 704
+          },
+          {
+            "x": -576,
+            "z": 784
+          },
+          {
+            "x": -656,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-17-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -560,
+            "z": 704
+          },
+          {
+            "x": -480,
+            "z": 704
+          },
+          {
+            "x": -480,
+            "z": 784
+          },
+          {
+            "x": -560,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-18-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -464,
+            "z": 704
+          },
+          {
+            "x": -384,
+            "z": 704
+          },
+          {
+            "x": -384,
+            "z": 784
+          },
+          {
+            "x": -464,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-19-2",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -368,
+            "z": 704
+          },
+          {
+            "x": -288,
+            "z": 704
+          },
+          {
+            "x": -288,
+            "z": 784
+          },
+          {
+            "x": -368,
+            "z": 784
+          }
+        ]
+      },
+      {
+        "id": "blk-0-3",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2192,
+            "z": 800
+          },
+          {
+            "x": -2112,
+            "z": 800
+          },
+          {
+            "x": -2112,
+            "z": 880
+          },
+          {
+            "x": -2192,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-1-3",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2096,
+            "z": 800
+          },
+          {
+            "x": -2016,
+            "z": 800
+          },
+          {
+            "x": -2016,
+            "z": 880
+          },
+          {
+            "x": -2096,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-2-3",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2000,
+            "z": 800
+          },
+          {
+            "x": -1920,
+            "z": 800
+          },
+          {
+            "x": -1920,
+            "z": 880
+          },
+          {
+            "x": -2000,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-3-3",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1904,
+            "z": 800
+          },
+          {
+            "x": -1824,
+            "z": 800
+          },
+          {
+            "x": -1824,
+            "z": 880
+          },
+          {
+            "x": -1904,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-4-3",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1808,
+            "z": 800
+          },
+          {
+            "x": -1728,
+            "z": 800
+          },
+          {
+            "x": -1728,
+            "z": 880
+          },
+          {
+            "x": -1808,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-5-3",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1712,
+            "z": 800
+          },
+          {
+            "x": -1632,
+            "z": 800
+          },
+          {
+            "x": -1632,
+            "z": 880
+          },
+          {
+            "x": -1712,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-6-3",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1616,
+            "z": 800
+          },
+          {
+            "x": -1536,
+            "z": 800
+          },
+          {
+            "x": -1536,
+            "z": 880
+          },
+          {
+            "x": -1616,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-7-3",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1520,
+            "z": 800
+          },
+          {
+            "x": -1440,
+            "z": 800
+          },
+          {
+            "x": -1440,
+            "z": 880
+          },
+          {
+            "x": -1520,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-8-3",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1424,
+            "z": 800
+          },
+          {
+            "x": -1344,
+            "z": 800
+          },
+          {
+            "x": -1344,
+            "z": 880
+          },
+          {
+            "x": -1424,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-9-3",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1328,
+            "z": 800
+          },
+          {
+            "x": -1248,
+            "z": 800
+          },
+          {
+            "x": -1248,
+            "z": 880
+          },
+          {
+            "x": -1328,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-10-3",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1232,
+            "z": 800
+          },
+          {
+            "x": -1152,
+            "z": 800
+          },
+          {
+            "x": -1152,
+            "z": 880
+          },
+          {
+            "x": -1232,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-11-3",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1136,
+            "z": 800
+          },
+          {
+            "x": -1056,
+            "z": 800
+          },
+          {
+            "x": -1056,
+            "z": 880
+          },
+          {
+            "x": -1136,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-12-3",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -1040,
+            "z": 800
+          },
+          {
+            "x": -960,
+            "z": 800
+          },
+          {
+            "x": -960,
+            "z": 880
+          },
+          {
+            "x": -1040,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-13-3",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -944,
+            "z": 800
+          },
+          {
+            "x": -864,
+            "z": 800
+          },
+          {
+            "x": -864,
+            "z": 880
+          },
+          {
+            "x": -944,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-14-3",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -848,
+            "z": 800
+          },
+          {
+            "x": -768,
+            "z": 800
+          },
+          {
+            "x": -768,
+            "z": 880
+          },
+          {
+            "x": -848,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-15-3",
+        "kind": "EU Residential Medium Row",
+        "polygon": [
+          {
+            "x": -752,
+            "z": 800
+          },
+          {
+            "x": -672,
+            "z": 800
+          },
+          {
+            "x": -672,
+            "z": 880
+          },
+          {
+            "x": -752,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-16-3",
+        "kind": "EU Residential Medium",
+        "polygon": [
+          {
+            "x": -656,
+            "z": 800
+          },
+          {
+            "x": -576,
+            "z": 800
+          },
+          {
+            "x": -576,
+            "z": 880
+          },
+          {
+            "x": -656,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-17-3",
+        "kind": "EU Residential Medium",
+        "polygon": [
+          {
+            "x": -560,
+            "z": 800
+          },
+          {
+            "x": -480,
+            "z": 800
+          },
+          {
+            "x": -480,
+            "z": 880
+          },
+          {
+            "x": -560,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-18-3",
+        "kind": "EU Residential Medium",
+        "polygon": [
+          {
+            "x": -464,
+            "z": 800
+          },
+          {
+            "x": -384,
+            "z": 800
+          },
+          {
+            "x": -384,
+            "z": 880
+          },
+          {
+            "x": -464,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-19-3",
+        "kind": "EU Residential Medium",
+        "polygon": [
+          {
+            "x": -368,
+            "z": 800
+          },
+          {
+            "x": -288,
+            "z": 800
+          },
+          {
+            "x": -288,
+            "z": 880
+          },
+          {
+            "x": -368,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "blk-0-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2192,
+            "z": 896
+          },
+          {
+            "x": -2112,
+            "z": 896
+          },
+          {
+            "x": -2112,
+            "z": 976
+          },
+          {
+            "x": -2192,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-1-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2096,
+            "z": 896
+          },
+          {
+            "x": -2016,
+            "z": 896
+          },
+          {
+            "x": -2016,
+            "z": 976
+          },
+          {
+            "x": -2096,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-2-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2000,
+            "z": 896
+          },
+          {
+            "x": -1920,
+            "z": 896
+          },
+          {
+            "x": -1920,
+            "z": 976
+          },
+          {
+            "x": -2000,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-3-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1904,
+            "z": 896
+          },
+          {
+            "x": -1824,
+            "z": 896
+          },
+          {
+            "x": -1824,
+            "z": 976
+          },
+          {
+            "x": -1904,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-4-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1808,
+            "z": 896
+          },
+          {
+            "x": -1728,
+            "z": 896
+          },
+          {
+            "x": -1728,
+            "z": 976
+          },
+          {
+            "x": -1808,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-5-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1712,
+            "z": 896
+          },
+          {
+            "x": -1632,
+            "z": 896
+          },
+          {
+            "x": -1632,
+            "z": 976
+          },
+          {
+            "x": -1712,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-6-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1616,
+            "z": 896
+          },
+          {
+            "x": -1536,
+            "z": 896
+          },
+          {
+            "x": -1536,
+            "z": 976
+          },
+          {
+            "x": -1616,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-7-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1520,
+            "z": 896
+          },
+          {
+            "x": -1440,
+            "z": 896
+          },
+          {
+            "x": -1440,
+            "z": 976
+          },
+          {
+            "x": -1520,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-8-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1424,
+            "z": 896
+          },
+          {
+            "x": -1344,
+            "z": 896
+          },
+          {
+            "x": -1344,
+            "z": 976
+          },
+          {
+            "x": -1424,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-9-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1328,
+            "z": 896
+          },
+          {
+            "x": -1248,
+            "z": 896
+          },
+          {
+            "x": -1248,
+            "z": 976
+          },
+          {
+            "x": -1328,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-10-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1232,
+            "z": 896
+          },
+          {
+            "x": -1152,
+            "z": 896
+          },
+          {
+            "x": -1152,
+            "z": 976
+          },
+          {
+            "x": -1232,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-11-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1136,
+            "z": 896
+          },
+          {
+            "x": -1056,
+            "z": 896
+          },
+          {
+            "x": -1056,
+            "z": 976
+          },
+          {
+            "x": -1136,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-12-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1040,
+            "z": 896
+          },
+          {
+            "x": -960,
+            "z": 896
+          },
+          {
+            "x": -960,
+            "z": 976
+          },
+          {
+            "x": -1040,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-13-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -944,
+            "z": 896
+          },
+          {
+            "x": -864,
+            "z": 896
+          },
+          {
+            "x": -864,
+            "z": 976
+          },
+          {
+            "x": -944,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-14-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -848,
+            "z": 896
+          },
+          {
+            "x": -768,
+            "z": 896
+          },
+          {
+            "x": -768,
+            "z": 976
+          },
+          {
+            "x": -848,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-15-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -752,
+            "z": 896
+          },
+          {
+            "x": -672,
+            "z": 896
+          },
+          {
+            "x": -672,
+            "z": 976
+          },
+          {
+            "x": -752,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-16-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -656,
+            "z": 896
+          },
+          {
+            "x": -576,
+            "z": 896
+          },
+          {
+            "x": -576,
+            "z": 976
+          },
+          {
+            "x": -656,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-17-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -560,
+            "z": 896
+          },
+          {
+            "x": -480,
+            "z": 896
+          },
+          {
+            "x": -480,
+            "z": 976
+          },
+          {
+            "x": -560,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-18-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -464,
+            "z": 896
+          },
+          {
+            "x": -384,
+            "z": 896
+          },
+          {
+            "x": -384,
+            "z": 976
+          },
+          {
+            "x": -464,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-19-4",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -368,
+            "z": 896
+          },
+          {
+            "x": -288,
+            "z": 896
+          },
+          {
+            "x": -288,
+            "z": 976
+          },
+          {
+            "x": -368,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "blk-0-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2192,
+            "z": 992
+          },
+          {
+            "x": -2112,
+            "z": 992
+          },
+          {
+            "x": -2112,
+            "z": 1072
+          },
+          {
+            "x": -2192,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-1-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2096,
+            "z": 992
+          },
+          {
+            "x": -2016,
+            "z": 992
+          },
+          {
+            "x": -2016,
+            "z": 1072
+          },
+          {
+            "x": -2096,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-2-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2000,
+            "z": 992
+          },
+          {
+            "x": -1920,
+            "z": 992
+          },
+          {
+            "x": -1920,
+            "z": 1072
+          },
+          {
+            "x": -2000,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-3-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1904,
+            "z": 992
+          },
+          {
+            "x": -1824,
+            "z": 992
+          },
+          {
+            "x": -1824,
+            "z": 1072
+          },
+          {
+            "x": -1904,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-4-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1808,
+            "z": 992
+          },
+          {
+            "x": -1728,
+            "z": 992
+          },
+          {
+            "x": -1728,
+            "z": 1072
+          },
+          {
+            "x": -1808,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-5-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1712,
+            "z": 992
+          },
+          {
+            "x": -1632,
+            "z": 992
+          },
+          {
+            "x": -1632,
+            "z": 1072
+          },
+          {
+            "x": -1712,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-6-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1616,
+            "z": 992
+          },
+          {
+            "x": -1536,
+            "z": 992
+          },
+          {
+            "x": -1536,
+            "z": 1072
+          },
+          {
+            "x": -1616,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-7-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1520,
+            "z": 992
+          },
+          {
+            "x": -1440,
+            "z": 992
+          },
+          {
+            "x": -1440,
+            "z": 1072
+          },
+          {
+            "x": -1520,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-8-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1424,
+            "z": 992
+          },
+          {
+            "x": -1344,
+            "z": 992
+          },
+          {
+            "x": -1344,
+            "z": 1072
+          },
+          {
+            "x": -1424,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-9-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1328,
+            "z": 992
+          },
+          {
+            "x": -1248,
+            "z": 992
+          },
+          {
+            "x": -1248,
+            "z": 1072
+          },
+          {
+            "x": -1328,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-10-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1232,
+            "z": 992
+          },
+          {
+            "x": -1152,
+            "z": 992
+          },
+          {
+            "x": -1152,
+            "z": 1072
+          },
+          {
+            "x": -1232,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-11-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1136,
+            "z": 992
+          },
+          {
+            "x": -1056,
+            "z": 992
+          },
+          {
+            "x": -1056,
+            "z": 1072
+          },
+          {
+            "x": -1136,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-12-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1040,
+            "z": 992
+          },
+          {
+            "x": -960,
+            "z": 992
+          },
+          {
+            "x": -960,
+            "z": 1072
+          },
+          {
+            "x": -1040,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-13-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -944,
+            "z": 992
+          },
+          {
+            "x": -864,
+            "z": 992
+          },
+          {
+            "x": -864,
+            "z": 1072
+          },
+          {
+            "x": -944,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-14-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -848,
+            "z": 992
+          },
+          {
+            "x": -768,
+            "z": 992
+          },
+          {
+            "x": -768,
+            "z": 1072
+          },
+          {
+            "x": -848,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-15-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -752,
+            "z": 992
+          },
+          {
+            "x": -672,
+            "z": 992
+          },
+          {
+            "x": -672,
+            "z": 1072
+          },
+          {
+            "x": -752,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-16-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -656,
+            "z": 992
+          },
+          {
+            "x": -576,
+            "z": 992
+          },
+          {
+            "x": -576,
+            "z": 1072
+          },
+          {
+            "x": -656,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-17-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -560,
+            "z": 992
+          },
+          {
+            "x": -480,
+            "z": 992
+          },
+          {
+            "x": -480,
+            "z": 1072
+          },
+          {
+            "x": -560,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-18-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -464,
+            "z": 992
+          },
+          {
+            "x": -384,
+            "z": 992
+          },
+          {
+            "x": -384,
+            "z": 1072
+          },
+          {
+            "x": -464,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-19-5",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -368,
+            "z": 992
+          },
+          {
+            "x": -288,
+            "z": 992
+          },
+          {
+            "x": -288,
+            "z": 1072
+          },
+          {
+            "x": -368,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "blk-0-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2192,
+            "z": 1088
+          },
+          {
+            "x": -2112,
+            "z": 1088
+          },
+          {
+            "x": -2112,
+            "z": 1168
+          },
+          {
+            "x": -2192,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-1-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2096,
+            "z": 1088
+          },
+          {
+            "x": -2016,
+            "z": 1088
+          },
+          {
+            "x": -2016,
+            "z": 1168
+          },
+          {
+            "x": -2096,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-2-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2000,
+            "z": 1088
+          },
+          {
+            "x": -1920,
+            "z": 1088
+          },
+          {
+            "x": -1920,
+            "z": 1168
+          },
+          {
+            "x": -2000,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-3-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1904,
+            "z": 1088
+          },
+          {
+            "x": -1824,
+            "z": 1088
+          },
+          {
+            "x": -1824,
+            "z": 1168
+          },
+          {
+            "x": -1904,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-4-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1808,
+            "z": 1088
+          },
+          {
+            "x": -1728,
+            "z": 1088
+          },
+          {
+            "x": -1728,
+            "z": 1168
+          },
+          {
+            "x": -1808,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-5-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1712,
+            "z": 1088
+          },
+          {
+            "x": -1632,
+            "z": 1088
+          },
+          {
+            "x": -1632,
+            "z": 1168
+          },
+          {
+            "x": -1712,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-6-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1616,
+            "z": 1088
+          },
+          {
+            "x": -1536,
+            "z": 1088
+          },
+          {
+            "x": -1536,
+            "z": 1168
+          },
+          {
+            "x": -1616,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-7-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1520,
+            "z": 1088
+          },
+          {
+            "x": -1440,
+            "z": 1088
+          },
+          {
+            "x": -1440,
+            "z": 1168
+          },
+          {
+            "x": -1520,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-8-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1424,
+            "z": 1088
+          },
+          {
+            "x": -1344,
+            "z": 1088
+          },
+          {
+            "x": -1344,
+            "z": 1168
+          },
+          {
+            "x": -1424,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-9-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1328,
+            "z": 1088
+          },
+          {
+            "x": -1248,
+            "z": 1088
+          },
+          {
+            "x": -1248,
+            "z": 1168
+          },
+          {
+            "x": -1328,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-10-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1232,
+            "z": 1088
+          },
+          {
+            "x": -1152,
+            "z": 1088
+          },
+          {
+            "x": -1152,
+            "z": 1168
+          },
+          {
+            "x": -1232,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-11-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1136,
+            "z": 1088
+          },
+          {
+            "x": -1056,
+            "z": 1088
+          },
+          {
+            "x": -1056,
+            "z": 1168
+          },
+          {
+            "x": -1136,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-12-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1040,
+            "z": 1088
+          },
+          {
+            "x": -960,
+            "z": 1088
+          },
+          {
+            "x": -960,
+            "z": 1168
+          },
+          {
+            "x": -1040,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-13-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -944,
+            "z": 1088
+          },
+          {
+            "x": -864,
+            "z": 1088
+          },
+          {
+            "x": -864,
+            "z": 1168
+          },
+          {
+            "x": -944,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-14-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -848,
+            "z": 1088
+          },
+          {
+            "x": -768,
+            "z": 1088
+          },
+          {
+            "x": -768,
+            "z": 1168
+          },
+          {
+            "x": -848,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-15-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -752,
+            "z": 1088
+          },
+          {
+            "x": -672,
+            "z": 1088
+          },
+          {
+            "x": -672,
+            "z": 1168
+          },
+          {
+            "x": -752,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-16-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -656,
+            "z": 1088
+          },
+          {
+            "x": -576,
+            "z": 1088
+          },
+          {
+            "x": -576,
+            "z": 1168
+          },
+          {
+            "x": -656,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-17-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -560,
+            "z": 1088
+          },
+          {
+            "x": -480,
+            "z": 1088
+          },
+          {
+            "x": -480,
+            "z": 1168
+          },
+          {
+            "x": -560,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-18-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -464,
+            "z": 1088
+          },
+          {
+            "x": -384,
+            "z": 1088
+          },
+          {
+            "x": -384,
+            "z": 1168
+          },
+          {
+            "x": -464,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-19-6",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -368,
+            "z": 1088
+          },
+          {
+            "x": -288,
+            "z": 1088
+          },
+          {
+            "x": -288,
+            "z": 1168
+          },
+          {
+            "x": -368,
+            "z": 1168
+          }
+        ]
+      },
+      {
+        "id": "blk-0-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2192,
+            "z": 1184
+          },
+          {
+            "x": -2112,
+            "z": 1184
+          },
+          {
+            "x": -2112,
+            "z": 1264
+          },
+          {
+            "x": -2192,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-1-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2096,
+            "z": 1184
+          },
+          {
+            "x": -2016,
+            "z": 1184
+          },
+          {
+            "x": -2016,
+            "z": 1264
+          },
+          {
+            "x": -2096,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-2-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2000,
+            "z": 1184
+          },
+          {
+            "x": -1920,
+            "z": 1184
+          },
+          {
+            "x": -1920,
+            "z": 1264
+          },
+          {
+            "x": -2000,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-3-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1904,
+            "z": 1184
+          },
+          {
+            "x": -1824,
+            "z": 1184
+          },
+          {
+            "x": -1824,
+            "z": 1264
+          },
+          {
+            "x": -1904,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-4-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1808,
+            "z": 1184
+          },
+          {
+            "x": -1728,
+            "z": 1184
+          },
+          {
+            "x": -1728,
+            "z": 1264
+          },
+          {
+            "x": -1808,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-5-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1712,
+            "z": 1184
+          },
+          {
+            "x": -1632,
+            "z": 1184
+          },
+          {
+            "x": -1632,
+            "z": 1264
+          },
+          {
+            "x": -1712,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-6-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1616,
+            "z": 1184
+          },
+          {
+            "x": -1536,
+            "z": 1184
+          },
+          {
+            "x": -1536,
+            "z": 1264
+          },
+          {
+            "x": -1616,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-7-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1520,
+            "z": 1184
+          },
+          {
+            "x": -1440,
+            "z": 1184
+          },
+          {
+            "x": -1440,
+            "z": 1264
+          },
+          {
+            "x": -1520,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-8-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1424,
+            "z": 1184
+          },
+          {
+            "x": -1344,
+            "z": 1184
+          },
+          {
+            "x": -1344,
+            "z": 1264
+          },
+          {
+            "x": -1424,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-9-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1328,
+            "z": 1184
+          },
+          {
+            "x": -1248,
+            "z": 1184
+          },
+          {
+            "x": -1248,
+            "z": 1264
+          },
+          {
+            "x": -1328,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-10-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1232,
+            "z": 1184
+          },
+          {
+            "x": -1152,
+            "z": 1184
+          },
+          {
+            "x": -1152,
+            "z": 1264
+          },
+          {
+            "x": -1232,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-11-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1136,
+            "z": 1184
+          },
+          {
+            "x": -1056,
+            "z": 1184
+          },
+          {
+            "x": -1056,
+            "z": 1264
+          },
+          {
+            "x": -1136,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-12-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1040,
+            "z": 1184
+          },
+          {
+            "x": -960,
+            "z": 1184
+          },
+          {
+            "x": -960,
+            "z": 1264
+          },
+          {
+            "x": -1040,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-13-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -944,
+            "z": 1184
+          },
+          {
+            "x": -864,
+            "z": 1184
+          },
+          {
+            "x": -864,
+            "z": 1264
+          },
+          {
+            "x": -944,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-14-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -848,
+            "z": 1184
+          },
+          {
+            "x": -768,
+            "z": 1184
+          },
+          {
+            "x": -768,
+            "z": 1264
+          },
+          {
+            "x": -848,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-15-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -752,
+            "z": 1184
+          },
+          {
+            "x": -672,
+            "z": 1184
+          },
+          {
+            "x": -672,
+            "z": 1264
+          },
+          {
+            "x": -752,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-16-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -656,
+            "z": 1184
+          },
+          {
+            "x": -576,
+            "z": 1184
+          },
+          {
+            "x": -576,
+            "z": 1264
+          },
+          {
+            "x": -656,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-17-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -560,
+            "z": 1184
+          },
+          {
+            "x": -480,
+            "z": 1184
+          },
+          {
+            "x": -480,
+            "z": 1264
+          },
+          {
+            "x": -560,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-18-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -464,
+            "z": 1184
+          },
+          {
+            "x": -384,
+            "z": 1184
+          },
+          {
+            "x": -384,
+            "z": 1264
+          },
+          {
+            "x": -464,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-19-7",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -368,
+            "z": 1184
+          },
+          {
+            "x": -288,
+            "z": 1184
+          },
+          {
+            "x": -288,
+            "z": 1264
+          },
+          {
+            "x": -368,
+            "z": 1264
+          }
+        ]
+      },
+      {
+        "id": "blk-0-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2192,
+            "z": 1280
+          },
+          {
+            "x": -2112,
+            "z": 1280
+          },
+          {
+            "x": -2112,
+            "z": 1360
+          },
+          {
+            "x": -2192,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-1-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2096,
+            "z": 1280
+          },
+          {
+            "x": -2016,
+            "z": 1280
+          },
+          {
+            "x": -2016,
+            "z": 1360
+          },
+          {
+            "x": -2096,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-2-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2000,
+            "z": 1280
+          },
+          {
+            "x": -1920,
+            "z": 1280
+          },
+          {
+            "x": -1920,
+            "z": 1360
+          },
+          {
+            "x": -2000,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-3-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1904,
+            "z": 1280
+          },
+          {
+            "x": -1824,
+            "z": 1280
+          },
+          {
+            "x": -1824,
+            "z": 1360
+          },
+          {
+            "x": -1904,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-4-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1808,
+            "z": 1280
+          },
+          {
+            "x": -1728,
+            "z": 1280
+          },
+          {
+            "x": -1728,
+            "z": 1360
+          },
+          {
+            "x": -1808,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-5-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1712,
+            "z": 1280
+          },
+          {
+            "x": -1632,
+            "z": 1280
+          },
+          {
+            "x": -1632,
+            "z": 1360
+          },
+          {
+            "x": -1712,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-6-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1616,
+            "z": 1280
+          },
+          {
+            "x": -1536,
+            "z": 1280
+          },
+          {
+            "x": -1536,
+            "z": 1360
+          },
+          {
+            "x": -1616,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-7-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1520,
+            "z": 1280
+          },
+          {
+            "x": -1440,
+            "z": 1280
+          },
+          {
+            "x": -1440,
+            "z": 1360
+          },
+          {
+            "x": -1520,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-8-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1424,
+            "z": 1280
+          },
+          {
+            "x": -1344,
+            "z": 1280
+          },
+          {
+            "x": -1344,
+            "z": 1360
+          },
+          {
+            "x": -1424,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-9-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1328,
+            "z": 1280
+          },
+          {
+            "x": -1248,
+            "z": 1280
+          },
+          {
+            "x": -1248,
+            "z": 1360
+          },
+          {
+            "x": -1328,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-10-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1232,
+            "z": 1280
+          },
+          {
+            "x": -1152,
+            "z": 1280
+          },
+          {
+            "x": -1152,
+            "z": 1360
+          },
+          {
+            "x": -1232,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-11-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1136,
+            "z": 1280
+          },
+          {
+            "x": -1056,
+            "z": 1280
+          },
+          {
+            "x": -1056,
+            "z": 1360
+          },
+          {
+            "x": -1136,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-12-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1040,
+            "z": 1280
+          },
+          {
+            "x": -960,
+            "z": 1280
+          },
+          {
+            "x": -960,
+            "z": 1360
+          },
+          {
+            "x": -1040,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-13-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -944,
+            "z": 1280
+          },
+          {
+            "x": -864,
+            "z": 1280
+          },
+          {
+            "x": -864,
+            "z": 1360
+          },
+          {
+            "x": -944,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-14-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -848,
+            "z": 1280
+          },
+          {
+            "x": -768,
+            "z": 1280
+          },
+          {
+            "x": -768,
+            "z": 1360
+          },
+          {
+            "x": -848,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-15-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -752,
+            "z": 1280
+          },
+          {
+            "x": -672,
+            "z": 1280
+          },
+          {
+            "x": -672,
+            "z": 1360
+          },
+          {
+            "x": -752,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-16-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -656,
+            "z": 1280
+          },
+          {
+            "x": -576,
+            "z": 1280
+          },
+          {
+            "x": -576,
+            "z": 1360
+          },
+          {
+            "x": -656,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-17-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -560,
+            "z": 1280
+          },
+          {
+            "x": -480,
+            "z": 1280
+          },
+          {
+            "x": -480,
+            "z": 1360
+          },
+          {
+            "x": -560,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-18-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -464,
+            "z": 1280
+          },
+          {
+            "x": -384,
+            "z": 1280
+          },
+          {
+            "x": -384,
+            "z": 1360
+          },
+          {
+            "x": -464,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-19-8",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -368,
+            "z": 1280
+          },
+          {
+            "x": -288,
+            "z": 1280
+          },
+          {
+            "x": -288,
+            "z": 1360
+          },
+          {
+            "x": -368,
+            "z": 1360
+          }
+        ]
+      },
+      {
+        "id": "blk-1-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2096,
+            "z": 1376
+          },
+          {
+            "x": -2016,
+            "z": 1376
+          },
+          {
+            "x": -2016,
+            "z": 1456
+          },
+          {
+            "x": -2096,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-2-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -2000,
+            "z": 1376
+          },
+          {
+            "x": -1920,
+            "z": 1376
+          },
+          {
+            "x": -1920,
+            "z": 1456
+          },
+          {
+            "x": -2000,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-3-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1904,
+            "z": 1376
+          },
+          {
+            "x": -1824,
+            "z": 1376
+          },
+          {
+            "x": -1824,
+            "z": 1456
+          },
+          {
+            "x": -1904,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-4-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1808,
+            "z": 1376
+          },
+          {
+            "x": -1728,
+            "z": 1376
+          },
+          {
+            "x": -1728,
+            "z": 1456
+          },
+          {
+            "x": -1808,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-5-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1712,
+            "z": 1376
+          },
+          {
+            "x": -1632,
+            "z": 1376
+          },
+          {
+            "x": -1632,
+            "z": 1456
+          },
+          {
+            "x": -1712,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-6-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1616,
+            "z": 1376
+          },
+          {
+            "x": -1536,
+            "z": 1376
+          },
+          {
+            "x": -1536,
+            "z": 1456
+          },
+          {
+            "x": -1616,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-7-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1520,
+            "z": 1376
+          },
+          {
+            "x": -1440,
+            "z": 1376
+          },
+          {
+            "x": -1440,
+            "z": 1456
+          },
+          {
+            "x": -1520,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-8-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1424,
+            "z": 1376
+          },
+          {
+            "x": -1344,
+            "z": 1376
+          },
+          {
+            "x": -1344,
+            "z": 1456
+          },
+          {
+            "x": -1424,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-9-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1328,
+            "z": 1376
+          },
+          {
+            "x": -1248,
+            "z": 1376
+          },
+          {
+            "x": -1248,
+            "z": 1456
+          },
+          {
+            "x": -1328,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-10-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1232,
+            "z": 1376
+          },
+          {
+            "x": -1152,
+            "z": 1376
+          },
+          {
+            "x": -1152,
+            "z": 1456
+          },
+          {
+            "x": -1232,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-11-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1136,
+            "z": 1376
+          },
+          {
+            "x": -1056,
+            "z": 1376
+          },
+          {
+            "x": -1056,
+            "z": 1456
+          },
+          {
+            "x": -1136,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-12-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -1040,
+            "z": 1376
+          },
+          {
+            "x": -960,
+            "z": 1376
+          },
+          {
+            "x": -960,
+            "z": 1456
+          },
+          {
+            "x": -1040,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-13-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -944,
+            "z": 1376
+          },
+          {
+            "x": -864,
+            "z": 1376
+          },
+          {
+            "x": -864,
+            "z": 1456
+          },
+          {
+            "x": -944,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-14-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -848,
+            "z": 1376
+          },
+          {
+            "x": -768,
+            "z": 1376
+          },
+          {
+            "x": -768,
+            "z": 1456
+          },
+          {
+            "x": -848,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-15-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -752,
+            "z": 1376
+          },
+          {
+            "x": -672,
+            "z": 1376
+          },
+          {
+            "x": -672,
+            "z": 1456
+          },
+          {
+            "x": -752,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-16-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -656,
+            "z": 1376
+          },
+          {
+            "x": -576,
+            "z": 1376
+          },
+          {
+            "x": -576,
+            "z": 1456
+          },
+          {
+            "x": -656,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-17-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -560,
+            "z": 1376
+          },
+          {
+            "x": -480,
+            "z": 1376
+          },
+          {
+            "x": -480,
+            "z": 1456
+          },
+          {
+            "x": -560,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-18-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -464,
+            "z": 1376
+          },
+          {
+            "x": -384,
+            "z": 1376
+          },
+          {
+            "x": -384,
+            "z": 1456
+          },
+          {
+            "x": -464,
+            "z": 1456
+          }
+        ]
+      },
+      {
+        "id": "blk-19-9",
+        "kind": "EU Residential Low",
+        "polygon": [
+          {
+            "x": -368,
+            "z": 1376
+          },
+          {
+            "x": -288,
+            "z": 1376
+          },
+          {
+            "x": -288,
+            "z": 1456
+          },
+          {
+            "x": -368,
+            "z": 1456
+          }
+        ]
+      }
+    ],
+    "buildings": [
+      {
+        "id": "bld-1",
+        "prefab": "ElementarySchool02",
+        "label": "规划小学（西）",
+        "name": "规划小学（西）",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 50,
+        "position": {
+          "x": -1192,
+          "z": 552
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 71.6,
+          "z": 47.6
+        }
+      },
+      {
+        "id": "bld-2",
+        "prefab": "ElementarySchool02",
+        "label": "规划小学（东）",
+        "name": "规划小学（东）",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 51,
+        "position": {
+          "x": -1096,
+          "z": 552
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 71.6,
+          "z": 47.6
+        }
+      },
+      {
+        "id": "bld-3",
+        "prefab": "MedicalClinic02",
+        "label": "规划社区诊所",
+        "name": "规划社区诊所",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 52,
+        "position": {
+          "x": -1000,
+          "z": 552
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        }
+      },
+      {
+        "id": "bld-4",
+        "prefab": "FireHouse02",
+        "label": "规划消防站",
+        "name": "规划消防站",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 53,
+        "position": {
+          "x": -904,
+          "z": 552
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 23.6,
+          "z": 31.6
+        }
+      },
+      {
+        "id": "bld-5",
+        "prefab": "PoliceStation02",
+        "label": "规划警察分局",
+        "name": "规划警察分局",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 54,
+        "position": {
+          "x": -808,
+          "z": 552
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        }
+      },
+      {
+        "id": "bld-6",
+        "prefab": "CityPark08",
+        "label": "规划中心公园",
+        "name": "规划中心公园",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 55,
+        "position": {
+          "x": -712,
+          "z": 552
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 63.6,
+          "z": 63.6
+        }
+      },
+      {
+        "id": "bld-7",
+        "prefab": "Crematorium01",
+        "label": "规划殡仪馆",
+        "name": "规划殡仪馆",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 56,
+        "position": {
+          "x": -2152,
+          "z": 1416
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 63.6,
+          "z": 79.6
+        }
+      },
+      {
+        "id": "bld-8",
+        "prefab": "WaterTower01",
+        "label": "规划水塔（北）",
+        "name": "规划水塔（北）",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 57,
+        "position": {
+          "x": -1384,
+          "z": 1128
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 31.6,
+          "z": 31.6
+        }
+      },
+      {
+        "id": "bld-9",
+        "prefab": "PocketPark05",
+        "label": "口袋公园",
+        "name": "口袋公园",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 58,
+        "position": {
+          "x": -1864,
+          "z": 936
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 15.6,
+          "z": 15.6
+        }
+      },
+      {
+        "id": "bld-10",
+        "prefab": "Playground04",
+        "label": "儿童活动场",
+        "name": "儿童活动场",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 59,
+        "position": {
+          "x": -1288,
+          "z": 1032
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 31.6,
+          "z": 31.6
+        }
+      },
+      {
+        "id": "bld-11",
+        "prefab": "PocketPark10",
+        "label": "口袋公园",
+        "name": "口袋公园",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "position": {
+          "x": -904,
+          "z": 1128
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 7.6,
+          "z": 47.6
+        }
+      },
+      {
+        "id": "bld-12",
+        "prefab": "Playground02",
+        "label": "儿童活动场",
+        "name": "儿童活动场",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 61,
+        "position": {
+          "x": -1672,
+          "z": 1224
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 23.6,
+          "z": 31.6
+        }
+      },
+      {
+        "id": "bld-13",
+        "prefab": "PocketPark07",
+        "label": "口袋公园",
+        "name": "口袋公园",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 62,
+        "position": {
+          "x": -1096,
+          "z": 1320
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 31.6,
+          "z": 7.6
+        }
+      },
+      {
+        "id": "bld-14",
+        "prefab": "Playground03",
+        "label": "儿童活动场",
+        "name": "儿童活动场",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 63,
+        "position": {
+          "x": -616,
+          "z": 1416
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 23.6,
+          "z": 23.6
+        }
+      },
+      {
+        "id": "bld-15",
+        "prefab": "SmallCoalPowerPlant01",
+        "label": "规划小型燃煤电厂",
+        "name": "规划小型燃煤电厂",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 64,
+        "position": {
+          "x": -2520,
+          "z": 416
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 111.6,
+          "z": 127.6
+        }
+      },
+      {
+        "id": "bld-16",
+        "prefab": "Landfill01",
+        "label": "规划垃圾填埋场",
+        "name": "规划垃圾填埋场",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 65,
+        "position": {
+          "x": -2352,
+          "z": 416
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 135.6,
+          "z": 119.6
+        }
+      },
+      {
+        "id": "bld-17",
+        "prefab": "WastewaterTreatmentPlant01",
+        "label": "规划污水处理厂",
+        "name": "规划污水处理厂",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 66,
+        "position": {
+          "x": -2192,
+          "z": 416
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 95.6,
+          "z": 79.6
+        }
+      },
+      {
+        "id": "bld-18",
+        "prefab": "GroundwaterPumpingStation01",
+        "label": "规划地下水抽水站",
+        "name": "规划地下水抽水站",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 67,
+        "position": {
+          "x": -2064,
+          "z": 416
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 47.6,
+          "z": 47.6
+        }
+      },
+      {
+        "id": "bld-19",
+        "prefab": "TransformerStation01",
+        "label": "规划变电站",
+        "name": "规划变电站",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 68,
+        "position": {
+          "x": -1952,
+          "z": 416
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 47.6,
+          "z": 55.6
+        }
+      },
+      {
+        "id": "bld-20",
+        "prefab": "WindTurbine01",
+        "label": "规划风力发电机（西）",
+        "name": "规划风力发电机（西）",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 69,
+        "position": {
+          "x": -1784,
+          "z": 416
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 119.6,
+          "z": 119.6
+        }
+      },
+      {
+        "id": "bld-21",
+        "prefab": "WaterTower01",
+        "label": "规划水塔（产业带）",
+        "name": "规划水塔（产业带）",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 70,
+        "position": {
+          "x": -1696,
+          "z": 416
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 31.6,
+          "z": 31.6
+        }
+      },
+      {
+        "id": "bld-22",
+        "prefab": "WindTurbine01",
+        "label": "规划风力发电机（东）",
+        "name": "规划风力发电机（东）",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 71,
+        "position": {
+          "x": -1552,
+          "z": 416
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 119.6,
+          "z": 119.6
+        }
+      },
+      {
+        "id": "bld-23",
+        "prefab": "TelecomTower01",
+        "label": "规划通信塔",
+        "name": "规划通信塔",
+        "kind": "service",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 72,
+        "position": {
+          "x": -1400,
+          "z": 416
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 55.6,
+          "z": 55.6
+        }
+      }
+    ]
+  }
+}
