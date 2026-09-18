@@ -136,9 +136,10 @@ await runMain(async () => {
   try {
     // 原生预览在暂停的城市上更稳定，沿用既有流程的做法。
     await queryGame('set_simulation_speed', { speed: 'normal' });
+    // 第一次写入一旦成功，后续任何一步失败都必须在 finally 里恢复原速度。
+    speedChanged = true;
     await sleep(400);
     await queryGame('set_simulation_speed', { speed: 'paused' });
-    speedChanged = true;
 
     const results = [];
     let stopReason = null;

@@ -5,6 +5,7 @@
 // 「相邻采样点高差 / 采样步长」估算坡度，超过 15% 记为陡坡（不可铺路）。
 import { queryGame } from '../../mcp/bridge-client.mjs';
 import { ROAD_SPECIFICATIONS, MAX_ZONING_DEPTH_M } from '../lib/physics-rules.mjs';
+import { readAllOwnedTiles, readAllSurfaceWaterCells } from '../lib/survey-pagination.mjs';
 
 const argv = process.argv.slice(2);
 const arg = (name, fallback) => {
@@ -41,16 +42,13 @@ async function sampleTerrain() {
 
 async function sampleWater() {
   const cell = Math.max(64, step);
-  const response = await queryGame('read_surface_water_mask', { bounds: box, cell_size_m: cell, limit: 1024 });
-  if (!response?.ok) throw new Error(response?.error?.code ?? 'WATER_MASK_FAILED');
-  const cells = (response.data.cells ?? []).filter(item => item.water).map(item => ({ x: Number(item.x), z: Number(item.z) }));
+  const data = await readAllSurfaceWaterCells(queryGame, { bounds: box, cell_size_m: cell });
+  const cells = (data.cells ?? []).filter(item => item.water).map(item => ({ x: Number(item.x), z: Number(item.z) }));
   return { cells, cell };
 }
 
 async function loadOwnedTiles() {
-  const response = await queryGame('list_map_tiles', { state: 'owned', limit: 100 });
-  if (!response?.ok) throw new Error(response?.error?.code ?? 'TILE_QUERY_FAILED');
-  return response.data.items ?? [];
+  return readAllOwnedTiles(queryGame);
 }
 
 const [heights, water, tiles] = await Promise.all([sampleTerrain(), sampleWater(), loadOwnedTiles()]);
