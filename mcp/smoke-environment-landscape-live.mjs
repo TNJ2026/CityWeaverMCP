@@ -7,7 +7,7 @@ let created = [];
 let waterSource = null;
 try {
   const status = await q('get_game_status');
-  assert.equal(status.bridge_version, '1.21.2');
+  assert.equal(status.bridge_version, '1.22.0');
   await q('set_simulation_speed', { speed: 'paused' });
   const trees = await q('list_landscape_prefabs', { kind: 'tree', limit: 100 });
   const plants = await q('list_landscape_prefabs', { kind: 'plant', limit: 100 });

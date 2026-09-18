@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<Version>1.21.2</Version>
-		<AssemblyVersion>1.21.2.0</AssemblyVersion>
-		<FileVersion>1.21.2.0</FileVersion>
+		<Version>1.22.0</Version>
+		<AssemblyVersion>1.22.0.0</AssemblyVersion>
+		<FileVersion>1.22.0.0</FileVersion>
 		<Configurations>Debug;Release</Configurations>
 	
 		<!--The file where mod information which is required for publishing mod on PDX mods are stored-->
@@ -51,6 +51,12 @@
 		<Reference Include="UnityEngine.CoreModule">
 			<Private>false</Private>
 		</Reference>
+		<Reference Include="UnityEngine.ImageConversionModule">
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="UnityEngine.ScreenCaptureModule">
+			<Private>false</Private>
+		</Reference>
 		<Reference Include="Unity.Burst">
 			<Private>false</Private>
 		</Reference>
@@ -75,6 +81,12 @@
 		<Reference Update="System.Data">
 			<Private>false</Private>
 		</Reference>
+	</ItemGroup>
+
+	<!-- Allow a compile-only verification when the game's Unity source-generator cache is
+	     unavailable. Normal staged/deployed builds still use and validate the toolchain. -->
+	<ItemGroup Condition="!Exists('$(EntityPackagePath)\SystemGenerator.dll')">
+		<Analyzer Remove="$(EntityPackagePath)\*.dll" />
 	</ItemGroup>
 
 	<ItemGroup>

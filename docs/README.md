@@ -10,6 +10,8 @@
 - `guides/economy`：城市财政、人口、企业与资源经济。
 - `guides/disasters`：灾害操作与灾后处理。
 - `guides/inspection`：深层 ECS、系统与环境数据读取。
+- `guides/planning`：已购区域规划图、自动网格与多层设施走廊、地形/水域叠加，以及可视化但不施工的原生道路预检。
+  - [当前镜头范围与游戏画面](guides/planning/CAMERA-VIEW-GUIDE.md)
 
 ## 城市工作流
 

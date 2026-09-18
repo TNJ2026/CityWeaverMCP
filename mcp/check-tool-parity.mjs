@@ -3,6 +3,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { queryGame } from './bridge-client.mjs';
 
 const serverOnlyTools = new Set([
+  'advance_grid_construction',
   'build_utility_backbone',
   'cancel_building_plan',
   'connect_utility_facility',
@@ -13,6 +14,10 @@ const serverOnlyTools = new Set([
   'deploy_transit_corridor',
   'execute_building_plan',
   'plan_building_workflow',
+  'prepare_grid_native_preview',
+  'propose_city_plan',
+  'propose_grid_plan',
+  'render_city_plan',
   'repair_congested_corridor'
 ]);
 

@@ -15,7 +15,7 @@ try {
   await call('set_simulation_speed', { speed: 'normal' });
   await sleep(5000);
   const status = await call('get_game_status');
-  assert.equal(status.bridge_version, '1.21.2');
+  assert.equal(status.bridge_version, '1.22.0');
   const vehicles = await call('list_vehicles', { limit: 500 });
   const travelers = await call('list_travelers', { limit: 500 });
   const moving = await call('list_vehicles', { state: 'moving', limit: 500 });

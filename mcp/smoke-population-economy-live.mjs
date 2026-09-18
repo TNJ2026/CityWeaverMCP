@@ -7,7 +7,7 @@ await client.connect(new StdioClientTransport({ command: process.execPath, args:
 const call = async (name, args = {}) => { const result = await client.callTool({ name, arguments: args }); return result.structuredContent ?? { ok: false, error: { message: (result.content ?? []).map(x => x.text ?? '').join('\n') } }; };
 const ok = (value, label) => { assert.equal(value.ok, true, `${label}: ${JSON.stringify(value)}`); return value.data; };
 
-const status = ok(await call('get_game_status'), 'status'); assert.equal(status.bridge_version, '1.21.2'); assert.equal(status.city_loaded, true);
+const status = ok(await call('get_game_status'), 'status'); assert.equal(status.bridge_version, '1.22.0'); assert.equal(status.city_loaded, true);
 const tools = await client.listTools(); assert.equal(tools.tools.length, 342);
 const citizens = ok(await call('list_citizens', { limit: 100 }), 'citizens');
 const workers = ok(await call('list_citizens', { role: 'worker', limit: 100 }), 'workers');

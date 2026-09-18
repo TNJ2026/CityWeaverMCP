@@ -58,9 +58,14 @@ namespace CitiesSkylines2Mod
             if (!IsReady()) throw new QueryException("CITY_NOT_READY", "Load a playable city and wait for loading to finish.");
             var world = World.DefaultGameObjectInjectionWorld;
             var em = world.EntityManager;
-            if (tool == "get_entity_components" || tool == "query_entities" || tool == "find_roads_by_name" || tool == "get_city_data" || tool == "inspect_road_zoning" || tool == "analyze_zoning_cells") SyncReads(world);
+            MaybeAutoFocusConstruction(tool, args, world);
+            if (tool == "get_entity_components" || tool == "query_entities" || tool == "find_roads_by_name" || tool == "get_city_data" || tool == "inspect_road_zoning" || tool == "analyze_zoning_cells" || tool == "get_planning_map_snapshot") SyncReads(world);
             switch (tool)
             {
+                case "get_camera_view": return Wrap(GetCameraView(args, world));
+                case "capture_game_view": return Wrap(CaptureGameView(args, world));
+                case "focus_camera": return Wrap(FocusCamera(args, world));
+                case "get_planning_map_snapshot": return Wrap(GetPlanningMapSnapshot(args, world));
                 case "list_road_prefabs": return Wrap(ListRoadPrefabs(args, world));
                 case "find_roads_by_name": return Wrap(FindRoadsByName(args, world, em));
                 case "inspect_road_lanes": return Wrap(InspectRoadLanes(args, world));
@@ -413,7 +418,7 @@ namespace CitiesSkylines2Mod
         {
             var ready = IsReady();
             var result = new JObject { ["connected"] = true, ["city_loaded"] = ready, ["loading"] = GameManager.instance.isGameLoading,
-                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.21.2", ["read_only"] = false };
+                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.22.0", ["read_only"] = false };
             result["paused"] = JValue.CreateNull();
             if (ready)
             {
@@ -442,6 +447,7 @@ namespace CitiesSkylines2Mod
             ["transport_facility_operations"] = new JObject { ["modes"] = new JArray("place", "move", "delete"), ["requires_paused_city"] = true, ["workflow"] = "list/plan -> preview -> get operation(preview_ready) -> apply -> get operation(completed)", ["coverage"] = "Passenger and cargo stations, depots, airports, harbors and transport terminals exposed by the loaded game prefabs.", ["analysis_tools"] = new JArray("analyze_transport_catchment"), ["validation"] = "Uses the native building/object preview pipeline, placement errors, access/snap validation, cost and permanent-entity verification." },
             ["traffic_mobility"] = new JObject { ["entities"] = new JArray("vehicles", "human travelers", "citizen trip queues", "paths", "lane connections", "parking lanes"), ["vehicle_classes"] = new JArray("car", "bicycle", "train", "watercraft", "aircraft"), ["vehicle_roles"] = new JArray("personal", "taxi", "public_transport", "cargo_transport", "delivery", "service"), ["mutations"] = new JArray("reroute", "retarget", "navigation behavior", "native citizen trip queue", "cancel queued trips", "delete vehicle group", "batch traffic management"), ["requires_paused_city"] = true, ["spawn_semantics"] = "request_citizen_trip adds a native TripNeeded request; the game selects walking, private vehicle or public transport and performs vehicle initialization.", ["physical_safety"] = "No incomplete vehicle physics entity is fabricated and no vehicle transform is teleported." },
             ["map_area_operations"] = new JObject { ["entities"] = new JArray("map tiles", "districts", "zones", "terrain", "climate"), ["map_tile_states"] = new JArray("owned", "unowned", "purchasable"), ["features"] = new JArray(Enum.GetNames(typeof(Game.Areas.MapFeature))), ["mutations"] = new JArray("preview/apply/cancel map tile purchase", "unlock all map tiles"), ["requires_paused_city"] = true, ["validation"] = "Tile existence, edge adjacency, connected selection, permits, money, exact native feature cost, ownership snapshot and rollback." },
+            ["camera_view"] = new JObject { ["queries"] = new JArray("get_camera_view", "capture_game_view"), ["mutations"] = new JArray("focus_camera", "automatic construction focus"), ["projection_surfaces"] = new JArray("live terrain", "horizontal plane"), ["screenshot_format"] = "image/png", ["capture_scope"] = "game_window_only", ["includes_desktop"] = false, ["default_ui_capture"] = false, ["max_png_bytes"] = 900000, ["automatic_focus"] = "Physical construction previews outside the current viewport smoothly focus the gameplay camera before the native preview proceeds.", ["limitations"] = "The visible polygon is sampled from screen-edge rays and can fall back to a horizontal plane for sky-facing rays. It describes camera coverage, not purchased-land ownership or UI occlusion." },
             ["transport_track_operations"] = new JObject { ["modes"] = new JArray("create_polyline", "delete"), ["track_types"] = new JArray("train", "subway", "tram"), ["max_points"] = 16, ["max_delete_edges"] = 64, ["requires_paused_city"] = true, ["workflow"] = "list prefabs/tracks -> preview -> get operation(preview_ready) -> apply -> get operation(completed)", ["endpoint_targets"] = new JArray("new_node", "existing_track_node", "existing_track_edge_split"), ["validation"] = "Native NetCourse preview, track-prefab limits, slope/elevation, collision and permanent TrackData edge verification." },
             ["zoning_operations"] = new JObject { ["modes"] = new JArray("assign", "clear", "replace"), ["road_sides"] = new JArray("left", "right", "both"), ["depth_cells"] = "1..6", ["max_cells_per_operation"] = 4096, ["requires_paused_city_to_apply"] = true, ["workflow"] = "list_zone_types -> analyze_zoning_cells -> preview_zoning -> apply_zoning", ["validation"] = "Atomic per-cell snapshots with conflict rejection and rollback; native Updated markers trigger lot and building refresh." },
             ["terrain_modification"] = new JObject { ["modes"] = new JArray("raise", "lower", "level", "smooth", "slope", "raise_land", "flatten_map"), ["brush_size_m"] = "8..1000", ["strength"] = "0.01..1", ["passes"] = "1..32", ["requires_paused_city"] = true, ["cost"] = 0, ["workflow"] = "sample_terrain -> preview_terrain -> get_terrain_operation(preview_ready) -> apply_terrain -> get_terrain_operation(completed)", ["preview_semantics"] = "The game 1.6.0 PreviewBrush method is empty. Preview validates parameters and captures live baseline samples; terrain changes only after apply_terrain.", ["limitations"] = "Height readback samples verify path points. Brush falloff affects the surrounding footprint. raise_land uses the live native water-depth mask and shifts dry heightmap cells once. flatten_map overwrites the full native heightmap and can clear dynamic water and natural water sources. Terrain edits do not have a native undo journal." },
@@ -471,6 +477,10 @@ namespace CitiesSkylines2Mod
             };
             if (result["tools"] is JArray tools)
             {
+                tools.Add("get_planning_map_snapshot");
+                tools.Add("get_camera_view");
+                tools.Add("capture_game_view");
+                tools.Add("focus_camera");
                 tools.Add("analyze_transport_catchment");
                 tools.Add("analyze_education_demand");
                 tools.Add("analyze_attraction_impact");

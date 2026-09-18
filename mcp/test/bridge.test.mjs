@@ -101,6 +101,29 @@ test('request and response size limits', async t => {
   await assert.rejects(queryGame('get_game_status', {}, { endpointPath }), { code: 'RESPONSE_TOO_LARGE' });
 });
 
+test('game-view capture is returned as MCP image content without duplicate base64 metadata', async t => {
+  const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const response = {
+    ok: true,
+    meta: { session_id: 'capture-fixture' },
+    data: { mime_type: 'image/png', width: 640, height: 360, byte_length: png.length, capture_scope: 'game_window_only', base64: png.toString('base64') }
+  };
+  const { endpointPath } = await fixture(t, (socket, request) => {
+    assert.equal(request.tool, 'capture_game_view');
+    assert.deepEqual(request.arguments, { include_ui: false, max_width: 640, max_height: 360 });
+    socket.end(JSON.stringify(response) + '\n');
+  });
+  const client = new Client({ name: 'capture-test', version: '1.0.0' });
+  const transport = new StdioClientTransport({ command: process.execPath, args: [fileURLToPath(new URL('../server.mjs', import.meta.url))], env: { ...process.env, CSII_BRIDGE_FILE: endpointPath } });
+  t.after(() => client.close());
+  await client.connect(transport);
+  const result = await client.callTool({ name: 'capture_game_view', arguments: { include_ui: false, max_width: 640, max_height: 360 } });
+  assert.equal(result.isError, false);
+  assert.deepEqual(result.content.find(item => item.type === 'image'), { type: 'image', data: png.toString('base64'), mimeType: 'image/png' });
+  assert.equal(result.structuredContent.data.base64, undefined);
+  assert.equal(result.structuredContent.data.capture_scope, 'game_window_only');
+});
+
 test('real MCP handshake, tool schemas, query forwarding and validation', async t => {
   let calls = 0;
   const { endpointPath } = await fixture(t, (socket, request) => {
@@ -112,8 +135,36 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   t.after(() => client.close());
   await client.connect(transport);
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 342);
+  assert.equal(tools.length, 353);
+  assert(tools.some(tool => tool.name === 'get_camera_view'), 'camera viewport query tool is registered');
+  assert(tools.some(tool => tool.name === 'capture_game_view'), 'game-window screenshot tool is registered');
+  assert(tools.some(tool => tool.name === 'focus_camera'), 'smooth camera focus tool is registered');
+  const focus = { target: { x: 120, z: -240 }, width_m: 400, depth_m: 300, duration_seconds: 1 };
+  assert.deepEqual((await client.callTool({ name: 'focus_camera', arguments: focus })).structuredContent.data.args, focus);
+  assert(tools.some(tool => tool.name === 'get_planning_map_snapshot'), 'planning geometry snapshot tool is registered');
+  assert(tools.some(tool => tool.name === 'render_city_plan'), 'SVG city-plan renderer is registered');
+  assert(tools.some(tool => tool.name === 'propose_grid_plan'), 'read-only grid-plan proposer is registered');
+  assert(tools.some(tool => tool.name === 'propose_city_plan'), 'read-only multilayer city-plan proposer is registered');
+  const renderedPlan = await client.callTool({ name: 'render_city_plan', arguments: {
+    bounds: { min_x: 0, min_z: 0, max_x: 400, max_z: 400 }, include_existing: false,
+    plan: { grids: [{ origin: { x: 40, z: 40 }, columns: 2, rows: 3, zone_type: 'Fixture Residential', zone_kind: 'residential', native_preview: { operation_id: 'a'.repeat(32), state: 'preview_ready', cost: 50, warnings: [], errors: [], snapped_origin: { x: 40, z: 40 } } }] }
+  } });
+  assert.equal(renderedPlan.isError, false);
+  assert(renderedPlan.content.some(item => item.type === 'image' && item.mimeType === 'image/svg+xml'));
+  assert.match(renderedPlan.structuredContent.data.plan_id, /^cplan-[a-f0-9]{16}$/);
+  assert.equal(renderedPlan.structuredContent.data.native_preview_summary.state, 'preview_ready');
+  const interactivePlan = await client.callTool({ name: 'render_city_plan', arguments: {
+    bounds: { min_x: 0, min_z: 0, max_x: 400, max_z: 400 }, include_existing: false,
+    plan: { roads: [{ id: 'fixture-road', label: 'Fixture Road', points: [{ x: 20, z: 20 }, { x: 200, z: 20 }] }] },
+    render: { format: 'interactive_html', view: 'combined' }
+  } });
+  assert.equal(interactivePlan.isError, false);
+  assert(interactivePlan.content.some(item => item.type === 'resource' && item.resource.mimeType === 'text/html'));
   assert(tools.some(tool => tool.name === 'deploy_grid_district'), 'high-level grid deployment tool is registered');
+  assert(tools.some(tool => tool.name === 'prepare_grid_native_preview'), 'road-only native grid preflight tool is registered');
+  assert(tools.some(tool => tool.name === 'advance_grid_construction'), 'staged post-preview grid construction tool is registered');
+  assert(tools.some(tool => tool.name === 'prepare_city_plan_construction'), 'approved rendered-plan compiler is registered');
+  assert(tools.some(tool => tool.name === 'advance_city_plan_construction'), 'approved rendered-plan road executor is registered');
   for (const name of ['plan_building_workflow', 'execute_building_plan', 'cancel_building_plan', 'deploy_building_plans']) {
     assert(tools.some(tool => tool.name === name), `${name} is registered`);
   }
@@ -132,17 +183,23 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   assert.equal(tools.find(tool => tool.name === 'plan_building_workflow').annotations.destructiveHint, false);
   const mutations = new Set(['set_simulation_speed', 'preview_disaster', 'apply_disaster_operation', 'cancel_disaster_preview', 'update_disaster', 'stop_disaster', 'clear_disaster_effects', 'set_city_name', 'set_city_money', 'set_city_configuration', 'set_city_policy', 'set_transport_line_schedule', 'set_transport_line_ticket_price', 'set_transport_line_vehicle_count', 'set_transport_line_number', 'set_transport_line_unbunching', 'set_transport_stop_name', 'set_transport_facility_name', 'set_transport_facility_active', 'set_transport_facility_policy', 'preview_transport_facility_upgrade', 'preview_transport_facility_upgrade_removal', 'request_transport_line_vehicle', 'cancel_transport_line_vehicle_requests', 'release_transport_line_vehicle', 'preview_map_tile_purchase', 'apply_map_tile_purchase', 'cancel_map_tile_purchase', 'unlock_all_map_tiles', 'place_landscape_objects', 'plant_landscape_pattern', 'move_landscape_object', 'set_tree_state', 'remove_landscape_objects', 'clear_landscape_area', 'create_water_source', 'update_water_source', 'delete_water_source', 'set_pollution_area', 'set_weather_override', 'set_wind', 'set_unlimited_demand', 'set_citizen_attributes', 'set_household_money', 'set_company_profitability', 'set_resource_amount', 'create_citizen', 'set_citizen_name', 'set_citizen_profile', 'set_citizen_household', 'set_citizen_workplace', 'set_citizen_school', 'set_citizen_location', 'set_citizen_health_problem', 'delete_citizen', 'create_household', 'set_household_name', 'set_household_profile', 'set_household_housing', 'set_household_need', 'delete_household', 'create_company', 'set_company_name', 'set_company_financials', 'set_company_workforce', 'set_company_property', 'set_company_trade_cost', 'delete_company', 'request_vehicle_reroute', 'set_vehicle_target', 'set_vehicle_behavior', 'remove_vehicle', 'request_traveler_reroute', 'set_traveler_target', 'set_traveler_speed', 'request_citizen_trip', 'cancel_citizen_trips', 'manage_traffic', 'set_experience_points', 'set_development_points', 'purchase_development_node', 'unlock_prefab', 'unlock_all_progression', 'preview_road', 'preview_road_route', 'preview_road_ring', 'preview_road_grid', 'preview_road_parallel', 'preview_road_interchange', 'preview_road_autoroute', 'preview_road_reverse', 'preview_road_batch_reverse', 'preview_road_upgrade', 'preview_road_demolition', 'preview_road_batch_upgrade', 'preview_road_batch_demolition', 'preview_road_elevation', 'preview_road_zoning', 'preview_road_features', 'preview_road_parking', 'preview_intersection_control', 'preview_intersection_roundabout', 'preview_intersection_rules', 'preview_road_policies', 'preview_road_undo', 'build_road', 'cancel_road_preview', 'preview_terrain', 'apply_terrain', 'cancel_terrain_preview', 'preview_building_placement', 'preview_special_building_placement', 'preview_building_batch_placement', 'preview_building_move', 'preview_building_replacement', 'preview_building_upgrade', 'preview_building_rebuild', 'preview_building_demolition', 'preview_building_upgrade_removal', 'apply_building_operation', 'cancel_building_preview', 'set_building_name', 'set_building_active', 'set_building_policy', 'preview_zoning', 'apply_zoning', 'cancel_zoning_preview', 'preview_district_create', 'preview_district_boundary', 'preview_district_delete', 'apply_district_operation', 'cancel_district_preview', 'set_district_name', 'set_district_policy', 'set_service_districts', 'preview_transport_line', 'preview_transport_line_stops', 'preview_transport_line_delete', 'apply_transport_line_operation', 'cancel_transport_line_preview', 'set_transport_line_name', 'set_transport_line_active', 'set_transport_line_color', 'set_transport_line_policy', 'preview_transport_facility_placement', 'preview_transport_facility_move', 'preview_transport_facility_delete', 'apply_transport_facility_operation', 'cancel_transport_facility_preview', 'preview_transport_track', 'preview_transport_track_delete', 'apply_transport_track_operation', 'cancel_transport_track_preview', 'preview_utility_facility_placement', 'preview_utility_facility_move', 'preview_utility_facility_delete', 'apply_utility_facility_operation', 'cancel_utility_facility_preview', 'preview_utility_network', 'preview_utility_network_upgrade', 'preview_utility_network_delete', 'apply_utility_operation', 'cancel_utility_preview', 'preview_city_service_placement', 'preview_city_service_move', 'preview_city_service_upgrade', 'preview_city_service_upgrade_removal', 'preview_city_service_delete', 'apply_city_service_operation', 'cancel_city_service_preview', 'preview_tax_change', 'preview_service_budget', 'preview_service_fee', 'preview_loan_change', 'apply_economy_operation', 'cancel_economy_preview']);
   mutations.add('deploy_grid_district');
+  mutations.add('prepare_grid_native_preview');
+  mutations.add('advance_grid_construction');
+  mutations.add('advance_city_plan_construction');
   for (const name of ['plan_building_workflow', 'execute_building_plan', 'cancel_building_plan', 'deploy_building_plans']) mutations.add(name);
   for (const name of ['deploy_service_cluster', 'deploy_industrial_campus', 'deploy_transit_corridor']) mutations.add(name);
   for (const name of ['build_utility_backbone', 'repair_congested_corridor']) mutations.add(name);
   for (const name of ['preview_building_area', 'apply_building_area_operation', 'cancel_building_area_preview']) mutations.add(name);
   mutations.add('connect_utility_facility');
+  mutations.add('focus_camera');
   assert(tools.every(tool => tool.annotations.readOnlyHint === !mutations.has(tool.name)));
   assert.equal(tools.find(tool => tool.name === 'build_road').annotations.destructiveHint, true);
   assert.equal(tools.find(tool => tool.name === 'get_road_operation').annotations.readOnlyHint, true);
   assert.equal(tools.find(tool => tool.name === 'apply_disaster_operation').annotations.destructiveHint, true);
   const beforeBadWorkflow = calls;
   for (const request of [
+    { name: 'prepare_grid_native_preview', arguments: { request_id: 'grid-preview-invalid-001', origin: { x: 0, z: 0 }, columns: 2, rows: 3, block_width_m: 95, block_height_m: 96, road_prefab: 'Alley', zone_type: 'NA Residential Low' } },
+    { name: 'advance_grid_construction', arguments: { stage: 'commit_roads', request_id: 'grid-advance-invalid-001', max_cost: 1000 } },
     { name: 'plan_building_workflow', arguments: { request_id: 'workflow-invalid-001', building_prefab: 'Fixture', near: { x: 99999, z: 0 } } },
     { name: 'plan_building_workflow', arguments: { request_id: 'workflow-invalid-002', building_prefab: 'Fixture', near: { x: 0, z: 0 }, search_radius_m: 3001 } },
     { name: 'execute_building_plan', arguments: { request_id: 'workflow-invalid-003', plan_id: 'unknown', max_cost: 1000 } },

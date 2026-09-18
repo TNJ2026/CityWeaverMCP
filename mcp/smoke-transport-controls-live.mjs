@@ -12,7 +12,7 @@ await client.connect(new StdioClientTransport({command:process.execPath,args:[fi
 let lineId=null;const report={};
 try{
   assert.equal((await client.listTools()).tools.length,342);
-  const status=(await call('get_game_status')).data;assert.equal(status.bridge_version,'1.21.2');await call('set_simulation_speed',{speed:'paused'});
+  const status=(await call('get_game_status')).data;assert.equal(status.bridge_version,'1.22.0');await call('set_simulation_speed',{speed:'paused'});
   const before=(await call('list_transport_lines')).data.total;
   const prefab=(await call('list_transport_line_prefabs',{search:'Bus'})).data.items.find(x=>x.name==='Bus Line');
   const stops=(await call('list_transport_stops',{transport_type:'Bus',passenger_only:true})).data.items;

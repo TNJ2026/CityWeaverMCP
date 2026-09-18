@@ -5,6 +5,7 @@
 | 目标 | 功能与入口示例 | 项目指南 |
 | --- | --- | --- |
 | 城市概览 | `get_game_status`、`get_city_summary`；连接、人口、幸福度、健康、资金、建筑分类 | `mcp/README.md` |
+| 规划图、网格预检与分阶段施工 | `get_planning_map_snapshot`、`render_city_plan`、`propose_grid_plan`、`propose_city_plan`、`prepare_grid_native_preview`、`advance_grid_construction`、`prepare_city_plan_construction`、`advance_city_plan_construction`；仅显示已购区域，可生成概念走廊和高精度水岸线；可用同一结构化计划和 `cplan-*` 哈希按比例施工道路并回读永久边 | `docs/guides/planning/PLANNING-MAP-GUIDE.md` |
 | 城市管理 | `set_city_name`、`set_city_configuration`、`set_city_money`、`set_city_policy`；名称、配置、全市政策、资金、修正值、统计历史 | `docs/guides/city/CITY-MANAGEMENT-GUIDE.md` |
 | 道路与路口 | `list_road_prefabs`、`preview_road`、`preview_road_route`、`preview_road_grid`、`preview_road_autoroute`；曲线、平行路、环路、自动接入、立交、高架/隧道、升级、拆除、反向、装饰、停车变体、路口规则、道路政策和部分撤销 | `docs/guides/roads/ROAD-GUIDE.md` |
 | 建筑 | `list_building_prefabs`、`plan_building_workflow`、`execute_building_plan`、`deploy_building_plans`、`plan_building_site`、`plan_building_row`、`preview_building_placement`；支持端到端编排放置、批量、移动、替换、升级/移除、重建、拆除、命名与政策 | `docs/guides/buildings/BUILDING-GUIDE.md` |
@@ -33,7 +34,11 @@
 ## 选择工作流的要点
 
 - “看看堵在哪里”：先交通分析，再沿道路/车道/车辆 ID 追踪。诊断请求本身不包含清车、改限速或扩路。
-- “建一个住宅街区”：地图/地形与现有道路发现 → 路网规划和建设 → 实际分区格检查 → 划区。让模拟自然生成建筑，或仅在用户要求直接放置时使用建筑事务。
+- “规划一个住宅街区”：已购地图格、地形、水域与现有道路发现 → `propose_grid_plan`（仅网格）或 `propose_city_plan`（概念服务、交通与管网）→ 精确道路和主题分区绑定 → `render_city_plan`；不施工。
+- “预检一个住宅街区”：在只读规划通过后调用 `prepare_grid_native_preview`，检查道路费用、警告和冲突；需要放弃时按返回动作取消。临时道路没有永久 edge ID，分区 preview 此时必须标记为等待道路落地。
+- “施工已预检的住宅街区”：取得明确施工授权和道路预算后，调用 `advance_grid_construction` 的 `commit_roads`，随后沿返回的 `next_action` 依次执行 `preview_zoning` 与 `apply_zoning`；每个阶段使用独立稳定 `request_id`，不得跳过分区预览。
+- “按规划图施工道路”：先展示 `render_city_plan`，用户确认其 `plan_id` 后，用相同 `bounds`/`plan` 调用 `prepare_city_plan_construction` 建立不写游戏的虚拟路网沙盒；网格保留为单个原生批次，超长路线仅按原生点数上限拆批。再沿 `advance_city_plan_construction` 返回的 `preview_batch` / `commit_batch` 执行最终位置原生预览和提交。规划哈希不一致、未知结果或永久道路回读不完整时必须停止。
+- “建一个住宅街区”：只有用户明确授权施工后，才从通过的预检进入带预算上限的道路提交和永久回读，再检查实际分区格并逐独立事务划区。让模拟自然生成建筑，或仅在用户要求直接放置时使用建筑事务。
 - “建诊所/电站/车站”：优先对应领域 prefab 与容量发现，普通沿街候选走一般选址；岸线、水面、轨道边等采用特殊选址并保留吸附目标与高度。升级模块不能作为独立建筑。
 - “扩展填埋场/专门产业”：先找到 owner 建筑并调用 `list_building_areas`，只使用其返回的精确区域 prefab；自然资源、污染、道路和货运条件先评估，再走独立区域 preview/apply 事务。行政区和分区工具不能替代建筑附属区域。
 - “降低税率/调整贷款”：先读取实际范围和原值，再走经济事务。贷款 `amount` 是目标总额，不是增量。

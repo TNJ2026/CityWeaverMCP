@@ -3,6 +3,7 @@ using Game;
 using Game.Modding;
 using Game.SceneFlow;
 using Colossal.IO.AssetDatabase;
+using Game.Rendering;
 
 namespace CitiesSkylines2Mod
 {
@@ -28,6 +29,7 @@ namespace CitiesSkylines2Mod
 
             AssetDatabase.global.LoadSettings(nameof(CitiesSkylines2Mod), m_Setting, new Setting(this));
             updateSystem.UpdateAt<StarterSystem>(SystemUpdatePhase.GameSimulation);
+            updateSystem.UpdateBefore<McpCameraFocusSystem, CameraUpdateSystem>(SystemUpdatePhase.Rendering);
             updateSystem.UpdateBefore<McpRoadToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpTerrainToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpBuildingToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);

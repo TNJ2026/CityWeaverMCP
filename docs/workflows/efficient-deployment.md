@@ -29,6 +29,19 @@ node tools/survey-space.mjs --auto-find residential --anchor -1138,528 --mode qu
 
 ## 一次批量建设
 
+### 先规划或预检但不施工
+
+用户尚未授权永久建设时，不要直接调用 `deploy_grid_district`：
+
+1. `propose_grid_plan` 在当前已购区域内结合道路、建筑、水域和坡度选择候选，并绑定实时道路 prefab、城市主题和分区类型。
+2. `render_city_plan` 只生成 SVG/交互规划图，不创建游戏临时实体。
+3. 需要验证游戏能否接受道路几何时，调用 `prepare_grid_native_preview`。它只创建并轮询道路临时 preview，返回真实费用、警告、错误、过期时间和取消动作；不提交道路、不预览分区。
+4. 分区 preview 不能与这一步并行：必须等道路经另一次明确施工授权永久落地并返回真实 edge ID，才能调用 `preview_zoning`。
+
+授权施工后优先调用 `advance_grid_construction`，并沿用每一步返回的 `next_action`：`commit_roads` 提交已有道路预览并回读永久 edge ID，`preview_zoning` 检查实际 Zone Cells 后只生成分区预览，`apply_zoning` 再单独提交。这样可在每个不可逆阶段之间停下来复核；失败或结果未知不会继续，也不会自动拆除已完成道路。
+
+规划图通过、道路 preview_ready 都不表示已建成。修改方案时先取消旧预览，再用新的 `request_id` 创建新预览；同一方案重试则复用原 `request_id`。
+
 ### MCP 高层工具
 
 需要由提示词直接指定 `N×N` 和道路类型时，优先使用 `deploy_grid_district`，不必让客户端自己串联多个底层工具：

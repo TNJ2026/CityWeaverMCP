@@ -272,6 +272,13 @@ namespace CitiesSkylines2Mod
                 MapTileBounds(points, out var tileMin, out var tileMax);
                 min = math.min(min, tileMin); max = math.max(max, tileMax);
             }
+            if (args["bounds"] is JObject requested)
+            {
+                var clipped = ReadPlanningBounds(new JObject { ["bounds"] = requested });
+                min = math.max(min, new float2(clipped.MinX, clipped.MinZ));
+                max = math.min(max, new float2(clipped.MaxX, clipped.MaxZ));
+                if (min.x >= max.x || min.y >= max.y) throw new QueryException("INVALID_ARGUMENT", "bounds does not intersect the loaded map.");
+            }
             float cellSize = (float?)args["cell_size_m"] ?? 16f;
             float threshold = (float?)args["water_threshold_m"] ?? 0.01f;
             if (cellSize < 1 || cellSize > 256 || threshold < 0 || threshold > 1000) throw new QueryException("INVALID_ARGUMENT", "cell_size_m must be 1..256 and water_threshold_m must be 0..1000.");

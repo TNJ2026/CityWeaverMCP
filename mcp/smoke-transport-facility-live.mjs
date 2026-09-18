@@ -28,7 +28,7 @@ let facilityId = null;
 const report = {};
 try {
   assert.equal((await client.listTools()).tools.length, 342);
-  assert.equal((await call('get_game_status')).data.bridge_version, '1.21.2');
+  assert.equal((await call('get_game_status')).data.bridge_version, '1.22.0');
   await call('set_simulation_speed', { speed: 'paused' });
   const before = (await call('list_transport_facilities')).data.total;
   const plan = (await call('plan_transport_facility_site', {
