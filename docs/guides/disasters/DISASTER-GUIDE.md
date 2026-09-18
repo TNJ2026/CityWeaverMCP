@@ -1,6 +1,6 @@
 # 灾害 MCP 指南
 
-1.18.0 新增 13 个灾害工具。实现直接使用游戏加载的 `EventData` 与事件 archetype，覆盖 `WeatherPhenomenon`、`Fire`、`Destruction` 和 `WaterLevelChange` 四类原生事件；游戏原生初始化器继续负责预警、热点移动、雷击、起火、破坏、水位变化、疏散、应急响应与事件结束。
+自 MCP 1.18.0 起新增 13 个灾害工具。实现直接使用游戏加载的 `EventData` 与事件 archetype，覆盖 `WeatherPhenomenon`、`Fire`、`Destruction` 和 `WaterLevelChange` 四类原生事件；游戏原生初始化器继续负责预警、热点移动、雷击、起火、破坏、水位变化、疏散、应急响应与事件结束。
 
 当前游戏内容实际发现 8 个可触发预设：天气类 `Hail Storm`、`Lightning Strike`、`Tornado`；火灾类 `Building Fire`、`Forest Fire`；破坏类 `Building Collapse`；水位类 `Flood`、`Tsunami`。带 `TrafficAccidentData` 但不带天气事件数据的交通事故不归入灾害接口，继续由交通接口管理。
 

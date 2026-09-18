@@ -1,6 +1,6 @@
 # 环境与景观指南
 
-1.15.0 提供 21 个环境与景观专用工具，并保留 `list_environment_layers`、`read_environment_grid`、`read_system_data` 供原始数据检查。
+自 MCP 1.15.0 起提供 21 个环境与景观专用工具，并保留 `list_environment_layers`、`read_environment_grid`、`read_system_data` 供原始数据检查。
 
 ## 景观
 

@@ -1,4 +1,4 @@
-# MCP 地形修改（1.1.0）
+# MCP 地形修改（能力引入 MCP 1.1.0）
 
 模组通过游戏原生 `GenerateBrushesSystem`、`ApplyBrushesSystem` 和 `TerrainSystem.ApplyBrush` 修改高度。支持 `raise`（抬高）、`lower`（降低）、`level`（整平）、`smooth`（平滑）和 `slope`（坡面）。`raise_land` 读取实时水深遮罩，只抬高干燥高度单元。`flatten_map` 将整张原生高度图写成统一绝对高度，并可清空动态水体和移除自然水源。所有管线都会触发 GPU 到 CPU 高度回读。
 

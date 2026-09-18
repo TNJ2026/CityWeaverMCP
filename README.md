@@ -16,6 +16,7 @@ MCP 工具清单以运行时 `tools/list` 为准。规划工具可基于当前�
 - `src/Buildings`、`src/Roads`、`src/Areas`：建筑、道路、行政区、分区和地图操作。
 - `src/Environment`、`src/Transport`、`src/Services`：地形环境、公共交通、公共服务和公用设施。
 - `src/City`、`src/Economy`、`src/Population`、`src/Progression`、`src/Disasters`：城市管理、经济人口、进度和灾害。
+- `src/Planning`：规划图快照、当前镜头范围与游戏画面捕获、施工自动聚焦。
 - [`src/README.md`](src/README.md)：完整源码目录职责说明。
 - `mcp/`：Node.js STDIO MCP 服务、诊断工具和自动测试。
 - [`tools/`](tools/README.md)：空间勘察、批量街区部署、启动器辅助、规则库和测试工具。
