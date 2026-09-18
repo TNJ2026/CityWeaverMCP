@@ -34,6 +34,7 @@
       "prefab": "PoliceStation02",
       "script_id": "police-station",
       "domain": "city_service",
+      "plan_ids": { "public-services": "service-police-central", "master": "police-station" },
       "plans": ["public-services", "master"],
       "scripts": ["relocation", "preview", "construction", "verify"]
     },
@@ -41,6 +42,7 @@
       "prefab": "FireHouse02",
       "script_id": "fire-house",
       "domain": "city_service",
+      "plan_ids": { "public-services": "service-fire-central", "master": "fire-house" },
       "plans": ["public-services", "master"],
       "scripts": ["relocation", "preview", "construction", "verify"]
     },
@@ -48,6 +50,7 @@
       "prefab": "MedicalClinic02",
       "script_id": "medical-clinic",
       "domain": "city_service",
+      "plan_ids": { "master": "medical-clinic" },
       "plans": ["master"],
       "scripts": ["relocation", "preview", "construction", "verify"]
     },
@@ -55,6 +58,7 @@
       "prefab": "Hospital01",
       "script_id": "hospital",
       "domain": "city_service",
+      "plan_ids": { "public-services": "service-hospital-central" },
       "plans": ["public-services"],
       "scripts": ["relocation", "preview", "refresh", "construction", "verify"]
     },
@@ -62,6 +66,7 @@
       "prefab": "CityPark03",
       "script_id": "city-park",
       "domain": "city_service",
+      "plan_ids": { "master": "city-park" },
       "plans": ["master"],
       "scripts": ["relocation", "preview", "refresh", "construction", "verify"]
     },
@@ -69,6 +74,7 @@
       "prefab": "CommunityPool01",
       "script_id": "community-pool",
       "domain": "city_service",
+      "plan_ids": { "master": "community-pool" },
       "plans": ["master"],
       "scripts": ["relocation", "preview", "refresh", "construction", "verify"]
     },
@@ -76,6 +82,7 @@
       "prefab": "BusDepot01",
       "script_id": "bus-depot",
       "domain": "transport_facility",
+      "plan_ids": { "public-services": "transport-bus-depot-north", "master": "bus-depot" },
       "plans": ["public-services", "master"],
       "scripts": ["relocation", "preview", "refresh", "construction", "verify"]
     },
@@ -83,6 +90,7 @@
       "prefab": "Landfill01",
       "script_id": "landfill",
       "domain": "city_service",
+      "plan_ids": { "public-services": "service-landfill-northwest", "master": "landfill" },
       "plans": ["public-services", "master"],
       "scripts": ["relocation", "preview", "refresh", "construction", "verify"]
     },
@@ -90,6 +98,7 @@
       "prefab": "Cemetery02",
       "script_id": "cemetery",
       "domain": "city_service",
+      "plan_ids": { "public-services": "service-cemetery-west", "master": "cemetery" },
       "plans": ["public-services", "master"],
       "scripts": ["relocation", "preview", "refresh", "construction", "verify"]
     },
@@ -97,6 +106,7 @@
       "prefab": "ElementarySchool02",
       "script_id": "elementary-school",
       "domain": "city_service",
+      "plan_ids": { "public-services": "service-elementary-existing", "master": "elementary-school-built" },
       "plans": ["public-services", "master"],
       "scripts": ["verify"]
     },
@@ -104,6 +114,7 @@
       "prefab": "HighSchool02",
       "script_id": "high-school",
       "domain": "city_service",
+      "plan_ids": { "public-services": "service-high-school-central", "master": "high-school-repair" },
       "plans": ["public-services", "master"],
       "scripts": ["verify"]
     }

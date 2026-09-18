@@ -1,4 +1,5 @@
 import { readFile, stat } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -11,7 +12,8 @@ import { fileURLToPath } from 'node:url';
  * 设计约束：
  * - 配置用命名方案（plans）表达多套不兼容的规划，每个 target 用 plans 字段声明归属。
  *   脚本只处理当前方案适用的项，不属于本方案的项单独归入 notApplicable，不算错误。
- * - 目标以 prefab 为主键解析（与既有脚本行为一致），plan_id 存在时优先精确匹配。
+ * - 目标优先使用当前方案的 plan_ids 精确解析。只有未声明 ID 的兼容配置才回落到 prefab；
+ *   显式 ID 不存在时必须报错，不能悄悄绑定同 prefab 的另一栋建筑。
  * - 属于本方案却解析不到的项不会被静默跳过，一律进 unresolved 并在脚本启动时显式报错。
  * - 坐标一律来自规划文件，脚本内不得再写死位置。
  * - 清单里不保存任何会话相关数据：原生候选（含 road_edge_id）由脚本在运行时现场请求，
@@ -65,6 +67,26 @@ export function parseArgs(argv = process.argv.slice(2)) {
   return parsed;
 }
 
+export function createRunId(prefix = 'run') {
+  const safePrefix = String(prefix).replace(/[^A-Za-z0-9_-]/g, '-').slice(0, 32) || 'run';
+  return `${safePrefix}-${Date.now().toString(36)}-${randomUUID().replaceAll('-', '').slice(0, 12)}`;
+}
+
+export function matchesPlannedBuilding(target, building, toleranceM = 2) {
+  if (building?.prefab !== target?.prefab) return false;
+  const coordinates = [
+    Number(target?.position?.x),
+    Number(target?.position?.z),
+    Number(building?.position?.x),
+    Number(building?.position?.z),
+  ];
+  if (!coordinates.every(Number.isFinite)) return false;
+  return Math.hypot(
+    coordinates[2] - coordinates[0],
+    coordinates[3] - coordinates[1],
+  ) <= toleranceM;
+}
+
 export async function loadTargets({ configPath = DEFAULT_CONFIG, planKey = null, planPath = null } = {}) {
   const configAbs = path.resolve(configPath);
   const config = JSON.parse(await readFile(configAbs, 'utf8'));
@@ -101,9 +123,17 @@ export async function loadTargets({ configPath = DEFAULT_CONFIG, planKey = null,
   const targets = [];
   const unresolved = [];
   for (const target of applicable) {
-    const hit = byId.get(target.plan_id) ?? (byPrefab.get(target.prefab) ?? [])[0];
+    const declaredPlanId = target.plan_ids?.[activeKey] ?? target.plan_id ?? null;
+    const hit = declaredPlanId
+      ? byId.get(declaredPlanId)
+      : (byPrefab.get(target.prefab) ?? [])[0];
     if (!hit) {
-      unresolved.push({ ...target, reason: 'PLAN_TARGET_MISSING', plan_key: activeKey });
+      unresolved.push({
+        ...target,
+        reason: declaredPlanId ? 'PLAN_ID_MISSING' : 'PLAN_TARGET_MISSING',
+        requested_plan_id: declaredPlanId,
+        plan_key: activeKey,
+      });
       continue;
     }
     const duplicates = (byPrefab.get(target.prefab) ?? []).length;

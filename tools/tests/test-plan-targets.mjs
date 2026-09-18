@@ -1,11 +1,15 @@
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import {
   DEFAULT_CONFIG,
   DEFAULT_PREVIEW_POLICY,
   PlanTargetError,
   assertScriptResolved,
+  createRunId,
   describePlan,
   loadTargets,
+  matchesPlannedBuilding,
   selectTargets,
 } from '../lib/plan-targets.mjs';
 import * as planTargets from '../lib/plan-targets.mjs';
@@ -70,6 +74,9 @@ for (const [planKey, expected] of Object.entries(EXPECTED)) {
 
   check(`${planKey} 每项都有坐标`,
     state.targets.every(target => Number.isFinite(target.position?.x) && Number.isFinite(target.position?.z)));
+  check(`${planKey} 每项按显式 plan_id 解析`,
+    state.targets.every(target => target.plan_id === target.plan_ids?.[planKey]),
+    state.targets.filter(target => target.plan_id !== target.plan_ids?.[planKey]).map(target => target.prefab).join(', '));
 
   for (const script of Object.keys(expected.counts)) {
     let threw = null;
@@ -89,8 +96,23 @@ check('每个 target 都声明了 plans',
   loaded.config.targets.every(target => Array.isArray(target.plans) && target.plans.length > 0));
 check('每个 target 都声明了 scripts',
   loaded.config.targets.every(target => Array.isArray(target.scripts) && target.scripts.length > 0));
+check('每个 target 对适用方案都声明了 plan_ids',
+  loaded.config.targets.every(target => target.plans.every(planKey => target.plan_ids?.[planKey])));
 check('每个 target 的 script 名都合法',
   loaded.config.targets.every(target => target.scripts.every(name => Object.hasOwn(loaded.scriptNames, name))));
+
+const fireTarget = loaded.targets.find(target => target.prefab === 'FireHouse02');
+check('重复 prefab 精确绑定中心消防站', fireTarget?.plan_id === 'service-fire-central', fireTarget?.plan_id);
+check('同 prefab 但远离目标的建筑不算已建',
+  !matchesPlannedBuilding(fireTarget, {
+    prefab: 'FireHouse02',
+    position: { x: -940.000061, z: 1243.75 },
+  }));
+check('目标坐标容差内的同 prefab 建筑算已建',
+  matchesPlannedBuilding(fireTarget, {
+    prefab: 'FireHouse02',
+    position: { x: fireTarget.position.x + 1, z: fireTarget.position.z + 1 },
+  }));
 
 const info = describePlan(loaded);
 check('describePlan 暴露方案与来源',
@@ -151,6 +173,12 @@ check('road_side 取值合法',
 check('清单里的策略块不含坐标',
   !JSON.stringify(loaded.config.preview_candidate_policy ?? {}).includes('position'));
 
+const runIdA = createRunId('planpreview');
+const runIdB = createRunId('planpreview');
+check('每次预览运行生成不同且 schema 合法的请求前缀',
+  runIdA !== runIdB && /^[A-Za-z0-9_-]{8,100}$/.test(runIdA) && /^[A-Za-z0-9_-]{8,100}$/.test(runIdB),
+  `${runIdA}, ${runIdB}`);
+
 let unknownKeyError = null;
 try {
   await loadTargets({ configPath: DEFAULT_CONFIG, planKey: 'does-not-exist' });
@@ -160,6 +188,24 @@ try {
 check('未知方案键报 PLAN_KEY_UNKNOWN',
   unknownKeyError instanceof PlanTargetError && unknownKeyError.code === 'PLAN_KEY_UNKNOWN',
   unknownKeyError ? `code=${unknownKeyError.code}` : '未抛错');
+
+const tempDirectory = await mkdtemp(path.join(tmpdir(), 'cityweaver-plan-targets-'));
+let strictIdState = null;
+try {
+  const brokenConfig = structuredClone(loaded.config);
+  brokenConfig.plans['public-services'].path = loaded.planPath;
+  brokenConfig.targets.find(target => target.prefab === 'FireHouse02')
+    .plan_ids['public-services'] = 'missing-fire-house-id';
+  const brokenConfigPath = path.join(tempDirectory, 'targets.json');
+  await writeFile(brokenConfigPath, JSON.stringify(brokenConfig), 'utf8');
+  strictIdState = await loadTargets({ configPath: brokenConfigPath, planKey: 'public-services' });
+} finally {
+  await rm(tempDirectory, { recursive: true, force: true });
+}
+check('显式 plan_id 缺失时不回落到同 prefab 第一项',
+  strictIdState.unresolved.some(target => target.prefab === 'FireHouse02'
+    && target.reason === 'PLAN_ID_MISSING')
+  && !strictIdState.targets.some(target => target.prefab === 'FireHouse02'));
 
 let missingError = null;
 try {

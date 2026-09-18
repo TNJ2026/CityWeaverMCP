@@ -3,6 +3,7 @@ import {
   assertScriptResolved,
   describePlanWithStamp,
   loadTargets,
+  matchesPlannedBuilding,
   parseArgs,
   runMain,
   selectTargets,
@@ -21,7 +22,7 @@ await runMain(async () => {
   });
 
   assertScriptResolved(loaded, 'verify');
-  const prefabs = selectTargets(loaded, 'verify').map(target => target.prefab);
+  const targets = selectTargets(loaded, 'verify');
 
   if (!loaded.bounds) throw new Error('规划文件里没有 bounds，无法确定验收范围。');
 
@@ -38,15 +39,34 @@ await runMain(async () => {
     }),
   ]);
 
-  const items = (buildings.data?.buildings ?? []).filter(item => prefabs.includes(item.prefab));
-  const foundPrefabs = new Set(items.map(item => item.prefab));
+  const allBuildings = buildings.data?.buildings ?? [];
+  const matches = targets.map(target => {
+    const candidates = allBuildings.filter(item => item.prefab === target.prefab).map(item => ({
+      item,
+      position_error_m: Math.hypot(
+        Number(item.position?.x) - Number(target.position?.x),
+        Number(item.position?.z) - Number(target.position?.z),
+      ),
+    })).sort((a, b) => a.position_error_m - b.position_error_m);
+    const nearest = candidates[0] ?? null;
+    return {
+      plan_id: target.plan_id,
+      prefab: target.prefab,
+      planned_position: target.position,
+      found: Boolean(nearest && matchesPlannedBuilding(target, nearest.item)),
+      nearest_position_error_m: nearest?.position_error_m ?? null,
+      building: nearest?.item ?? null,
+    };
+  });
 
   process.stdout.write(`${JSON.stringify({
     plan: await describePlanWithStamp(loaded),
     status: status.data,
     summary: summary.data,
-    expected_prefabs: prefabs,
-    missing_prefabs: prefabs.filter(prefab => !foundPrefabs.has(prefab)),
-    public_services: items,
+    expected_prefabs: targets.map(target => target.prefab),
+    missing_prefabs: matches.filter(item => !item.found).map(item => item.prefab),
+    expected_targets: matches.map(({ building, ...target }) => target),
+    missing_targets: matches.filter(item => !item.found).map(({ building, ...target }) => target),
+    public_services: matches.filter(item => item.found).map(item => item.building),
   }, null, 2)}\n`);
 });
