@@ -11,6 +11,7 @@ import {
   runMain,
   selectTargets,
 } from '../lib/plan-targets.mjs';
+import { describeSimulationSpeed, speedToRestore } from '../lib/simulation-speed.mjs';
 
 // 只读探针：为当前规划方案里指定的每座设施，在运行时向原生规划器现场请求候选，
 // 逐个试建原生临时预览，命中后立即取消，不留下永久实体。
@@ -19,6 +20,9 @@ import {
 // 因此没有「换存档后 ID 失效」这回事：本脚本永远跟随当前城市的路网拓扑。
 // 取候选的参数在 tools/presets/weford-public-services.json 的 preview_candidate_policy 里调。
 // 坐标只对清单里 expected_city 声明的那个城有效，城市不符会在取候选之前中止（CITY_MISMATCH）。
+//
+// 脚本会临时暂停城市（原生预览在暂停下更稳定），但**跑完一律还原**成进来时的速度，
+// 中途出错也还原；实际用的是哪个速度记在输出的 simulation 段里。
 //
 // 用法：node tools/scratch/preview-public-service-plan.mjs [--plan master] [--allow-city-mismatch]
 
@@ -54,7 +58,7 @@ async function waitFor(tool, operationId) {
 }
 
 // 按规划坐标向原生规划器要候选，剔除近似碰撞项，并按「离规划点多远 + 朝向差多少」排序。
-// 首次运行需要候选形态，因此这里只保留能直接喂给 preview 的三个字段。
+// 首次运行需要候选形态，因此这里只保留能直接喂给 preview 的字段。
 async function requestCandidates(target, policy) {
   const transport = target.domain === 'transport_facility';
   const response = await queryGame(plannerTool(target.domain), {
@@ -116,94 +120,122 @@ await runMain(async () => {
 
   assertCityMatches(loaded, status.data?.city_name, cityGuardOptions(args));
 
-  // 原生预览在暂停的城市上更稳定，沿用既有流程的做法。
-  await queryGame('set_simulation_speed', { speed: 'normal' });
-  await sleep(400);
-  await queryGame('set_simulation_speed', { speed: 'paused' });
-
-  const results = [];
-  let stopReason = null;
-
-  for (const target of targets) {
-    const tools = previewTools(target.domain);
-    let candidates = [];
-    let candidateError = null;
-    try {
-      candidates = await requestCandidates(target, policy);
-    } catch (error) {
-      candidateError = { code: error?.code ?? null, message: error?.message ?? String(error) };
-    }
-
-    const attempts = [];
-    let selected = null;
-    for (const [index, candidate] of candidates.slice(0, attemptLimit).entries()) {
-      const queued = await queryGame(tools.preview, {
-        request_id: `${runId}-${target.script_id}-${index + 1}`,
-        building_prefab: target.prefab,
-        position: candidate.position,
-        rotation_degrees: candidate.rotation_degrees,
-        road_edge_id: candidate.road_edge_id,
-      });
-      const operation = TERMINAL_STATES.includes(queued.data?.state)
-        ? queued.data
-        : await waitFor(tools.get, queued.data?.operation_id);
-      attempts.push({
-        candidate,
-        operation_id: operation.operation_id,
-        state: operation.state,
-        cost: operation.cost,
-        warnings: operation.warnings ?? [],
-        errors: operation.errors ?? [],
-        error: operation.error ?? null,
-      });
-      if (operation.state === 'preview_ready') {
-        await queryGame(tools.cancel, { operation_id: operation.operation_id });
-        selected = candidate;
-        break;
-      }
-      if (operation.state === 'outcome_unknown') break;
-    }
-
-    results.push({
-      prefab: target.prefab,
-      script_id: target.script_id,
-      domain: target.domain,
-      construction_status: target.construction_status,
-      planned: target.position,
-      candidate_count: candidates.length,
-      candidate_error: candidateError,
-      preview_ready: selected !== null,
-      selected,
-      attempts,
-    });
-
-    if (attempts.at(-1)?.state === 'outcome_unknown') {
-      stopReason = 'outcome_unknown';
-      break;
-    }
+  // 记下进来时的速度。还原放在 finally 里，跑完和中途出错都会执行，
+  // 否则脚本会把游戏静默留在暂停状态。跨会话实测过：不做这一步就得手工恢复。
+  const simulationBefore = describeSimulationSpeed(status.data);
+  const simulationRestore = speedToRestore(simulationBefore);
+  let speedChanged = false;
+  let speedRestored = false;
+  async function restoreSimulationSpeed() {
+    if (!speedChanged || speedRestored) return false;
+    await queryGame('set_simulation_speed', { speed: simulationRestore.speed });
+    speedRestored = true;
+    return true;
   }
 
-  const attemptsTotal = results.reduce((sum, item) => sum + item.attempts.length, 0);
-  // 命中的那次预览才带费用（取消后不扣款），用于对照规划预算。
-  const selectedCostTotal = results.reduce((sum, item) => {
-    const hit = item.attempts.find(attempt => attempt.state === 'preview_ready');
-    return sum + Number(hit?.cost ?? 0);
-  }, 0);
+  try {
+    // 原生预览在暂停的城市上更稳定，沿用既有流程的做法。
+    await queryGame('set_simulation_speed', { speed: 'normal' });
+    await sleep(400);
+    await queryGame('set_simulation_speed', { speed: 'paused' });
+    speedChanged = true;
 
-  process.stdout.write(`${JSON.stringify({
-    plan: await describePlanWithStamp(loaded),
-    run_id: runId,
-    policy,
-    city: status.data?.city_name,
-    session_id: status.meta?.session_id,
-    summary: {
-      targets: targets.length,
-      preview_ready: results.filter(item => item.preview_ready).length,
-      no_candidates: results.filter(item => item.attempts.length === 0).length,
-      attempts: attemptsTotal,
-      cost_of_selected: selectedCostTotal,
-      stop_reason: stopReason,
-    },
-    results,
-  }, null, 2)}\n`);
+    const results = [];
+    let stopReason = null;
+
+    for (const target of targets) {
+      const tools = previewTools(target.domain);
+      let candidates = [];
+      let candidateError = null;
+      try {
+        candidates = await requestCandidates(target, policy);
+      } catch (error) {
+        candidateError = { code: error?.code ?? null, message: error?.message ?? String(error) };
+      }
+
+      const attempts = [];
+      let selected = null;
+      for (const [index, candidate] of candidates.slice(0, attemptLimit).entries()) {
+        const queued = await queryGame(tools.preview, {
+          request_id: `${runId}-${target.script_id}-${index + 1}`,
+          building_prefab: target.prefab,
+          position: candidate.position,
+          rotation_degrees: candidate.rotation_degrees,
+          road_edge_id: candidate.road_edge_id,
+        });
+        const operation = TERMINAL_STATES.includes(queued.data?.state)
+          ? queued.data
+          : await waitFor(tools.get, queued.data?.operation_id);
+        attempts.push({
+          candidate,
+          operation_id: operation.operation_id,
+          state: operation.state,
+          cost: operation.cost,
+          warnings: operation.warnings ?? [],
+          errors: operation.errors ?? [],
+          error: operation.error ?? null,
+        });
+        if (operation.state === 'preview_ready') {
+          await queryGame(tools.cancel, { operation_id: operation.operation_id });
+          selected = candidate;
+          break;
+        }
+        if (operation.state === 'outcome_unknown') break;
+      }
+
+      results.push({
+        prefab: target.prefab,
+        script_id: target.script_id,
+        domain: target.domain,
+        construction_status: target.construction_status,
+        planned: target.position,
+        candidate_count: candidates.length,
+        candidate_error: candidateError,
+        preview_ready: selected !== null,
+        selected,
+        attempts,
+      });
+
+      if (attempts.at(-1)?.state === 'outcome_unknown') {
+        stopReason = 'outcome_unknown';
+        break;
+      }
+    }
+
+    const attemptsTotal = results.reduce((sum, item) => sum + item.attempts.length, 0);
+    // 命中的那次预览才带费用（取消后不扣款），用于对照规划预算。
+    const selectedCostTotal = results.reduce((sum, item) => {
+      const hit = item.attempts.find(attempt => attempt.state === 'preview_ready');
+      return sum + Number(hit?.cost ?? 0);
+    }, 0);
+
+    // 先还原再输出，这样输出里的 restored 是既成事实而不是预期。
+    await restoreSimulationSpeed();
+
+    process.stdout.write(`${JSON.stringify({
+      plan: await describePlanWithStamp(loaded),
+      run_id: runId,
+      policy,
+      city: status.data?.city_name,
+      session_id: status.meta?.session_id,
+      simulation: {
+        before: simulationBefore,
+        restore_speed: simulationRestore.speed,
+        restored: speedRestored,
+        restore_fallback: simulationRestore.fallback,
+        unknown_code: simulationRestore.unknown_code,
+      },
+      summary: {
+        targets: targets.length,
+        preview_ready: results.filter(item => item.preview_ready).length,
+        no_candidates: results.filter(item => item.attempts.length === 0).length,
+        attempts: attemptsTotal,
+        cost_of_selected: selectedCostTotal,
+        stop_reason: stopReason,
+      },
+      results,
+    }, null, 2)}\n`);
+  } finally {
+    await restoreSimulationSpeed();
+  }
 });

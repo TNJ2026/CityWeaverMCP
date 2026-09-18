@@ -15,6 +15,11 @@ import {
   selectTargets,
 } from '../lib/plan-targets.mjs';
 import * as planTargets from '../lib/plan-targets.mjs';
+import {
+  SIMULATION_SPEEDS,
+  describeSimulationSpeed,
+  speedToRestore,
+} from '../lib/simulation-speed.mjs';
 
 const EXPECTED = {
   'public-services': {
@@ -301,6 +306,52 @@ check('build 的城市闸门排在任何写入动作之前',
   < scratchSources['build-public-services-from-plan'].indexOf('prepareCityPlanConstruction('));
 check('清单文本声明了 expected_city',
   (await readFile(loaded.configPath, 'utf8')).includes('"expected_city"'));
+
+process.stdout.write('\n--- 模拟速度：数字索引不是 0/1/2/3 ---\n');
+check('实测映射覆盖 4 档速度', SIMULATION_SPEEDS.length === 4);
+check('fastest 的索引是 4 而不是 3（实测值，写成 3 会静默降速）',
+  SIMULATION_SPEEDS.find(entry => entry.speed === 'fastest')?.code === 4);
+check('paused 的索引是 0 且 paused 为真',
+  SIMULATION_SPEEDS.find(entry => entry.speed === 'paused')?.code === 0
+  && SIMULATION_SPEEDS.find(entry => entry.speed === 'paused')?.paused === true);
+
+// 每一档都要能「读出来再还原回去」。这条是核心回归防线：
+// 如果哪天有人把映射改成 0/1/2/3，fastest 会被还原成 fast，这里立刻挂。
+for (const entry of SIMULATION_SPEEDS) {
+  const described = describeSimulationSpeed({ paused: entry.paused, selected_speed: entry.code });
+  const restore = speedToRestore(described);
+  check(`${entry.speed} 读出来再还原仍是 ${entry.speed}`,
+    described.speed === entry.speed
+    && described.paused === entry.paused
+    && restore.speed === entry.speed
+    && restore.fallback === false,
+    `读出 ${described.speed} / 还原 ${restore.speed}`);
+}
+
+check('未知索引不假装认识（3 不是合法速度）',
+  describeSimulationSpeed({ paused: false, selected_speed: 3 }).speed === null);
+check('速度字段缺失时不崩',
+  describeSimulationSpeed({ paused: false }).code === null
+  && describeSimulationSpeed({ paused: false }).speed === null);
+check('未知索引还原到 normal 并标记 fallback，不谎报精确还原',
+  speedToRestore(describeSimulationSpeed({ paused: false, selected_speed: 3 })).speed === 'normal'
+  && speedToRestore(describeSimulationSpeed({ paused: false, selected_speed: 3 })).fallback === true
+  && speedToRestore(describeSimulationSpeed({ paused: false, selected_speed: 3 })).unknown_code === 3);
+check('暂停优先于数字：paused 为真时即使数字缺失也还原成 paused',
+  speedToRestore({ paused: true, code: null, speed: null }).speed === 'paused');
+
+process.stdout.write('\n--- preview 脚本会还原它自己改过的模拟速度 ---\n');
+const previewSource = scratchSources['preview-public-service-plan'];
+check('preview 用共享的速度模块，不自己抄一份映射',
+  previewSource.includes("from '../lib/simulation-speed.mjs'")
+  && !previewSource.includes('selected_speed === 4'));
+check('preview 的还原写在 finally 里（中途出错也还原）',
+  previewSource.includes('finally')
+  && (previewSource.match(/restoreSimulationSpeed\(\)/g) ?? []).length >= 2,
+  `restore 调用 ${(previewSource.match(/restoreSimulationSpeed\(\)/g) ?? []).length} 次`);
+check('preview 输出里报告了还原结果',
+  previewSource.includes('restored:')
+  && previewSource.includes('restore_speed:'));
 
 if (failures > 0) {
   process.stdout.write(`\n${failures} 项失败\n`);
