@@ -52,6 +52,7 @@ node road-operation.mjs cancel OPERATION_ID
 - 轮询间隔可用约 0.5–1 秒，每轮等候保持有界。超出一轮等待时间只说明尚未得到终态，不能据此判断未应用。
 - 提交调用（`apply_building_operation`、`apply_city_service_operation`、`build_road` 等）必须提供合法的 **`request_id`**（8..100 字符，符合正则 `^[A-Za-z0-9_-]+$`）以及 `operation_id`，否则会引发 `INVALID_ARGUMENT` 报错。
 - 模拟速度控制使用 `set_simulation_speed`，其参数必须为全小写字符串枚举：`{ speed: "paused" | "normal" | "fast" | "fastest" }`，不得使用大写、数字或 `simulation_speed` 字段。
+- 回读速度用 `get_game_status` 的 `paused` 与 `selected_speed`。**`selected_speed` 的数字不是枚举下标**：实测 `paused` = 0、`normal` = 1、`fast` = 2、`fastest` = **4**（跳过 3）。按 0/1/2/3 反推会把 `fastest` 读成 `fast`，导致脚本「还原」速度时静默降速。改过速度的脚本必须还原，`tools/lib/simulation-speed.mjs` 是这一映射在 tools 层的单一来源，并带离线断言。
 - 原生工具切换防护：连续执行不同类型的写操作或预览时，若游戏保持完全暂停，游戏可能停留在上一工具状态报错 `TOOL_BUSY`。在切换工具间歇，可调用 `{ speed: "normal" }` 让游戏推进 200~500ms 后再次暂停，以促使原生系统安全释放并重置为 `DefaultToolSystem`。
 - 提交前错误、锁定、资金不足、原值冲突需要处理原因。费用上限不可为绕过校验而随意放大。
 - 成功后读回永久对象、位置、政策或金额；观察到的数量与 API 实体计数口径一致。网络拆分/合并、地形变化、灾害影响应按实际返回结果解释。
