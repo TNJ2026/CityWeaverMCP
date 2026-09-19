@@ -32,6 +32,7 @@
 1. 用 `list_city_service_prefabs` 按 `kind` 和名称筛选预设。默认只列出当前已解锁预设。
 2. 用 `plan_city_service_site` 指定 `building_prefab`、邻近坐标、搜索半径和候选数量。
 3. 规划器按预设的原生放置规则选择道路侧、道路边、道路节点、岸线或水面候选。返回候选不等于最终可放置；原生工具会在预览阶段检查碰撞、地形、道路连接和专用限制。
+4. 需要道路入口的候选必须执行[建筑指南的“道路绑定硬门禁”](../buildings/BUILDING-GUIDE.md#道路绑定硬门禁)：原样使用候选的 `position`、`rotation_degrees` 和 `road_edge_id`/`snap_target_id`，提交后回读永久实体的 `Game.Buildings.Building.m_RoadEdge`。只看建筑靠近道路、覆盖范围或 operation=`completed` 均不合格。
 
 ### 分散还是集中
 

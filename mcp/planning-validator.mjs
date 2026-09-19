@@ -1,3 +1,5 @@
+import { analyzePlanGridUsage } from './grid-eligibility.mjs';
+
 const finite = value => Number.isFinite(Number(value)) ? Number(value) : 0;
 
 function expandForValidation(planInput) {
@@ -115,6 +117,8 @@ export function validateCityPlan(snapshotInput, planInput, boundsInput) {
   const allowed = point => ownedBounds.length ? ownedBounds.some(tile => pointInBounds(point, tile)) : pointInBounds(point, bounds);
   const issues = [];
 
+  issues.push(...analyzePlanGridUsage(planInput).issues);
+
   const checkPoints = (items, layer, field) => {
     for (const item of items) {
       const points = item[field] ?? [];
@@ -131,6 +135,16 @@ export function validateCityPlan(snapshotInput, planInput, boundsInput) {
   checkPoints(plan.utilities, 'utilities', 'points');
 
   const buildingBoxes = plan.buildings.map(building => ({ building, corners: buildingCorners(building) }));
+  for (const building of plan.buildings) {
+    const unresolved = (building.prefab && building.rotation_degrees == null) || building.rotation_source === 'unresolved' || building.placement_status === 'conceptual';
+    if (!unresolved) continue;
+    issues.push({
+      code: 'BUILDING_ROTATION_UNRESOLVED', severity: building.prefab ? 'error' : 'warning', layer: 'buildings', object_id: building.id,
+      message: building.prefab
+        ? '已绑定 prefab 的规划建筑尚未解析可施工角度；施工前必须执行道路/网络候选绑定。'
+        : '概念建筑尚未绑定精确 prefab、道路和摆放角度。',
+    });
+  }
   for (const { building, corners } of buildingBoxes) if (corners.some(point => !allowed(point))) issues.push({
     code: 'OUTSIDE_PURCHASED_AREA', severity: 'error', layer: 'buildings', object_id: building.id,
     message: '规划建筑占地超出当前已购区域。',
@@ -149,6 +163,7 @@ export function validateCityPlan(snapshotInput, planInput, boundsInput) {
   }
 
   for (const { building } of buildingBoxes) for (const road of plan.roads) {
+    if (building.construction_status === 'built' || building.construction_status === 'completed') continue;
     if (!roadCrossesBuilding(road, building)) continue;
     issues.push({
       code: 'PLANNED_BUILDING_ROAD_OVERLAP', severity: 'warning', layer: 'buildings', object_id: building.id,

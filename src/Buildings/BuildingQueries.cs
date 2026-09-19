@@ -335,6 +335,7 @@ namespace CityWeaver
                 }
             }
             return new JObject { ["building_id"] = new BuildingOperation { Session = m_Session }.EntityId(entity), ["custom_name"] = customName,
+                ["road_edge_id"] = OptionalEntity(m_Session, building.m_RoadEdge),
                 ["active"] = !BuildingUtils.CheckOption(building, BuildingOption.Inactive),
                 ["can_change_active"] = em.HasComponent<Game.City.CityServiceUpkeep>(entity) && em.HasBuffer<Efficiency>(entity), ["policies"] = policies };
         }

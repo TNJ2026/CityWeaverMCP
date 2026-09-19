@@ -57,6 +57,7 @@ node road-operation.mjs cancel OPERATION_ID
 - 提交前错误、锁定、资金不足、原值冲突需要处理原因。费用上限不可为绕过校验而随意放大。
 - 成功后读回永久对象、位置、政策或金额；观察到的数量与 API 实体计数口径一致。网络拆分/合并、地形变化、灾害影响应按实际返回结果解释。
 - 对用户报告已完成、部分完成、失败或结果未知，并提供足以继续查询的 operation ID；不把计划或预览写成已完成。
+- 任何需要道路入口或道路侧放置的建筑，在 operation=`completed` 后仍必须按[建筑指南的“道路绑定硬门禁”](../guides/buildings/BUILDING-GUIDE.md#道路绑定硬门禁)回读永久实体的 `Game.Buildings.Building.m_RoadEdge`。`m_RoadEdge=null`、道路引用失效或道路类型不兼容都属于施工失败；不能用“建筑靠近道路”或相同坐标 move 的完成状态代替绑定证据。
 
 ### MCP 关键参数规范与实战避坑
 
@@ -79,6 +80,7 @@ node road-operation.mjs cancel OPERATION_ID
 | `RESPONSE_TOO_LARGE` | 缩小实体 limit、组件数或 buffer_limit，按返回游标分页 |
 | `outcome_unknown` | 停止提交，核验原事务及实际状态；无法判定则明确报告未知 |
 | `GAME_REJECTED_BUILDING` | 原生引擎拒绝建筑落位。检查候选是否紧贴交叉路口（< 32 米）或路段过短。在脚本中执行候选列表的遍历回退（fallback）循环，尝试下一候选点 |
+| operation=`completed` 但 `m_RoadEdge=null` | 道路绑定验收失败。停止依赖该建筑的后续写入，查询原 operation 和永久实体；重新规划精确道路候选，必要时补建普通临路支路或在授权范围内拆除重建，并重新执行 preview。不要在同坐标 move 或更换 `request_id` 后直接宣称成功 |
 | `TOOL_BUSY` | 原生工具系统尚未重置。短暂恢复模拟速度（`normal` 推进 200~500ms）后重新暂停即可释放 |
 
 ## 验证与维护

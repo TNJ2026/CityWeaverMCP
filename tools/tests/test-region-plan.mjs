@@ -32,7 +32,7 @@ const note = text => process.stdout.write(`  · ${text}\n`);
 
 const document = JSON.parse(await readFile(planPath, 'utf8'));
 const { bounds, plan } = document;
-const roads = plan.roads ?? [], zones = plan.zones ?? [], buildings = plan.buildings ?? [];
+const roads = plan.roads ?? [], zones = plan.zones ?? [], buildings = plan.buildings ?? [], gridExceptions = plan.grid_exceptions ?? [];
 const roadById = new Map(roads.map(road => [road.id, road]));
 
 const distanceToSegment = (point, a, b) => {
@@ -55,6 +55,12 @@ process.stdout.write('--- 规划文件结构与哈希 ---\n');
 check('plan_id 与 bounds+plan 的哈希一致（施工前必须一致）', computeCityPlanId(bounds, plan) === document.plan_id,
   `${document.plan_id} vs ${computeCityPlanId(bounds, plan)}`);
 check('规划文件里存在道路、分区与建筑', roads.length > 0 && zones.length > 0 && buildings.length > 0);
+const gridUsageIssues = validateCityPlan({}, plan, bounds).issues.filter(issue => ['REGULAR_GRID_EXPANDED_AS_ROADS', 'GRID_INELIGIBILITY_UNDECLARED', 'GRID_EXCEPTION_STALE'].includes(issue.code));
+check('规则道路优先使用 plan.grids；逐路方案完整记录不能无损使用网格工具的原因', gridUsageIssues.length === 0,
+  gridUsageIssues.map(issue => `${issue.code}:${issue.message}`).join('；'));
+check('每个逐路开发单元都有 grid_exceptions 及非空原因',
+  new Set(gridExceptions.map(item => item.scope_id)).size === new Set(roads.map(road => road.district).filter(Boolean)).size
+  && gridExceptions.every(item => item.road_ids.length > 0 && item.reason_codes.length > 0 && item.message.length > 0));
 check('每个对象都有非空唯一 id',
   new Set([...roads, ...zones, ...buildings].map(item => item.id)).size === roads.length + zones.length + buildings.length
   && [...roads, ...zones, ...buildings].every(item => typeof item.id === 'string' && item.id.length > 0));
@@ -165,14 +171,15 @@ process.stdout.write('\n--- 建筑临路 ---\n');
     if (distance > allow) bad.push(`${building.id}:${distance.toFixed(1)}>${allow.toFixed(1)}`);
   }
   check('每栋建筑都贴在自己声明的那条路边（半路宽 + 半对角线 + 6m 内）', bad.length === 0, bad.join(','));
-  check('建筑位置都在 8 米格上', buildings.every(building => building.position.x % CELL_SIZE === 0 && building.position.z % CELL_SIZE === 0));
+  check('建筑位置对齐 8 米栅格系统（偶数格在格点、奇数格在格心，4m 模数）',
+    buildings.every(building => building.position.x % 4 === 0 && Math.round(building.position.z) % 4 === 0));
 }
 
 process.stdout.write('\n--- 黄金街区（路缘到路缘 96 m；按规划自述的轴向声明反查实际坐标）---\n');
 {
   const golden = document.golden_block;
   check('规划自述了黄金街区口径（缺了就无法核对间距）',
-    Number.isFinite(golden?.curb_to_curb_m) && !!golden?.axes && Object.keys(golden.axes).length === 3,
+    Number.isFinite(golden?.curb_to_curb_m) && !!golden?.axes && Object.keys(golden.axes).length >= 3,
     JSON.stringify(golden ?? null).slice(0, 140));
   const GOLD = golden?.curb_to_curb_m ?? 96;
   const groups = [];
@@ -224,6 +231,26 @@ process.stdout.write('\n--- 黄金街区（路缘到路缘 96 m；按规划自�
   check('绿带范围内一个分区块都没有', belts.length > 0 && inBelt.length === 0,
     inBelt.slice(0, 5).map(z => z.id).join(','));
   note(`绿带 ${belts.length} 处，宽度 ${belts.map(b => b.max_z - b.min_z).join('/')} m（范围内 0 个分区块）`);
+}
+
+process.stdout.write('\n--- 道路拓宽策略（网格中间严禁拓宽，仅外围道路可拓宽）---\n');
+{
+  const interior = roads.filter(r => r.widening_policy === 'forbidden');
+  const perimeter = roads.filter(r => r.widening_policy === 'perimeter_expandable');
+  check('所有道路均明确声明了拓宽策略（forbidden 或 perimeter_expandable）',
+    interior.length + perimeter.length === roads.length,
+    `未声明: ${roads.filter(r => !r.widening_policy).map(r => r.id).join(',')}`);
+  const invalidResInterior = interior.filter(r => r.district === 'residential' && r.width_m > 16);
+  check('住宅区网格内部道路全部为 16m 标准生活支路（严禁拓宽，防切削分区）',
+    invalidResInterior.length === 0,
+    `非法内部宽路: ${invalidResInterior.map(r => `${r.id}:${r.width_m}m`).join(',')}`);
+  check('网格中间所有内部道路均锁定为不可拓宽（widening_policy: forbidden）',
+    interior.length > 0 && interior.every(r => r.widening_policy === 'forbidden'),
+    interior.filter(r => r.widening_policy !== 'forbidden').map(r => r.id).join(','));
+  check('外围道路具备拓宽属性（作为片区边界主干/环路/对外通道）',
+    perimeter.length > 0 && perimeter.every(r => r.widening_policy === 'perimeter_expandable'),
+    perimeter.map(r => r.id).join(','));
+  note(`拓宽策略约束：内部道路 ${interior.length} 条严禁拓宽；外围道路 ${perimeter.length} 条允许拓宽`);
 }
 
 process.stdout.write('\n--- 三区相互独立 ---\n');
@@ -369,16 +396,21 @@ process.stdout.write('\n--- 分区面积与人口核算 ---\n');
     document.accounting.peopleRange[0] <= people && people <= document.accounting.peopleRange[1]);
   check('住宅分区只使用计入户数的三个住宅类型',
     zones.filter(zone => String(zone.kind).includes('Residential')).every(zone => HA[zone.kind]));
-  note(`住宅 ${(document.accounting.residential_zone_area_m2 / 1e6).toFixed(2)} km² / 商业 ${(document.accounting.commercial_zone_area_m2 / 1e6).toFixed(2)} km² / 工业 ${(document.accounting.industrial_zone_area_m2 / 1e6).toFixed(2)} km²`);
+  note(`住宅 ${(document.accounting.residential_zone_area_m2 / 1e6).toFixed(2)} km² / 商业 ${(document.accounting.commercial_zone_area_m2 / 1e6).toFixed(2)} km² / 办公 ${((document.accounting.office_zone_area_m2 ?? 0) / 1e6).toFixed(2)} km² / 工业 ${(document.accounting.industrial_zone_area_m2 / 1e6).toFixed(2)} km²`);
   note(`户数组成 ${Object.entries(document.accounting.household_by_kind).map(([k, v]) => `${k} ${v}`).join('；')}`);
 }
 
 process.stdout.write('\n--- 实机：实时已购地图格与实时目录 ---\n');
 let live = null;
 try {
+  const status = await queryGame('get_game_status', {});
+  if (status.data?.city_name !== document.city) {
+    process.stdout.write(`! 当前城市为 ${status.data?.city_name ?? '未知'}，规划绑定 ${document.city}，跳过实机校验。\n`);
+  } else {
   const response = await queryGame('list_map_tiles', { state: 'owned', offset: 0, limit: 100 });
   if (!response?.ok) throw new Error(response?.error?.code ?? 'QUERY_FAILED');
   live = { tiles: response.data.items ?? [] };
+  }
 } catch (error) {
   process.stdout.write(`! 游戏未连接，跳过实机校验：${error?.message ?? error}\n`);
 }

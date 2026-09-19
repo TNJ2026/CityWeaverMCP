@@ -143,14 +143,18 @@ function renderBuilding(item, project, planned) {
   const zonedKinds = new Set(['residential', 'commercial', 'industrial', 'office']);
   const isZonedBuilding = zonedKinds.has(String(item.kind ?? '').toLowerCase());
   const removalCandidate = item.recommended_action === 'remove';
-  const color = removalCandidate ? '#64748b' : (isZonedBuilding ? zoneColor(item.kind) : COLORS.service); const rotation = -finite(item.rotation_degrees);
+  const placementStatus = String(item.placement_status ?? (item.planning_status === 'conceptual' ? 'conceptual' : '')).toLowerCase();
+  const placementColor = placementStatus === 'native_preview_verified' || placementStatus === 'permanent_verified' ? '#16a34a'
+    : placementStatus === 'candidate_bound' || placementStatus === 'preview_ready' ? '#f59e0b'
+      : placementStatus === 'failed' ? '#dc2626' : placementStatus === 'conceptual' ? '#64748b' : COLORS.service;
+  const color = removalCandidate ? '#64748b' : (isZonedBuilding ? zoneColor(item.kind) : placementColor); const rotation = -finite(item.rotation_degrees);
   const kindLabels = { residential: '住宅建筑', commercial: '商业建筑', industrial: '工业建筑', office: '办公建筑', service: '公共服务建筑', power: '电力设施', water: '水务设施', education: '教育设施', healthcare: '医疗设施', transport: '交通设施', building: '建筑' };
   const label = item.name ?? item.label ?? item.prefab_name ?? item.prefab ?? kindLabels[String(item.kind ?? '').toLowerCase()] ?? '建筑';
   const status = planned ? 'planned' : 'existing';
   const fill = isZonedBuilding ? color : 'none';
   const stroke = isZonedBuilding ? '#334155' : color;
   const footprintClass = isZonedBuilding ? 'zoned-footprint' : 'exact-hollow-footprint';
-  return `<g class="${status} building ${classToken(item.kind)} ${footprintClass}${removalCandidate ? ' removal-candidate' : ''}" data-plan-object="true" data-layer="buildings" data-status="${status}" data-kind="${escapeXml(item.kind ?? 'building')}" data-category="${escapeXml(item.category ?? '')}" data-object-id="${escapeXml(item.id ?? '')}" data-width-m="${widthMeters}" data-depth-m="${heightMeters}"${removalCandidate ? ' data-recommended-action="remove"' : ''} aria-label="${escapeXml(label)}" tabindex="0" transform="translate(${center.x.toFixed(2)} ${center.y.toFixed(2)})"><g class="building-footprint-geometry" transform="rotate(${rotation.toFixed(2)})"><rect x="${(-width / 2).toFixed(4)}" y="${(-height / 2).toFixed(4)}" width="${width.toFixed(4)}" height="${height.toFixed(4)}" rx="${isZonedBuilding ? 1.5 : 0}" fill="${fill}" stroke="${stroke}" stroke-width=".35"/></g><title>${escapeXml(label)}</title></g>`;
+  return `<g class="${status} building ${classToken(item.kind)} ${footprintClass}${removalCandidate ? ' removal-candidate' : ''}" data-plan-object="true" data-layer="buildings" data-status="${status}" data-kind="${escapeXml(item.kind ?? 'building')}" data-category="${escapeXml(item.category ?? '')}" data-object-id="${escapeXml(item.id ?? '')}" data-width-m="${widthMeters}" data-depth-m="${heightMeters}" data-placement-status="${escapeXml(placementStatus)}" data-rotation-source="${escapeXml(item.rotation_source ?? '')}" data-rotation-degrees="${escapeXml(item.rotation_degrees ?? '')}" data-road-edge-id="${escapeXml(item.road_edge_id ?? '')}"${removalCandidate ? ' data-recommended-action="remove"' : ''} aria-label="${escapeXml(label)}" tabindex="0" transform="translate(${center.x.toFixed(2)} ${center.y.toFixed(2)})"><g class="building-footprint-geometry" transform="rotate(${rotation.toFixed(2)})"><rect x="${(-width / 2).toFixed(4)}" y="${(-height / 2).toFixed(4)}" width="${width.toFixed(4)}" height="${height.toFixed(4)}" rx="${isZonedBuilding ? 1.5 : 0}" fill="${fill}" stroke="${stroke}" stroke-width=".35"/></g><title>${escapeXml(label)}</title></g>`;
 }
 
 function renderBuildingLabel(item, project) {

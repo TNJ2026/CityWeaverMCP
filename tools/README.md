@@ -53,13 +53,13 @@ node tools/survey-space.mjs --auto-find industrial --anchor -1138,528 --mode qui
 
 ## 街区部署：`deploy-district.mjs`
 
-该脚本会修改当前城市。只有用户明确要求建设时才能运行。它记录原模拟速度，失败时尝试恢复；成功时使用 `resume_speed`，默认设为 `fastest`。
+该脚本会创建游戏原生道路预览；默认 `approval_mode=staged` 在 `preview_ready` 停止，不产生永久对象。只有用户明确授权建设并传入 `approval_mode=automatic`（CLI 为 `--automatic`）时才继续提交道路、可选分区和建筑。它记录原模拟速度，预览模式或失败时恢复原速度；自动施工成功时使用 `resume_speed`。
 
 ### 用法
 
 ```powershell
-node tools/deploy-district.mjs --archetype residential_suburban_3x2 --origin -2000,544
-node tools/deploy-district.mjs --origin -2000,544 --cols 3 --rows 2 --zone residential_low --survey-mode full
+node tools/deploy-district.mjs --archetype residential_suburban_3x2 --origin -2000,544 --road "Exact Road Prefab" --zone "Exact Zone Prefab"
+node tools/deploy-district.mjs --origin -2000,544 --cols 3 --rows 2 --road "Exact Road Prefab" --zone "Exact Zone Prefab" --survey-mode full
 node tools/deploy-district.mjs --config tools/district-template.json --verbose
 ```
 
@@ -67,15 +67,17 @@ node tools/deploy-district.mjs --config tools/district-template.json --verbose
 
 | 参数 | 输入 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `--archetype NAME` | 预设键 | 无 | 载入 `presets/district-archetypes.json` 中的街区预设 |
+| `--archetype NAME` | 预设键 | 无 | 只载入 `presets/district-archetypes.json` 中的几何与选址建议；仍须传入实时发现的道路/分区 prefab |
 | `--config PATH` | JSON 文件 | 无 | 载入完整配置；与 archetype 同用时覆盖预设。使用 config 后其他配置型 CLI 参数不会再覆盖 JSON |
+| `--request-id ID` | 稳定字符串 | 按完整参数确定性派生 | 同一逻辑重试复用；相同 ID 搭配不同参数会被拒绝 |
+| `--automatic` | 开关 | 关闭 | 明确授权预览通过后自动连续提交；省略时只产生道路预览 |
 | `--origin X,Z` | 两个数值 | 必填 | 网格西南角，吸附到 8 米网格 |
 | `--cols N` | 整数 | `3` | 街区列数；当前 `preview_road_grid` 的有效范围为 1–5 |
 | `--rows N` | 整数 | `3` | 街区行数；当前 `preview_road_grid` 的有效范围为 1–5 |
 | `--block-w M` | 米 | `96` | 单块宽度，必须是 8 米整数倍 |
 | `--block-h M` | 米 | `96` | 单块高度，必须是 8 米整数倍 |
-| `--road NAME` | prefab 名 | `Small Road` | 默认道路 prefab；应先从当前城市发现精确名称 |
-| `--zone TYPE` | 通用键或精确 prefab | 无 | 如 `residential_low`、`commercial_low`、`industrial`；通用键按城市主题映射 |
+| `--road NAME` | prefab 名 | 必填 | 从当前城市发现的精确道路 prefab 名称 |
+| `--zone TYPE` | 精确 prefab | 无 | 从当前城市 `list_zone_types` 返回值中选择；不翻译通用别名 |
 | `--survey-mode MODE` | `full` 或 `quick` | `full` | 建设前勘察模式；`quick` 仍依赖原生 preview 做最终碰撞校验 |
 | `--building-prefab NAME` | 精确 prefab | 无 | 在新道路旁批量规划并放置该建筑 |
 | `--building-count N` | 整数 | `32` | 建筑批次上限，最终数量取决于有效候选 |
@@ -91,6 +93,7 @@ CLI 只暴露常用参数。`--config` 或模块调用 `deployDistrict(options)`
 
 | 字段 | 说明 |
 | --- | --- |
+| `request_id`、`approval_mode` | 稳定工作流 ID；`staged` 只预览，`automatic` 才连续提交 |
 | `horizontal_road_prefab`、`vertical_road_prefab`、`perimeter_road_prefab` | 分别指定横向、纵向和外围道路 |
 | `auto_connect`、`connection_sides`、`connection_search_radius_m` | 自动搜索现有道路连接及方向、范围 |
 | `connection_road_prefab`、`minimum_connections`、`maximum_connections` | 连接道路类型与要求连接数量 |
@@ -130,7 +133,7 @@ node tools/launcher-cdp.mjs ignore-warning
 ## 支持文件
 
 - `lib/physics-rules.mjs`：内部几何规则库，不是 CLI。导出网格/道路常量，以及 `snapToCell`、`snapPoint`、`horizontalDistance`、`calculateGrade`、`validateRoadSegment`、`subdivideRoute`、`calculateGridFootprint`、`checkAABBOverlap`、`evaluateWindRelationship`、`calculateSafeIndustrialLocation` 和 `validateDistrictConfig`。
-- `presets/district-archetypes.json`：正式街区预设，当前包含低密住宅 `3x2`、商业 `3x3`、工业 `3x2` 和中密住宅 `4x3`。预设值是规划起点，prefab 和适用性仍需实时验证。
+- `presets/district-archetypes.json`：正式街区几何预设，当前包含低密住宅 `3x2`、商业 `3x3`、工业 `3x2` 和中密住宅 `4x3`。为避免跨主题猜名，预设不保存道路或分区 prefab；调用时必须实时发现并显式提供。
 - `lib/plan-targets.mjs`：规划目标解析库，不是 CLI。导出 `loadTargets`、`selectTargets`、`describePlan`、`describePlanWithStamp`、`assertScriptResolved`、`assertCityMatches`、`cityGuardOptions`、`matchesPlannedBuilding`、`createRunId`、`parseArgs`、`PlanTargetError`、`DEFAULT_PREVIEW_POLICY`，以及统一失败处理的 `formatFailure`、`runMain`。
 - `presets/weford-public-services.json`：Weford 公共服务施工的唯一权威目标清单。用命名方案（`public-services` / `master`）指向仓库根 `plans/` 下两套坐标不通用的规划文件；每个目标用 `plans` 声明归属、用 `plan_ids` 绑定各方案中的唯一建筑、用 `scripts` 声明参与哪些脚本。清单里不保存任何坐标、路网 ID 或会话 ID：坐标从规划文件解析，原生候选由 `preview` 脚本在运行时现场请求，取候选参数放在 `preview_candidate_policy`。顶层 `expected_city` 声明这些坐标属于哪个城市，各脚本启动时比对当前城市，不符即中止。
 - `lib/simulation-speed.mjs`：模拟速度的状态捕获与还原，不是 CLI。导出 `SIMULATION_SPEEDS`、`describeSimulationSpeed`、`speedToRestore`。记录一条实测事实：`set_simulation_speed` 收字符串枚举，而 `get_game_status` 报的数字索引**不是** 0/1/2/3 —— `fastest` 是 4。脚本改过速度就必须用这里还原，不要再抄一份映射。

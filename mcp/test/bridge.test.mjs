@@ -139,7 +139,7 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   t.after(() => client.close());
   await client.connect(transport);
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 353);
+  assert.equal(tools.length, 354);
   assert(tools.some(tool => tool.name === 'get_camera_view'), 'camera viewport query tool is registered');
   assert(tools.some(tool => tool.name === 'capture_game_view'), 'game-window screenshot tool is registered');
   assert(tools.some(tool => tool.name === 'focus_camera'), 'smooth camera focus tool is registered');
@@ -147,6 +147,7 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   assert.deepEqual((await client.callTool({ name: 'focus_camera', arguments: focus })).structuredContent.data.args, focus);
   assert(tools.some(tool => tool.name === 'get_planning_map_snapshot'), 'planning geometry snapshot tool is registered');
   assert(tools.some(tool => tool.name === 'render_city_plan'), 'static city-plan webpage renderer is registered');
+  assert(tools.some(tool => tool.name === 'bind_city_plan_buildings'), 'city-plan building angle and road binder is registered');
   assert(tools.some(tool => tool.name === 'propose_grid_plan'), 'read-only grid-plan proposer is registered');
   assert(tools.some(tool => tool.name === 'propose_city_plan'), 'read-only multilayer city-plan proposer is registered');
   const renderedPlan = await client.callTool({ name: 'render_city_plan', arguments: {
@@ -165,6 +166,11 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   assert.equal(interactivePlan.isError, false);
   assert(interactivePlan.content.some(item => item.type === 'resource' && item.resource.mimeType === 'text/html'));
   assert(tools.some(tool => tool.name === 'deploy_grid_district'), 'high-level grid deployment tool is registered');
+  const gridDeployment = tools.find(tool => tool.name === 'deploy_grid_district');
+  assert(gridDeployment.inputSchema.required.includes('request_id'), 'grid deployment requires a stable workflow request id');
+  assert.deepEqual(gridDeployment.inputSchema.properties.approval_mode.enum, ['staged', 'automatic']);
+  assert.equal(gridDeployment.inputSchema.properties.approval_mode.default, 'staged');
+  assert(gridDeployment.inputSchema.required.includes('road_prefab'), 'grid deployment requires a discovered exact road prefab');
   assert(tools.some(tool => tool.name === 'prepare_grid_native_preview'), 'road-only native grid preflight tool is registered');
   assert(tools.some(tool => tool.name === 'advance_grid_construction'), 'staged post-preview grid construction tool is registered');
   assert(tools.some(tool => tool.name === 'prepare_city_plan_construction'), 'approved rendered-plan compiler is registered');
@@ -175,6 +181,9 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   for (const name of ['deploy_service_cluster', 'deploy_industrial_campus', 'deploy_transit_corridor']) {
     assert(tools.some(tool => tool.name === name), `${name} is registered`);
   }
+  const industrialCampus = tools.find(tool => tool.name === 'deploy_industrial_campus');
+  assert(industrialCampus.inputSchema.properties.district.required.includes('road_prefab'));
+  assert(industrialCampus.inputSchema.properties.district.required.includes('zone_type'));
   for (const name of ['list_building_areas', 'preview_building_area', 'get_building_area_operation', 'apply_building_area_operation', 'cancel_building_area_preview']) {
     assert(tools.some(tool => tool.name === name), `${name} is registered`);
   }
@@ -190,6 +199,7 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   mutations.add('prepare_grid_native_preview');
   mutations.add('advance_grid_construction');
   mutations.add('advance_city_plan_construction');
+  mutations.add('bind_city_plan_buildings');
   for (const name of ['plan_building_workflow', 'execute_building_plan', 'cancel_building_plan', 'deploy_building_plans']) mutations.add(name);
   for (const name of ['deploy_service_cluster', 'deploy_industrial_campus', 'deploy_transit_corridor']) mutations.add(name);
   for (const name of ['build_utility_backbone', 'repair_congested_corridor']) mutations.add(name);

@@ -3,6 +3,7 @@ import { computeCityPlanId, expandCityPlan } from './planning-renderer.mjs';
 
 const TERMINAL_FAILURES = new Set(['failed', 'cancelled', 'expired', 'outcome_unknown']);
 const COMMIT_IN_PROGRESS = new Set(['commit_queued', 'applying']);
+const NON_BUILDABLE_STATUSES = new Set(['built', 'completed', 'skipped']);
 const BUILDING_DOMAINS = {
   building: { list: 'list_building_prefabs', preview: 'preview_building_placement', special_preview: 'preview_special_building_placement', get: 'get_building_operation', apply: 'apply_building_operation', cancel: 'cancel_building_preview', read: 'get_building_state', read_key: 'building_id' },
   city_service: { list: 'list_city_service_prefabs', preview: 'preview_city_service_placement', get: 'get_city_service_operation', apply: 'apply_city_service_operation', cancel: 'cancel_city_service_preview', read: 'get_city_service_facility', read_key: 'facility_id' },
@@ -23,6 +24,25 @@ function workflowError(code, message, details = {}) {
 }
 
 function distance(a, b) { return Math.hypot(Number(b.x) - Number(a.x), Number(b.z) - Number(a.z)); }
+
+function validateGridSeparation(grids = []) {
+  const boxes = grids.map((grid, index) => ({
+    id: grid.id ?? `grid-${index}`,
+    min_x: Number(grid.origin.x), min_z: Number(grid.origin.z),
+    max_x: Number(grid.origin.x) + Number(grid.columns) * Number(grid.block_width_m),
+    max_z: Number(grid.origin.z) + Number(grid.rows) * Number(grid.block_height_m),
+  }));
+  for (let left = 0; left < boxes.length; left++) for (let right = left + 1; right < boxes.length; right++) {
+    const a = boxes[left], b = boxes[right];
+    const overlapX = Math.min(a.max_x, b.max_x) - Math.max(a.min_x, b.min_x);
+    const overlapZ = Math.min(a.max_z, b.max_z) - Math.max(a.min_z, b.min_z);
+    const sharedVerticalBoundary = Math.abs(overlapX) < 1e-6 && overlapZ > 0;
+    const sharedHorizontalBoundary = Math.abs(overlapZ) < 1e-6 && overlapX > 0;
+    if ((overlapX > 0 && overlapZ > 0) || sharedVerticalBoundary || sharedHorizontalBoundary) {
+      throw workflowError('PLAN_GRID_OVERLAP', `Grids ${a.id} and ${b.id} overlap or generate the same perimeter road. Separate them with a collector corridor or represent the shared skeleton in plan.roads.`, { grid_ids: [a.id, b.id] });
+    }
+  }
+}
 
 function curvePoint(curve, t) {
   const u = 1 - t;
@@ -207,6 +227,7 @@ export function compileCityPlanRoads(bounds, plan, approvedPlanId) {
   if (approvedPlanId && approvedPlanId !== planId) {
     throw workflowError('PLAN_APPROVAL_MISMATCH', `Approved plan ${approvedPlanId} does not match current structured plan ${planId}. Re-render and approve the changed plan before construction.`, { approved_plan_id: approvedPlanId, actual_plan_id: planId });
   }
+  validateGridSeparation(plan?.grids ?? []);
   const expanded = expandCityPlan(plan ?? {});
   const knownPlanIds = new Set([
     ...(expanded.roads ?? []).map(item => item.id),
@@ -214,8 +235,8 @@ export function compileCityPlanRoads(bounds, plan, approvedPlanId) {
     ...(expanded.utilities ?? []).map(item => item.id),
   ].filter(Boolean));
   const orderedRoads = orderRoads(expanded.roads ?? [], knownPlanIds);
-  const skippedRoads = orderedRoads.filter(road => ['built', 'skipped'].includes(road.construction_status));
-  const roads = orderedRoads.filter(road => !['built', 'skipped'].includes(road.construction_status)).map((road, index) => {
+  const skippedRoads = orderedRoads.filter(road => NON_BUILDABLE_STATUSES.has(road.construction_status));
+  const roads = orderedRoads.filter(road => !NON_BUILDABLE_STATUSES.has(road.construction_status)).map((road, index) => {
     if (!road.prefab) throw workflowError('PLAN_ROAD_PREFAB_REQUIRED', `Planned road ${road.id} has no exact prefab binding.`);
     if (road.level && road.level !== 'surface') throw workflowError('UNSUPPORTED_PLAN_ROAD_LEVEL', `Planned road ${road.id} uses ${road.level}; the first construction version supports surface roads only.`);
     const nativePoints = subdividePlannedRoad(road.points);
@@ -246,7 +267,7 @@ export function compileCityPlanRoads(bounds, plan, approvedPlanId) {
   for (const [gridId, definition] of gridDefinitions) for (const objectId of definition.objectIds) gridRoadToId.set(objectId, gridId);
   const emittedGrids = new Set(), batches = [];
   for (const ordered of orderedRoads) {
-    if (['built', 'skipped'].includes(ordered.construction_status)) continue;
+    if (NON_BUILDABLE_STATUSES.has(ordered.construction_status)) continue;
     const gridId = gridRoadToId.get(ordered.id);
     if (gridId) {
       if (emittedGrids.has(gridId)) continue;
@@ -287,27 +308,31 @@ export function compileCityPlanRoads(bounds, plan, approvedPlanId) {
       geometry_points: points, max_cost: road.max_cost, depends_on: road.depends_on ?? [], construction_order: ordered.construction_order,
     }));
   }
-  const skippedBuildings = (expanded.buildings ?? []).filter(item => ['built', 'skipped'].includes(item.construction_status));
+  const skippedBuildings = (expanded.buildings ?? []).filter(item => NON_BUILDABLE_STATUSES.has(item.construction_status));
   for (const [index, building] of (expanded.buildings ?? []).entries()) {
-    if (['built', 'skipped'].includes(building.construction_status)) continue;
+    if (NON_BUILDABLE_STATUSES.has(building.construction_status)) continue;
     if (!building.prefab) throw workflowError('PLAN_BUILDING_PREFAB_REQUIRED', `Planned building ${building.id} has no exact prefab binding.`);
+    if (building.placement_status === 'failed' || building.planning_status === 'preview_failed') throw workflowError('PLAN_BUILDING_PREVIEW_FAILED', `Planned building ${building.id} has a failed native placement preview and cannot be compiled for construction.`);
+    if (!Number.isFinite(building.rotation_degrees) || building.rotation_source === 'unresolved') throw workflowError('PLAN_BUILDING_ROTATION_REQUIRED', `Planned building ${building.id} has no resolved rotation. Run bind_city_plan_buildings or provide an explicitly verified angle before construction.`);
     batches.push({
       batch_id: building.id, batch_type: 'building', object_ids: [building.id], label: building.label ?? building.name ?? building.id,
       prefab_names: [building.prefab], building_prefab: building.prefab, building_category: building.category ?? 'auto',
       native_args: {
         building_prefab: building.prefab,
         position: { x: Number(building.position.x), ...(building.position.y === undefined ? {} : { y: Number(building.position.y) }), z: Number(building.position.z) },
-        rotation_degrees: Number(building.rotation_degrees ?? 0),
-        ...(building.position.edge_id ? { road_edge_id: building.position.edge_id } : {}),
+        rotation_degrees: Number(building.rotation_degrees),
+        ...(building.road_edge_id ?? building.position.edge_id ? { road_edge_id: building.road_edge_id ?? building.position.edge_id } : {}),
         ...(building.snap_target_id ?? building.position.node_id ? { snap_target_id: building.snap_target_id ?? building.position.node_id } : {}),
       },
-      geometry_points: [building.position], size_m: building.size_m, max_cost: building.max_cost ?? null, depends_on: building.depends_on ?? [],
+      geometry_points: [building.position], size_m: building.size_m, road_edge_id: building.road_edge_id ?? building.position.edge_id ?? null,
+      placement_status: building.placement_status ?? null, rotation_source: building.rotation_source ?? 'manual',
+      max_cost: building.max_cost ?? null, depends_on: building.depends_on ?? [],
       construction_order: building.construction_order ?? 100000 + index,
     });
   }
-  const skippedUtilities = (expanded.utilities ?? []).filter(item => ['built', 'skipped'].includes(item.construction_status));
+  const skippedUtilities = (expanded.utilities ?? []).filter(item => NON_BUILDABLE_STATUSES.has(item.construction_status));
   for (const [index, utility] of (expanded.utilities ?? []).entries()) {
-    if (['built', 'skipped'].includes(utility.construction_status)) continue;
+    if (NON_BUILDABLE_STATUSES.has(utility.construction_status)) continue;
     if (!utility.prefab) throw workflowError('PLAN_UTILITY_PREFAB_REQUIRED', `Planned utility ${utility.id} has no exact prefab binding.`);
     const nativePoints = subdividePlannedNetwork(utility.points);
     const chunks = chunkNativeRoute(nativePoints);
@@ -391,7 +416,11 @@ export function createCityPlanConstructionWorkflow(queryGame = liveQueryGame) {
     const binding = specialized[0] ?? found[0];
     if (!binding) throw workflowError('BUILDING_PREFAB_NOT_FOUND', `No exact unlocked building prefab named ${batch.building_prefab} was found.`);
     const placement = String(binding.prefab.placement_flags ?? binding.prefab.placement_mode ?? '');
-    const result = { ...binding, special: binding.category === 'building' && /Shoreline|Floating|RoadEdge|RoadNode|shoreline|floating|road_edge|road_node/.test(placement) };
+    const result = {
+      ...binding,
+      special: binding.category === 'building' && /Shoreline|Floating|RoadEdge|RoadNode|shoreline|floating|road_edge|road_node/.test(placement),
+      requires_road_edge: /RoadSide/i.test(placement),
+    };
     buildingBindingCache.set(cacheKey, result);
     return result;
   }
@@ -467,6 +496,9 @@ export function createCityPlanConstructionWorkflow(queryGame = liveQueryGame) {
   async function previewBatch(args, status, sessionId, compiled, batch) {
     const runtime = await resolveBatchRuntime(batch, sessionId);
     const nativeArgs = structuredClone(batch.native_args);
+    if (batch.batch_type === 'building' && runtime.binding?.requires_road_edge && !nativeArgs.road_edge_id) {
+      throw workflowError('PLAN_BUILDING_ROAD_BINDING_REQUIRED', `Planned building ${batch.batch_id} requires a precise road_edge_id. Run bind_city_plan_buildings and approve the updated plan before construction.`);
+    }
     if (batch.batch_type === 'utility') {
       const range = runtime.binding.prefab.elevation_range_m ?? {};
       const preferred = ['underground', 'tunnel'].includes(batch.level) ? -10 : 0;
@@ -542,7 +574,7 @@ export function createCityPlanConstructionWorkflow(queryGame = liveQueryGame) {
       const padding = Math.max(32, Number(batch.size_m?.x ?? 8), Number(batch.size_m?.z ?? 8));
       const snapshot = await queryGame('get_planning_map_snapshot', {
         bounds: { min_x: expected.x - padding, min_z: expected.z - padding, max_x: expected.x + padding, max_z: expected.z + padding },
-        include_roads: false, include_buildings: true, include_tracks: false, include_utilities: false, max_features_per_layer: 5000,
+        include_roads: true, include_buildings: true, include_tracks: false, include_utilities: false, max_features_per_layer: 5000,
       });
       checkSession(sessionId, snapshot);
       const byId = new Map((snapshot.data?.buildings ?? []).map(item => [item.id, item]));
@@ -553,7 +585,19 @@ export function createCityPlanConstructionWorkflow(queryGame = liveQueryGame) {
         position_error_m: distance(expected, item.position),
         rotation_error_degrees: Math.abs((((Number(item.rotation_degrees ?? 0) - Number(batch.native_args.rotation_degrees ?? 0)) + 540) % 360) - 180),
       })).filter(item => item.position_error_m > 2 || item.rotation_error_degrees > 2);
-      return { building_ids: ids, verified_ids: ids.filter(id => byId.has(id)), missing_ids: missing, objects, geometry_mismatches, verified: ids.length > 0 && missing.length === 0 && geometry_mismatches.length === 0, snapshot_truncated: Boolean(snapshot.data?.truncated) };
+      const roadIds = new Set((snapshot.data?.roads ?? []).map(item => item.id ?? item.edge_id));
+      const road_binding_mismatches = batch.road_edge_id ? objects.filter(item => item.road_edge_id !== batch.road_edge_id).map(item => ({
+        building_id: item.id, expected_road_edge_id: batch.road_edge_id, actual_road_edge_id: item.road_edge_id ?? null,
+      })) : [];
+      const expectedRoadMissing = batch.road_edge_id ? !roadIds.has(batch.road_edge_id) : false;
+      return {
+        building_ids: ids, verified_ids: ids.filter(id => byId.has(id)), missing_ids: missing, objects, geometry_mismatches,
+        expected_road_edge_id: batch.road_edge_id, expected_road_present: batch.road_edge_id ? !expectedRoadMissing : null,
+        road_binding_mismatches,
+        road_binding_verified: batch.road_edge_id ? !expectedRoadMissing && road_binding_mismatches.length === 0 : null,
+        verified: ids.length > 0 && missing.length === 0 && geometry_mismatches.length === 0 && !expectedRoadMissing && road_binding_mismatches.length === 0,
+        snapshot_truncated: Boolean(snapshot.data?.truncated),
+      };
     }
     const verified = [], missing = [], objects = [];
     for (const id of ids) {

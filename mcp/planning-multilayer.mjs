@@ -81,7 +81,8 @@ export function augmentGridProposal(proposalInput, request = {}) {
       const center = centers[centerIndex];
       plan.buildings.push({
         id: `concept-service-${roleIndex + 1}`, label: role.label, kind: 'service', planning_status: 'conceptual',
-        position: { x: center.x, z: center.z }, rotation_degrees: 0,
+        placement_status: 'conceptual', rotation_source: 'unresolved',
+        position: { x: center.x, z: center.z }, rotation_degrees: null,
         size_m: {
           x: Math.min(role.size_m.x, Math.max(16, grid.block_width_m - 24)),
           z: Math.min(role.size_m.z, Math.max(16, grid.block_height_m - 24)),

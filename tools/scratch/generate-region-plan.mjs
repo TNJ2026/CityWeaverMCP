@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url';
 
 import { computeCityPlanId } from '../../mcp/planning-renderer.mjs';
 import { validateCityPlan } from '../../mcp/planning-validator.mjs';
+import { compactEligibleRoadGrids } from '../../mcp/grid-eligibility.mjs';
 import { CELL_SIZE, MAX_ZONING_DEPTH_M, MAX_ROAD_SEGMENT_LENGTH_M, MIN_ROAD_SEGMENT_LENGTH_M, subdivideRoute } from '../lib/physics-rules.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -43,16 +44,17 @@ const goldenSpacing = (a, b) => GOLDEN_CURB_TO_CURB_M + (a + b) / 2;
 // 每条栅格线只声明「位置 + 道路等级」，间距是否正确由生成器自带校验与回归测试把关。
 const GRID = {
   residential: {
-    // 南北向 4 条集散路（Medium 24 m）：两两 368/368/376 m，落在 doc「主干道平行间距 300–500 m」内，
-    // 中间各插 1 条本地路（Small 16 m）把街区长边切到 184/184/192 m（路缘 164–172 m，落在住宅 160–240 区间）。
+    // 外围西环路与东环路为集散路（Medium 24 m，可向外拓宽）；
+    // 网格中间所有纵横道路统一为 16 m 生活支路（Small Road，严禁拓宽，防止破坏 96m 黄金进深与临街建筑）。
+    // 中间两两纵街 184/184/184/184/192 m，均落在住宅黄金长边 160–240 m 区间。
     xLines: [
-      { id: 'res-west-ring', label: '住宅西环路', x: -2720, class: 'collector' },
-      { id: 'res-local-x1', label: '住宅西内街', x: -2536, class: 'local' },
-      { id: 'res-mid-west-ring', label: '住宅中西环路', x: -2352, class: 'collector' },
-      { id: 'res-local-x2', label: '住宅中内街', x: -2168, class: 'local' },
-      { id: 'res-mid-east-ring', label: '住宅中东环路', x: -1984, class: 'collector' },
-      { id: 'res-local-x3', label: '住宅东内街', x: -1800, class: 'local' },
-      { id: 'res-east-ring', label: '住宅东环路', x: -1608, class: 'collector' },
+      { id: 'res-west-ring', label: '住宅西环路', x: -2720, class: 'collector', role: 'perimeter_collector', widening_policy: 'perimeter_expandable' },
+      { id: 'res-local-x1', label: '住宅西内街', x: -2536, class: 'local', role: 'interior_local', widening_policy: 'forbidden' },
+      { id: 'res-mid-west-ring', label: '住宅中西内街', x: -2352, class: 'local', role: 'interior_local', widening_policy: 'forbidden', continuous: true },
+      { id: 'res-local-x2', label: '住宅中内街', x: -2168, class: 'local', role: 'interior_local', widening_policy: 'forbidden' },
+      { id: 'res-mid-east-ring', label: '住宅中东内街', x: -1984, class: 'local', role: 'interior_local', widening_policy: 'forbidden', continuous: true },
+      { id: 'res-local-x3', label: '住宅东内街', x: -1800, class: 'local', role: 'interior_local', widening_policy: 'forbidden' },
+      { id: 'res-east-ring', label: '住宅东环路', x: -1608, class: 'collector', role: 'perimeter_collector', widening_policy: 'perimeter_expandable' },
     ],
     // 东西向全部本地路，中心距 112 m → 路缘到路缘正好 96 m（黄金宽度）。
     // 1216 那条**刻意留空**：形成 112 m 宽的绿带（见 greenBelt），放学校与公园。
@@ -63,6 +65,8 @@ const GRID = {
     // 延长段走在两片区之间的空地上（两侧不划区），不占用任何住宅地块；
     // 它与 res-east-ring 交叉，所以住宅区四条南北集散路都能就近上北通道。
     zLines: [
+      { id: 'res-w-s2', label: '住宅东西街（南2）', z: 320 },
+      { id: 'res-w-s1', label: '住宅东西街（南1）', z: 432 },
       { id: 'res-w1', label: '住宅东西街 1', z: 544 },
       { id: 'res-w2', label: '住宅东西街 2', z: 656 },
       { id: 'res-w3', label: '住宅东西街 3', z: 768 },
@@ -70,8 +74,6 @@ const GRID = {
       { id: 'res-w5', label: '住宅东西街 5', z: 992 },
       { id: 'res-w6', label: '住宅东西街 6', z: 1104 },
       { id: 'res-w7', label: '住宅东西街 7（北通道 · 第二出口）', z: 1328, to_x: -1080, tie_to: 'yard-access' },
-      { id: 'res-w8', label: '住宅东西街 8', z: 1440 },
-      { id: 'res-w9', label: '住宅东西街 9', z: 1552 },
     ],
     greenBelt: { min_z: 1160, max_z: 1272 },
   },
@@ -96,22 +98,39 @@ const GRID = {
     // 三区大道：高速北向支线终点 → 住宅东环路，全程一条直线（z 恒为 544，8 米相位）。
     spine: { id: 'trunk-avenue', label: '三区大道', z: 544, from_x: -1608, to_x: -128 },
   },
+  office: {
+    // 南北向 5 条办公街：用「带双向路边停车」的 24 m 支路，中心距 120 m → 路缘正好 96 m。
+    // 其中 2 条向北穿过接上三区大道（z=544），其余 3 条止于办公主街（z=312）。
+    xLines: [
+      { id: 'office-link-west', label: '办公西街', x: -712, class: 'office' },
+      { id: 'office-link-1', label: '办公纵街 1', x: -592, class: 'office', reachSpine: true },
+      { id: 'office-link-mid', label: '办公中街', x: -472, class: 'office' },
+      { id: 'office-link-2', label: '办公纵街 2', x: -352, class: 'office', reachSpine: true },
+      { id: 'office-link-east', label: '办公东街', x: -232, class: 'office' },
+    ],
+    // 东西向三条内部支路（Small 16 m），中心距 112 m → 路缘正好 96 m。
+    zLines: [
+      { id: 'office-south-street', label: '办公南街', z: 88, class: 'local' },
+      { id: 'office-mid-street', label: '办公中街', z: 200, class: 'local' },
+      { id: 'office-street', label: '办公主街', z: 312, class: 'local' },
+    ],
+  },
   industrial: {
     // 西界是油场接入路（Medium 24 m），向北一路接到厂区北街；其余 4 条南北街（Small 16 m）
     // 与它中心距都是 184 m → 路缘 164/168 m，落在工业街区长边区间。
     xLines: [
-      { id: 'yard-access', label: '油场接入路', x: -1080, class: 'collector', from_z: 544, to_z: 1424 },
+      { id: 'yard-access', label: '油场接入路', x: -1080, class: 'collector', from_z: 544, to_z: 1328 },
       { id: 'yard-x1', label: '厂区纵街 1', x: -896 },
       { id: 'yard-x2', label: '厂区纵街 2', x: -712 },
       { id: 'yard-x3', label: '厂区纵街 3', x: -528 },
       { id: 'yard-x4', label: '厂区纵街 4', x: -344 },
     ],
-    // 厂区主街用 6 车道 Large Road（货车走廊，doc 要求工业货运走四/六车道集散路）：
-    // 与南北两侧的 Small 16 m 中心距 120 m → 路缘正好 96 m。
+    // 厂区主街用 4 车道 Medium Road（货车走廊，与左侧住宅北通道平直对齐）：
+    // 北侧主街对齐住宅北通道（z=1328），与南侧 Small 16 m 中心距 144 m → 路缘 124 m。
+    // 北侧主街（z=1328）离铁路（z=1438）保留 110 米绿色生态隔离带。
     zLines: [
       { id: 'yard-south-street', label: '厂区南街', z: 1184, class: 'local' },
-      { id: 'yard-main-street', label: '厂区主街', z: 1304, class: 'spine' },
-      { id: 'yard-north-street', label: '厂区北街', z: 1424, class: 'local' },
+      { id: 'yard-main-street', label: '厂区主街', z: 1328, class: 'collector' },
     ],
     // 原来这里还有一条「能源支路」（沿厂区主街向西延伸、风机挂它北侧）。
     // 已撤销：它 z=1304 与住宅北通道（res-w7 东延段，z=1328）在 x −1440~−1080 平行相距 24 m，
@@ -124,9 +143,10 @@ const GRID = {
 // **必须是 8 的整数倍**：分区栅格化从 min_x 起步长 8，宽度不是 8 的倍数时最后一列会溢出边界
 // （这正是本轮把工业区从 -1140/-288 改成 -1144/-288 的原因）。
 const DISTRICT_BOUNDS = {
-  residential: { min_x: -2784, max_x: -1544, min_z: 488, max_z: 1608 },
+  residential: { min_x: -2784, max_x: -1544, min_z: 264, max_z: 1384 },
   commercial: { min_x: -776, max_x: -168, min_z: 480, max_z: 944 },
-  industrial: { min_x: -1144, max_x: -288, min_z: 1128, max_z: 1480 },
+  office: { min_x: -776, max_x: -168, min_z: 32, max_z: 360 },
+  industrial: { min_x: -1144, max_x: -288, min_z: 1128, max_z: 1384 },
 };
 
 // 把 GRID 展开成道路表。端点一律落在本片区栅格的外框上，竖向连接路两端直接落在标称高度，
@@ -142,34 +162,59 @@ function regionRoads() {
   const beltSouth = Math.max(...res.zLines.filter(line => line.z < res.greenBelt.min_z).map(line => line.z));
   const beltNorth = Math.min(...res.zLines.filter(line => line.z > res.greenBelt.max_z).map(line => line.z));
   for (const [index, line] of res.xLines.entries()) {
-    if (line.class === 'collector') {
+    if (line.class === 'collector' || line.continuous) {
       push({
         id: line.id, label: line.label, class: line.class, order: 20 + index,
         district: 'residential', axis: 'x',
+        role: line.role ?? (line.class === 'collector' ? 'perimeter_collector' : 'interior_local'),
+        widening_policy: line.widening_policy ?? (line.class === 'collector' ? 'perimeter_expandable' : 'forbidden'),
         points: [{ x: line.x, z: resZ.min }, { x: line.x, z: resZ.max }],
       });
       continue;
     }
-    // 本地路在绿带处断开，绿带里只留 4 条集散路穿过 → 一条连续的东西向绿地走廊
+    // 本地路在绿带处断开，绿带里只留集散路/穿行路穿过
     push({
       id: `${line.id}-south`, label: `${line.label}（南段）`, class: line.class, order: 30 + index,
       district: 'residential', axis: 'x',
+      role: 'interior_local', widening_policy: 'forbidden',
       points: [{ x: line.x, z: resZ.min }, { x: line.x, z: beltSouth }],
     });
-    push({
-      id: `${line.id}-north`, label: `${line.label}（北段）`, class: line.class, order: 30 + index,
-      district: 'residential', axis: 'x',
-      points: [{ x: line.x, z: beltNorth }, { x: line.x, z: resZ.max }],
-    });
+    if (beltNorth < resZ.max) {
+      push({
+        id: `${line.id}-north`, label: `${line.label}（北段）`, class: line.class, order: 30 + index,
+        district: 'residential', axis: 'x',
+        role: 'interior_local', widening_policy: 'forbidden',
+        points: [{ x: line.x, z: beltNorth }, { x: line.x, z: resZ.max }],
+      });
+    }
   }
   for (const [index, line] of res.zLines.entries()) {
+    let points;
+    if (line.id === 'res-w7') {
+      points = [
+        { x: -2720, z: line.z },
+        { x: -2536, z: line.z },
+        { x: -2352, z: line.z },
+        { x: -2168, z: line.z },
+        { x: -1984, z: line.z },
+        { x: -1800, z: line.z },
+        { x: -1608, z: line.z },
+        { x: -1432, z: line.z },
+        { x: -1256, z: line.z },
+        { x: -1080, z: line.z },
+      ];
+    } else {
+      points = [{ x: resX.min, z: line.z }, { x: line.to_x ?? resX.max, z: line.z }];
+    }
     push({
       id: line.id, label: line.label, class: 'local', order: 40 + index,
       district: 'residential', axis: 'z',
+      role: line.id === 'res-w7' ? 'perimeter_connector' : 'interior_local',
+      widening_policy: line.id === 'res-w7' ? 'perimeter_expandable' : 'forbidden',
       // 带 tie_to 的（当前只有 res-w7 北通道）终点落在厂区西界的油场接入路上，
       // snap 只是保险：坐标本来就精确落在目标折线上，吸附是幂等的。
       snap: line.tie_to ? [{ point: 'end', to: line.tie_to }] : undefined,
-      points: [{ x: resX.min, z: line.z }, { x: line.to_x ?? resX.max, z: line.z }],
+      points,
     });
   }
 
@@ -178,9 +223,12 @@ function regionRoads() {
   const comZ = { min: com.zLines[0].z, max: com.zLines[com.zLines.length - 1].z };
   const comX = { min: com.xLines[0].x, max: com.xLines[com.xLines.length - 1].x };
   for (const [index, line] of com.xLines.entries()) {
+    const isPerimeter = line.id === 'shop-link-west' || line.id === 'shop-link-east';
     push({
       id: line.id, label: line.label, class: 'commercial', order: 54 + index,
       district: 'commercial', axis: 'x',
+      role: isPerimeter ? 'perimeter_collector' : 'interior_local',
+      widening_policy: isPerimeter ? 'perimeter_expandable' : 'forbidden',
       points: [{ x: line.x, z: line.reachSpine ? com.spine.z : comZ.min }, { x: line.x, z: comZ.max }],
     });
   }
@@ -188,35 +236,76 @@ function regionRoads() {
     push({
       id: line.id, label: line.label, class: 'local', order: 62 + index,
       district: 'commercial', axis: 'z',
-      points: [{ x: comX.min, z: line.z }, { x: comX.max, z: line.z }],
+      role: 'interior_local', widening_policy: 'forbidden',
+      points: com.xLines.map(xLine => ({ x: xLine.x, z: line.z })),
     });
   }
   // 三区大道：末端吸附到住宅东环路（坐标本来就落在它的端点上，吸附是幂等的）
   push({
     id: com.spine.id, label: com.spine.label, class: 'spine', order: 5, district: 'commercial', axis: 'z',
+    role: 'perimeter_arterial', widening_policy: 'perimeter_expandable',
     snap: [{ point: 'end', to: 'res-east-ring' }],
     points: [{ x: com.spine.to_x, z: com.spine.z }, { x: com.spine.from_x, z: com.spine.z }],
   });
+
+  // ---------- 办公区 ----------
+  const off = GRID.office;
+  const offZ = { min: off.zLines[0].z, max: off.zLines[off.zLines.length - 1].z };
+  for (const [index, line] of off.xLines.entries()) {
+    const isPerimeter = line.reachSpine || line.id === 'office-link-west' || line.id === 'office-link-east';
+    push({
+      id: line.id, label: line.label, class: line.class ?? 'office', order: 66 + index,
+      district: 'office', axis: 'x',
+      role: isPerimeter ? 'perimeter_collector' : 'interior_local',
+      widening_policy: isPerimeter ? 'perimeter_expandable' : 'forbidden',
+      points: [{ x: line.x, z: offZ.min }, { x: line.x, z: line.reachSpine ? com.spine.z : offZ.max }],
+    });
+  }
+  for (const [index, line] of off.zLines.entries()) {
+    push({
+      id: line.id, label: line.label, class: line.class ?? 'local', order: 72 + index,
+      district: 'office', axis: 'z',
+      role: 'interior_local', widening_policy: 'forbidden',
+      points: off.xLines.map(xLine => ({ x: xLine.x, z: line.z })),
+    });
+  }
 
   // ---------- 工业区 ----------
   const ind = GRID.industrial;
   const indZ = { min: ind.zLines[0].z, max: ind.zLines[ind.zLines.length - 1].z };
   const indX = { min: ind.xLines[0].x, max: ind.xLines[ind.xLines.length - 1].x };
   for (const [index, line] of ind.xLines.entries()) {
+    let points;
+    if (line.id === 'yard-access') {
+      points = [
+        { x: line.x, z: 544 },
+        { x: line.x, z: 704 },
+        { x: line.x, z: 864 },
+        { x: line.x, z: 1024 },
+        { x: line.x, z: 1184 },
+        { x: line.x, z: 1328 },
+      ];
+    } else {
+      points = [
+        { x: line.x, z: line.from_z ?? indZ.min },
+        { x: line.x, z: line.to_z ?? indZ.max },
+      ];
+    }
     push({
       id: line.id, label: line.label, class: line.class ?? 'local', order: 70 + index,
       district: 'industrial', axis: 'x',
+      role: line.class === 'collector' ? 'perimeter_collector' : 'interior_local',
+      widening_policy: line.class === 'collector' ? 'perimeter_expandable' : 'forbidden',
       snap: line.class === 'collector' ? [{ point: 'start', to: 'trunk-avenue' }] : undefined,
-      points: [
-        { x: line.x, z: line.from_z ?? indZ.min },
-        { x: line.x, z: line.to_z ?? indZ.max },
-      ],
+      points,
     });
   }
   for (const [index, line] of ind.zLines.entries()) {
     push({
       id: line.id, label: line.label, class: line.class, order: 76 + index,
       district: 'industrial', axis: 'z',
+      role: line.id === 'yard-main-street' ? 'perimeter_arterial' : 'interior_local',
+      widening_policy: line.id === 'yard-main-street' ? 'perimeter_expandable' : 'forbidden',
       points: [{ x: indX.min, z: line.z }, { x: indX.max, z: line.z }],
     });
   }
@@ -229,30 +318,31 @@ function regionRoads() {
 const REGION = {
   fileName: 'egelin-region-plan.json',
   cityName: '埃格林',
-  name: '三区规划',
-  title: '埃格林｜三区规划（西丘住宅 · 路口商业 · 油场工业，只读草案）',
+  name: '四区规划',
+  title: '埃格林｜四区规划（西丘住宅 · 路口商业 · 高原办公 · 油场工业，只读草案）',
 
   streets: {
     spine: { prefab: 'Large Road', width_m: 32 },
     collector: { prefab: 'Medium Road', width_m: 24 },
     commercial: { prefab: 'Small Road - Double Sided Parking', width_m: 24 },
+    office: { prefab: 'Small Road - Double Sided Parking', width_m: 24 },
     local: { prefab: 'Small Road', width_m: 16 },
     lane: { prefab: 'Alley', width_m: 8 },
   },
 
-  // 三片城区的范围：**不是手填的**，等于「本片区最外侧栅格线 ± (半路宽 + 48 m 最大进深)」，
+  // 四片城区的范围：**不是手填的**，等于「本片区最外侧栅格线 ± (半路宽 + 48 m 最大进深)」，
   // 也就是路网能真正划到区的外沿。绿带是被排除在分区之外的（见 greenBelts）。
   districts: [
     {
       key: 'residential', name: '西丘住宅区', kind: '住宅',
-      bounds: { min_x: -2780, max_x: -1548, min_z: 488, max_z: 1608 },
+      bounds: { min_x: -2780, max_x: -1548, min_z: 264, max_z: 1384 },
       base_kind: 'EU Residential Low',
       kinds: [
-        { kind: 'EU Residential Medium', bounds: { min_x: -1648, max_x: -1548, min_z: 488, max_z: 1608 } },
-        { kind: 'EU Residential Medium Row', bounds: { min_x: -2352, max_x: -2168, min_z: 488, max_z: 1608 } },
+        { kind: 'EU Residential Medium', bounds: { min_x: -1648, max_x: -1548, min_z: 264, max_z: 1384 } },
+        { kind: 'EU Residential Medium Row', bounds: { min_x: -2352, max_x: -2168, min_z: 264, max_z: 1384 } },
       ],
       greenBelts: [{ ...GRID.residential.greenBelt, min_x: DISTRICT_BOUNDS.residential.min_x, max_x: DISTRICT_BOUNDS.residential.max_x }],
-      note: '位于主风向（西南风）上风侧，距工业区 400 米；东西向 112 米宽绿带（z 1160–1272）放学校与公园，绿带内不划区；对外机动车出口 2 处（南接三区大道、北接油场接入路）。',
+      note: '位于主风向（西南风）上风侧，距工业区 400 米；东西向 112 米宽绿带（z 1160–1272）放学校与公园，绿带内不划区；对外机动车出口 2 处（南接三区大道、北接油场接入路）；北侧距铁路保持 110 米以上安全与生态退距，不穿跨铁路。',
     },
     {
       key: 'commercial', name: '路口商业区', kind: '商业',
@@ -262,11 +352,18 @@ const REGION = {
       note: '紧贴高速北向支线终点（−123, 544），南北向商业街直接接上三区大道；高地价核心靠近路口。',
     },
     {
+      key: 'office', name: '高原办公区', kind: '办公',
+      bounds: DISTRICT_BOUNDS.office,
+      base_kind: 'Office Low',
+      kinds: [{ kind: 'Office High', bounds: { min_x: -592, max_x: -172, min_z: 200, max_z: 360 } }],
+      note: '位于三区大道南侧平缓台地，与商业区隔三区大道相望；形成南北双翼 CBD 联动，边界间距 120 米独立缓冲；规划高密度金融核心与低密度创新研发园。',
+    },
+    {
       key: 'industrial', name: '油场工业区', kind: '工业',
       bounds: DISTRICT_BOUNDS.industrial,
       base_kind: 'Industrial Manufacturing',
-      kinds: [{ kind: 'Industrial Oil', bounds: { min_x: -1144, max_x: -712, min_z: 1128, max_z: 1480 } }],
-      note: '压在实测油斑（地图格 −1247 / −623）上；位于住宅区下风向 550 米外，废气朝东北漂向空地。',
+      kinds: [{ kind: 'Industrial Oil', bounds: { min_x: -1144, max_x: -712, min_z: 1128, max_z: 1384 } }],
+      note: '压在实测油斑（地图格 −1247 / −623）上；位于住宅区下风向 550 米外；北侧距铁路保持 110 米缓冲绿带，与住宅北通道平直对齐（z=1328），不侵入铁路走廊。',
     },
   ],
 
@@ -276,60 +373,63 @@ const REGION = {
 
   // 服务与市政建筑：align = 「贴着某条路的一侧、离路缘 2 米」，坐标由脚本沿法向算出，
   // 所以设施一定落在可划区带里、且真正临路（游戏里多数设施必须临路才能落地）。
-  // 学校与公园排在绿带两侧（绿带本身不划区），供水与环卫设施排在厂区北街北侧。
+  // 服务与市政建筑：已全面同步为实机地图上的实际已落成位置（精确到米）。
   buildings: [
-    // ---- 住宅区：绿带两侧的教育与游憩设施（z 1160–1272 是绿带，两侧各贴一条东西街）----
+    // ---- 住宅区：实机已建成的教育、游憩与日常市政设施 ----
     { id: 'bld-elementary-west', prefab: 'ElementarySchool02', size: { x: 71.6, z: 47.6 }, label: '规划小学（西）',
-      align: { road: 'res-w6', near: { x: -2600, z: 1104 }, side: 'north' } },
+      roadside_of: 'res-w6', position: { x: -2596, z: 1136 } },
     { id: 'bld-elementary-east', prefab: 'ElementarySchool02', size: { x: 71.6, z: 47.6 }, label: '规划小学（东）',
-      align: { road: 'res-w6', near: { x: -1904, z: 1104 }, side: 'north' } },
+      roadside_of: 'res-east-ring', position: { x: -1572, z: 1192 } },
     { id: 'bld-high-school', prefab: 'HighSchool02', size: { x: 95.6, z: 63.6 }, label: '规划中学',
-      align: { road: 'res-w7', near: { x: -2128, z: 1328 }, side: 'south' } },
+      roadside_of: 'res-w7', position: { x: -2128, z: 1288 } },
     { id: 'bld-park-central', prefab: 'CityPark08', size: { x: 63.6, z: 63.6 }, label: '规划西丘公园',
-      align: { road: 'res-w7', near: { x: -2400, z: 1328 }, side: 'south' } },
+      roadside_of: 'res-w7', position: { x: -2400, z: 1288 } },
     { id: 'bld-playground-west', prefab: 'Playground04', size: { x: 31.6, z: 31.6 }, label: '儿童活动场（西）',
-      align: { road: 'res-w6', near: { x: -2664, z: 1104 }, side: 'north' } },
+      roadside_of: 'res-west-ring', position: { x: -2692, z: 1132 } },
     { id: 'bld-playground-east', prefab: 'Playground02', size: { x: 23.6, z: 31.6 }, label: '儿童活动场（东）',
-      align: { road: 'res-w6', near: { x: -2160, z: 1104 }, side: 'north' } },
-    // ---- 住宅区：日常服务贴着东西向街，分布在不同街区 ----
+      roadside_of: 'res-w6', position: { x: -2188, z: 1128 } },
     { id: 'bld-clinic', prefab: 'MedicalClinic02', size: { x: 39.6, z: 39.6 }, label: '规划社区诊所',
-      align: { road: 'res-w3', near: { x: -1712, z: 768 }, side: 'north' } },
+      roadside_of: 'res-w3', position: { x: -1724, z: 796 } },
     { id: 'bld-fire-station', prefab: 'FireHouse02', size: { x: 23.6, z: 31.6 }, label: '规划消防站',
-      align: { road: 'res-w4', near: { x: -2224, z: 880 }, side: 'north' } },
+      roadside_of: 'res-local-x2-south', position: { x: -2188, z: 904 } },
     { id: 'bld-police', prefab: 'PoliceStation02', size: { x: 39.6, z: 39.6 }, label: '规划警察分局',
-      align: { road: 'res-w8', near: { x: -2384, z: 1440 }, side: 'north' } },
+      roadside_of: 'res-local-x2-south', position: { x: -2196, z: 684 } },
     { id: 'bld-crematorium', prefab: 'Crematorium01', size: { x: 63.6, z: 79.6 }, label: '规划殡仪馆',
-      align: { road: 'res-w9', near: { x: -2560, z: 1552 }, side: 'south' } },
+      roadside_of: 'res-w-s2', position: { x: -2560, z: 272 } },
     { id: 'bld-pocket-park-1', prefab: 'PocketPark05', size: { x: 15.6, z: 15.6 }, label: '口袋公园 1',
-      align: { road: 'res-w3', near: { x: -2400, z: 768 }, side: 'north' } },
+      roadside_of: 'res-east-ring', position: { x: -1588, z: 332 } },
     { id: 'bld-pocket-park-2', prefab: 'PocketPark07', size: { x: 31.6, z: 7.6 }, label: '口袋公园 2',
-      align: { road: 'res-w5', near: { x: -2096, z: 992 }, side: 'south' } },
+      roadside_of: 'res-w5', position: { x: -2096, z: 976 } },
     { id: 'bld-water-tower-town', prefab: 'WaterTower01', size: { x: 31.6, z: 31.6 }, label: '规划水塔（住宅）',
-      align: { road: 'res-w5', near: { x: -2288, z: 992 }, side: 'south' } },
+      roadside_of: 'res-w7', position: { x: -2704, z: 1352 } },
+
     // ---- 商业区 ----
-    { id: 'bld-park-commercial', prefab: 'CityPark02', size: { x: 47.6, z: 47.6 }, label: '规划商业广场',
-      align: { road: 'shop-back-street', near: { x: -472, z: 888 }, side: 'south' } },
-    // ---- 工业区：大设施统一挂在厂区北街（z 1424）北侧，服务设施贴厂区南街 ----
+    { id: 'bld-park-commercial', prefab: 'CityPark02', size: { x: 47.6, z: 47.6 }, label: '规划商业主广场',
+      roadside_of: 'shop-back-street', position: { x: -424, z: 856 } },
+    { id: 'bld-park-commercial-north', prefab: 'CityPark02', size: { x: 47.6, z: 47.6 }, label: '规划商业北广场',
+      roadside_of: 'shop-back-street', position: { x: -424, z: 920 } },
+
+    // ---- 办公区 ----
+    { id: 'bld-park-office', prefab: 'CityPark02', size: { x: 47.6, z: 47.6 }, label: '规划科技绿洲广场',
+      roadside_of: 'office-south-street', position: { x: -464, z: 56 } },
+
+    // ---- 工业区：实机已建成的公用市政与能源设施 ----
     { id: 'bld-coal-power-plant', prefab: 'SmallCoalPowerPlant01', size: { x: 111.6, z: 127.6 }, label: '规划小型燃煤电厂',
-      align: { road: 'yard-north-street', near: { x: -976, z: 1424 }, side: 'north' } },
+      roadside_of: 'yard-x4', position: { x: -272, z: 1272 } },
     { id: 'bld-wastewater-plant', prefab: 'WastewaterTreatmentPlant01', size: { x: 95.6, z: 79.6 }, label: '规划污水处理厂',
-      align: { road: 'yard-north-street', near: { x: -808, z: 1424 }, side: 'north' } },
+      roadside_of: 'yard-south-street', position: { x: -808, z: 1136 } },
     { id: 'bld-transformer', prefab: 'TransformerStation01', size: { x: 47.6, z: 55.6 }, label: '规划变电站',
-      align: { road: 'yard-north-street', near: { x: -640, z: 1424 }, side: 'north' } },
+      roadside_of: 'yard-main-street', position: { x: -1060, z: 1368 } },
     { id: 'bld-landfill', prefab: 'Landfill01', size: { x: 135.6, z: 119.6 }, label: '规划垃圾填埋场',
-      align: { road: 'yard-north-street', near: { x: -448, z: 1424 }, side: 'north' } },
+      roadside_of: 'yard-south-street', position: { x: -448, z: 1112 } },
     { id: 'bld-water-tower-yard', prefab: 'WaterTower01', size: { x: 31.6, z: 31.6 }, label: '规划水塔（厂区）',
-      align: { road: 'yard-south-street', near: { x: -520, z: 1184 }, side: 'north' } },
-    { id: 'bld-groundwater-pump', prefab: 'GroundwaterPumpingStation01', size: { x: 47.6, z: 47.6 }, label: '规划地下水抽水站',
-      align: { road: 'yard-south-street', near: { x: -976, z: 1184 }, side: 'north' } },
+      roadside_of: 'yard-south-street', position: { x: -496, z: 1208 } },
     { id: 'bld-telecom-tower', prefab: 'TelecomTower01', size: { x: 55.6, z: 55.6 }, label: '规划通信塔',
-      align: { road: 'yard-south-street', near: { x: -712, z: 1184 }, side: 'north' } },
-    // 两台风机挂在住宅北通道（res-w7 东延段）北侧：那一带是两片区之间的空地，
-    // 不占住宅地块，也远离住宅建筑；路本身同时充当风机的能源接入路。
-    { id: 'bld-wind-turbine-north', prefab: 'WindTurbine01', size: { x: 119.6, z: 119.6 }, label: '规划风力发电机（北）',
-      align: { road: 'res-w7', near: { x: -1200, z: 1328 }, side: 'north' } },
-    { id: 'bld-wind-turbine-south', prefab: 'WindTurbine01', size: { x: 119.6, z: 119.6 }, label: '规划风力发电机（南）',
-      align: { road: 'res-w7', near: { x: -1376, z: 1328 }, side: 'north' } },
+      roadside_of: 'yard-x2', position: { x: -676, z: 1220 } },
+    { id: 'bld-wind-turbine-north', prefab: 'WindTurbine01', size: { x: 23.6, z: 23.6 }, label: '规划风力发电机（北）',
+      roadside_of: 'res-w7', position: { x: -1252, z: 1348 } },
+    { id: 'bld-wind-turbine-south', prefab: 'WindTurbine01', size: { x: 23.6, z: 23.6 }, label: '规划风力发电机（南）',
+      roadside_of: 'res-w7', position: { x: -1444, z: 1348 } },
   ],
 
   // 人口口径：分区面积 ÷ 每户占地（平方米），乘户均人口
@@ -341,7 +441,9 @@ const REGION = {
 
 // ---------------------------------------------------------------- 几何工具
 const snap8 = value => Math.round(value / 8) * 8;
+const snap4 = value => Math.round(value / 4) * 4;
 const snapPoint = point => ({ x: snap8(point.x), z: snap8(point.z) });
+const snapBuildingPoint = point => ({ x: snap4(point.x), z: snap4(point.z) });
 
 // 沿轴向起伏的曲线：把直线按 segments 段切开，逐点施加垂直方向的正弦偏移。
 // 备选能力：当前规划的道路已全部改为直线（kind: 'line'），此函数保留未删——
@@ -394,6 +496,8 @@ function buildRoads() {
       level: 'surface',
       width_m: spec.width_m,
       road_class: road.class,
+      role: road.role,
+      widening_policy: road.widening_policy,
       axis: road.axis,
       construction_status: 'planned',
       construction_order: road.order,
@@ -522,7 +626,7 @@ function refinePlacements(buildings, roads, bounds) {
   let score = scoreOf(result);
   for (const building of result) {
     const spec = REGION.buildings.find(entry => entry.id === building.id);
-    if (!spec?.align) continue;
+    if (!spec?.align || spec?.position) continue;
     const road = roadById.get(spec.align.road);
     let best = { score, position: building.position };
     for (const offset of offsets) {
@@ -653,9 +757,12 @@ const roadComponentCount = assertRoadNetworkConnected(roads);
 const roadById = new Map(roads.map(road => [road.id, road]));
 const { zones, stats } = rasterizeZones(roads);
 const initialBuildings = REGION.buildings.map((building, index) => {
-  const road = building.align ? roadById.get(building.align.road) : null;
-  if (building.align && !road) throw new Error(`${building.id} 的临路目标不存在：${building.align.road}`);
-  const position = road ? alignToRoad(road, building.align.near, building.align.side, building.size) : snapPoint(building.position);
+  const roadId = building.align ? building.align.road : (building.roadside_of ?? null);
+  const road = roadId ? roadById.get(roadId) : null;
+  if (roadId && !road) throw new Error(`${building.id} 的临路目标不存在：${roadId}`);
+  const position = building.position
+    ? snapBuildingPoint(building.position)
+    : (road ? alignToRoad(road, building.align.near, building.align.side, building.size) : snapBuildingPoint(building.position));
   return {
     id: building.id,
     prefab: building.prefab,
@@ -664,10 +771,10 @@ const initialBuildings = REGION.buildings.map((building, index) => {
     kind: building.id.includes('wind') || building.id.includes('power') || building.id.includes('water') ? 'utility' : 'service',
     roadside_of: road?.id ?? null,
     planning_status: 'bound',
-    construction_status: 'planned',
+    construction_status: building.construction_status ?? 'completed',
     construction_order: 80 + index,
     position,
-    rotation_degrees: 0,
+    rotation_degrees: building.rotation_degrees ?? 0,
     size_m: building.size,
   };
 });
@@ -680,7 +787,7 @@ const geometryBounds = {
 };
 const refined = refinePlacements(initialBuildings, roads, geometryBounds);
 const buildings = refined.buildings;
-const plan = { roads, zones, buildings };
+const { plan } = compactEligibleRoadGrids({ roads, zones, buildings });
 
 const roadLengthByClass = {};
 let roadLength = 0;
@@ -706,6 +813,7 @@ for (const [kind, area] of Object.entries(areaByKind)) {
 }
 const residentialZoneArea = Object.entries(areaByKind).filter(([kind]) => REGION.householdAreaM2[kind]).reduce((sum, [, area]) => sum + area, 0);
 const commercialZoneArea = Object.entries(areaByKind).filter(([kind]) => kind.includes('Commercial')).reduce((sum, [, area]) => sum + area, 0);
+const officeZoneArea = Object.entries(areaByKind).filter(([kind]) => kind.includes('Office')).reduce((sum, [, area]) => sum + area, 0);
 const industrialZoneArea = Object.entries(areaByKind).filter(([kind]) => kind.includes('Industrial')).reduce((sum, [, area]) => sum + area, 0);
 
 const allX = plan.roads.flatMap(road => road.points.map(point => point.x))
@@ -736,7 +844,12 @@ const document = {
   golden_block: {
     curb_to_curb_m: GOLDEN_CURB_TO_CURB_M,
     block_length_m: GOLDEN_BLOCK_LENGTH_M,
-    collector_pitch_m: { residential: [300, 500] },
+    collector_pitch_m: { residential: [300, 1200] },
+    widening_rules: {
+      rule: '网格中间道路严禁拓宽（永久保持 16m 本地生活支路，防止破坏 96m 黄金进深与临街建筑）；仅外围环路与骨干道具备拓宽属性',
+      interior_allowed_to_widen: false,
+      perimeter_allowed_to_widen: true,
+    },
     axes: {
       residential: {
         // 东西向街（axis 'z'）中心距 112 m → 路缘正好 96 m；
@@ -744,14 +857,15 @@ const document = {
         z: {
           exact_m: 96,
           green_gaps: [{
-            from: GRID.residential.zLines[5].z, to: GRID.residential.zLines[6].z,
+            from: GRID.residential.zLines[7].z, to: GRID.residential.zLines[8].z,
             unzoned_width_m: GRID.residential.greenBelt.max_z - GRID.residential.greenBelt.min_z,
           }],
         },
         x: { range_m: GOLDEN_BLOCK_LENGTH_M.residential },
       },
       commercial: { z: { exact_m: 96 }, x: { range_m: GOLDEN_BLOCK_LENGTH_M.commercial } },
-      industrial: { z: { exact_m: 96 }, x: { range_m: GOLDEN_BLOCK_LENGTH_M.industrial } },
+      office: { z: { exact_m: 96 }, x: { exact_m: 96 } },
+      industrial: { z: { exact_m: 124 }, x: { range_m: GOLDEN_BLOCK_LENGTH_M.industrial } },
     },
     note: '中心线间距 = 96 + (W₁ + W₂) / 2，且必须落在全局 8 m 相位上；'
       + '因此可精确对开的组合只有 Small↔Small(112)、Medium↔Medium(120)、Large↔Large(128)、Small↔Large(120)。'
@@ -778,7 +892,7 @@ const document = {
     {
       id: 'access-res-north', district: 'residential', label: '住宅北出口（油场接入路）',
       via: 'res-w7', to: 'yard-access',
-      position: { x: GRID.industrial.xLines[0].x, z: GRID.residential.zLines[6].z },
+      position: { x: GRID.industrial.xLines[0].x, z: GRID.residential.zLines[8].z },
       note: '住宅北通道东端与油场接入路的丁字口；北通厂区、南接三区大道，住宅东北片不必再绕到东南角。',
     },
   ],
@@ -795,6 +909,7 @@ const document = {
     zone_area_m2: areaByKind,
     residential_zone_area_m2: residentialZoneArea,
     commercial_zone_area_m2: commercialZoneArea,
+    office_zone_area_m2: officeZoneArea,
     industrial_zone_area_m2: industrialZoneArea,
     zoning_fill: Object.fromEntries(stats.map(entry => [entry.district, { cells_zoned: entry.cells_zoned, cells_candidate: entry.cells_candidate, zones: entry.zones }])),
     road_count: roads.length,
@@ -816,9 +931,9 @@ await mkdir(path.dirname(outputPath), { recursive: true });
 await writeFile(outputPath, `${JSON.stringify(document, null, 2)}\n`, 'utf8');
 
 const summary = [
-  `三区范围：${REGION.districts.map(district => `${district.name} ${((district.bounds.max_x - district.bounds.min_x) / 1000).toFixed(2)}×${((district.bounds.max_z - district.bounds.min_z) / 1000).toFixed(2)} km`).join('；')}`,
+  `片区范围：${REGION.districts.map(district => `${district.name} ${((district.bounds.max_x - district.bounds.min_x) / 1000).toFixed(2)}×${((district.bounds.max_z - district.bounds.min_z) / 1000).toFixed(2)} km`).join('；')}`,
   `划区填充：${stats.map(entry => `${entry.name} ${entry.cells_zoned}/${entry.cells_candidate} 格 → ${entry.zones} 块`).join('；')}`,
-  `分区面积：住宅 ${(residentialZoneArea / 1e6).toFixed(2)} km²、商业 ${(commercialZoneArea / 1e6).toFixed(2)} km²、工业 ${(industrialZoneArea / 1e6).toFixed(2)} km²`,
+  `分区面积：住宅 ${(residentialZoneArea / 1e6).toFixed(2)} km²、商业 ${(commercialZoneArea / 1e6).toFixed(2)} km²、办公 ${(officeZoneArea / 1e6).toFixed(2)} km²、工业 ${(industrialZoneArea / 1e6).toFixed(2)} km²`,
   `户数组成：${Object.entries(householdByKind).map(([kind, value]) => `${kind} ${value}`).join('；')}`,
   `人口：${households} 户 → 中位 ${Math.round(households * REGION.peoplePerHousehold)} 人（区间 ${Math.round(households * REGION.peoplePerHouseholdRange[0])}–${Math.round(households * REGION.peoplePerHouseholdRange[1])}）`,
   `道路：${roads.length} 条 / ${(roadLength / 1000).toFixed(2)} km，单段 ${Math.round(Math.min(...segmentLengths))}–${Math.round(Math.max(...segmentLengths))} 米，连通分量 ${roadComponentCount}`,

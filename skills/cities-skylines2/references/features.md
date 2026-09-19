@@ -5,7 +5,7 @@
 | 目标 | 功能与入口示例 | 项目指南 |
 | --- | --- | --- |
 | 城市概览 | `get_game_status`、`get_city_summary`；连接、人口、幸福度、健康、资金、建筑分类 | `mcp/README.md` |
-| 规划图、网格预检与分阶段施工 | `get_planning_map_snapshot`、`render_city_plan`、`propose_grid_plan`、`propose_city_plan`、`prepare_grid_native_preview`、`advance_grid_construction`、`prepare_city_plan_construction`、`advance_city_plan_construction`；静态网页显示全部可购买地图格，规划与施工仅限已购区域；可生成高精度水岸线，并用同一结构化计划和 `cplan-*` 哈希按比例施工及回读 | `docs/guides/planning/PLANNING-MAP-GUIDE.md` |
+| 规划图、建筑精确绑定、网格预检与分阶段施工 | `get_planning_map_snapshot`、`render_city_plan`、`propose_grid_plan`、`propose_city_plan`、`bind_city_plan_buildings`、`prepare_grid_native_preview`、`advance_grid_construction`、`deploy_grid_district`、`prepare_city_plan_construction`、`advance_city_plan_construction`；静态网页显示全部可购买地图格，规划与施工仅限已购区域；建筑绑定用临时原生预览取得精确朝向和道路边后立即取消；规则子网格优先保存在 `plan.grids[]`，只有不能无损表示时才使用逐路方案并记录 `grid_exceptions` | `docs/guides/planning/PLANNING-MAP-GUIDE.md` |
 | 当前镜头与施工聚焦 | `get_camera_view`、`capture_game_view`、`focus_camera`；读取当前游戏镜头覆盖范围、捕获游戏画面，并在施工目标不可见时平滑聚焦；玩家输入立即取消自动移动 | `docs/guides/planning/CAMERA-VIEW-GUIDE.md` |
 | 城市管理 | `set_city_name`、`set_city_configuration`、`set_city_money`、`set_city_policy`；名称、配置、全市政策、资金、修正值、统计历史 | `docs/guides/city/CITY-MANAGEMENT-GUIDE.md` |
 | 道路与路口 | `list_road_prefabs`、`preview_road`、`preview_road_route`、`preview_road_grid`、`preview_road_autoroute`；曲线、平行路、环路、自动接入、立交、高架/隧道、升级、拆除、反向、装饰、停车变体、路口规则、道路政策和部分撤销 | `docs/guides/roads/ROAD-GUIDE.md` |
@@ -35,9 +35,10 @@
 ## 选择工作流的要点
 
 - “看看堵在哪里”：先交通分析，再沿道路/车道/车辆 ID 追踪。诊断请求本身不包含清车、改限速或扩路。
-- “规划一个住宅街区”：已购地图格、地形、水域与现有道路发现 → `propose_grid_plan`（仅网格）或 `propose_city_plan`（概念服务、交通与管网）→ 精确道路和主题分区绑定 → `render_city_plan`；不施工。
+- “规划一个住宅街区”：已购地图格、地形、水域与现有道路发现 → `propose_grid_plan`（仅网格）或 `propose_city_plan`（概念服务、交通与管网）→ 精确道路和主题分区绑定 → `render_city_plan`；不施工。道路永久建成后，可用 `bind_city_plan_buildings` 把精确 prefab 建筑绑定到原生候选朝向与道路边；绑定会改变计划哈希，必须重新渲染和确认。
 - “预检一个住宅街区”：在只读规划通过后调用 `prepare_grid_native_preview`，检查道路费用、警告和冲突；需要放弃时按返回动作取消。临时道路没有永久 edge ID，分区 preview 此时必须标记为等待道路落地。
 - “施工已预检的住宅街区”：取得明确施工授权和道路预算后，调用 `advance_grid_construction` 的 `commit_roads`，随后沿返回的 `next_action` 依次执行 `preview_zoning` 与 `apply_zoning`；每个阶段使用独立稳定 `request_id`，不得跳过分区预览。
+- “连续部署一个独立规则网格”：只有用户已经授权预览通过后自动提交时，才调用 `deploy_grid_district(approval_mode="automatic")`；默认 `staged` 只返回道路预览和 `advance_grid_construction` 下一步。多次部署必须串行，网格外围不能重叠。
 - “按规划图施工道路”：先展示 `render_city_plan`，用户确认其 `plan_id` 后，用相同 `bounds`/`plan` 调用 `prepare_city_plan_construction` 建立不写游戏的虚拟路网沙盒；网格保留为单个原生批次，超长路线仅按原生点数上限拆批。再沿 `advance_city_plan_construction` 返回的 `preview_batch` / `commit_batch` 执行最终位置原生预览和提交。规划哈希不一致、未知结果或永久道路回读不完整时必须停止。
 - “查看当前屏幕或跟随施工”：用 `get_camera_view` 读取世界坐标可见范围，需视觉核对时用 `capture_game_view`；施工自动聚焦被玩家输入取消后，不在同一批次抢回镜头。
 - “给建筑安装可移动升级”：先从升级列表读取 `placement_geometry`；主体侧使用返回吸附点，隔路候选使用 `road_side_candidates` 原样进入对应 preview，不自行猜位置或道路 ID。

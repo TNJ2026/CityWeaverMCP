@@ -10,8 +10,10 @@
 | 自动寻找一个规则道路网格位置 | `propose_grid_plan` | 否 | 候选位置、道路/分区绑定和结构化网格方案 |
 | 生成带服务、交通和管网预留的方案 | `propose_city_plan` | 否 | 概念级多层规划；设施与网络仍需精确绑定 |
 | 生成可拖拽缩放的全地图施工图 | `render_city_plan` | 否 | 静态 HTML 或 SVG，以及稳定的 `plan_id` |
+| 将规划建筑绑定到精确道路和朝向 | `bind_city_plan_buildings` | 只产生并取消临时预览 | 更新后的 `plan`、精确坐标、朝向、道路边和原生预览证据 |
 | 只检查单个网格能否铺路 | `prepare_grid_native_preview` | 只产生临时预览 | 原生费用、碰撞、警告、吸附结果和取消动作 |
 | 提交单个网格并继续划区 | `advance_grid_construction` | 是 | 永久道路、分区预览、分区提交和阶段回读 |
+| 连续部署一个已授权的独立网格 | `deploy_grid_district` | 默认只预览；显式 `approval_mode="automatic"` 时是 | 稳定阶段 ID、道路/分区/可选建筑及增长观察 |
 | 按整张已批准规划分批施工 | `prepare_city_plan_construction` → `advance_city_plan_construction` | 准备阶段否；提交批次时是 | 虚拟施工沙盒、确定性批次、逐批原生预览和永久回读 |
 
 ### 三条常用路径
@@ -25,17 +27,25 @@
 
 **按整张规划图施工**
 
-1. 用 `render_city_plan` 固化规划并保存 `plan_id`。
-2. 用户确认后，将完全相同的 `bounds`、`plan` 和 `approved_plan_id` 交给 `prepare_city_plan_construction`。
-3. 检查虚拟施工沙盒与批次顺序。
-4. 对每一批执行最终位置原生预览，核对费用、碰撞、净空、警告和吸附结果，再提交并回读永久对象。
-5. 任一批次失败、过期、取消、结果未知或永久回读不完整时停止；不得换 ID 盲目重试。
+1. 先用 `render_city_plan` 审查概念布局。规划道路尚未落地时，沿路建筑只能保留概念位置，不能伪造道路绑定或精确朝向。
+2. 用户确认道路后，先把尚未精确绑定的建筑标记为 `construction_status="skipped"`（或生成只含道路的阶段计划），重新渲染并按该阶段的 `plan_id` 建成道路骨架、回读永久道路；再回到完整计划，用 `bind_city_plan_buildings` 为带精确 prefab 的规划建筑逐一取得游戏原生候选、朝向和 `road_edge_id`。该工具只保留到验证完成并随即取消临时 preview，不会永久放置建筑。
+3. 用绑定后返回的新 `plan` 再次调用 `render_city_plan`；建筑几何变化会产生新的 `plan_id`，必须重新展示并取得施工确认。
+4. 将完全相同的 `bounds`、绑定后 `plan` 和新 `approved_plan_id` 交给 `prepare_city_plan_construction`，检查虚拟施工沙盒与批次顺序。
+5. 对每一批执行最终位置原生预览，核对费用、碰撞、净空、警告和吸附结果，再提交并回读永久对象。
+6. 任一批次失败、过期、取消、结果未知或永久回读不完整时停止；不得换 ID 盲目重试。
 
 **单个网格先预检再施工**
 
 1. 用 `prepare_grid_native_preview` 仅保留道路临时预览。
 2. 用户确认费用和原生结果后，用 `advance_grid_construction(stage="commit_roads")` 提交道路。
 3. 使用返回的永久道路 ID 调用 `advance_grid_construction(stage="preview_zoning")`，确认后再调用 `stage="apply_zoning"`。
+
+**多个独立网格连续施工**
+
+1. 规划阶段把每个规则开发单元分别写入 `plan.grids[]`，不要调用会产生游戏预览或永久对象的部署工具。
+2. 用户要求逐批检查时，逐个执行 `prepare_grid_native_preview` → `advance_grid_construction`。
+3. 用户已经明确授权单个网格在原生预览通过后自动连续提交时，才使用 `deploy_grid_district(approval_mode="automatic")`；默认 `approval_mode="staged"` 只停在道路 `preview_ready` 并返回下一步。
+4. 各网格必须串行、范围不重叠；相邻网格不得重复生成共享外围道路。需要共享道路时，把它提升为开发单元外的集散路，再让各网格分别接入。
 
 ### 不可混淆的状态
 
@@ -68,7 +78,7 @@
 
 道路宽度也使用相同的世界比例：SVG 道路笔画宽度严格等于 `width_m × 当前世界到 SVG 的比例尺`，不再设置视觉最小宽度或最大宽度。全地图视角下小路可能很细，放大后会按真实比例显示；网页另外使用透明点击热区改善选择操作，但它不参与可见宽度。现有道路的 `width_m` 来自实时道路 prefab 的 `NetGeometryData.m_DefaultWidth`，自动绑定的规划网格会采用实时发现的 prefab 宽度；手写规划道路则必须填写正确的 `width_m`，否则只能按所填数值绘制。
 
-住宅、商业、工业和办公之外的建筑以空心占地框显示。占地框使用 `0.35` SVG 单位细实线，宽、深严格采用 `size_m.x × size_m.z` 的世界比例，并围绕建筑中心按 `rotation_degrees` 旋转；不设置最小显示尺寸。独立建筑名称会去除英文 prefab 和说明文字后，以自动适配的小号中文显示在框内，并在 SVG 最上层的独立标签层绘制，避免被道路或管线覆盖；住宅、商业、工业、办公、道路和管线不在图面显示名称。现有建筑尺寸来自实时 prefab 的 `ObjectGeometryData.m_Size`，规划建筑必须使用实时发现或选址结果返回的尺寸。空心框表示基础建筑物理占地，不会自动包含尚未写入方案的升级组合、附属区域、停车区、车辆排队区或施工缓冲；这些空间需要作为单独规划对象或扩大明确的预留框。地图米制参考格使用低亮度细线（默认 `0.6` SVG 单位、`0.35` 透明度），地图格边界同样降低透明度，避免压过建筑、道路和标签。
+住宅、商业、工业和办公之外的建筑以空心占地框显示。占地框使用 `0.35` SVG 单位细实线，宽、深严格采用 `size_m.x × size_m.z` 的世界比例，并围绕建筑中心按 `rotation_degrees` 旋转；不设置最小显示尺寸。概念建筑用灰色表示，已取得候选绑定但尚未通过原生预览时用黄色，`native_preview_verified` 或 `permanent_verified` 用绿色，失败用红色；`rotation_degrees=null` 只为图面占位按 0° 绘制，不代表朝向已经确定。独立建筑名称会去除英文 prefab 和说明文字后，以自动适配的小号中文显示在框内，并在 SVG 最上层的独立标签层绘制，避免被道路或管线覆盖；住宅、商业、工业、办公、道路和管线不在图面显示名称。现有建筑尺寸来自实时 prefab 的 `ObjectGeometryData.m_Size`，规划建筑必须使用实时发现或选址结果返回的尺寸。空心框表示基础建筑物理占地，不会自动包含尚未写入方案的升级组合、附属区域、停车区、车辆排队区或施工缓冲；这些空间需要作为单独规划对象或扩大明确的预留框。地图米制参考格使用低亮度细线（默认 `0.6` SVG 单位、`0.35` 透明度），地图格边界同样降低透明度，避免压过建筑、道路和标签。
 
 ### 渲染前几何校验
 
@@ -85,6 +95,8 @@
 工具会读取当前城市的道路 prefab 和分区类型目录。未指定 `road_prefab` 时，它会从已解锁、允许分区且非桥梁的道路中选择适合网格的候选；住宅、商业和办公小街区会优先窄路。未指定 `zone_type` 时，它会按 `district_kind`、`density` 和 `theme_preference` 筛选。
 
 `theme_preference="auto"` 会先读取 `get_city_configuration.theme`：北美城市只匹配 `NA` 分区，欧洲城市只匹配 `EU` 分区。只有主题字段不可用时，EU/NA 等多个同等有效分区才返回 `bindings.zone.status="ambiguous"`；也可显式指定 `theme_preference="eu"|"na"` 或精确 `zone_type`。只有道路和分区都绑定时才返回可直接作为 `deploy_grid_district` 输入基础的 `preview_draft`；它仍不包含预算授权，`construction_ready` 仍为 `false`，并且必须先执行游戏原生 preview。
+
+规则道路组只有同时满足以下条件，才能无损保存为一个 `plan.grids[]` 对象：轴对齐、横纵线完整、各方向间距恒定、内部道路等宽、四条外围道路能由同一外围 prefab 表达，并且单批不超过当前原生 `5×5` 上限。规划校验会把满足条件却展开成逐条道路的方案标记为 `REGULAR_GRID_EXPANDED_AS_ROADS` 错误；不能满足时必须在 `plan.grid_exceptions[]` 记录道路组、道路 ID 和具体原因。该记录只是解释为什么保留精确逐路几何，不能绕过其他道路、占地和原生预览校验。
 
 ```json
 {
@@ -106,7 +118,7 @@
 
 `propose_city_plan` 在 `propose_grid_plan` 的选址和主题绑定结果上继续生成概念级多层方案：连接既有道路的接入口、两处公共服务建筑预留、地下给排水骨干、电力接入走廊，以及住宅/商业/办公区的地下地铁走廊或工业区的地表货运铁路走廊。`infrastructure_profile` 可选 `grid_only`、`basic`、`transit_ready` 或 `complete`。
 
-自动生成的服务建筑、轨道和管网带有 `planning_status="conceptual"`。它们用于空间预留和方案比较，不猜测当前存档不存在的 prefab，也不假设设施中心点就是可用端口；施工前必须分别发现精确 prefab、连接层、端口与吸附目标，并走各领域原生 preview。
+自动生成的服务建筑、轨道和管网带有 `planning_status="conceptual"`。概念建筑同时使用 `placement_status="conceptual"`、`rotation_source="unresolved"` 和 `rotation_degrees=null`，明确表示图上的角度尚未经过游戏计算。它们用于空间预留和方案比较，不猜测当前存档不存在的 prefab，也不假设设施中心点就是可用端口；施工前必须分别发现精确 prefab、连接层、端口与吸附目标，并走各领域原生 preview。
 
 ```json
 {
@@ -120,6 +132,14 @@
 }
 ```
 
+### 建筑角度与道路绑定
+
+`bind_city_plan_buildings` 接收当前 `bounds`、完整结构化 `plan` 和可选的 `building_ids`。它只处理已经填写精确 `prefab` 的建筑，调用统一建筑规划器搜索当前永久道路上的候选，并以游戏返回的 `position`、`rotation_degrees`、`road_edge_id` 或 `snap_target_id` 更新规划。工具也会采用实时 prefab 返回的 `size_m`，并记录 `rotation_source`、`placement_status`、`placement_binding` 与 `native_preview` 证据。
+
+每栋建筑的临时原生 preview 在确认可提交后立即取消，因此该工具不会建造建筑，也不会留下隐藏的预览实体。没有精确 prefab 的概念建筑保持 `rotation_degrees=null`，不得猜名称、道路边或朝向。失败项标为 `placement_status="failed"`，后续施工必须停止处理该项。
+
+道路侧候选只能绑定当前会话中已经永久存在的道路。若规划包含尚未建设的新道路，实际流程必须拆成两个批准周期：先将未绑定建筑标记为 `construction_status="skipped"` 或制作只含道路的阶段计划，渲染、批准并建设道路骨架；道路永久回读后恢复完整建筑清单并绑定建筑；再渲染绑定后的计划并确认新的 `plan_id`。绑定改变任何几何或 prefab 都会改变规划哈希，旧审批不能复用。
+
 ## 完整规划按图施工
 
 `prepare_city_plan_construction` 与 `advance_city_plan_construction` 让 `render_city_plan` 的结构化 `plan` 成为道路、可直接放置建筑及独立水电管网施工的唯一几何来源，而不是从 SVG 像素反推坐标。
@@ -131,7 +151,7 @@
 3. 准备结果先建立不写入游戏的虚拟施工沙盒，检查道路拓扑，并把道路、建筑和独立水电管网编译为确定性原生批次。它把网格展开为稳定对象 ID 用于图面和回读；当前 `preview_road_grid` 单次原生预览最多支持 `5×5` 个街区，因此更大的规划网格必须先拆成多个不超过该上限的施工网格，而不是把城市规划本身限制为固定的 NxN 模板。
 4. 普通路线按 `construction_order` 和 `depends_on` 排序；执行器以 240 米为安全上限等分长直线，避免原生端点吸附和浮点换算后恰好 256 米的边界段被拒绝；只有整条路线超过原生 16 点限制时才拆成相邻批次。虚拟沙盒不会在地下或其他位置创建游戏道路。路段长度四个口径的分工见[游戏物理规则](../../reference/GAME-PHYSICS-RULES.md) §1.4。
 5. 沿 `next_action` 调用 `advance_city_plan_construction(action="preview_batch")`。该步骤只从已批准规划读取 prefab 和最终世界坐标，按批次类型调用道路、建筑、市政服务、交通设施、公用设施或独立管网的游戏原生 preview，不允许调用方另传任意施工坐标。
-6. 检查返回的真实费用、警告、错误和吸附结果后，再沿 `next_action` 调用 `action="commit_batch"`。提交完成后工具按领域回读永久道路、建筑或管网；建筑还核对最终位置与旋转，全部符合才返回 `completed_verified` 并给出下一批。
+6. 检查返回的真实费用、警告、错误和吸附结果后，再沿 `next_action` 调用 `action="commit_batch"`。提交完成后工具按领域回读永久道路、建筑或管网；建筑还核对最终位置、旋转及永久 `road_edge_id`，全部符合才返回 `completed_verified` 并给出下一批。
 7. `failed`、`cancelled`、`expired`、`outcome_unknown` 或永久回读不完整都会停止序列并保持城市暂停；不得更换 request ID 盲目重试。
 
 ### 施工前硬约束
@@ -140,6 +160,7 @@
 - 住宅、商业、工业和办公开发单元不得跨越铁路、公路、有轨电车轨道或地上地铁线；完整禁止条例以[从零建城工作流](../../workflows/new-city.md)为准。
 - 同一网格内部道路必须等宽；更宽的集散路应位于网格外围或开发单元外，宽度变化应落在外围节点或路口。
 - 规划道路、建筑基础占地、升级附属建筑预留和必要净空不得互相冲突。
+- 带精确 `prefab` 的建筑必须有有限的 `rotation_degrees`；需要道路侧放置的 prefab 还必须有原生候选返回的精确 `road_edge_id`。视觉贴路、手填道路 ID 或概念角度均不能通过施工门禁。
 - 以上几何检查通过后，仍必须逐批执行最终位置的游戏原生 preview。
 
 ### 接入锚点与网格道路规则
@@ -250,6 +271,7 @@
 | 字段 | 图面内容 | 当前按图施工支持 |
 | --- | --- | --- |
 | `grids` | 规则道路网格及其分区意图 | 支持；单批原生网格预览上限为 `5×5` 街区 |
+| `grid_exceptions` | 无法由一次原生网格无损表达的道路组及原因 | 不施工；用于防止规则网格被无说明地退化为逐路施工 |
 | `roads` | 规划道路折线；现状道路可显示贝塞尔曲线 | 支持地表道路 |
 | `buildings` | 建筑位置、旋转和物理占地 | 支持可直接放置的普通建筑、公共服务、交通设施和公用设施 |
 | `zones` | 住宅、商业、工业、办公或其他分区多边形 | 图面支持；施工走独立分区工作流 |
@@ -289,6 +311,9 @@
         "kind": "service",
         "position": { "x": -1850, "z": 650 },
         "rotation_degrees": 90,
+        "rotation_source": "road_normal",
+        "placement_status": "native_preview_verified",
+        "road_edge_id": "session-guid:1234:1",
         "size_m": { "x": 64, "z": 48 }
       }
     ],

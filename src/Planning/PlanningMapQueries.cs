@@ -90,27 +90,32 @@ namespace CityWeaver
                     ["curve"] = PlanningCurve(curve), ["elevation_class"] = PlanningElevation(em, entity, curve), ["status"] = "existing" });
             }
 
-            if (includeTracks)
+            // Tracks and utilities share the same edge query. Materialize and scan it
+            // once, preserving independent layer limits, counts and classifications.
+            if (includeTracks || includeUtilities)
             using (var query = em.CreateEntityQuery(ComponentType.ReadOnly<Edge>(), ComponentType.ReadOnly<Curve>(), ComponentType.ReadOnly<PrefabRef>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
             using (var entities = query.ToEntityArray(Allocator.Temp)) foreach (var entity in entities)
             {
-                var prefabEntity = em.GetComponentData<PrefabRef>(entity).m_Prefab; if (!em.HasComponent<TrackData>(prefabEntity)) continue;
-                var curve = em.GetComponentData<Curve>(entity).m_Bezier; if (!bounds.Intersects(curve)) continue; trackTotal++; if (tracks.Count >= maxFeatures) continue;
-                prefabs.TryGetPrefab<PrefabBase>(prefabEntity, out var prefab); var data = em.GetComponentData<TrackData>(prefabEntity);
-                var width = em.HasComponent<NetGeometryData>(prefabEntity) ? em.GetComponentData<NetGeometryData>(prefabEntity).m_DefaultWidth : 4f;
-                tracks.Add(new JObject { ["id"] = EntityId(entity), ["prefab"] = prefab?.name, ["track_type"] = data.m_TrackType.ToString().ToLowerInvariant(),
-                    ["width_m"] = width, ["curve"] = PlanningCurve(curve), ["elevation_class"] = PlanningElevation(em, entity, curve), ["status"] = "existing" });
-            }
-
-            if (includeUtilities)
-            using (var query = em.CreateEntityQuery(ComponentType.ReadOnly<Edge>(), ComponentType.ReadOnly<Curve>(), ComponentType.ReadOnly<PrefabRef>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
-            using (var entities = query.ToEntityArray(Allocator.Temp)) foreach (var entity in entities)
-            {
-                var prefabEntity = em.GetComponentData<PrefabRef>(entity).m_Prefab; if (!IsUtilityPrefab(em, prefabEntity)) continue;
-                var curve = em.GetComponentData<Curve>(entity).m_Bezier; if (!bounds.Intersects(curve)) continue; utilityTotal++; if (utilities.Count >= maxFeatures) continue;
-                prefabs.TryGetPrefab<PrefabBase>(prefabEntity, out var prefab); var width = em.HasComponent<NetGeometryData>(prefabEntity) ? em.GetComponentData<NetGeometryData>(prefabEntity).m_DefaultWidth : 2f;
-                utilities.Add(new JObject { ["id"] = EntityId(entity), ["prefab"] = prefab?.name, ["network_type"] = UtilityNetworkKind(em, prefabEntity),
-                    ["width_m"] = width, ["curve"] = PlanningCurve(curve), ["elevation_class"] = PlanningElevation(em, entity, curve), ["status"] = "existing" });
+                var prefabEntity = em.GetComponentData<PrefabRef>(entity).m_Prefab;
+                var isTrack = includeTracks && em.HasComponent<TrackData>(prefabEntity);
+                var isUtility = includeUtilities && IsUtilityPrefab(em, prefabEntity);
+                if (!isTrack && !isUtility) continue;
+                var curve = em.GetComponentData<Curve>(entity).m_Bezier;
+                if (!bounds.Intersects(curve)) continue;
+                if (isTrack) trackTotal++;
+                if (isUtility) utilityTotal++;
+                var addTrack = isTrack && tracks.Count < maxFeatures;
+                var addUtility = isUtility && utilities.Count < maxFeatures;
+                if (!addTrack && !addUtility) continue;
+                prefabs.TryGetPrefab<PrefabBase>(prefabEntity, out var prefab);
+                var width = em.HasComponent<NetGeometryData>(prefabEntity)
+                    ? (float?)em.GetComponentData<NetGeometryData>(prefabEntity).m_DefaultWidth : null;
+                var elevation = PlanningElevation(em, entity, curve);
+                if (addTrack) tracks.Add(new JObject { ["id"] = EntityId(entity), ["prefab"] = prefab?.name,
+                    ["track_type"] = em.GetComponentData<TrackData>(prefabEntity).m_TrackType.ToString().ToLowerInvariant(),
+                    ["width_m"] = width ?? 4f, ["curve"] = PlanningCurve(curve), ["elevation_class"] = elevation, ["status"] = "existing" });
+                if (addUtility) utilities.Add(new JObject { ["id"] = EntityId(entity), ["prefab"] = prefab?.name, ["network_type"] = UtilityNetworkKind(em, prefabEntity),
+                    ["width_m"] = width ?? 2f, ["curve"] = PlanningCurve(curve), ["elevation_class"] = elevation, ["status"] = "existing" });
             }
 
             if (includeBuildings)
@@ -123,8 +128,10 @@ namespace CityWeaver
                 var rotation = transform.m_Rotation.value; var degrees = math.degrees(math.atan2(2f * (rotation.w * rotation.y + rotation.x * rotation.z), 1f - 2f * (rotation.y * rotation.y + rotation.z * rotation.z)));
                 var kind = em.HasComponent<ResidentialProperty>(entity) ? "residential" : em.HasComponent<CommercialProperty>(entity) ? "commercial" :
                     em.HasComponent<IndustrialProperty>(entity) ? "industrial" : em.HasComponent<OfficeProperty>(entity) ? "office" : "service";
+                var building = em.GetComponentData<Building>(entity);
                 buildings.Add(new JObject { ["id"] = EntityId(entity), ["prefab"] = prefab?.name, ["kind"] = kind, ["position"] = PointJson(transform.m_Position),
-                    ["rotation_degrees"] = degrees, ["size_m"] = new JObject { ["x"] = math.max(2, size.x), ["z"] = math.max(2, size.z) }, ["status"] = "existing" });
+                    ["rotation_degrees"] = degrees, ["road_edge_id"] = OptionalEntity(m_Session, building.m_RoadEdge),
+                    ["size_m"] = new JObject { ["x"] = math.max(2, size.x), ["z"] = math.max(2, size.z) }, ["status"] = "existing" });
             }
 
             var truncated = roadTotal > roads.Count || buildingTotal > buildings.Count || trackTotal > tracks.Count || utilityTotal > utilities.Count;
