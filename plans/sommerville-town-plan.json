@@ -1,0 +1,4529 @@
+{
+  "plan_id": "cplan-d138389dae852401",
+  "city": "萨默斯维尔",
+  "name": "湖湾镇规划",
+  "target_population": 10000,
+  "bounds": {
+    "min_x": -24,
+    "min_z": -3112,
+    "max_x": 1696,
+    "max_z": -312
+  },
+  "render": {
+    "title": "萨默斯维尔｜湖湾镇总体规划（七网格住区 · 绿带分隔 · 四车道连接 · 河东工业园 2×4 · 中央绿廊，只读草案）",
+    "width": 1800,
+    "height": 1800,
+    "view": "surface",
+    "format": "static_html"
+  },
+  "water_cell_size_m": 32,
+  "terrain_cell_size_m": 64,
+  "golden_block": {
+    "curb_to_curb_m": 96,
+    "widening_rules": {
+      "rule": "网格中间道路严禁拓宽（永久保持 16 m 生活支路，防止破坏 96 m 黄金进深与临街建筑）；仅迎宾大道（32 m）与外围环路具备拓宽属性",
+      "interior_allowed_to_widen": false,
+      "perimeter_allowed_to_widen": true
+    },
+    "axes": {
+      "town": {
+        "x": {
+          "exact_m": 96
+        },
+        "z": {
+          "exact_m": 96,
+          "green_gaps": [
+            {
+              "from": -2464,
+              "to": -2240,
+              "unzoned_width_m": 112
+            },
+            {
+              "from": -3072,
+              "to": -2800,
+              "unzoned_width_m": 160
+            }
+          ]
+        }
+      },
+      "westwing": {
+        "z": {
+          "exact_m": 96
+        }
+      },
+      "industry": {
+        "x": {
+          "exact_m": 72
+        }
+      }
+    },
+    "cross_checks": [
+      {
+        "pair": [
+          "street-z-1664",
+          "avenue"
+        ],
+        "center_m": 120,
+        "curb_m": 96
+      },
+      {
+        "pair": [
+          "avenue",
+          "street-z-1904"
+        ],
+        "center_m": 120,
+        "curb_m": 96
+      },
+      {
+        "pair": [
+          "avenue",
+          "ind-x-1480"
+        ],
+        "center_m": 120,
+        "curb_m": 96
+      },
+      {
+        "pair": [
+          "street-z-2240",
+          "conn-corridor"
+        ],
+        "center_m": 112,
+        "curb_m": 92
+      },
+      {
+        "pair": [
+          "conn-corridor",
+          "street-z-2464"
+        ],
+        "center_m": 112,
+        "curb_m": 92
+      },
+      {
+        "pair": [
+          "street-z-2800",
+          "conn-south"
+        ],
+        "center_m": 80,
+        "curb_m": 60
+      }
+    ],
+    "note": "中心线间距 = 96 + (W₁ + W₂) / 2，且必须落在全局 8 m 相位上；镇区只用 Small↔Small(112) 与 Small↔Large(120) 两档。四车道 Medium Road 不与任何分区对开（S↔M 的 116 不在 8 m 相位上），只走绿带正中的公园路形式：绿廊大道 / 湖滨大道（两条）。"
+  },
+  "districts": [
+    {
+      "key": "westwing",
+      "name": "西翼网格",
+      "kind": "联排住宅 5×3",
+      "bounds": {
+        "min_x": 24,
+        "max_x": 568,
+        "min_z": -1768,
+        "max_z": -1448
+      },
+      "zoning": true,
+      "greenBelts": [],
+      "zone_area_m2": 138240,
+      "note": "独立住宅网格一：北环路~迎宾大道之间 5 列×3 排联排；湖滨退线损失的人口由此补回。大道南缘与西北网格之间是北缘绿带（纯绿，不铺路）。"
+    },
+    {
+      "key": "northwest",
+      "name": "西北网格",
+      "kind": "联排住宅 5×3",
+      "bounds": {
+        "min_x": 24,
+        "max_x": 568,
+        "min_z": -2232,
+        "max_z": -1912
+      },
+      "zoning": true,
+      "greenBelts": [],
+      "zone_area_m2": 138240,
+      "note": "独立住宅网格二：中心北街~绿廊北街之间 5 列×3 排联排；大道南侧退线 112 m（北缘绿带），与西翼网格隔带相望、互不相邻。"
+    },
+    {
+      "key": "northeast",
+      "name": "东北网格",
+      "kind": "中密度公寓 3×3",
+      "bounds": {
+        "min_x": 696,
+        "max_x": 1016,
+        "min_z": -2232,
+        "max_z": -1912
+      },
+      "zoning": true,
+      "greenBelts": [],
+      "zone_area_m2": 82944,
+      "note": "独立住宅网格三：中心北街~绿廊北街之间 3 列×3 排中密度公寓，紧邻商业网格与迎宾大道入镇口；边缘 48 m 不划区。"
+    },
+    {
+      "key": "bayview",
+      "name": "湾景网格",
+      "kind": "联排住宅 1×2",
+      "bounds": {
+        "min_x": 1144,
+        "max_x": 1240,
+        "min_z": -2120,
+        "max_z": -1912
+      },
+      "zoning": true,
+      "greenBelts": [],
+      "zone_area_m2": 18432,
+      "note": "独立住宅网格四：湾景一/二街之间的 1×2 小网格，东望湾滨；西侧留 96 m 湾景绿带与东北网格相隔，南界是东延的南一街。"
+    },
+    {
+      "key": "commerce",
+      "name": "河东商埠",
+      "kind": "商业 5×1",
+      "bounds": {
+        "min_x": 696,
+        "max_x": 1240,
+        "min_z": -1896,
+        "max_z": -1800
+      },
+      "zoning": true,
+      "greenBelts": [],
+      "zone_area_m2": 46080,
+      "note": "全镇唯一商业网格：迎宾大道入镇口第一排 5 块商业，与住宅网格以中心北街相隔、与工业园共享大道货运通道；南北外缘 48 m 不划区。"
+    },
+    {
+      "key": "southwest",
+      "name": "西南网格",
+      "kind": "联排住宅 5×3",
+      "bounds": {
+        "min_x": 24,
+        "max_x": 568,
+        "min_z": -2792,
+        "max_z": -2472
+      },
+      "zoning": true,
+      "greenBelts": [],
+      "zone_area_m2": 138240,
+      "note": "独立住宅网格五：绿廊南街~南环路之间 5 列×3 排联排；边缘 48 m 不划区。"
+    },
+    {
+      "key": "southeast",
+      "name": "东南网格",
+      "kind": "中密度公寓 3×3",
+      "bounds": {
+        "min_x": 696,
+        "max_x": 1016,
+        "min_z": -2792,
+        "max_z": -2472
+      },
+      "zoning": true,
+      "greenBelts": [],
+      "zone_area_m2": 82944,
+      "note": "独立住宅网格六：绿廊南街~南环路之间 3 列×3 排中密度公寓，西隔绿巷与西南网格相望、东临湾滨绿带；边缘 48 m 不划区。"
+    },
+    {
+      "key": "lakeside",
+      "name": "湖滨台地（西）",
+      "kind": "低密度住宅 1×1（48 m 滨湖带）",
+      "bounds": {
+        "min_x": 24,
+        "max_x": 120,
+        "min_z": -3064,
+        "max_z": -3016
+      },
+      "zoning": true,
+      "greenBelts": [],
+      "zone_area_m2": 4608,
+      "note": "湖滨网格七（西台地）：湖滩街西段北侧的 96×48 m 单排湖景房。湖滨带实测被 NE→SW 干沟斜切（沟底 872 m）且 x40−56 有 21% 通湖陡坎，原 5×1 网格横跨沟谷不可行——收缩为东西两块台地。"
+    },
+    {
+      "key": "lakeside-east",
+      "name": "湖滨台地（东）",
+      "kind": "低密度住宅 1×1（48 m 滨湖带）",
+      "bounds": {
+        "min_x": 424,
+        "max_x": 520,
+        "min_z": -3064,
+        "max_z": -3016
+      },
+      "zoning": true,
+      "greenBelts": [],
+      "zone_area_m2": 4608,
+      "note": "湖滨网格八（东台地）：湖滩街东段北侧的 96×48 m 单排湖景房，经主街直达；与西台地之间是干沟绿谷。"
+    },
+    {
+      "key": "industry",
+      "name": "河东工业园",
+      "kind": "制造业 2×4",
+      "bounds": {
+        "min_x": 1488,
+        "max_x": 1648,
+        "min_z": -1472,
+        "max_z": -960
+      },
+      "zoning": true,
+      "greenBelts": [
+        {
+          "min_x": 1376,
+          "max_x": 1472,
+          "min_z": -1480,
+          "max_z": -952
+        }
+      ],
+      "zone_area_m2": 66816,
+      "note": "迎宾大道 x=1360 段以东的台地，2 列 × 4 行网格（柱距 88 m、地块 72×112 m）。实测水体掩码：水湾东北支伸到 (1672,−950)、东南支伸到 (1576,−1560)，故东界收到 x=1656、南界止于大道节点 −1480。工业北街/南街直接接在大道细分节点上，货运车流从匝道直进园区、不穿镇；网格内部不设任何服务建筑，园区消防站放在工业北街北侧绿带。大道与工业一街之间 48 m 缓冲带留作风电路（3 台风机已排）。"
+    },
+    {
+      "key": "greencorridor",
+      "name": "中央绿廊",
+      "kind": "绿地",
+      "bounds": {
+        "min_x": -40,
+        "max_x": 1080,
+        "min_z": -2472,
+        "max_z": -2248
+      },
+      "zoning": false,
+      "greenBelts": [
+        {
+          "min_x": 16,
+          "max_x": 1024,
+          "min_z": -2472,
+          "max_z": -2248
+        }
+      ],
+      "zone_area_m2": 0,
+      "note": "绿廊北街与绿廊南街之间刻意抽掉的 224 m 间距（路缘 208 m）：中小学、中央公园、儿童活动场沿两缘排布，只保留西环路/主街/东环路 3 处穿越，全长 1 km 不划区。"
+    },
+    {
+      "key": "castlehill",
+      "name": "城堡山公园",
+      "kind": "公园",
+      "bounds": {
+        "min_x": 640,
+        "max_x": 1104,
+        "min_z": -1552,
+        "max_z": -960
+      },
+      "zoning": false,
+      "greenBelts": [
+        {
+          "min_x": 640,
+          "max_x": 1104,
+          "min_z": -1552,
+          "max_z": -960
+        }
+      ],
+      "zone_area_m2": 0,
+      "note": "RuinsCastle01 城堡遗址所在山体（~936 m）整体留绿，不划区、不修路；东侧鞍部走廊留给迎宾大道。两座水塔分居山西/东坡（免临路 prefab，高处白赚静水压），与城堡遗址各距 170 m 以上。"
+    },
+    {
+      "key": "bayshore",
+      "name": "湾滨绿带",
+      "kind": "绿地",
+      "bounds": {
+        "min_x": 1136,
+        "max_x": 1304,
+        "min_z": -2856,
+        "max_z": -2128
+      },
+      "zoning": false,
+      "greenBelts": [
+        {
+          "min_x": 1136,
+          "max_x": 1304,
+          "min_z": -2856,
+          "max_z": -2128
+        }
+      ],
+      "zone_area_m2": 0,
+      "note": "东南角向水湾均匀下降的干坡（895 → 872 m，坡 6~9%），不划区；预留为湾滨公园与未来观景路走廊。北界收到 −2128 给湾景网格让位。"
+    },
+    {
+      "key": "northgreen",
+      "name": "北缘绿带",
+      "kind": "绿地",
+      "bounds": {
+        "min_x": 16,
+        "max_x": 568,
+        "min_z": -1912,
+        "max_z": -1800
+      },
+      "zoning": false,
+      "greenBelts": [
+        {
+          "min_x": 16,
+          "max_x": 568,
+          "min_z": -1912,
+          "max_z": -1800
+        }
+      ],
+      "zone_area_m2": 0,
+      "note": "迎宾大道与西北网格之间的 112 m 退线绿带保持纯绿（北缘绿带）——西翼与西北两网格由此互不相邻，区间车流走西环路/主街横穿大道即可。"
+    },
+    {
+      "key": "southgreen",
+      "name": "南缘绿带",
+      "kind": "绿地",
+      "bounds": {
+        "min_x": 16,
+        "max_x": 568,
+        "min_z": -2960,
+        "max_z": -2808
+      },
+      "zoning": false,
+      "greenBelts": [
+        {
+          "min_x": 16,
+          "max_x": 568,
+          "min_z": -2960,
+          "max_z": -2808
+        }
+      ],
+      "zone_area_m2": 0,
+      "note": "南环路以南、湖滨街以北的 152 m 滨湖绿带，正中铺四车道湖滨大道（conn-south）；口袋公园设于带内（水塔已迁往城堡山）。"
+    },
+    {
+      "key": "bayviewgreen",
+      "name": "湾景绿带",
+      "kind": "绿地",
+      "bounds": {
+        "min_x": 1032,
+        "max_x": 1128,
+        "min_z": -2120,
+        "max_z": -1912
+      },
+      "zoning": false,
+      "greenBelts": [
+        {
+          "min_x": 1032,
+          "max_x": 1128,
+          "min_z": -2120,
+          "max_z": -1912
+        }
+      ],
+      "zone_area_m2": 0,
+      "note": "东环路与湾景一街之间的 96 m 绿带：东北网格与湾景网格的分隔带。"
+    },
+    {
+      "key": "greenseam-north",
+      "name": "绿巷（北）",
+      "kind": "绿地",
+      "bounds": {
+        "min_x": 584,
+        "max_x": 680,
+        "min_z": -2232,
+        "max_z": -1768
+      },
+      "zoning": false,
+      "greenBelts": [
+        {
+          "min_x": 584,
+          "max_x": 680,
+          "min_z": -2232,
+          "max_z": -1768
+        }
+      ],
+      "zone_area_m2": 0,
+      "note": "主街与东一街之间整条街区列留绿：西北住宅网格与河东商埠/东北网格的分隔带（宽 96 m），社区诊所设于巷内。"
+    },
+    {
+      "key": "greenseam-south",
+      "name": "绿巷（南）",
+      "kind": "绿地",
+      "bounds": {
+        "min_x": 584,
+        "max_x": 680,
+        "min_z": -2792,
+        "max_z": -2472
+      },
+      "zoning": false,
+      "greenBelts": [
+        {
+          "min_x": 584,
+          "max_x": 680,
+          "min_z": -2792,
+          "max_z": -2472
+        }
+      ],
+      "zone_area_m2": 0,
+      "note": "西南与东南住宅网格之间的分隔带（宽 96 m），北接中央绿廊、南接南环路绿缘。"
+    }
+  ],
+  "access_points": [
+    {
+      "id": "access-avenue-west",
+      "district": "town",
+      "label": "镇西汇入口（西环路 × 迎宾大道）",
+      "via": "street-x-16",
+      "to": "avenue",
+      "position": {
+        "x": 16,
+        "z": -1784
+      },
+      "note": "西翼与主网格西北片经西环路直上迎宾大道。"
+    },
+    {
+      "id": "access-avenue-east",
+      "district": "town",
+      "label": "镇东汇入口（东环路 × 迎宾大道）",
+      "via": "street-x-1024",
+      "to": "avenue",
+      "position": {
+        "x": 1024,
+        "z": -1784
+      },
+      "note": "主网格东南片经东环路直上迎宾大道；与西汇入口沿大道相距 1008 m。"
+    },
+    {
+      "id": "access-industry",
+      "district": "industry",
+      "label": "工业园汇入口（工业北街 × 迎宾大道）",
+      "via": "ind-z-952",
+      "to": "avenue",
+      "position": {
+        "x": 1360,
+        "z": -952
+      },
+      "note": "园区货运车流经工业北街直上迎宾大道、从匝道上高速，全程不穿镇；与镇东汇入口相距约 897 m。"
+    }
+  ],
+  "accounting": {
+    "target_population": 10000,
+    "households": 3961,
+    "people": 9903,
+    "peopleRange": [
+      8714,
+      11091
+    ],
+    "peoplePerHousehold": 2.5,
+    "household_area_m2": {
+      "NA Residential Low": 300,
+      "NA Residential Medium Row": 170,
+      "NA Residential Medium": 120
+    },
+    "household_rule": "按分区类型汇总可划区面积后 round(面积 ÷ 户均占地)，再乘每户人数；不是逐块取整",
+    "household_by_kind": {
+      "NA Residential Medium Row": 2548,
+      "NA Residential Medium": 1382,
+      "NA Residential Low": 31
+    },
+    "zone_area_m2": {
+      "NA Residential Medium Row": 433152,
+      "NA Residential Medium": 165888,
+      "NA Commercial Low": 46080,
+      "NA Residential Low": 9216,
+      "Industrial Manufacturing": 66816
+    },
+    "residential_zone_area_m2": 608256,
+    "commercial_zone_area_m2": 46080,
+    "industrial_zone_area_m2": 66816,
+    "zoning_fill": {
+      "westwing": {
+        "cells_zoned": 2160,
+        "cells_candidate": 2720,
+        "zones": 15
+      },
+      "northwest": {
+        "cells_zoned": 2160,
+        "cells_candidate": 2720,
+        "zones": 15
+      },
+      "northeast": {
+        "cells_zoned": 1296,
+        "cells_candidate": 1600,
+        "zones": 9
+      },
+      "bayview": {
+        "cells_zoned": 288,
+        "cells_candidate": 312,
+        "zones": 2
+      },
+      "commerce": {
+        "cells_zoned": 720,
+        "cells_candidate": 816,
+        "zones": 5
+      },
+      "southwest": {
+        "cells_zoned": 2160,
+        "cells_candidate": 2720,
+        "zones": 15
+      },
+      "southeast": {
+        "cells_zoned": 1296,
+        "cells_candidate": 1600,
+        "zones": 9
+      },
+      "lakeside": {
+        "cells_zoned": 72,
+        "cells_candidate": 72,
+        "zones": 1
+      },
+      "lakeside-east": {
+        "cells_zoned": 72,
+        "cells_candidate": 72,
+        "zones": 1
+      },
+      "industry": {
+        "cells_zoned": 1044,
+        "cells_candidate": 1280,
+        "zones": 8
+      }
+    },
+    "road_count": 43,
+    "road_length_m": 29978,
+    "road_length_by_class_m": {
+      "spine": 2794,
+      "local": 25616,
+      "connector": 1568
+    },
+    "road_segment_m": {
+      "min": 88,
+      "max": 192
+    },
+    "road_connected_components": 1,
+    "building_placement_warnings": 0,
+    "offline_validation": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "geometry_bbox": {
+      "min_x": 16,
+      "min_z": -3072,
+      "max_x": 1656,
+      "max_z": -352
+    }
+  },
+  "basis": {
+    "city": "萨默斯维尔",
+    "theme": "North American",
+    "surveyed_at": "2026-09-19",
+    "ramp_anchor": {
+      "x": 1019.8,
+      "z": -351.9,
+      "prefab": "Medium Road Divided",
+      "note": "全图唯一现成道路锚点；迎宾大道起点 (1024,−352) 距其 4.2 m"
+    },
+    "plain_height_m": 895.58,
+    "avenue_profile_m": [
+      {
+        "at": "(1024,−352) 匝道端",
+        "h": 895.3
+      },
+      {
+        "at": "(1360,−1150) 鞍部",
+        "h": 895.8
+      },
+      {
+        "at": "(1360,−1450) 山肩",
+        "h": 905.2
+      },
+      {
+        "at": "(1360,−1656) 山肩南端",
+        "h": 898.6
+      },
+      {
+        "at": "(1248,−1784) 网格东北角",
+        "h": 896.2
+      }
+    ],
+    "water_level_approx_m": 864,
+    "shoreline_note": "南水线 z ≈ −2950~−3000（x 830~1130 一带）；网格东南角为干坡（872~895 m），已整体留作湾滨绿带",
+    "purchased_tiles": "已购 40 格（x −935~2182，z −3428~1559）"
+  },
+  "disclaimer": "本文件是只读规划草案：未运行任何施工预检（非 native preview）、未创建任何道路/分区/建筑、未改动模拟；几何按「萨默斯维尔」存档 2026-09-19 的实时地形与水体勘测绘制，换存档需重新勘测并重绘。",
+  "plan": {
+    "roads": [
+      {
+        "id": "avenue",
+        "label": "迎宾大道",
+        "district": "avenue",
+        "prefab": "Large Road",
+        "level": "surface",
+        "width_m": 32,
+        "road_class": "spine",
+        "role": "perimeter_arterial",
+        "widening_policy": "perimeter_expandable",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 5,
+        "points": [
+          {
+            "x": 1024,
+            "z": -352
+          },
+          {
+            "x": 1112,
+            "z": -504
+          },
+          {
+            "x": 1192,
+            "z": -648
+          },
+          {
+            "x": 1280,
+            "z": -800
+          },
+          {
+            "x": 1360,
+            "z": -952
+          },
+          {
+            "x": 1360,
+            "z": -1128
+          },
+          {
+            "x": 1360,
+            "z": -1304
+          },
+          {
+            "x": 1360,
+            "z": -1480
+          },
+          {
+            "x": 1360,
+            "z": -1656
+          },
+          {
+            "x": 1248,
+            "z": -1784
+          },
+          {
+            "x": 1072,
+            "z": -1784
+          },
+          {
+            "x": 896,
+            "z": -1784
+          },
+          {
+            "x": 720,
+            "z": -1784
+          },
+          {
+            "x": 544,
+            "z": -1784
+          },
+          {
+            "x": 368,
+            "z": -1784
+          },
+          {
+            "x": 192,
+            "z": -1784
+          },
+          {
+            "x": 16,
+            "z": -1784
+          }
+        ]
+      },
+      {
+        "id": "street-x-16",
+        "label": "西环路",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 40,
+        "points": [
+          {
+            "x": 16,
+            "z": -1440
+          },
+          {
+            "x": 16,
+            "z": -1624
+          },
+          {
+            "x": 16,
+            "z": -1800
+          },
+          {
+            "x": 16,
+            "z": -1984
+          },
+          {
+            "x": 16,
+            "z": -2168
+          },
+          {
+            "x": 16,
+            "z": -2344
+          },
+          {
+            "x": 16,
+            "z": -2528
+          },
+          {
+            "x": 16,
+            "z": -2712
+          },
+          {
+            "x": 16,
+            "z": -2888
+          },
+          {
+            "x": 16,
+            "z": -3072
+          }
+        ]
+      },
+      {
+        "id": "street-x-128-n",
+        "label": "西一街（绿廊以北）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 41,
+        "points": [
+          {
+            "x": 128,
+            "z": -1440
+          },
+          {
+            "x": 128,
+            "z": -1600
+          },
+          {
+            "x": 128,
+            "z": -1760
+          },
+          {
+            "x": 128,
+            "z": -1920
+          },
+          {
+            "x": 128,
+            "z": -2080
+          },
+          {
+            "x": 128,
+            "z": -2240
+          }
+        ]
+      },
+      {
+        "id": "street-x-128-s",
+        "label": "西一街（绿廊以南）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 141,
+        "points": [
+          {
+            "x": 128,
+            "z": -2464
+          },
+          {
+            "x": 128,
+            "z": -2600
+          },
+          {
+            "x": 128,
+            "z": -2744
+          },
+          {
+            "x": 128,
+            "z": -2880
+          }
+        ]
+      },
+      {
+        "id": "street-x-240-n",
+        "label": "西二街（绿廊以北）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 42,
+        "points": [
+          {
+            "x": 240,
+            "z": -1440
+          },
+          {
+            "x": 240,
+            "z": -1600
+          },
+          {
+            "x": 240,
+            "z": -1760
+          },
+          {
+            "x": 240,
+            "z": -1920
+          },
+          {
+            "x": 240,
+            "z": -2080
+          },
+          {
+            "x": 240,
+            "z": -2240
+          }
+        ]
+      },
+      {
+        "id": "street-x-240-s",
+        "label": "西二街（绿廊以南）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 142,
+        "points": [
+          {
+            "x": 240,
+            "z": -2464
+          },
+          {
+            "x": 240,
+            "z": -2600
+          },
+          {
+            "x": 240,
+            "z": -2744
+          },
+          {
+            "x": 240,
+            "z": -2880
+          }
+        ]
+      },
+      {
+        "id": "street-x-352-n",
+        "label": "西三街（绿廊以北）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 43,
+        "points": [
+          {
+            "x": 352,
+            "z": -1440
+          },
+          {
+            "x": 352,
+            "z": -1600
+          },
+          {
+            "x": 352,
+            "z": -1760
+          },
+          {
+            "x": 352,
+            "z": -1920
+          },
+          {
+            "x": 352,
+            "z": -2080
+          },
+          {
+            "x": 352,
+            "z": -2240
+          }
+        ]
+      },
+      {
+        "id": "street-x-352-s",
+        "label": "西三街（绿廊以南）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 143,
+        "points": [
+          {
+            "x": 352,
+            "z": -2464
+          },
+          {
+            "x": 352,
+            "z": -2600
+          },
+          {
+            "x": 352,
+            "z": -2744
+          },
+          {
+            "x": 352,
+            "z": -2880
+          }
+        ]
+      },
+      {
+        "id": "street-x-464-n",
+        "label": "西四街（绿廊以北）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 44,
+        "points": [
+          {
+            "x": 464,
+            "z": -1440
+          },
+          {
+            "x": 464,
+            "z": -1600
+          },
+          {
+            "x": 464,
+            "z": -1760
+          },
+          {
+            "x": 464,
+            "z": -1920
+          },
+          {
+            "x": 464,
+            "z": -2080
+          },
+          {
+            "x": 464,
+            "z": -2240
+          }
+        ]
+      },
+      {
+        "id": "street-x-464-s",
+        "label": "西四街（绿廊以南）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 144,
+        "points": [
+          {
+            "x": 464,
+            "z": -2464
+          },
+          {
+            "x": 464,
+            "z": -2600
+          },
+          {
+            "x": 464,
+            "z": -2744
+          },
+          {
+            "x": 464,
+            "z": -2880
+          }
+        ]
+      },
+      {
+        "id": "street-x-576",
+        "label": "主街",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 45,
+        "points": [
+          {
+            "x": 576,
+            "z": -1440
+          },
+          {
+            "x": 576,
+            "z": -1624
+          },
+          {
+            "x": 576,
+            "z": -1800
+          },
+          {
+            "x": 576,
+            "z": -1984
+          },
+          {
+            "x": 576,
+            "z": -2168
+          },
+          {
+            "x": 576,
+            "z": -2344
+          },
+          {
+            "x": 576,
+            "z": -2528
+          },
+          {
+            "x": 576,
+            "z": -2712
+          },
+          {
+            "x": 576,
+            "z": -2888
+          },
+          {
+            "x": 576,
+            "z": -3072
+          }
+        ]
+      },
+      {
+        "id": "street-x-688-n",
+        "label": "东一街（绿廊以北）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 46,
+        "points": [
+          {
+            "x": 688,
+            "z": -1784
+          },
+          {
+            "x": 688,
+            "z": -1936
+          },
+          {
+            "x": 688,
+            "z": -2088
+          },
+          {
+            "x": 688,
+            "z": -2240
+          }
+        ]
+      },
+      {
+        "id": "street-x-688-s",
+        "label": "东一街（绿廊以南）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 146,
+        "points": [
+          {
+            "x": 688,
+            "z": -2464
+          },
+          {
+            "x": 688,
+            "z": -2632
+          },
+          {
+            "x": 688,
+            "z": -2800
+          }
+        ]
+      },
+      {
+        "id": "street-x-800-n",
+        "label": "东二街（绿廊以北）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 47,
+        "points": [
+          {
+            "x": 800,
+            "z": -1784
+          },
+          {
+            "x": 800,
+            "z": -1936
+          },
+          {
+            "x": 800,
+            "z": -2088
+          },
+          {
+            "x": 800,
+            "z": -2240
+          }
+        ]
+      },
+      {
+        "id": "street-x-800-s",
+        "label": "东二街（绿廊以南）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 147,
+        "points": [
+          {
+            "x": 800,
+            "z": -2464
+          },
+          {
+            "x": 800,
+            "z": -2632
+          },
+          {
+            "x": 800,
+            "z": -2800
+          }
+        ]
+      },
+      {
+        "id": "street-x-912-n",
+        "label": "东三街（绿廊以北）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 48,
+        "points": [
+          {
+            "x": 912,
+            "z": -1784
+          },
+          {
+            "x": 912,
+            "z": -1936
+          },
+          {
+            "x": 912,
+            "z": -2088
+          },
+          {
+            "x": 912,
+            "z": -2240
+          }
+        ]
+      },
+      {
+        "id": "street-x-912-s",
+        "label": "东三街（绿廊以南）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 148,
+        "points": [
+          {
+            "x": 912,
+            "z": -2464
+          },
+          {
+            "x": 912,
+            "z": -2632
+          },
+          {
+            "x": 912,
+            "z": -2800
+          }
+        ]
+      },
+      {
+        "id": "street-x-1024",
+        "label": "东环路",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 49,
+        "points": [
+          {
+            "x": 1024,
+            "z": -1784
+          },
+          {
+            "x": 1024,
+            "z": -1952
+          },
+          {
+            "x": 1024,
+            "z": -2120
+          },
+          {
+            "x": 1024,
+            "z": -2288
+          },
+          {
+            "x": 1024,
+            "z": -2464
+          },
+          {
+            "x": 1024,
+            "z": -2632
+          },
+          {
+            "x": 1024,
+            "z": -2800
+          }
+        ]
+      },
+      {
+        "id": "street-x-1136",
+        "label": "湾景一街",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 50,
+        "points": [
+          {
+            "x": 1136,
+            "z": -1784
+          },
+          {
+            "x": 1136,
+            "z": -1952
+          },
+          {
+            "x": 1136,
+            "z": -2128
+          }
+        ]
+      },
+      {
+        "id": "street-x-1248",
+        "label": "湾景二街",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 51,
+        "points": [
+          {
+            "x": 1248,
+            "z": -1784
+          },
+          {
+            "x": 1248,
+            "z": -1952
+          },
+          {
+            "x": 1248,
+            "z": -2128
+          }
+        ]
+      },
+      {
+        "id": "street-z-1440",
+        "label": "北环路",
+        "district": "westwing",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 20,
+        "points": [
+          {
+            "x": 16,
+            "z": -1440
+          },
+          {
+            "x": 200,
+            "z": -1440
+          },
+          {
+            "x": 392,
+            "z": -1440
+          },
+          {
+            "x": 576,
+            "z": -1440
+          }
+        ]
+      },
+      {
+        "id": "street-z-1552",
+        "label": "北一街",
+        "district": "westwing",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 21,
+        "points": [
+          {
+            "x": 16,
+            "z": -1552
+          },
+          {
+            "x": 200,
+            "z": -1552
+          },
+          {
+            "x": 392,
+            "z": -1552
+          },
+          {
+            "x": 576,
+            "z": -1552
+          }
+        ]
+      },
+      {
+        "id": "street-z-1664",
+        "label": "北二街",
+        "district": "westwing",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 22,
+        "points": [
+          {
+            "x": 16,
+            "z": -1664
+          },
+          {
+            "x": 200,
+            "z": -1664
+          },
+          {
+            "x": 392,
+            "z": -1664
+          },
+          {
+            "x": 576,
+            "z": -1664
+          }
+        ]
+      },
+      {
+        "id": "street-z-1904",
+        "label": "中心北街",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 23,
+        "points": [
+          {
+            "x": 16,
+            "z": -1904
+          },
+          {
+            "x": 192,
+            "z": -1904
+          },
+          {
+            "x": 368,
+            "z": -1904
+          },
+          {
+            "x": 544,
+            "z": -1904
+          },
+          {
+            "x": 720,
+            "z": -1904
+          },
+          {
+            "x": 896,
+            "z": -1904
+          },
+          {
+            "x": 1072,
+            "z": -1904
+          },
+          {
+            "x": 1248,
+            "z": -1904
+          }
+        ]
+      },
+      {
+        "id": "street-z-2016",
+        "label": "中心街",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 24,
+        "points": [
+          {
+            "x": 16,
+            "z": -2016
+          },
+          {
+            "x": 192,
+            "z": -2016
+          },
+          {
+            "x": 368,
+            "z": -2016
+          },
+          {
+            "x": 544,
+            "z": -2016
+          },
+          {
+            "x": 720,
+            "z": -2016
+          },
+          {
+            "x": 896,
+            "z": -2016
+          },
+          {
+            "x": 1072,
+            "z": -2016
+          },
+          {
+            "x": 1248,
+            "z": -2016
+          }
+        ]
+      },
+      {
+        "id": "street-z-2128",
+        "label": "南一街",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 25,
+        "points": [
+          {
+            "x": 16,
+            "z": -2128
+          },
+          {
+            "x": 192,
+            "z": -2128
+          },
+          {
+            "x": 368,
+            "z": -2128
+          },
+          {
+            "x": 544,
+            "z": -2128
+          },
+          {
+            "x": 720,
+            "z": -2128
+          },
+          {
+            "x": 896,
+            "z": -2128
+          },
+          {
+            "x": 1072,
+            "z": -2128
+          },
+          {
+            "x": 1248,
+            "z": -2128
+          }
+        ]
+      },
+      {
+        "id": "street-z-2240",
+        "label": "绿廊北街",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 26,
+        "points": [
+          {
+            "x": 16,
+            "z": -2240
+          },
+          {
+            "x": 184,
+            "z": -2240
+          },
+          {
+            "x": 352,
+            "z": -2240
+          },
+          {
+            "x": 520,
+            "z": -2240
+          },
+          {
+            "x": 688,
+            "z": -2240
+          },
+          {
+            "x": 856,
+            "z": -2240
+          },
+          {
+            "x": 1024,
+            "z": -2240
+          }
+        ]
+      },
+      {
+        "id": "street-z-2464",
+        "label": "绿廊南街",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 27,
+        "points": [
+          {
+            "x": 16,
+            "z": -2464
+          },
+          {
+            "x": 184,
+            "z": -2464
+          },
+          {
+            "x": 352,
+            "z": -2464
+          },
+          {
+            "x": 520,
+            "z": -2464
+          },
+          {
+            "x": 688,
+            "z": -2464
+          },
+          {
+            "x": 856,
+            "z": -2464
+          },
+          {
+            "x": 1024,
+            "z": -2464
+          }
+        ]
+      },
+      {
+        "id": "street-z-2576",
+        "label": "南二街",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 28,
+        "points": [
+          {
+            "x": 16,
+            "z": -2576
+          },
+          {
+            "x": 184,
+            "z": -2576
+          },
+          {
+            "x": 352,
+            "z": -2576
+          },
+          {
+            "x": 520,
+            "z": -2576
+          },
+          {
+            "x": 688,
+            "z": -2576
+          },
+          {
+            "x": 856,
+            "z": -2576
+          },
+          {
+            "x": 1024,
+            "z": -2576
+          }
+        ]
+      },
+      {
+        "id": "street-z-2688",
+        "label": "南三街",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 29,
+        "points": [
+          {
+            "x": 16,
+            "z": -2688
+          },
+          {
+            "x": 184,
+            "z": -2688
+          },
+          {
+            "x": 352,
+            "z": -2688
+          },
+          {
+            "x": 520,
+            "z": -2688
+          },
+          {
+            "x": 688,
+            "z": -2688
+          },
+          {
+            "x": 856,
+            "z": -2688
+          },
+          {
+            "x": 1024,
+            "z": -2688
+          }
+        ]
+      },
+      {
+        "id": "street-z-2800",
+        "label": "南环路",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 30,
+        "points": [
+          {
+            "x": 16,
+            "z": -2800
+          },
+          {
+            "x": 184,
+            "z": -2800
+          },
+          {
+            "x": 352,
+            "z": -2800
+          },
+          {
+            "x": 520,
+            "z": -2800
+          },
+          {
+            "x": 688,
+            "z": -2800
+          },
+          {
+            "x": 856,
+            "z": -2800
+          },
+          {
+            "x": 1024,
+            "z": -2800
+          }
+        ]
+      },
+      {
+        "id": "street-z-3072-w",
+        "label": "湖滩街（西段）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 31,
+        "points": [
+          {
+            "x": 16,
+            "z": -3072
+          },
+          {
+            "x": 136,
+            "z": -3072
+          }
+        ]
+      },
+      {
+        "id": "street-z-3072-e",
+        "label": "湖滩街（东段）",
+        "district": "town",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 32,
+        "points": [
+          {
+            "x": 408,
+            "z": -3072
+          },
+          {
+            "x": 576,
+            "z": -3072
+          }
+        ]
+      },
+      {
+        "id": "ind-z-952",
+        "label": "工业北街",
+        "district": "industry",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 200,
+        "points": [
+          {
+            "x": 1360,
+            "z": -952
+          },
+          {
+            "x": 1464,
+            "z": -952
+          },
+          {
+            "x": 1568,
+            "z": -952
+          },
+          {
+            "x": 1656,
+            "z": -952
+          }
+        ]
+      },
+      {
+        "id": "ind-z-1080",
+        "label": "工业二街",
+        "district": "industry",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 201,
+        "points": [
+          {
+            "x": 1480,
+            "z": -1080
+          },
+          {
+            "x": 1656,
+            "z": -1080
+          }
+        ]
+      },
+      {
+        "id": "ind-z-1208",
+        "label": "工业三街",
+        "district": "industry",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 202,
+        "points": [
+          {
+            "x": 1480,
+            "z": -1208
+          },
+          {
+            "x": 1656,
+            "z": -1208
+          }
+        ]
+      },
+      {
+        "id": "ind-z-1336",
+        "label": "工业四街",
+        "district": "industry",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 203,
+        "points": [
+          {
+            "x": 1480,
+            "z": -1336
+          },
+          {
+            "x": 1656,
+            "z": -1336
+          }
+        ]
+      },
+      {
+        "id": "ind-z-1480",
+        "label": "工业南街",
+        "district": "industry",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 204,
+        "points": [
+          {
+            "x": 1360,
+            "z": -1480
+          },
+          {
+            "x": 1464,
+            "z": -1480
+          },
+          {
+            "x": 1568,
+            "z": -1480
+          },
+          {
+            "x": 1656,
+            "z": -1480
+          }
+        ]
+      },
+      {
+        "id": "ind-x-1480",
+        "label": "工业一街",
+        "district": "industry",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 205,
+        "points": [
+          {
+            "x": 1480,
+            "z": -952
+          },
+          {
+            "x": 1480,
+            "z": -1080
+          },
+          {
+            "x": 1480,
+            "z": -1208
+          },
+          {
+            "x": 1480,
+            "z": -1336
+          },
+          {
+            "x": 1480,
+            "z": -1480
+          }
+        ]
+      },
+      {
+        "id": "ind-x-1568",
+        "label": "工业五街",
+        "district": "industry",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 206,
+        "points": [
+          {
+            "x": 1568,
+            "z": -952
+          },
+          {
+            "x": 1568,
+            "z": -1080
+          },
+          {
+            "x": 1568,
+            "z": -1208
+          },
+          {
+            "x": 1568,
+            "z": -1336
+          },
+          {
+            "x": 1568,
+            "z": -1480
+          }
+        ]
+      },
+      {
+        "id": "ind-x-1656",
+        "label": "工业六街",
+        "district": "industry",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 207,
+        "points": [
+          {
+            "x": 1656,
+            "z": -952
+          },
+          {
+            "x": 1656,
+            "z": -1080
+          },
+          {
+            "x": 1656,
+            "z": -1208
+          },
+          {
+            "x": 1656,
+            "z": -1336
+          },
+          {
+            "x": 1656,
+            "z": -1480
+          }
+        ]
+      },
+      {
+        "id": "conn-corridor",
+        "label": "绿廊大道（四车道）",
+        "district": "connector",
+        "prefab": "Medium Road",
+        "level": "surface",
+        "width_m": 24,
+        "road_class": "connector",
+        "role": "greenway_connector",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 300,
+        "points": [
+          {
+            "x": 16,
+            "z": -2352
+          },
+          {
+            "x": 184,
+            "z": -2352
+          },
+          {
+            "x": 352,
+            "z": -2352
+          },
+          {
+            "x": 520,
+            "z": -2352
+          },
+          {
+            "x": 688,
+            "z": -2352
+          },
+          {
+            "x": 856,
+            "z": -2352
+          },
+          {
+            "x": 1024,
+            "z": -2352
+          }
+        ]
+      },
+      {
+        "id": "conn-south",
+        "label": "湖滨大道（四车道）",
+        "district": "connector",
+        "prefab": "Medium Road",
+        "level": "surface",
+        "width_m": 24,
+        "road_class": "connector",
+        "role": "greenway_connector",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 301,
+        "points": [
+          {
+            "x": 16,
+            "z": -2880
+          },
+          {
+            "x": 200,
+            "z": -2880
+          },
+          {
+            "x": 392,
+            "z": -2880
+          },
+          {
+            "x": 576,
+            "z": -2880
+          }
+        ]
+      }
+    ],
+    "zones": [
+      {
+        "id": "westwing-zone-1",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 24,
+            "z": -1768
+          },
+          {
+            "x": 120,
+            "z": -1768
+          },
+          {
+            "x": 120,
+            "z": -1672
+          },
+          {
+            "x": 24,
+            "z": -1672
+          }
+        ]
+      },
+      {
+        "id": "westwing-zone-2",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 136,
+            "z": -1768
+          },
+          {
+            "x": 232,
+            "z": -1768
+          },
+          {
+            "x": 232,
+            "z": -1672
+          },
+          {
+            "x": 136,
+            "z": -1672
+          }
+        ]
+      },
+      {
+        "id": "westwing-zone-3",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 248,
+            "z": -1768
+          },
+          {
+            "x": 344,
+            "z": -1768
+          },
+          {
+            "x": 344,
+            "z": -1672
+          },
+          {
+            "x": 248,
+            "z": -1672
+          }
+        ]
+      },
+      {
+        "id": "westwing-zone-4",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 360,
+            "z": -1768
+          },
+          {
+            "x": 456,
+            "z": -1768
+          },
+          {
+            "x": 456,
+            "z": -1672
+          },
+          {
+            "x": 360,
+            "z": -1672
+          }
+        ]
+      },
+      {
+        "id": "westwing-zone-5",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 472,
+            "z": -1768
+          },
+          {
+            "x": 568,
+            "z": -1768
+          },
+          {
+            "x": 568,
+            "z": -1672
+          },
+          {
+            "x": 472,
+            "z": -1672
+          }
+        ]
+      },
+      {
+        "id": "westwing-zone-6",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 24,
+            "z": -1656
+          },
+          {
+            "x": 120,
+            "z": -1656
+          },
+          {
+            "x": 120,
+            "z": -1560
+          },
+          {
+            "x": 24,
+            "z": -1560
+          }
+        ]
+      },
+      {
+        "id": "westwing-zone-7",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 136,
+            "z": -1656
+          },
+          {
+            "x": 232,
+            "z": -1656
+          },
+          {
+            "x": 232,
+            "z": -1560
+          },
+          {
+            "x": 136,
+            "z": -1560
+          }
+        ]
+      },
+      {
+        "id": "westwing-zone-8",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 248,
+            "z": -1656
+          },
+          {
+            "x": 344,
+            "z": -1656
+          },
+          {
+            "x": 344,
+            "z": -1560
+          },
+          {
+            "x": 248,
+            "z": -1560
+          }
+        ]
+      },
+      {
+        "id": "westwing-zone-9",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 360,
+            "z": -1656
+          },
+          {
+            "x": 456,
+            "z": -1656
+          },
+          {
+            "x": 456,
+            "z": -1560
+          },
+          {
+            "x": 360,
+            "z": -1560
+          }
+        ]
+      },
+      {
+        "id": "westwing-zone-10",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 472,
+            "z": -1656
+          },
+          {
+            "x": 568,
+            "z": -1656
+          },
+          {
+            "x": 568,
+            "z": -1560
+          },
+          {
+            "x": 472,
+            "z": -1560
+          }
+        ]
+      },
+      {
+        "id": "westwing-zone-11",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 24,
+            "z": -1544
+          },
+          {
+            "x": 120,
+            "z": -1544
+          },
+          {
+            "x": 120,
+            "z": -1448
+          },
+          {
+            "x": 24,
+            "z": -1448
+          }
+        ]
+      },
+      {
+        "id": "westwing-zone-12",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 136,
+            "z": -1544
+          },
+          {
+            "x": 232,
+            "z": -1544
+          },
+          {
+            "x": 232,
+            "z": -1448
+          },
+          {
+            "x": 136,
+            "z": -1448
+          }
+        ]
+      },
+      {
+        "id": "westwing-zone-13",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 248,
+            "z": -1544
+          },
+          {
+            "x": 344,
+            "z": -1544
+          },
+          {
+            "x": 344,
+            "z": -1448
+          },
+          {
+            "x": 248,
+            "z": -1448
+          }
+        ]
+      },
+      {
+        "id": "westwing-zone-14",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 360,
+            "z": -1544
+          },
+          {
+            "x": 456,
+            "z": -1544
+          },
+          {
+            "x": 456,
+            "z": -1448
+          },
+          {
+            "x": 360,
+            "z": -1448
+          }
+        ]
+      },
+      {
+        "id": "westwing-zone-15",
+        "kind": "NA Residential Medium Row",
+        "district": "westwing",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 472,
+            "z": -1544
+          },
+          {
+            "x": 568,
+            "z": -1544
+          },
+          {
+            "x": 568,
+            "z": -1448
+          },
+          {
+            "x": 472,
+            "z": -1448
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-1",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 24,
+            "z": -2232
+          },
+          {
+            "x": 120,
+            "z": -2232
+          },
+          {
+            "x": 120,
+            "z": -2136
+          },
+          {
+            "x": 24,
+            "z": -2136
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-2",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 136,
+            "z": -2232
+          },
+          {
+            "x": 232,
+            "z": -2232
+          },
+          {
+            "x": 232,
+            "z": -2136
+          },
+          {
+            "x": 136,
+            "z": -2136
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-3",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 248,
+            "z": -2232
+          },
+          {
+            "x": 344,
+            "z": -2232
+          },
+          {
+            "x": 344,
+            "z": -2136
+          },
+          {
+            "x": 248,
+            "z": -2136
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-4",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 360,
+            "z": -2232
+          },
+          {
+            "x": 456,
+            "z": -2232
+          },
+          {
+            "x": 456,
+            "z": -2136
+          },
+          {
+            "x": 360,
+            "z": -2136
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-5",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 472,
+            "z": -2232
+          },
+          {
+            "x": 568,
+            "z": -2232
+          },
+          {
+            "x": 568,
+            "z": -2136
+          },
+          {
+            "x": 472,
+            "z": -2136
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-6",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 24,
+            "z": -2120
+          },
+          {
+            "x": 120,
+            "z": -2120
+          },
+          {
+            "x": 120,
+            "z": -2024
+          },
+          {
+            "x": 24,
+            "z": -2024
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-7",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 136,
+            "z": -2120
+          },
+          {
+            "x": 232,
+            "z": -2120
+          },
+          {
+            "x": 232,
+            "z": -2024
+          },
+          {
+            "x": 136,
+            "z": -2024
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-8",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 248,
+            "z": -2120
+          },
+          {
+            "x": 344,
+            "z": -2120
+          },
+          {
+            "x": 344,
+            "z": -2024
+          },
+          {
+            "x": 248,
+            "z": -2024
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-9",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 360,
+            "z": -2120
+          },
+          {
+            "x": 456,
+            "z": -2120
+          },
+          {
+            "x": 456,
+            "z": -2024
+          },
+          {
+            "x": 360,
+            "z": -2024
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-10",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 472,
+            "z": -2120
+          },
+          {
+            "x": 568,
+            "z": -2120
+          },
+          {
+            "x": 568,
+            "z": -2024
+          },
+          {
+            "x": 472,
+            "z": -2024
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-11",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 24,
+            "z": -2008
+          },
+          {
+            "x": 120,
+            "z": -2008
+          },
+          {
+            "x": 120,
+            "z": -1912
+          },
+          {
+            "x": 24,
+            "z": -1912
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-12",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 136,
+            "z": -2008
+          },
+          {
+            "x": 232,
+            "z": -2008
+          },
+          {
+            "x": 232,
+            "z": -1912
+          },
+          {
+            "x": 136,
+            "z": -1912
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-13",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 248,
+            "z": -2008
+          },
+          {
+            "x": 344,
+            "z": -2008
+          },
+          {
+            "x": 344,
+            "z": -1912
+          },
+          {
+            "x": 248,
+            "z": -1912
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-14",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 360,
+            "z": -2008
+          },
+          {
+            "x": 456,
+            "z": -2008
+          },
+          {
+            "x": 456,
+            "z": -1912
+          },
+          {
+            "x": 360,
+            "z": -1912
+          }
+        ]
+      },
+      {
+        "id": "northwest-zone-15",
+        "kind": "NA Residential Medium Row",
+        "district": "northwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 472,
+            "z": -2008
+          },
+          {
+            "x": 568,
+            "z": -2008
+          },
+          {
+            "x": 568,
+            "z": -1912
+          },
+          {
+            "x": 472,
+            "z": -1912
+          }
+        ]
+      },
+      {
+        "id": "northeast-zone-1",
+        "kind": "NA Residential Medium",
+        "district": "northeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 696,
+            "z": -2232
+          },
+          {
+            "x": 792,
+            "z": -2232
+          },
+          {
+            "x": 792,
+            "z": -2136
+          },
+          {
+            "x": 696,
+            "z": -2136
+          }
+        ]
+      },
+      {
+        "id": "northeast-zone-2",
+        "kind": "NA Residential Medium",
+        "district": "northeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 808,
+            "z": -2232
+          },
+          {
+            "x": 904,
+            "z": -2232
+          },
+          {
+            "x": 904,
+            "z": -2136
+          },
+          {
+            "x": 808,
+            "z": -2136
+          }
+        ]
+      },
+      {
+        "id": "northeast-zone-3",
+        "kind": "NA Residential Medium",
+        "district": "northeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 920,
+            "z": -2232
+          },
+          {
+            "x": 1016,
+            "z": -2232
+          },
+          {
+            "x": 1016,
+            "z": -2136
+          },
+          {
+            "x": 920,
+            "z": -2136
+          }
+        ]
+      },
+      {
+        "id": "northeast-zone-4",
+        "kind": "NA Residential Medium",
+        "district": "northeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 696,
+            "z": -2120
+          },
+          {
+            "x": 792,
+            "z": -2120
+          },
+          {
+            "x": 792,
+            "z": -2024
+          },
+          {
+            "x": 696,
+            "z": -2024
+          }
+        ]
+      },
+      {
+        "id": "northeast-zone-5",
+        "kind": "NA Residential Medium",
+        "district": "northeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 808,
+            "z": -2120
+          },
+          {
+            "x": 904,
+            "z": -2120
+          },
+          {
+            "x": 904,
+            "z": -2024
+          },
+          {
+            "x": 808,
+            "z": -2024
+          }
+        ]
+      },
+      {
+        "id": "northeast-zone-6",
+        "kind": "NA Residential Medium",
+        "district": "northeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 920,
+            "z": -2120
+          },
+          {
+            "x": 1016,
+            "z": -2120
+          },
+          {
+            "x": 1016,
+            "z": -2024
+          },
+          {
+            "x": 920,
+            "z": -2024
+          }
+        ]
+      },
+      {
+        "id": "northeast-zone-7",
+        "kind": "NA Residential Medium",
+        "district": "northeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 696,
+            "z": -2008
+          },
+          {
+            "x": 792,
+            "z": -2008
+          },
+          {
+            "x": 792,
+            "z": -1912
+          },
+          {
+            "x": 696,
+            "z": -1912
+          }
+        ]
+      },
+      {
+        "id": "northeast-zone-8",
+        "kind": "NA Residential Medium",
+        "district": "northeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 808,
+            "z": -2008
+          },
+          {
+            "x": 904,
+            "z": -2008
+          },
+          {
+            "x": 904,
+            "z": -1912
+          },
+          {
+            "x": 808,
+            "z": -1912
+          }
+        ]
+      },
+      {
+        "id": "northeast-zone-9",
+        "kind": "NA Residential Medium",
+        "district": "northeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 920,
+            "z": -2008
+          },
+          {
+            "x": 1016,
+            "z": -2008
+          },
+          {
+            "x": 1016,
+            "z": -1912
+          },
+          {
+            "x": 920,
+            "z": -1912
+          }
+        ]
+      },
+      {
+        "id": "bayview-zone-1",
+        "kind": "NA Residential Medium Row",
+        "district": "bayview",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 1144,
+            "z": -2120
+          },
+          {
+            "x": 1240,
+            "z": -2120
+          },
+          {
+            "x": 1240,
+            "z": -2024
+          },
+          {
+            "x": 1144,
+            "z": -2024
+          }
+        ]
+      },
+      {
+        "id": "bayview-zone-2",
+        "kind": "NA Residential Medium Row",
+        "district": "bayview",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 1144,
+            "z": -2008
+          },
+          {
+            "x": 1240,
+            "z": -2008
+          },
+          {
+            "x": 1240,
+            "z": -1912
+          },
+          {
+            "x": 1144,
+            "z": -1912
+          }
+        ]
+      },
+      {
+        "id": "commerce-zone-1",
+        "kind": "NA Commercial Low",
+        "district": "commerce",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 696,
+            "z": -1896
+          },
+          {
+            "x": 792,
+            "z": -1896
+          },
+          {
+            "x": 792,
+            "z": -1800
+          },
+          {
+            "x": 696,
+            "z": -1800
+          }
+        ]
+      },
+      {
+        "id": "commerce-zone-2",
+        "kind": "NA Commercial Low",
+        "district": "commerce",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 808,
+            "z": -1896
+          },
+          {
+            "x": 904,
+            "z": -1896
+          },
+          {
+            "x": 904,
+            "z": -1800
+          },
+          {
+            "x": 808,
+            "z": -1800
+          }
+        ]
+      },
+      {
+        "id": "commerce-zone-3",
+        "kind": "NA Commercial Low",
+        "district": "commerce",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 920,
+            "z": -1896
+          },
+          {
+            "x": 1016,
+            "z": -1896
+          },
+          {
+            "x": 1016,
+            "z": -1800
+          },
+          {
+            "x": 920,
+            "z": -1800
+          }
+        ]
+      },
+      {
+        "id": "commerce-zone-4",
+        "kind": "NA Commercial Low",
+        "district": "commerce",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 1032,
+            "z": -1896
+          },
+          {
+            "x": 1128,
+            "z": -1896
+          },
+          {
+            "x": 1128,
+            "z": -1800
+          },
+          {
+            "x": 1032,
+            "z": -1800
+          }
+        ]
+      },
+      {
+        "id": "commerce-zone-5",
+        "kind": "NA Commercial Low",
+        "district": "commerce",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 1144,
+            "z": -1896
+          },
+          {
+            "x": 1240,
+            "z": -1896
+          },
+          {
+            "x": 1240,
+            "z": -1800
+          },
+          {
+            "x": 1144,
+            "z": -1800
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-1",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 24,
+            "z": -2792
+          },
+          {
+            "x": 120,
+            "z": -2792
+          },
+          {
+            "x": 120,
+            "z": -2696
+          },
+          {
+            "x": 24,
+            "z": -2696
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-2",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 136,
+            "z": -2792
+          },
+          {
+            "x": 232,
+            "z": -2792
+          },
+          {
+            "x": 232,
+            "z": -2696
+          },
+          {
+            "x": 136,
+            "z": -2696
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-3",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 248,
+            "z": -2792
+          },
+          {
+            "x": 344,
+            "z": -2792
+          },
+          {
+            "x": 344,
+            "z": -2696
+          },
+          {
+            "x": 248,
+            "z": -2696
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-4",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 360,
+            "z": -2792
+          },
+          {
+            "x": 456,
+            "z": -2792
+          },
+          {
+            "x": 456,
+            "z": -2696
+          },
+          {
+            "x": 360,
+            "z": -2696
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-5",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 472,
+            "z": -2792
+          },
+          {
+            "x": 568,
+            "z": -2792
+          },
+          {
+            "x": 568,
+            "z": -2696
+          },
+          {
+            "x": 472,
+            "z": -2696
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-6",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 24,
+            "z": -2680
+          },
+          {
+            "x": 120,
+            "z": -2680
+          },
+          {
+            "x": 120,
+            "z": -2584
+          },
+          {
+            "x": 24,
+            "z": -2584
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-7",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 136,
+            "z": -2680
+          },
+          {
+            "x": 232,
+            "z": -2680
+          },
+          {
+            "x": 232,
+            "z": -2584
+          },
+          {
+            "x": 136,
+            "z": -2584
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-8",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 248,
+            "z": -2680
+          },
+          {
+            "x": 344,
+            "z": -2680
+          },
+          {
+            "x": 344,
+            "z": -2584
+          },
+          {
+            "x": 248,
+            "z": -2584
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-9",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 360,
+            "z": -2680
+          },
+          {
+            "x": 456,
+            "z": -2680
+          },
+          {
+            "x": 456,
+            "z": -2584
+          },
+          {
+            "x": 360,
+            "z": -2584
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-10",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 472,
+            "z": -2680
+          },
+          {
+            "x": 568,
+            "z": -2680
+          },
+          {
+            "x": 568,
+            "z": -2584
+          },
+          {
+            "x": 472,
+            "z": -2584
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-11",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 24,
+            "z": -2568
+          },
+          {
+            "x": 120,
+            "z": -2568
+          },
+          {
+            "x": 120,
+            "z": -2472
+          },
+          {
+            "x": 24,
+            "z": -2472
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-12",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 136,
+            "z": -2568
+          },
+          {
+            "x": 232,
+            "z": -2568
+          },
+          {
+            "x": 232,
+            "z": -2472
+          },
+          {
+            "x": 136,
+            "z": -2472
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-13",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 248,
+            "z": -2568
+          },
+          {
+            "x": 344,
+            "z": -2568
+          },
+          {
+            "x": 344,
+            "z": -2472
+          },
+          {
+            "x": 248,
+            "z": -2472
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-14",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 360,
+            "z": -2568
+          },
+          {
+            "x": 456,
+            "z": -2568
+          },
+          {
+            "x": 456,
+            "z": -2472
+          },
+          {
+            "x": 360,
+            "z": -2472
+          }
+        ]
+      },
+      {
+        "id": "southwest-zone-15",
+        "kind": "NA Residential Medium Row",
+        "district": "southwest",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 472,
+            "z": -2568
+          },
+          {
+            "x": 568,
+            "z": -2568
+          },
+          {
+            "x": 568,
+            "z": -2472
+          },
+          {
+            "x": 472,
+            "z": -2472
+          }
+        ]
+      },
+      {
+        "id": "southeast-zone-1",
+        "kind": "NA Residential Medium",
+        "district": "southeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 696,
+            "z": -2792
+          },
+          {
+            "x": 792,
+            "z": -2792
+          },
+          {
+            "x": 792,
+            "z": -2696
+          },
+          {
+            "x": 696,
+            "z": -2696
+          }
+        ]
+      },
+      {
+        "id": "southeast-zone-2",
+        "kind": "NA Residential Medium",
+        "district": "southeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 808,
+            "z": -2792
+          },
+          {
+            "x": 904,
+            "z": -2792
+          },
+          {
+            "x": 904,
+            "z": -2696
+          },
+          {
+            "x": 808,
+            "z": -2696
+          }
+        ]
+      },
+      {
+        "id": "southeast-zone-3",
+        "kind": "NA Residential Medium",
+        "district": "southeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 920,
+            "z": -2792
+          },
+          {
+            "x": 1016,
+            "z": -2792
+          },
+          {
+            "x": 1016,
+            "z": -2696
+          },
+          {
+            "x": 920,
+            "z": -2696
+          }
+        ]
+      },
+      {
+        "id": "southeast-zone-4",
+        "kind": "NA Residential Medium",
+        "district": "southeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 696,
+            "z": -2680
+          },
+          {
+            "x": 792,
+            "z": -2680
+          },
+          {
+            "x": 792,
+            "z": -2584
+          },
+          {
+            "x": 696,
+            "z": -2584
+          }
+        ]
+      },
+      {
+        "id": "southeast-zone-5",
+        "kind": "NA Residential Medium",
+        "district": "southeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 808,
+            "z": -2680
+          },
+          {
+            "x": 904,
+            "z": -2680
+          },
+          {
+            "x": 904,
+            "z": -2584
+          },
+          {
+            "x": 808,
+            "z": -2584
+          }
+        ]
+      },
+      {
+        "id": "southeast-zone-6",
+        "kind": "NA Residential Medium",
+        "district": "southeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 920,
+            "z": -2680
+          },
+          {
+            "x": 1016,
+            "z": -2680
+          },
+          {
+            "x": 1016,
+            "z": -2584
+          },
+          {
+            "x": 920,
+            "z": -2584
+          }
+        ]
+      },
+      {
+        "id": "southeast-zone-7",
+        "kind": "NA Residential Medium",
+        "district": "southeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 696,
+            "z": -2568
+          },
+          {
+            "x": 792,
+            "z": -2568
+          },
+          {
+            "x": 792,
+            "z": -2472
+          },
+          {
+            "x": 696,
+            "z": -2472
+          }
+        ]
+      },
+      {
+        "id": "southeast-zone-8",
+        "kind": "NA Residential Medium",
+        "district": "southeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 808,
+            "z": -2568
+          },
+          {
+            "x": 904,
+            "z": -2568
+          },
+          {
+            "x": 904,
+            "z": -2472
+          },
+          {
+            "x": 808,
+            "z": -2472
+          }
+        ]
+      },
+      {
+        "id": "southeast-zone-9",
+        "kind": "NA Residential Medium",
+        "district": "southeast",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 920,
+            "z": -2568
+          },
+          {
+            "x": 1016,
+            "z": -2568
+          },
+          {
+            "x": 1016,
+            "z": -2472
+          },
+          {
+            "x": 920,
+            "z": -2472
+          }
+        ]
+      },
+      {
+        "id": "lakeside-zone-1",
+        "kind": "NA Residential Low",
+        "district": "lakeside",
+        "area_m2": 4608,
+        "polygon": [
+          {
+            "x": 24,
+            "z": -3064
+          },
+          {
+            "x": 120,
+            "z": -3064
+          },
+          {
+            "x": 120,
+            "z": -3016
+          },
+          {
+            "x": 24,
+            "z": -3016
+          }
+        ]
+      },
+      {
+        "id": "lakeside-east-zone-1",
+        "kind": "NA Residential Low",
+        "district": "lakeside-east",
+        "area_m2": 4608,
+        "polygon": [
+          {
+            "x": 424,
+            "z": -3064
+          },
+          {
+            "x": 520,
+            "z": -3064
+          },
+          {
+            "x": 520,
+            "z": -3016
+          },
+          {
+            "x": 424,
+            "z": -3016
+          }
+        ]
+      },
+      {
+        "id": "industry-zone-1",
+        "kind": "Industrial Manufacturing",
+        "district": "industry",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 1488,
+            "z": -1472
+          },
+          {
+            "x": 1560,
+            "z": -1472
+          },
+          {
+            "x": 1560,
+            "z": -1344
+          },
+          {
+            "x": 1488,
+            "z": -1344
+          }
+        ]
+      },
+      {
+        "id": "industry-zone-2",
+        "kind": "Industrial Manufacturing",
+        "district": "industry",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": 1576,
+            "z": -1472
+          },
+          {
+            "x": 1648,
+            "z": -1472
+          },
+          {
+            "x": 1648,
+            "z": -1344
+          },
+          {
+            "x": 1576,
+            "z": -1344
+          }
+        ]
+      },
+      {
+        "id": "industry-zone-3",
+        "kind": "Industrial Manufacturing",
+        "district": "industry",
+        "area_m2": 8064,
+        "polygon": [
+          {
+            "x": 1488,
+            "z": -1328
+          },
+          {
+            "x": 1560,
+            "z": -1328
+          },
+          {
+            "x": 1560,
+            "z": -1216
+          },
+          {
+            "x": 1488,
+            "z": -1216
+          }
+        ]
+      },
+      {
+        "id": "industry-zone-4",
+        "kind": "Industrial Manufacturing",
+        "district": "industry",
+        "area_m2": 8064,
+        "polygon": [
+          {
+            "x": 1576,
+            "z": -1328
+          },
+          {
+            "x": 1648,
+            "z": -1328
+          },
+          {
+            "x": 1648,
+            "z": -1216
+          },
+          {
+            "x": 1576,
+            "z": -1216
+          }
+        ]
+      },
+      {
+        "id": "industry-zone-5",
+        "kind": "Industrial Manufacturing",
+        "district": "industry",
+        "area_m2": 8064,
+        "polygon": [
+          {
+            "x": 1488,
+            "z": -1200
+          },
+          {
+            "x": 1560,
+            "z": -1200
+          },
+          {
+            "x": 1560,
+            "z": -1088
+          },
+          {
+            "x": 1488,
+            "z": -1088
+          }
+        ]
+      },
+      {
+        "id": "industry-zone-6",
+        "kind": "Industrial Manufacturing",
+        "district": "industry",
+        "area_m2": 8064,
+        "polygon": [
+          {
+            "x": 1576,
+            "z": -1200
+          },
+          {
+            "x": 1648,
+            "z": -1200
+          },
+          {
+            "x": 1648,
+            "z": -1088
+          },
+          {
+            "x": 1576,
+            "z": -1088
+          }
+        ]
+      },
+      {
+        "id": "industry-zone-7",
+        "kind": "Industrial Manufacturing",
+        "district": "industry",
+        "area_m2": 8064,
+        "polygon": [
+          {
+            "x": 1488,
+            "z": -1072
+          },
+          {
+            "x": 1560,
+            "z": -1072
+          },
+          {
+            "x": 1560,
+            "z": -960
+          },
+          {
+            "x": 1488,
+            "z": -960
+          }
+        ]
+      },
+      {
+        "id": "industry-zone-8",
+        "kind": "Industrial Manufacturing",
+        "district": "industry",
+        "area_m2": 8064,
+        "polygon": [
+          {
+            "x": 1576,
+            "z": -1072
+          },
+          {
+            "x": 1648,
+            "z": -1072
+          },
+          {
+            "x": 1648,
+            "z": -960
+          },
+          {
+            "x": 1576,
+            "z": -960
+          }
+        ]
+      }
+    ],
+    "buildings": [
+      {
+        "id": "bld-elementary-west",
+        "prefab": "ElementarySchool02",
+        "label": "规划小学（西）",
+        "name": "规划小学（西）",
+        "kind": "service",
+        "roadside_of": "street-z-2240",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 80,
+        "position": {
+          "x": 352,
+          "z": -2272
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 71.6,
+          "z": 47.6
+        }
+      },
+      {
+        "id": "bld-elementary-east",
+        "prefab": "ElementarySchool02",
+        "label": "规划小学（东）",
+        "name": "规划小学（东）",
+        "kind": "service",
+        "roadside_of": "street-z-2464",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 81,
+        "position": {
+          "x": 800,
+          "z": -2432
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 71.6,
+          "z": 47.6
+        }
+      },
+      {
+        "id": "bld-high-school",
+        "prefab": "HighSchool02",
+        "label": "规划中学",
+        "name": "规划中学",
+        "kind": "service",
+        "roadside_of": "street-z-2464",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 82,
+        "position": {
+          "x": 240,
+          "z": -2424
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 95.6,
+          "z": 63.6
+        }
+      },
+      {
+        "id": "bld-city-park",
+        "prefab": "CityPark08",
+        "label": "规划中央公园",
+        "name": "规划中央公园",
+        "kind": "service",
+        "roadside_of": "street-z-2240",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 83,
+        "position": {
+          "x": 688,
+          "z": -2280
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 63.6,
+          "z": 63.6
+        }
+      },
+      {
+        "id": "bld-playground-central",
+        "prefab": "Playground04",
+        "label": "规划儿童活动场（绿廊）",
+        "name": "规划儿童活动场（绿廊）",
+        "kind": "service",
+        "roadside_of": "street-z-2240",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 84,
+        "position": {
+          "x": 912,
+          "z": -2264
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 31.6,
+          "z": 31.6
+        }
+      },
+      {
+        "id": "bld-playground-west",
+        "prefab": "Playground02",
+        "label": "规划儿童活动场（西翼）",
+        "name": "规划儿童活动场（西翼）",
+        "kind": "service",
+        "roadside_of": "street-z-1440",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 85,
+        "position": {
+          "x": 352,
+          "z": -1416
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 23.6,
+          "z": 31.6
+        }
+      },
+      {
+        "id": "bld-clinic",
+        "prefab": "MedicalClinic02",
+        "label": "规划社区诊所",
+        "name": "规划社区诊所",
+        "kind": "service",
+        "roadside_of": "street-x-576",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 86,
+        "position": {
+          "x": 608,
+          "z": -2080
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        }
+      },
+      {
+        "id": "bld-police",
+        "prefab": "PoliceStation02",
+        "label": "规划警察局",
+        "name": "规划警察局",
+        "kind": "service",
+        "roadside_of": "street-z-2240",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 87,
+        "position": {
+          "x": 240,
+          "z": -2272
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        }
+      },
+      {
+        "id": "bld-fire",
+        "prefab": "FireHouse02",
+        "label": "规划消防站",
+        "name": "规划消防站",
+        "kind": "service",
+        "roadside_of": "street-z-2240",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 88,
+        "position": {
+          "x": 800,
+          "z": -2264
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 23.6,
+          "z": 31.6
+        }
+      },
+      {
+        "id": "bld-fire-industry",
+        "prefab": "FireHouse02",
+        "label": "规划工业园消防站",
+        "name": "规划工业园消防站",
+        "kind": "service",
+        "roadside_of": "ind-z-952",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 89,
+        "position": {
+          "x": 1544,
+          "z": -928
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 23.6,
+          "z": 31.6
+        }
+      },
+      {
+        "id": "bld-pocket-park-south",
+        "prefab": "PocketPark05",
+        "label": "规划口袋公园（南）",
+        "name": "规划口袋公园（南）",
+        "kind": "service",
+        "roadside_of": "street-z-2800",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 90,
+        "position": {
+          "x": 264,
+          "z": -2816
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 15.6,
+          "z": 15.6
+        }
+      },
+      {
+        "id": "bld-pocket-park-east",
+        "prefab": "PocketPark07",
+        "label": "规划口袋公园（东）",
+        "name": "规划口袋公园（东）",
+        "kind": "service",
+        "roadside_of": "street-x-1024",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 91,
+        "position": {
+          "x": 1048,
+          "z": -2600
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 31.6,
+          "z": 7.6
+        }
+      },
+      {
+        "id": "bld-water-tower-north",
+        "prefab": "WaterTower01",
+        "label": "规划水塔（城堡山西）",
+        "name": "规划水塔（城堡山西）",
+        "kind": "utility",
+        "roadside_of": null,
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 92,
+        "position": {
+          "x": 688,
+          "z": -1064
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 31.6,
+          "z": 31.6
+        }
+      },
+      {
+        "id": "bld-water-tower-south",
+        "prefab": "WaterTower01",
+        "label": "规划水塔（城堡山东）",
+        "name": "规划水塔（城堡山东）",
+        "kind": "utility",
+        "roadside_of": null,
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 93,
+        "position": {
+          "x": 1024,
+          "z": -1424
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 31.6,
+          "z": 31.6
+        }
+      },
+      {
+        "id": "bld-transformer",
+        "prefab": "TransformerStation01",
+        "label": "规划变电站（河东工业园）",
+        "name": "规划变电站（河东工业园）",
+        "kind": "utility",
+        "roadside_of": "ind-z-952",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 94,
+        "position": {
+          "x": 1432,
+          "z": -992
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 47.6,
+          "z": 55.6
+        }
+      },
+      {
+        "id": "bld-telecom",
+        "prefab": "TelecomTower01",
+        "label": "规划通信塔",
+        "name": "规划通信塔",
+        "kind": "utility",
+        "roadside_of": "street-z-2240",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 95,
+        "position": {
+          "x": 976,
+          "z": -2280
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 55.6,
+          "z": 55.6
+        }
+      },
+      {
+        "id": "bld-wind-1",
+        "prefab": "WindTurbine01",
+        "label": "规划风力发电机 1",
+        "name": "规划风力发电机 1",
+        "kind": "utility",
+        "roadside_of": "avenue",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 96,
+        "position": {
+          "x": 1392,
+          "z": -1248
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 23.6,
+          "z": 23.6
+        }
+      },
+      {
+        "id": "bld-wind-2",
+        "prefab": "WindTurbine01",
+        "label": "规划风力发电机 2",
+        "name": "规划风力发电机 2",
+        "kind": "utility",
+        "roadside_of": "avenue",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 97,
+        "position": {
+          "x": 1392,
+          "z": -1448
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 23.6,
+          "z": 23.6
+        }
+      },
+      {
+        "id": "bld-wind-3",
+        "prefab": "WindTurbine01",
+        "label": "规划风力发电机 3",
+        "name": "规划风力发电机 3",
+        "kind": "utility",
+        "roadside_of": "avenue",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 98,
+        "position": {
+          "x": 1392,
+          "z": -1600
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 23.6,
+          "z": 23.6
+        }
+      }
+    ]
+  }
+}

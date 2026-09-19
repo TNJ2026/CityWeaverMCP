@@ -1,0 +1,99 @@
+{
+  "plan_id": "cplan-924347a8e82208dc",
+  "city": "波特维尔",
+  "name": "约1万人城镇总体规划",
+  "target_population": 10000,
+  "planning_only": true,
+  "bounds": {
+    "min_x": -1558.26074,
+    "min_z": -1558.26074,
+    "max_x": 1558.26123,
+    "max_z": 1558.26123
+  },
+  "render": {
+    "title": "波特维尔｜约1万人城镇施工图（只读规划）",
+    "width": 1800,
+    "height": 1800,
+    "view": "surface",
+    "format": "static_html"
+  },
+  "water_cell_size_m": 32,
+  "terrain_cell_size_m": 64,
+  "planning_summary": {
+    "owned_area_m2": 9712709.25,
+    "native_buildable_land_m2": 5722557.47,
+    "buildable_share": 0.5892,
+    "town_envelope_m": { "width": 1200, "height": 1360 },
+    "terrain_strategy": "住宅与商业采用西北部天然缓坡台地；只对道路节点和大型设施基底局部平整，不整平全图。",
+    "water_strategy": "全部开发网格位于实时水面掩膜之外，保留东部和东北部水域。",
+    "wind_strategy": "主导风向约为西南向东北；工业、垃圾、发电和污水设施布置在主要住区北偏东侧。",
+    "population_strategy": "先开放两个中密住宅网格和一个低密住宅网格，随需求分批开放其余两个住宅网格；目标稳定人口约1万人。",
+    "transport_strategy": "城镇环路和集散路承担跨区交通，网格内部统一使用16米 Small Road；工业网格统一使用24米 Medium Road，并预留独立货运入口。",
+    "utilities_strategy": "普通道路自带低压电、供水和排污能力；水塔、电站和污水处理厂紧邻普通道路，不另画重复的内部管线。"
+  },
+  "phases": [
+    "S0 勘察与规划：已完成只读图纸和几何校验",
+    "S1 局部平整：仅道路节点、大型设施基底和超限坡段",
+    "S2 环路、中央集散路、公共服务支路",
+    "S3 分批建设住宅、商业、办公和工业网格",
+    "S4 原生预览并接通客运入口与独立货运入口",
+    "S5 建设水塔、电站、污水处理厂并回读容量",
+    "S6 分批划区、配置公共服务和公交"
+  ],
+  "plan": {
+    "grids": [
+      { "id": "res-low-southwest", "label": "西南低密住宅网格", "origin": { "x": -1440, "z": -160 }, "columns": 3, "rows": 3, "block_width_m": 112, "block_height_m": 112, "road_prefab": "Small Road", "road_width_m": 16, "zone_type": "EU Residential Low", "zone_kind": "residential", "construction_status": "built", "construction_order": 100 },
+      { "id": "res-medium-southeast", "label": "东南中密住宅网格", "origin": { "x": -1040, "z": -160 }, "columns": 3, "rows": 3, "block_width_m": 112, "block_height_m": 112, "road_prefab": "Small Road", "road_width_m": 16, "zone_type": "EU Residential Medium Row", "zone_kind": "residential", "construction_status": "built", "construction_order": 110 },
+      { "id": "res-medium-centralwest", "label": "中西中密住宅网格", "origin": { "x": -1440, "z": 272 }, "columns": 3, "rows": 3, "block_width_m": 112, "block_height_m": 112, "road_prefab": "Small Road", "road_width_m": 16, "zone_type": "EU Residential Medium", "zone_kind": "residential", "construction_status": "built", "construction_order": 120 },
+      { "id": "commercial-center", "label": "中心商业网格", "origin": { "x": -1040, "z": 272 }, "columns": 3, "rows": 2, "block_width_m": 112, "block_height_m": 112, "road_prefab": "Small Road", "road_width_m": 16, "zone_type": "EU Commercial Low", "zone_kind": "commercial", "construction_status": "built", "construction_order": 130 },
+      { "id": "office-east", "label": "东侧办公缓冲网格", "origin": { "x": -640, "z": 272 }, "columns": 2, "rows": 2, "block_width_m": 112, "block_height_m": 112, "road_prefab": "Small Road", "road_width_m": 16, "zone_type": "Office Low", "zone_kind": "office", "construction_status": "built", "construction_order": 140 },
+      { "id": "res-medium-northwest", "label": "西北中密住宅网格", "origin": { "x": -1440, "z": 704 }, "columns": 3, "rows": 3, "block_width_m": 112, "block_height_m": 112, "road_prefab": "Small Road", "road_width_m": 16, "zone_type": "EU Residential Medium Row", "zone_kind": "residential", "construction_status": "built", "construction_order": 150 },
+      { "id": "res-low-northeast", "label": "东北低密住宅网格", "origin": { "x": -1040, "z": 704 }, "columns": 3, "rows": 3, "block_width_m": 112, "block_height_m": 112, "road_prefab": "Small Road", "road_width_m": 16, "zone_type": "EU Residential Low", "zone_kind": "residential", "construction_status": "built", "construction_order": 160 },
+      { "id": "industrial-north", "label": "北部工业网格", "origin": { "x": -680, "z": 1200 }, "columns": 3, "rows": 2, "block_width_m": 120, "block_height_m": 120, "road_prefab": "Medium Road", "road_width_m": 24, "zone_type": "Industrial Manufacturing", "zone_kind": "industrial", "construction_status": "built", "construction_order": 170 }
+    ],
+    "roads": [
+      { "id": "passenger-access", "label": "客运入口连接预留", "prefab": "Medium Road", "planning_status": "conceptual", "construction_status": "built", "construction_order": 10, "level": "surface", "width_m": 24, "points": [{"x":-560,"z":-240},{"x":-560,"z":-208},{"x":-539.9,"z":-206.6}] },
+      { "id": "town-ring", "label": "城镇四车道环路", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "construction_order": 20, "level": "surface", "width_m": 24, "points": [{"x":-1520,"z":-240},{"x":-1328,"z":-240},{"x":-928,"z":-240},{"x":-560,"z":-240},{"x":-320,"z":-240},{"x":-320,"z":384},{"x":-320,"z":656},{"x":-320,"z":1120},{"x":-560,"z":1120},{"x":-928,"z":1120},{"x":-1216,"z":1120},{"x":-1520,"z":1120},{"x":-1520,"z":816},{"x":-1520,"z":656},{"x":-1520,"z":384},{"x":-1520,"z":-48},{"x":-1520,"z":-240}] },
+      { "id": "central-collector", "label": "中央四车道集散路", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "construction_order": 30, "level": "surface", "width_m": 24, "points": [{"x":-1520,"z":656},{"x":-640,"z":656},{"x":-320,"z":656}] },
+      { "id": "industrial-east-extension", "label": "工业与公用设施东侧道路", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "construction_order": 40, "level": "surface", "width_m": 24, "points": [{"x":-320,"z":1120},{"x":-320,"z":1200},{"x":-320,"z":1440}] },
+      { "id": "freight-access", "label": "工业货运独立入口预留", "prefab": "Large Road", "planning_status": "conceptual", "construction_status":"built", "construction_order": 50, "level": "surface", "width_m": 32, "points": [{"x":-320,"z":1200},{"x":-192,"z":1200},{"x":82,"z":1200}] },
+      { "id": "service-street", "label": "学校与公共服务支路", "prefab": "Small Road", "planning_status": "bound", "construction_status": "built", "construction_order": 60, "level": "surface", "width_m": 16, "points": [{"x":-640,"z":496},{"x":-640,"z":656},{"x":-640,"z":1040}] },
+      { "id": "conn-sw-west", "label": "西南住宅西侧连接（不分区）", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "construction_order": 200, "level": "surface", "width_m": 24, "points": [{"x":-1520,"z":-48},{"x":-1440,"z":-48}] },
+      { "id": "conn-sw-south", "label": "西南住宅南侧连接（不分区）", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "construction_order": 210, "level": "surface", "width_m": 24, "points": [{"x":-1328,"z":-240},{"x":-1328,"z":-160}] },
+      { "id": "conn-south-pair", "label": "南部住宅网格连接（不分区）", "prefab": "Small Road", "planning_status": "bound", "construction_status": "built", "construction_order": 220, "level": "surface", "width_m": 16, "points": [{"x":-1104,"z":64},{"x":-1040,"z":64}] },
+      { "id": "conn-se-south", "label": "东南住宅南侧连接（不分区）", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "construction_order": 230, "level": "surface", "width_m": 24, "points": [{"x":-928,"z":-240},{"x":-928,"z":-160}] },
+      { "id": "conn-central-west", "label": "中西住宅西侧连接（不分区）", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "construction_order": 240, "level": "surface", "width_m": 24, "points": [{"x":-1520,"z":384},{"x":-1440,"z":384}] },
+      { "id": "conn-central-commercial", "label": "住宅商业连接（不分区）", "prefab": "Small Road", "planning_status": "bound", "construction_status": "built", "construction_order": 250, "level": "surface", "width_m": 16, "points": [{"x":-1104,"z":384},{"x":-1040,"z":384}] },
+      { "id": "conn-commercial-office", "label": "商业办公连接（不分区）", "prefab": "Small Road", "planning_status": "bound", "construction_status": "built", "construction_order": 260, "level": "surface", "width_m": 16, "points": [{"x":-704,"z":384},{"x":-640,"z":384}] },
+      { "id": "conn-office-east", "label": "办公区东侧连接（不分区）", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "construction_order": 270, "level": "surface", "width_m": 24, "points": [{"x":-416,"z":384},{"x":-320,"z":384}] },
+      { "id": "conn-nw-west", "label": "西北住宅西侧连接（不分区）", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "construction_order": 280, "level": "surface", "width_m": 24, "points": [{"x":-1520,"z":816},{"x":-1440,"z":816}] },
+      { "id": "conn-nw-north", "label": "西北住宅北侧连接（不分区）", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "construction_order": 290, "level": "surface", "width_m": 24, "points": [{"x":-1216,"z":1040},{"x":-1216,"z":1120}] },
+      { "id": "conn-north-pair", "label": "北部住宅网格连接（不分区）", "prefab": "Small Road", "planning_status": "bound", "construction_status": "built", "construction_order": 300, "level": "surface", "width_m": 16, "points": [{"x":-1104,"z":816},{"x":-1040,"z":816}] },
+      { "id": "conn-ne-north", "label": "东北住宅北侧连接（不分区）", "prefab": "Medium Road", "planning_status": "bound", "construction_status": "built", "construction_order": 310, "level": "surface", "width_m": 24, "points": [{"x":-928,"z":1040},{"x":-928,"z":1120}] },
+      { "id": "conn-industrial-south", "label": "工业网格南侧货运连接（不分区）", "prefab": "Large Road", "planning_status": "bound", "construction_status": "built", "construction_order": 320, "level": "surface", "width_m": 32, "points": [{"x":-560,"z":1120},{"x":-560,"z":1200}] }
+    ],
+    "buildings": [
+      { "id":"water-tower", "label":"水塔", "prefab":"WaterTower01", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"utility_facility", "position":{"x":-1488,"z":-184}, "rotation_degrees":0, "size_m":{"x":31.6,"z":31.6} },
+      { "id":"elementary", "label":"小学", "prefab":"ElementarySchool02", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"city_service", "position":{"x":-592,"z":568}, "rotation_degrees":0, "size_m":{"x":71.6,"z":47.6} },
+      { "id":"elementary-reserve", "label":"小学升级预留", "planning_status":"conceptual", "construction_status":"skipped", "kind":"service", "category":"building", "position":{"x":-480,"z":568}, "rotation_degrees":0, "size_m":{"x":120,"z":80} },
+      { "id":"high-school", "label":"中学", "prefab":"HighSchool02", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"city_service", "position":{"x":-580,"z":800}, "rotation_degrees":0, "size_m":{"x":95.6,"z":63.6} },
+      { "id":"high-school-reserve", "label":"中学升级预留", "planning_status":"conceptual", "construction_status":"skipped", "kind":"service", "category":"building", "position":{"x":-444,"z":800}, "rotation_degrees":0, "size_m":{"x":168,"z":208} },
+      { "id":"clinic", "label":"诊所", "prefab":"MedicalClinic02", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"city_service", "position":{"x":-672,"z":560}, "rotation_degrees":0, "size_m":{"x":39.6,"z":39.6} },
+      { "id":"fire", "label":"消防站", "prefab":"FireHouse02", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"city_service", "position":{"x":-664,"z":608}, "rotation_degrees":0, "size_m":{"x":23.6,"z":31.6} },
+      { "id":"police", "label":"警察局", "prefab":"PoliceStation02", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"city_service", "position":{"x":-672,"z":704}, "rotation_degrees":0, "size_m":{"x":39.6,"z":39.6} },
+      { "id":"park-west", "label":"社区公园", "prefab":"CityPark02", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"city_service", "position":{"x":-1480,"z":520}, "rotation_degrees":0, "size_m":{"x":47.6,"z":47.6} },
+      { "id":"park-east", "label":"城市公园", "prefab":"CityPark03", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"city_service", "position":{"x":-376,"z":952}, "rotation_degrees":0, "size_m":{"x":79.6,"z":63.6} },
+      { "id":"bus-station", "label":"公交站", "prefab":"BusStation02", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"transport_facility", "position":{"x":-352,"z":600}, "rotation_degrees":0, "size_m":{"x":31.6,"z":47.6} },
+      { "id":"bus-depot", "label":"公交车场", "prefab":"BusDepot01", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"transport_facility", "position":{"x":-408,"z":1024}, "rotation_degrees":0, "size_m":{"x":143.6,"z":71.6} },
+      { "id":"post-office", "label":"邮政局", "prefab":"PostOffice02", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"city_service", "position":{"x":-348,"z":520}, "rotation_degrees":0, "size_m":{"x":23.6,"z":31.6} },
+      { "id":"telecom", "label":"电信塔", "prefab":"TelecomTower01", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"utility_facility", "position":{"x":-364,"z":440}, "rotation_degrees":0, "size_m":{"x":55.6,"z":55.6} },
+      { "id":"cemetery", "label":"墓园", "prefab":"Cemetery02", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"city_service", "position":{"x":-1360,"z":1080}, "rotation_degrees":0, "size_m":{"x":111.6,"z":47.6} },
+      { "id":"landfill", "label":"填埋场", "prefab":"Landfill01", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"city_service", "position":{"x":-760,"z":1320}, "rotation_degrees":0, "size_m":{"x":135.6,"z":119.6} },
+      { "id":"power-plant", "label":"小型燃煤电站", "prefab":"SmallCoalPowerPlant01", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"utility_facility", "position":{"x":-248,"z":1320}, "rotation_degrees":0, "size_m":{"x":111.6,"z":127.6} },
+      { "id":"wastewater", "label":"污水处理厂", "prefab":"WastewaterTreatmentPlant01", "planning_status":"bound", "construction_status":"built", "kind":"service", "category":"utility_facility", "position":{"x":-256,"z":1040}, "rotation_degrees":0, "size_m":{"x":95.6,"z":79.6} }
+    ],
+    "zones": [],
+    "tracks": [],
+    "utilities": []
+  }
+}

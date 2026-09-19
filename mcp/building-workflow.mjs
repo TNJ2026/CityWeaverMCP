@@ -200,6 +200,17 @@ export function createBuildingWorkflow(queryGame = liveQueryGame) {
         const entityId = plan.result_entity_ids[0];
         const readArgs = plan.category === 'building' ? { building_id: entityId } : { facility_id: entityId };
         try { plan.readback = (await queryGame(stored.config.read, readArgs)).data; } catch { plan.readback = null; }
+        const expectedRoadEdgeId = plan.candidate?.road_edge_id ?? null;
+        if (expectedRoadEdgeId) {
+          const actualRoadEdgeId = plan.readback?.road_edge_id ?? null;
+          plan.road_binding = { expected_road_edge_id: expectedRoadEdgeId, actual_road_edge_id: actualRoadEdgeId, verified: actualRoadEdgeId === expectedRoadEdgeId };
+          if (!plan.road_binding.verified) {
+            plan.state = 'completed_readback_incomplete';
+            plan.built = false;
+            plan.recovery_required = true;
+            plan.error = 'Permanent building road binding does not match the preview candidate.';
+          }
+        }
       }
       return plan;
     };
@@ -306,6 +317,8 @@ export function createBuildingWorkflow(queryGame = liveQueryGame) {
             }, true);
             totalCost += built.cost || 0;
             results.push(built);
+            if (built.recovery_required || built.state === 'outcome_unknown' ||
+                (built.state !== 'completed' && !args.continue_on_error)) break;
           } catch (error) {
             if (plan?.state === 'preview_ready') {
               try { await cancelPlan({ plan_id: plan.plan_id }); } catch {}

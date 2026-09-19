@@ -101,7 +101,8 @@ namespace CityWeaver
         private JObject CityServiceFacilityRow(World world, Entity e, bool detail)
         {
             var em = world.EntityManager; var ps = world.GetExistingSystemManaged<PrefabSystem>(); var p = em.GetComponentData<PrefabRef>(e).m_Prefab; ps.TryGetPrefab<PrefabBase>(p, out var pf); var t = em.GetComponentData<Game.Objects.Transform>(e);
-            var row = new JObject { ["facility_id"] = m_Session + ":" + e.Index + ":" + e.Version, ["name"] = Name(world, e), ["prefab"] = pf?.name, ["kind"] = CityServiceKind(em, p), ["position"] = PointJson(t.m_Position) };
+            var building = em.GetComponentData<Building>(e);
+            var row = new JObject { ["facility_id"] = m_Session + ":" + e.Index + ":" + e.Version, ["name"] = Name(world, e), ["prefab"] = pf?.name, ["kind"] = CityServiceKind(em, p), ["position"] = PointJson(t.m_Position), ["road_edge_id"] = OptionalEntity(m_Session, building.m_RoadEdge) };
             if (em.HasBuffer<Efficiency>(e)) { var b = em.GetBuffer<Efficiency>(e, true); row["efficiency_factors"] = new JArray(Enumerable.Range(0, b.Length).Select(i => (object)b[i].m_Efficiency)); }
             if (em.HasBuffer<Game.Vehicles.OwnedVehicle>(e)) { var b = em.GetBuffer<Game.Vehicles.OwnedVehicle>(e, true); row["owned_vehicle_count"] = b.Length; if (detail) row["owned_vehicle_ids"] = new JArray(Enumerable.Range(0, Math.Min(256, b.Length)).Select(i => (object)(m_Session + ":" + b[i].m_Vehicle.Index + ":" + b[i].m_Vehicle.Version))); }
             if (em.HasBuffer<Game.Buildings.Patient>(e)) row["patient_count"] = em.GetBuffer<Game.Buildings.Patient>(e, true).Length;

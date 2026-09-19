@@ -44,25 +44,29 @@ node tools/survey-space.mjs --auto-find residential --anchor -1138,528 --mode qu
 
 ### MCP 高层工具
 
-需要由提示词直接指定 `N×N` 和道路类型时，优先使用 `deploy_grid_district`，不必让客户端自己串联多个底层工具：
+需要由提示词直接指定 `N×N` 和道路类型时，可以使用 `deploy_grid_district`，不必让客户端自己串联多个底层工具。调用必须提供稳定 `request_id`。安全默认 `approval_mode="staged"` 只创建并返回道路原生预览、取消动作和 `advance_grid_construction` 下一步，不产生永久对象；只有用户已明确授权“预览通过后自动连续提交”时，才能显式使用 `approval_mode="automatic"`。
 
 ```json
 {
+  "request_id": "west-homes-grid-001",
+  "approval_mode": "staged",
   "origin": { "x": -2000, "z": 544 },
   "columns": 3,
   "rows": 3,
-  "road_prefab": "Small Road",
-  "horizontal_road_prefab": "Small Road",
-  "vertical_road_prefab": "Small Road",
-  "perimeter_road_prefab": "Six-Lane Road",
-  "connection_road_prefab": "Four-Lane Road",
+  "road_prefab": "<精确内部道路 prefab>",
+  "horizontal_road_prefab": "<精确同宽横向道路 prefab>",
+  "vertical_road_prefab": "<精确同宽纵向道路 prefab>",
+  "perimeter_road_prefab": "<精确外围道路 prefab>",
+  "connection_road_prefab": "<精确接驳道路 prefab>",
   "auto_connect": true,
-  "zone_type": "residential_low",
+  "zone_type": "Exact Live Residential Zone",
   "survey_mode": "quick"
 }
 ```
 
-调用前先用 `list_road_prefabs`、`list_zone_types` 和 `list_building_prefabs` 发现当前城市的精确名称；示例道路名不一定在每个主题、DLC 或存档中存在。该高层工具返回网格、连接道路、分区、建筑和增长循环的汇总；底层 operation 仍按各自领域轮询至 `completed`。
+调用前先用 `list_road_prefabs`、`list_zone_types` 和 `list_building_prefabs` 发现当前城市的精确名称；尖括号内容必须替换，不能作为实际参数。该高层工具返回网格、连接道路、分区、建筑和增长循环的汇总；底层 operation 仍按各自领域轮询至 `completed`。`staged` 只授权网格道路预览；即使请求中带有连接路、建筑或增长循环，它们也会以 `deferred_phases` 返回，不能由 `advance_grid_construction` 隐式执行。
+
+多个网格可以依次部署，但不能并行，也不能让相邻网格重复生成同一条外围道路。规划阶段应先把规则单元保存到同一结构化方案的 `plan.grids[]`；环路、主干道、绿带断路、局部延伸或不等距道路保留在 `plan.roads[]`。规则道路组满足一次原生网格条件却仍被逐路展开时，规划校验会报错；不能无损转换时必须在 `plan.grid_exceptions[]` 记录原因。若外围朝外侧不得划区，省略 `zone_type`，道路完成后按永久 edge ID、正确道路侧和实际 Zone Cells 单独走分区预览。
 
 ### 网格道路宽度规则
 
@@ -78,7 +82,9 @@ node tools/survey-space.mjs --auto-find residential --anchor -1138,528 --mode qu
 node tools/deploy-district.mjs `
   --origin -2000,544 `
   --cols 3 --rows 2 `
-  --zone residential_low `
+  --road "<list_road_prefabs 返回的精确名称>" `
+  --zone "<list_zone_types 返回的精确名称>" `
+  --request-id district-preview-001 `
   --survey-mode quick
 ```
 
@@ -87,7 +93,9 @@ node tools/deploy-district.mjs `
 ```powershell
 node tools/deploy-district.mjs `
   --origin -2000,544 --cols 3 --rows 2 `
-  --zone residential_low `
+  --road "<list_road_prefabs 返回的精确名称>" `
+  --zone "<list_zone_types 返回的精确名称>" `
+  --request-id district-build-001 --automatic `
   --building-prefab "Exact Discovered Prefab Name" `
   --building-count 16
 ```

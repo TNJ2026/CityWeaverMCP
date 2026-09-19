@@ -47,6 +47,7 @@ test('industrial campus stops after a failed district phase', async () => {
 
 test('industrial campus selects an owner-compatible area prefab and returns its id', async () => {
   const calls = [];
+  let districtArgs;
   const query = async (tool, args) => {
     calls.push({ tool, args });
     if (tool === 'get_game_status') return response({ city_loaded: true, city_name: 'Test', paused: true, selected_speed: 0 });
@@ -56,7 +57,7 @@ test('industrial campus selects an owner-compatible area prefab and returns its 
     throw new Error(`unexpected ${tool}`);
   };
   const workflow = createCityWorkflows(query, {
-    deployDistrict: async () => ({ success: true, total_cost: 10 }),
+    deployDistrict: async args => { districtArgs = args; return { success: true, total_cost: 10 }; },
     deployBuildingPlans: async () => ({ state: 'completed', total_cost: 50, results: [{ state: 'completed', result_entity_ids: [entity(8)] }] })
   });
   const result = await workflow.deployIndustrialCampus({
@@ -65,6 +66,8 @@ test('industrial campus selects an owner-compatible area prefab and returns its 
     areas: [{ building_index: 0, boundary: [{ x: 0, z: 0 }, { x: 16, z: 0 }, { x: 16, z: 16 }] }], resume_speed: 'original'
   });
   assert.equal(result.state, 'completed');
+  assert.equal(districtArgs.approval_mode, 'automatic');
+  assert.equal(districtArgs.request_id, 'industrial-campus-002-district');
   assert.equal(result.phases.at(-1).result[0].result_area_id, entity(9));
   assert.equal(calls.find(x => x.tool === 'preview_building_area').args.area_prefab, 'Industrial Storage Area');
 });

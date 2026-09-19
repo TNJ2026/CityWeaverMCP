@@ -1,6 +1,7 @@
 import { queryGame, BridgeError } from '../mcp/bridge-client.mjs';
 import { validateDistrictConfig, snapPoint, snapToCell, subdivideRoute } from './lib/physics-rules.mjs';
 import { surveySpace } from './survey-space.mjs';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -16,34 +17,15 @@ import path from 'node:path';
  * 6. Simulation restoral and concise token-optimized reporting
  */
 
-// Mapping of generic zone keys to theme-specific active asset prefabs
-const ZONE_PREFAB_MAP = {
-  'North American': {
-    'residential_low': 'NA Residential Low',
-    'residential_medium': 'NA Residential Medium',
-    'residential_high': 'NA Residential High',
-    'residential_mixed': 'NA Residential Mixed',
-    'commercial_low': 'NA Commercial Low',
-    'commercial_high': 'NA Commercial High',
-    'industrial': 'Industrial Manufacturing',
-    'industrial_low': 'Industrial Manufacturing',
-    'office_low': 'NA Office Low',
-    'office_high': 'NA Office High',
-    'office': 'NA Office High'
-  },
-  'European': {
-    'residential_low': 'EU Residential Low',
-    'residential_medium': 'EU Residential Medium',
-    'residential_high': 'EU Residential High',
-    'residential_mixed': 'EU Residential Mixed',
-    'commercial_low': 'EU Commercial Low',
-    'commercial_high': 'EU Commercial High',
-    'industrial': 'Industrial Manufacturing',
-    'industrial_low': 'Industrial Manufacturing',
-    'office_low': 'EU Office Low',
-    'office_high': 'EU Office High',
-    'office': 'EU Office High'
-  }
+const deploymentRuns = new Map();
+const canonicalize = value => Array.isArray(value) ? value.map(canonicalize)
+  : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonicalize(value[key])]))
+  : value;
+const digest = value => createHash('sha256').update(JSON.stringify(canonicalize(value))).digest('hex').slice(0, 20);
+export const phaseRequestId = (requestId, phase) => {
+  const cleanBase = String(requestId).replace(/[^A-Za-z0-9_-]+/g, '_');
+  const cleanPhase = String(phase).replace(/[^A-Za-z0-9_-]+/g, '_').slice(0, 91);
+  return `${cleanBase.slice(0, Math.max(8, 99 - cleanPhase.length))}-${cleanPhase}`;
 };
 
 /**
@@ -111,7 +93,7 @@ async function mapLimit(items, limit, worker) {
 async function buildRoadOp(opId, reqId, maxCost = 1000000) {
   await queryGame('build_road', {
     operation_id: opId,
-    request_id: `${reqId}-build`,
+    request_id: phaseRequestId(reqId, 'build'),
     max_cost: maxCost
   });
   return await waitRoadOp(opId, 'completed', 15000);
@@ -157,9 +139,9 @@ function normalizeRoutePoints(points, maxLenM = 200, minLenM = 16) {
  *   - rows: number (1..5)
  *   - block_width_m: number (multiples of 8m, e.g. 96)
  *   - block_height_m: number (multiples of 8m, e.g. 96)
- *   - road_prefab: string (default 'Small Road')
+ *   - road_prefab: string (required exact live prefab name)
  *   - perimeter_road_prefab: string (optional)
- *   - zone_type: string ('commercial_low', 'residential_low', 'industrial', etc. or exact prefab)
+ *   - zone_type: string (optional exact live prefab name)
  *   - arterial_connector: { road_prefab: string, points: Array<{ x, z, node_id? }> } (optional)
  *   - resume_speed: 'paused' | 'normal' | 'fast' | 'fastest' (default 'fastest')
  *   - survey_mode: 'full' | 'quick' (default 'full'; quick defers full building collision scan)
@@ -167,7 +149,23 @@ function normalizeRoutePoints(points, maxLenM = 200, minLenM = 16) {
  *   - growth_loop: { cycles?, interval_ms?, stop_on_negative_cash?, speed? } (optional)
  *   - check_conflicts: boolean (default true)
  */
-export async function deployDistrict(options) {
+export function deployDistrict(options) {
+  const base = { ...options };
+  delete base.request_id;
+  const requestId = options.request_id ?? `district-${digest(base)}`;
+  const normalized = { ...options, request_id: requestId };
+  const signature = digest(normalized);
+  const existing = deploymentRuns.get(requestId);
+  if (existing) {
+    if (existing.signature !== signature) throw new BridgeError('IDEMPOTENCY_CONFLICT', `deploy_grid_district request_id ${requestId} was already used with different parameters.`);
+    return existing.promise;
+  }
+  const promise = deployDistrictOnce(normalized);
+  deploymentRuns.set(requestId, { signature, promise });
+  return promise;
+}
+
+async function deployDistrictOnce(options) {
   const t0 = Date.now();
   const summary = {
     success: false,
@@ -187,6 +185,7 @@ export async function deployDistrict(options) {
   let initialPaused = true;
 
   try {
+    if (!options.road_prefab) throw new Error('road_prefab is required and must be discovered from the current city.');
     // === 0. Mathematical & Physics Rules Pre-Flight Validation ===
     const validation = validateDistrictConfig(options);
     if (!validation.valid) {
@@ -210,14 +209,9 @@ export async function deployDistrict(options) {
       await queryGame('set_simulation_speed', { speed: 'paused' });
     }
 
-    // Resolve Theme and Zone Prefab
+    // Zone names are live prefab identifiers. Do not translate generic aliases:
+    // the caller must pass the exact value returned by list_zone_types.
     let targetZonePrefab = options.zone_type || null;
-    if (targetZonePrefab) {
-      const configRes = await queryGame('get_city_configuration', {});
-      const theme = configRes.data?.theme || 'North American';
-      const mapped = ZONE_PREFAB_MAP[theme]?.[targetZonePrefab.toLowerCase()];
-      if (mapped) targetZonePrefab = mapped;
-    }
 
     // Lattice snapping for origin (8m grid via physics rules)
     const originX = snapToCell(options.origin.x);
@@ -252,13 +246,13 @@ export async function deployDistrict(options) {
     }
 
     // === 2. Build Road Grid ===
-    const gridReqId = `dist-grid-${Date.now().toString(36)}`;
+    const gridReqId = phaseRequestId(options.request_id, 'roads-preview');
     const gridPreview = await queryGame('preview_road_grid', {
       request_id: gridReqId,
-      road_prefab: options.road_prefab || 'Small Road',
+      road_prefab: options.road_prefab,
       horizontal_road_prefab: options.horizontal_road_prefab,
       vertical_road_prefab: options.vertical_road_prefab,
-      perimeter_road_prefab: options.perimeter_road_prefab || options.road_prefab || 'Small Road',
+      perimeter_road_prefab: options.perimeter_road_prefab || options.road_prefab,
       origin: { x: originX, z: originZ },
       columns: cols,
       rows: rows,
@@ -276,7 +270,48 @@ export async function deployDistrict(options) {
     const gridCost = gridOp.cost || 0;
     summary.total_cost += gridCost;
 
-    const gridDone = await buildRoadOp(gridPreview.data.operation_id, gridReqId, options.max_cost || 100000);
+    if ((options.approval_mode ?? 'staged') === 'staged') {
+      const expectedSessionId = statusRes.meta?.session_id ?? status.session_id ?? null;
+      summary.success = true;
+      summary.state = 'preview_ready';
+      summary.permanent_changes = false;
+      summary.grid = {
+        origin: { x: originX, z: originZ }, cols, rows,
+        block_size_m: { width: blockW, height: blockH },
+        preview_operation_id: gridPreview.data.operation_id,
+        cost: gridCost,
+        warnings: gridOp.warnings ?? [],
+        errors: gridOp.errors ?? [],
+      };
+      summary.cancel_action = { tool: 'cancel_road_preview', arguments: { operation_id: gridPreview.data.operation_id } };
+      summary.next_action = {
+        tool: 'advance_grid_construction',
+        arguments: {
+          stage: 'commit_roads',
+          request_id: phaseRequestId(options.request_id, 'roads-commit'),
+          ...(expectedSessionId ? { expected_session_id: expectedSessionId } : {}),
+          operation_id: gridPreview.data.operation_id,
+          max_cost: options.max_cost ?? 100000,
+          ...(targetZonePrefab ? { zone_type: targetZonePrefab } : {}),
+          road_side: options.zone_road_side ?? 'both',
+          depth_cells: options.depth_cells ?? 6,
+          overwrite: options.overwrite !== false,
+        },
+      };
+      summary.deferred_phases = [
+        options.arterial_connector ? { phase: 'arterial_connector', state: 'awaiting_separate_authorization' } : null,
+        options.building_batch ? { phase: 'building_batch', state: 'awaiting_separate_authorization' } : null,
+        options.growth_loop ? { phase: 'growth_loop', state: 'awaiting_permanent_construction' } : null,
+      ].filter(Boolean);
+      if (summary.deferred_phases.length > 0) {
+        summary.notes.push('Staged mode stops after the road-grid preview. Connector, building and growth phases are not queued or authorized by the returned advance_grid_construction action.');
+      }
+      await queryGame('set_simulation_speed', { speed: initialPaused ? 'paused' : originalSpeed });
+      summary.duration_ms = Date.now() - t0;
+      return summary;
+    }
+
+    const gridDone = await buildRoadOp(gridPreview.data.operation_id, gridReqId, options.max_cost ?? 100000);
     const createdEdges = gridDone.created_road_ids || [];
     summary.grid = {
       origin: { x: originX, z: originZ },
@@ -288,7 +323,7 @@ export async function deployDistrict(options) {
 
     // === 3. Build Arterial Connector (Optional) ===
     if (options.arterial_connector && options.arterial_connector.points?.length >= 2) {
-      const artReqId = `dist-art-${Date.now().toString(36)}`;
+      const artReqId = phaseRequestId(options.request_id, 'arterial-preview');
       const rawPoints = options.arterial_connector.points;
       const normPoints = normalizeRoutePoints(rawPoints, 200, 16);
 
@@ -319,7 +354,7 @@ export async function deployDistrict(options) {
 
       const artPreview = await queryGame('preview_road_route', {
         request_id: artReqId,
-        road_prefab: options.arterial_connector.road_prefab || 'Medium Road',
+        road_prefab: options.arterial_connector.road_prefab,
         points: normPoints
       });
 
@@ -327,9 +362,9 @@ export async function deployDistrict(options) {
       const artCost = artOp.cost || 0;
       summary.total_cost += artCost;
 
-      const artDone = await buildRoadOp(artPreview.data.operation_id, artReqId, options.max_cost || 100000);
+      const artDone = await buildRoadOp(artPreview.data.operation_id, artReqId, options.max_cost ?? 100000);
       summary.arterial = {
-        road_prefab: options.arterial_connector.road_prefab || 'Medium Road',
+        road_prefab: options.arterial_connector.road_prefab,
         segments_count: artDone.created_road_ids?.length || normPoints.length - 1,
         cost: artCost
       };
@@ -337,14 +372,14 @@ export async function deployDistrict(options) {
 
     // === 4. Apply Batch Zoning (Optional) ===
     if (targetZonePrefab && createdEdges.length > 0) {
-      const zoneReqId = `dist-zone-${Date.now().toString(36)}`;
+      const zoneReqId = phaseRequestId(options.request_id, 'zoning-preview');
       const zonePreview = await queryGame('preview_zoning', {
         request_id: zoneReqId,
         edge_ids: createdEdges,
         zone: targetZonePrefab,
-        road_side: 'both',
-        depth_cells: options.depth_cells || 6,
-        overwrite: true
+        road_side: options.zone_road_side ?? 'both',
+        depth_cells: options.depth_cells ?? 6,
+        overwrite: options.overwrite !== false
       });
 
       const changedCells = zonePreview.data.changed_cell_count || 0;
@@ -375,7 +410,7 @@ export async function deployDistrict(options) {
       });
       const placements = planReq.data?.placements || [];
       if (placements.length === 0) throw new Error('Building batch planner returned no valid placements.');
-      const buildReqId = `dist-build-${Date.now().toString(36)}`;
+      const buildReqId = phaseRequestId(options.request_id, 'buildings-preview');
       const buildPreview = await queryGame('preview_building_batch_placement', {
         request_id: buildReqId,
         building_prefab: batch.building_prefab,
@@ -387,7 +422,7 @@ export async function deployDistrict(options) {
       const buildCost = buildOp.cost || 0;
       await queryGame('apply_building_operation', {
         operation_id: buildPreview.data.operation_id,
-        request_id: `${buildReqId}-commit`,
+        request_id: phaseRequestId(buildReqId, 'commit'),
         max_cost: batch.max_cost ?? options.max_cost ?? 1000000
       });
       const buildDone = await waitBuildingOp(buildPreview.data.operation_id, 'completed');
@@ -459,6 +494,8 @@ export async function deployDistrict(options) {
     }
 
     summary.success = true;
+    summary.state = 'completed';
+    summary.permanent_changes = true;
     summary.duration_ms = Date.now() - t0;
     return summary;
 
@@ -484,18 +521,20 @@ if (process.argv[1] && process.argv[1].endsWith('deploy-district.mjs')) {
 Usage:
   node tools/deploy-district.mjs --archetype <name> --origin X,Z [options]
   node tools/deploy-district.mjs --config <path-to-json>
-  node tools/deploy-district.mjs --origin X,Z --cols 3 --rows 3 --zone commercial_low
+  node tools/deploy-district.mjs --origin X,Z --cols 3 --rows 3 --road "Exact Road Prefab" --zone "Exact Zone Prefab"
 
 Options:
   --archetype <name>    Use pre-validated archetype: residential_suburban_3x2, commercial_hub_3x3, industrial_manufacturing_3x2, etc.
   --config <path>       Path to JSON configuration file
+  --request-id <id>     Stable workflow request id (derived deterministically when omitted)
+  --automatic           Explicitly continue from preview through permanent commits
   --origin <X,Z>        Grid origin (e.g. -1600,160)
   --cols <N>            Columns (1..5, default 3)
   --rows <N>            Rows (1..5, default 3)
   --block-w <N>         Block width in meters (default 96)
   --block-h <N>         Block height in meters (default 96)
-  --road <name>         Road prefab (default 'Small Road')
-  --zone <type>         Zone type: commercial_low, residential_low, industrial, etc.
+  --road <name>         Exact road prefab discovered from the current city (required)
+  --zone <type>         Exact zone prefab discovered from the current city
   --survey-mode <mode>  Spatial survey mode: full (default) or quick (defer building scan)
   --building-prefab <p> Batch-place a roadside building prefab on the new roads
   --building-count <N>  Maximum buildings for the batch (default 32)
@@ -535,6 +574,8 @@ Options:
           const [x, z] = args[i + 1].split(',').map(Number);
           config.origin = { x, z };
         }
+        if (args[i] === '--request-id' && args[i + 1]) config.request_id = args[i + 1];
+        if (args[i] === '--automatic') config.approval_mode = 'automatic';
         if (args[i] === '--cols' && args[i + 1]) config.columns = Number(args[i + 1]);
         if (args[i] === '--rows' && args[i + 1]) config.rows = Number(args[i + 1]);
         if (args[i] === '--block-w' && args[i + 1]) config.block_width_m = Number(args[i + 1]);
@@ -560,12 +601,13 @@ Options:
 
     try {
       const result = await deployDistrict(config);
-      console.log(`\n✓ [DISTRICT DEPLOYED] City: ${result.city} | Zone: ${result.district_type} | Duration: ${result.duration_ms}ms`);
+      const previewOnly = result.state === 'preview_ready' && result.permanent_changes === false;
+      console.log(`\n✓ [${previewOnly ? 'DISTRICT PREVIEW READY' : 'DISTRICT DEPLOYED'}] City: ${result.city} | Zone: ${result.district_type} | Duration: ${result.duration_ms}ms`);
       if (result.spatial_survey) {
         console.log(`  - Survey: ${result.spatial_survey.ownership} | Slope: ${result.spatial_survey.terrain_grade} | Obstacles: ${result.spatial_survey.obstacles}`);
       }
       if (result.grid) {
-        console.log(`  - Grid: ${result.grid.cols}x${result.grid.rows} (${result.grid.edges_count} edges) @ (${result.grid.origin.x}, ${result.grid.origin.z}) | Cost: ₡${result.grid.cost.toLocaleString()}`);
+        console.log(`  - Grid: ${result.grid.cols}x${result.grid.rows}${result.grid.edges_count == null ? '' : ` (${result.grid.edges_count} edges)`} @ (${result.grid.origin.x}, ${result.grid.origin.z}) | Cost: ₡${result.grid.cost.toLocaleString()}`);
       }
       if (result.arterial) {
         console.log(`  - Arterial: ${result.arterial.segments_count} segs [${result.arterial.road_prefab}] | Cost: ₡${result.arterial.cost.toLocaleString()}`);
@@ -580,7 +622,8 @@ Options:
         console.log(`  - Growth Loop: ${result.growth_loop.cycles_completed}/${result.growth_loop.cycles_requested} cycles @ ${result.growth_loop.speed}` +
           (result.growth_loop.stop_reason ? ` | Stopped: ${result.growth_loop.stop_reason}` : ` | Next: ${result.growth_loop.next_action}`));
       }
-      console.log(`  - Total Cost: ₡${result.total_cost.toLocaleString()} | Simulation Resumed: OK`);
+      console.log(`  - ${previewOnly ? 'Preview Cost' : 'Total Cost'}: ₡${result.total_cost.toLocaleString()} | Simulation Restored: OK`);
+      if (previewOnly) console.log(`  - Next: inspect the preview, then use ${result.next_action?.tool ?? 'advance_grid_construction'} or cancel it.`);
       if (result.notes?.length > 0) {
         console.log(`  - Notes: ${result.notes.join('; ')}`);
       }

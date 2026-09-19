@@ -134,6 +134,9 @@ export function createCityWorkflows(queryGame = liveQueryGame, dependencies = {}
           district = await deployDistrict({
             ...args.district,
             origin: args.district.origin || args.anchor,
+            // The campus workflow is already an explicitly authorized mutating
+            // workflow and must finish its district before dependent phases run.
+            approval_mode: 'automatic',
             resume_speed: 'paused',
             growth_loop: undefined,
             request_id: childRequestId(args.request_id, 'district')

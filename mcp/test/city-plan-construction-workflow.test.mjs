@@ -16,6 +16,18 @@ const plan = {
 const planId = computeCityPlanId(bounds, plan);
 const envelope = data => ({ meta: { session_id: 'session-1' }, data });
 
+test('requires an explicit resolved numeric building rotation while allowing zero', () => {
+  const building = { id: 'school', prefab: 'School', position: { x: 0, z: 0 }, size_m: { x: 32, z: 32 } };
+  for (const rotation of [null, undefined, NaN, Infinity, '0']) {
+    assert.throws(() => compileCityPlanRoads(bounds, { buildings: [{ ...building, rotation_degrees: rotation }] }),
+      error => error.code === 'PLAN_BUILDING_ROTATION_REQUIRED');
+  }
+  assert.throws(() => compileCityPlanRoads(bounds, { buildings: [{ ...building, rotation_degrees: 0, rotation_source: 'unresolved' }] }),
+    error => error.code === 'PLAN_BUILDING_ROTATION_REQUIRED');
+  const compiled = compileCityPlanRoads(bounds, { buildings: [{ ...building, rotation_degrees: 0 }] });
+  assert.equal(compiled.batches[0].native_args.rotation_degrees, 0);
+});
+
 test('compiles the rendered plan identity, dependencies and native-safe subdivisions', () => {
   const points = subdividePlannedRoad([{ x: 0, z: 0 }, { x: 600, z: 0 }]);
   assert.equal(points.length, 4);
@@ -55,6 +67,27 @@ test('keeps a planned grid as one native atomic batch instead of expanding it in
   assert.equal(compiled.batches.length, 1);
   assert.equal(compiled.batches[0].native_tool, 'preview_road_grid');
   assert.equal(compiled.batches[0].object_ids.length, 7);
+});
+
+test('rejects adjacent grids that would build the same shared perimeter road', () => {
+  const gridPlan = {
+    roads: [], buildings: [], zones: [], tracks: [], utilities: [],
+    grids: [
+      { id: 'west', origin: { x: -800, z: -800 }, columns: 2, rows: 2, block_width_m: 96, block_height_m: 96, road_prefab: 'Small Road' },
+      { id: 'east', origin: { x: -608, z: -800 }, columns: 2, rows: 2, block_width_m: 96, block_height_m: 96, road_prefab: 'Small Road' },
+    ],
+  };
+  assert.throws(() => compileCityPlanRoads(bounds, gridPlan, computeCityPlanId(bounds, gridPlan)), error => error.code === 'PLAN_GRID_OVERLAP');
+});
+
+test('treats legacy completed construction status as already built', () => {
+  const completedPlan = {
+    grids: [], roads: [], zones: [], tracks: [], utilities: [],
+    buildings: [{ id: 'school', prefab: 'School', construction_status: 'completed', position: { x: 0, z: 0 }, size_m: { x: 32, z: 32 } }],
+  };
+  const compiled = compileCityPlanRoads(bounds, completedPlan, computeCityPlanId(bounds, completedPlan));
+  assert.equal(compiled.batches.length, 0);
+  assert.equal(compiled.skipped_buildings[0].building_id, 'school');
 });
 
 test('splits a very long virtual route only at the native 16-point batch limit', () => {
@@ -214,6 +247,17 @@ test('compiles roads, ploppable buildings and utility networks into one dependen
   assert.equal(compiled.virtual_sandbox.metrics.native_batch_count, 1);
 });
 
+test('rejects a planned building whose native binding preview failed', () => {
+  const failedPlan = {
+    grids: [], roads: [], zones: [], tracks: [], utilities: [],
+    buildings: [{ id: 'school', prefab: 'ElementarySchool02', category: 'city_service', kind: 'service', position: { x: 32, z: 32 }, rotation_degrees: 90, placement_status: 'failed', size_m: { x: 64, z: 48 } }],
+  };
+  assert.throws(
+    () => compileCityPlanRoads(bounds, failedPlan, computeCityPlanId(bounds, failedPlan)),
+    error => error.code === 'PLAN_BUILDING_PREVIEW_FAILED',
+  );
+});
+
 test('building preview uses the approved exact position and specialized native domain', async () => {
   const buildingPlan = {
     grids: [], roads: [], zones: [], tracks: [], utilities: [],
@@ -235,6 +279,23 @@ test('building preview uses the approved exact position and specialized native d
   assert.equal(result.cancel_action.tool, 'cancel_city_service_preview');
 });
 
+test('rejects a roadside building preview without an exact road binding', async () => {
+  const buildingPlan = {
+    grids: [], roads: [], zones: [], tracks: [], utilities: [],
+    buildings: [{ id: 'clinic', prefab: 'MedicalClinic01', category: 'city_service', kind: 'service', position: { x: 128, z: 64 }, rotation_degrees: 90, rotation_source: 'manual', size_m: { x: 48, z: 40 } }],
+  };
+  const id = computeCityPlanId(bounds, buildingPlan);
+  const queryGame = async tool => {
+    if (tool === 'get_game_status') return envelope({ city_loaded: true, city_name: '韦福德', paused: true, selected_speed: 0 });
+    if (tool === 'list_city_service_prefabs') return envelope({ items: [{ name: 'MedicalClinic01', locked: false, placement_flags: 'RoadSide, OnGround' }] });
+    throw new Error(`Unexpected tool ${tool}`);
+  };
+  await assert.rejects(
+    createCityPlanConstructionWorkflow(queryGame).advance({ action: 'preview_batch', bounds, plan: buildingPlan, approved_plan_id: id, batch_id: 'clinic', request_id: 'clinic-preview-unbound', expected_session_id: 'session-1', operation_timeout_ms: 1000 }),
+    error => error.code === 'PLAN_BUILDING_ROAD_BINDING_REQUIRED',
+  );
+});
+
 test('building commit verifies permanent id, position and rotation from a fresh planning snapshot', async () => {
   const buildingId = '7'.repeat(32) + ':70:1';
   const buildingPlan = {
@@ -253,6 +314,28 @@ test('building commit verifies permanent id, position and rotation from a fresh 
   assert.equal(result.state, 'completed_verified');
   assert.deepEqual(result.permanent_readback.verified_ids, [buildingId]);
   assert.deepEqual(result.permanent_readback.geometry_mismatches, []);
+});
+
+test('completed roadside building remains unverified when permanent road binding is null', async () => {
+  const buildingId = '6'.repeat(32) + ':71:1';
+  const roadId = '5'.repeat(32) + ':72:1';
+  const buildingPlan = {
+    grids: [], roads: [], zones: [], tracks: [], utilities: [],
+    buildings: [{ id: 'school', prefab: 'ElementarySchool02', category: 'city_service', kind: 'service', position: { x: 64, z: 64 }, rotation_degrees: 90, rotation_source: 'road_tangent', road_edge_id: roadId, size_m: { x: 48, z: 40 } }],
+  };
+  const id = computeCityPlanId(bounds, buildingPlan);
+  const queryGame = async tool => {
+    if (tool === 'get_game_status') return envelope({ city_loaded: true, city_name: '韦福德', paused: true, selected_speed: 0 });
+    if (tool === 'get_city_service_operation') return envelope({ operation_id: operationId, state: 'preview_ready', cost: 1000 });
+    if (tool === 'apply_city_service_operation') return envelope({ operation_id: operationId, state: 'completed', cost: 1000, result_entity_ids: [buildingId] });
+    if (tool === 'get_planning_map_snapshot') return envelope({ buildings: [{ id: buildingId, position: { x: 64, z: 64 }, rotation_degrees: 90, road_edge_id: null }], roads: [{ id: roadId }], truncated: false });
+    throw new Error(`Unexpected tool ${tool}`);
+  };
+  const result = await createCityPlanConstructionWorkflow(queryGame).advance({ action: 'commit_batch', bounds, plan: buildingPlan, approved_plan_id: id, batch_id: 'school', request_id: 'school-commit-unbound', expected_session_id: 'session-1', operation_id: operationId, max_cost: 1000, operation_timeout_ms: 1000 });
+  assert.equal(result.state, 'completed_readback_incomplete');
+  assert.equal(result.success, false);
+  assert.equal(result.permanent_readback.road_binding_mismatches[0].actual_road_edge_id, null);
+  assert.equal(result.next_action, null);
 });
 
 test('underground utility preview derives elevation and commit verifies permanent edges', async () => {

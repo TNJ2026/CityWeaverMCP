@@ -1,16 +1,16 @@
 {
-  "plan_id": "cplan-be170f4e87c64511",
+  "plan_id": "cplan-1e4ed580d0be5255",
   "city": "埃格林",
-  "name": "三区规划",
+  "name": "四区规划",
   "target_population": 10000,
   "bounds": {
     "min_x": -2816,
-    "min_z": 440,
+    "min_z": -8,
     "max_x": -88,
-    "max_z": 1648
+    "max_z": 1424
   },
   "render": {
-    "title": "埃格林｜三区规划（西丘住宅 · 路口商业 · 油场工业，只读草案）",
+    "title": "埃格林｜四区规划（西丘住宅 · 路口商业 · 高原办公 · 油场工业，只读草案）",
     "width": 2200,
     "height": 1400,
     "view": "surface",
@@ -37,8 +37,13 @@
     "collector_pitch_m": {
       "residential": [
         300,
-        500
+        1200
       ]
+    },
+    "widening_rules": {
+      "rule": "网格中间道路严禁拓宽（永久保持 16m 本地生活支路，防止破坏 96m 黄金进深与临街建筑）；仅外围环路与骨干道具备拓宽属性",
+      "interior_allowed_to_widen": false,
+      "perimeter_allowed_to_widen": true
     },
     "axes": {
       "residential": {
@@ -70,9 +75,17 @@
           ]
         }
       },
-      "industrial": {
+      "office": {
         "z": {
           "exact_m": 96
+        },
+        "x": {
+          "exact_m": 96
+        }
+      },
+      "industrial": {
+        "z": {
+          "exact_m": 124
         },
         "x": {
           "range_m": [
@@ -92,8 +105,8 @@
       "bounds": {
         "min_x": -2780,
         "max_x": -1548,
-        "min_z": 488,
-        "max_z": 1608
+        "min_z": 264,
+        "max_z": 1384
       },
       "greenBelts": [
         {
@@ -103,8 +116,8 @@
           "max_x": -1544
         }
       ],
-      "zone_area_m2": 984384,
-      "note": "位于主风向（西南风）上风侧，距工业区 400 米；东西向 112 米宽绿带（z 1160–1272）放学校与公园，绿带内不划区；对外机动车出口 2 处（南接三区大道、北接油场接入路）。"
+      "zone_area_m2": 1009152,
+      "note": "位于主风向（西南风）上风侧，距工业区 400 米；东西向 112 米宽绿带（z 1160–1272）放学校与公园，绿带内不划区；对外机动车出口 2 处（南接三区大道、北接油场接入路）；北侧距铁路保持 110 米以上安全与生态退距，不穿跨铁路。"
     },
     {
       "key": "commercial",
@@ -117,8 +130,22 @@
         "max_z": 944
       },
       "greenBelts": [],
-      "zone_area_m2": 205312,
+      "zone_area_m2": 203008,
       "note": "紧贴高速北向支线终点（−123, 544），南北向商业街直接接上三区大道；高地价核心靠近路口。"
+    },
+    {
+      "key": "office",
+      "name": "高原办公区",
+      "kind": "办公",
+      "bounds": {
+        "min_x": -776,
+        "max_x": -168,
+        "min_z": 32,
+        "max_z": 360
+      },
+      "greenBelts": [],
+      "zone_area_m2": 156160,
+      "note": "位于三区大道南侧平缓台地，与商业区隔三区大道相望；形成南北双翼 CBD 联动，边界间距 120 米独立缓冲；规划高密度金融核心与低密度创新研发园。"
     },
     {
       "key": "industrial",
@@ -128,11 +155,11 @@
         "min_x": -1144,
         "max_x": -288,
         "min_z": 1128,
-        "max_z": 1480
+        "max_z": 1384
       },
       "greenBelts": [],
-      "zone_area_m2": 233792,
-      "note": "压在实测油斑（地图格 −1247 / −623）上；位于住宅区下风向 550 米外，废气朝东北漂向空地。"
+      "zone_area_m2": 175424,
+      "note": "压在实测油斑（地图格 −1247 / −623）上；位于住宅区下风向 550 米外；北侧距铁路保持 110 米缓冲绿带，与住宅北通道平直对齐（z=1328），不侵入铁路走廊。"
     }
   ],
   "access_points": [
@@ -163,11 +190,11 @@
   ],
   "accounting": {
     "target_population": 10000,
-    "households": 4036,
-    "people": 10090,
+    "households": 4135,
+    "people": 10338,
     "peopleRange": [
-      8879,
-      11301
+      9097,
+      11578
     ],
     "peoplePerHousehold": 2.5,
     "household_area_m2": {
@@ -177,46 +204,55 @@
     },
     "household_rule": "按分区类型汇总可划区面积后 round(面积 ÷ 户均占地)，再乘每户人数；不是逐块取整",
     "household_by_kind": {
-      "EU Residential Low": 2536,
-      "EU Residential Medium Row": 872,
-      "EU Residential Medium": 628
+      "EU Residential Low": 2598,
+      "EU Residential Medium Row": 908,
+      "EU Residential Medium": 629
     },
     "zone_area_m2": {
-      "EU Residential Low": 760832,
-      "EU Residential Medium Row": 148224,
-      "EU Residential Medium": 75328,
-      "EU Commercial Low": 135552,
+      "EU Residential Low": 779264,
+      "EU Residential Medium Row": 154368,
+      "EU Residential Medium": 75520,
+      "EU Commercial Low": 133248,
       "EU Commercial High": 69760,
-      "Industrial Oil": 117696,
-      "Industrial Manufacturing": 116096
+      "Office Low": 104064,
+      "Office High": 52096,
+      "Industrial Oil": 88512,
+      "Industrial Manufacturing": 86912
     },
-    "residential_zone_area_m2": 984384,
-    "commercial_zone_area_m2": 205312,
-    "industrial_zone_area_m2": 233792,
+    "residential_zone_area_m2": 1009152,
+    "commercial_zone_area_m2": 203008,
+    "office_zone_area_m2": 156160,
+    "industrial_zone_area_m2": 175424,
     "zoning_fill": {
       "residential": {
-        "cells_zoned": 15381,
+        "cells_zoned": 15768,
         "cells_candidate": 21560,
-        "zones": 82
+        "zones": 81
       },
       "commercial": {
-        "cells_zoned": 3208,
+        "cells_zoned": 3172,
         "cells_candidate": 4350,
-        "zones": 27
+        "zones": 29
+      },
+      "office": {
+        "cells_zoned": 2440,
+        "cells_candidate": 3116,
+        "zones": 26
       },
       "industrial": {
-        "cells_zoned": 3653,
-        "cells_candidate": 4708,
-        "zones": 31
+        "cells_zoned": 2741,
+        "cells_candidate": 3424,
+        "zones": 29
       }
     },
-    "road_count": 36,
-    "road_length_m": 25248,
+    "road_count": 40,
+    "road_length_m": 27056,
     "road_length_by_class_m": {
-      "collector": 4912,
-      "local": 16760,
+      "collector": 3536,
+      "local": 19096,
       "commercial": 1360,
-      "spine": 2216
+      "spine": 1480,
+      "office": 1584
     },
     "road_segment_m": {
       "min": 112,
@@ -226,9 +262,9 @@
     "building_placement_warnings": 0,
     "geometry_bbox": {
       "min_x": -2776,
-      "min_z": 480,
+      "min_z": 32,
       "max_x": -128,
-      "max_z": 1608
+      "max_z": 1384
     }
   },
   "plan": {
@@ -241,37 +277,39 @@
         "level": "surface",
         "width_m": 24,
         "road_class": "collector",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 20,
         "points": [
           {
             "x": -2720,
-            "z": 544
+            "z": 320
           },
           {
             "x": -2720,
-            "z": 712
+            "z": 488
           },
           {
             "x": -2720,
-            "z": 880
+            "z": 656
           },
           {
             "x": -2720,
-            "z": 1048
+            "z": 824
           },
           {
             "x": -2720,
-            "z": 1216
+            "z": 992
           },
           {
             "x": -2720,
-            "z": 1384
+            "z": 1160
           },
           {
             "x": -2720,
-            "z": 1552
+            "z": 1328
           }
         ]
       },
@@ -283,21 +321,31 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 31,
         "points": [
           {
             "x": -2536,
-            "z": 544
+            "z": 320
           },
           {
             "x": -2536,
-            "z": 728
+            "z": 480
           },
           {
             "x": -2536,
-            "z": 920
+            "z": 632
+          },
+          {
+            "x": -2536,
+            "z": 792
+          },
+          {
+            "x": -2536,
+            "z": 944
           },
           {
             "x": -2536,
@@ -306,70 +354,46 @@
         ]
       },
       {
-        "id": "res-local-x1-north",
-        "label": "住宅西内街（北段）",
+        "id": "res-mid-west-ring",
+        "label": "住宅中西内街",
         "district": "residential",
         "prefab": "Small Road",
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
-        "axis": "x",
-        "construction_status": "planned",
-        "construction_order": 31,
-        "points": [
-          {
-            "x": -2536,
-            "z": 1328
-          },
-          {
-            "x": -2536,
-            "z": 1440
-          },
-          {
-            "x": -2536,
-            "z": 1552
-          }
-        ]
-      },
-      {
-        "id": "res-mid-west-ring",
-        "label": "住宅中西环路",
-        "district": "residential",
-        "prefab": "Medium Road",
-        "level": "surface",
-        "width_m": 24,
-        "road_class": "collector",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 22,
         "points": [
           {
             "x": -2352,
-            "z": 544
+            "z": 320
           },
           {
             "x": -2352,
-            "z": 712
+            "z": 488
           },
           {
             "x": -2352,
-            "z": 880
+            "z": 656
           },
           {
             "x": -2352,
-            "z": 1048
+            "z": 824
           },
           {
             "x": -2352,
-            "z": 1216
+            "z": 992
           },
           {
             "x": -2352,
-            "z": 1384
+            "z": 1160
           },
           {
             "x": -2352,
-            "z": 1552
+            "z": 1328
           }
         ]
       },
@@ -381,21 +405,31 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 33,
         "points": [
           {
             "x": -2168,
-            "z": 544
+            "z": 320
           },
           {
             "x": -2168,
-            "z": 728
+            "z": 480
           },
           {
             "x": -2168,
-            "z": 920
+            "z": 632
+          },
+          {
+            "x": -2168,
+            "z": 792
+          },
+          {
+            "x": -2168,
+            "z": 944
           },
           {
             "x": -2168,
@@ -404,70 +438,46 @@
         ]
       },
       {
-        "id": "res-local-x2-north",
-        "label": "住宅中内街（北段）",
+        "id": "res-mid-east-ring",
+        "label": "住宅中东内街",
         "district": "residential",
         "prefab": "Small Road",
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
-        "axis": "x",
-        "construction_status": "planned",
-        "construction_order": 33,
-        "points": [
-          {
-            "x": -2168,
-            "z": 1328
-          },
-          {
-            "x": -2168,
-            "z": 1440
-          },
-          {
-            "x": -2168,
-            "z": 1552
-          }
-        ]
-      },
-      {
-        "id": "res-mid-east-ring",
-        "label": "住宅中东环路",
-        "district": "residential",
-        "prefab": "Medium Road",
-        "level": "surface",
-        "width_m": 24,
-        "road_class": "collector",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 24,
         "points": [
           {
             "x": -1984,
-            "z": 544
+            "z": 320
           },
           {
             "x": -1984,
-            "z": 712
+            "z": 488
           },
           {
             "x": -1984,
-            "z": 880
+            "z": 656
           },
           {
             "x": -1984,
-            "z": 1048
+            "z": 824
           },
           {
             "x": -1984,
-            "z": 1216
+            "z": 992
           },
           {
             "x": -1984,
-            "z": 1384
+            "z": 1160
           },
           {
             "x": -1984,
-            "z": 1552
+            "z": 1328
           }
         ]
       },
@@ -479,51 +489,35 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 35,
         "points": [
           {
             "x": -1800,
-            "z": 544
+            "z": 320
           },
           {
             "x": -1800,
-            "z": 728
+            "z": 480
           },
           {
             "x": -1800,
-            "z": 920
+            "z": 632
+          },
+          {
+            "x": -1800,
+            "z": 792
+          },
+          {
+            "x": -1800,
+            "z": 944
           },
           {
             "x": -1800,
             "z": 1104
-          }
-        ]
-      },
-      {
-        "id": "res-local-x3-north",
-        "label": "住宅东内街（北段）",
-        "district": "residential",
-        "prefab": "Small Road",
-        "level": "surface",
-        "width_m": 16,
-        "road_class": "local",
-        "axis": "x",
-        "construction_status": "planned",
-        "construction_order": 35,
-        "points": [
-          {
-            "x": -1800,
-            "z": 1328
-          },
-          {
-            "x": -1800,
-            "z": 1440
-          },
-          {
-            "x": -1800,
-            "z": 1552
           }
         ]
       },
@@ -535,37 +529,127 @@
         "level": "surface",
         "width_m": 24,
         "road_class": "collector",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 26,
         "points": [
           {
             "x": -1608,
-            "z": 544
+            "z": 320
           },
           {
             "x": -1608,
-            "z": 712
+            "z": 488
           },
           {
             "x": -1608,
-            "z": 880
+            "z": 656
           },
           {
             "x": -1608,
-            "z": 1048
+            "z": 824
           },
           {
             "x": -1608,
-            "z": 1216
+            "z": 992
           },
           {
             "x": -1608,
-            "z": 1384
+            "z": 1160
           },
           {
             "x": -1608,
-            "z": 1552
+            "z": 1328
+          }
+        ]
+      },
+      {
+        "id": "res-w-s2",
+        "label": "住宅东西街（南2）",
+        "district": "residential",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 40,
+        "points": [
+          {
+            "x": -2720,
+            "z": 320
+          },
+          {
+            "x": -2536,
+            "z": 320
+          },
+          {
+            "x": -2352,
+            "z": 320
+          },
+          {
+            "x": -2160,
+            "z": 320
+          },
+          {
+            "x": -1976,
+            "z": 320
+          },
+          {
+            "x": -1792,
+            "z": 320
+          },
+          {
+            "x": -1608,
+            "z": 320
+          }
+        ]
+      },
+      {
+        "id": "res-w-s1",
+        "label": "住宅东西街（南1）",
+        "district": "residential",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 41,
+        "points": [
+          {
+            "x": -2720,
+            "z": 432
+          },
+          {
+            "x": -2536,
+            "z": 432
+          },
+          {
+            "x": -2352,
+            "z": 432
+          },
+          {
+            "x": -2160,
+            "z": 432
+          },
+          {
+            "x": -1976,
+            "z": 432
+          },
+          {
+            "x": -1792,
+            "z": 432
+          },
+          {
+            "x": -1608,
+            "z": 432
           }
         ]
       },
@@ -577,9 +661,11 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "z",
         "construction_status": "planned",
-        "construction_order": 40,
+        "construction_order": 42,
         "points": [
           {
             "x": -2720,
@@ -619,9 +705,11 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "z",
         "construction_status": "planned",
-        "construction_order": 41,
+        "construction_order": 43,
         "points": [
           {
             "x": -2720,
@@ -661,9 +749,11 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "z",
         "construction_status": "planned",
-        "construction_order": 42,
+        "construction_order": 44,
         "points": [
           {
             "x": -2720,
@@ -703,9 +793,11 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "z",
         "construction_status": "planned",
-        "construction_order": 43,
+        "construction_order": 45,
         "points": [
           {
             "x": -2720,
@@ -745,9 +837,11 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "z",
         "construction_status": "planned",
-        "construction_order": 44,
+        "construction_order": 46,
         "points": [
           {
             "x": -2720,
@@ -787,9 +881,11 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "z",
         "construction_status": "planned",
-        "construction_order": 45,
+        "construction_order": 47,
         "points": [
           {
             "x": -2720,
@@ -829,133 +925,51 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
-        "axis": "z",
-        "construction_status": "planned",
-        "construction_order": 46,
-        "points": [
-          {
-            "x": -2720,
-            "z": 1328
-          },
-          {
-            "x": -2536,
-            "z": 1328
-          },
-          {
-            "x": -2352,
-            "z": 1328
-          },
-          {
-            "x": -2176,
-            "z": 1328
-          },
-          {
-            "x": -1992,
-            "z": 1328
-          },
-          {
-            "x": -1808,
-            "z": 1328
-          },
-          {
-            "x": -1624,
-            "z": 1328
-          },
-          {
-            "x": -1448,
-            "z": 1328
-          },
-          {
-            "x": -1264,
-            "z": 1328
-          },
-          {
-            "x": -1080,
-            "z": 1328
-          }
-        ]
-      },
-      {
-        "id": "res-w8",
-        "label": "住宅东西街 8",
-        "district": "residential",
-        "prefab": "Small Road",
-        "level": "surface",
-        "width_m": 16,
-        "road_class": "local",
-        "axis": "z",
-        "construction_status": "planned",
-        "construction_order": 47,
-        "points": [
-          {
-            "x": -2720,
-            "z": 1440
-          },
-          {
-            "x": -2536,
-            "z": 1440
-          },
-          {
-            "x": -2352,
-            "z": 1440
-          },
-          {
-            "x": -2160,
-            "z": 1440
-          },
-          {
-            "x": -1976,
-            "z": 1440
-          },
-          {
-            "x": -1792,
-            "z": 1440
-          },
-          {
-            "x": -1608,
-            "z": 1440
-          }
-        ]
-      },
-      {
-        "id": "res-w9",
-        "label": "住宅东西街 9",
-        "district": "residential",
-        "prefab": "Small Road",
-        "level": "surface",
-        "width_m": 16,
-        "road_class": "local",
+        "role": "perimeter_connector",
+        "widening_policy": "perimeter_expandable",
         "axis": "z",
         "construction_status": "planned",
         "construction_order": 48,
         "points": [
           {
             "x": -2720,
-            "z": 1552
+            "z": 1328
           },
           {
             "x": -2536,
-            "z": 1552
+            "z": 1328
           },
           {
             "x": -2352,
-            "z": 1552
+            "z": 1328
           },
           {
-            "x": -2160,
-            "z": 1552
+            "x": -2168,
+            "z": 1328
           },
           {
-            "x": -1976,
-            "z": 1552
+            "x": -1984,
+            "z": 1328
           },
           {
-            "x": -1792,
-            "z": 1552
+            "x": -1800,
+            "z": 1328
           },
           {
             "x": -1608,
-            "z": 1552
+            "z": 1328
+          },
+          {
+            "x": -1432,
+            "z": 1328
+          },
+          {
+            "x": -1256,
+            "z": 1328
+          },
+          {
+            "x": -1080,
+            "z": 1328
           }
         ]
       },
@@ -967,6 +981,8 @@
         "level": "surface",
         "width_m": 24,
         "road_class": "commercial",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 54,
@@ -993,6 +1009,8 @@
         "level": "surface",
         "width_m": 24,
         "road_class": "commercial",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 55,
@@ -1019,6 +1037,8 @@
         "level": "surface",
         "width_m": 24,
         "road_class": "commercial",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 56,
@@ -1045,6 +1065,8 @@
         "level": "surface",
         "width_m": 24,
         "road_class": "commercial",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 57,
@@ -1071,6 +1093,8 @@
         "level": "surface",
         "width_m": 24,
         "road_class": "commercial",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 58,
@@ -1097,6 +1121,8 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "z",
         "construction_status": "planned",
         "construction_order": 62,
@@ -1106,11 +1132,15 @@
             "z": 664
           },
           {
-            "x": -552,
+            "x": -592,
             "z": 664
           },
           {
-            "x": -392,
+            "x": -472,
+            "z": 664
+          },
+          {
+            "x": -352,
             "z": 664
           },
           {
@@ -1127,6 +1157,8 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "z",
         "construction_status": "planned",
         "construction_order": 63,
@@ -1136,11 +1168,15 @@
             "z": 776
           },
           {
-            "x": -552,
+            "x": -592,
             "z": 776
           },
           {
-            "x": -392,
+            "x": -472,
+            "z": 776
+          },
+          {
+            "x": -352,
             "z": 776
           },
           {
@@ -1157,6 +1193,8 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "z",
         "construction_status": "planned",
         "construction_order": 64,
@@ -1166,11 +1204,15 @@
             "z": 888
           },
           {
-            "x": -552,
+            "x": -592,
             "z": 888
           },
           {
-            "x": -392,
+            "x": -472,
+            "z": 888
+          },
+          {
+            "x": -352,
             "z": 888
           },
           {
@@ -1187,6 +1229,8 @@
         "level": "surface",
         "width_m": 32,
         "road_class": "spine",
+        "role": "perimeter_arterial",
+        "widening_policy": "perimeter_expandable",
         "axis": "z",
         "construction_status": "planned",
         "construction_order": 5,
@@ -1230,6 +1274,262 @@
         ]
       },
       {
+        "id": "office-link-west",
+        "label": "办公西街",
+        "district": "office",
+        "prefab": "Small Road - Double Sided Parking",
+        "level": "surface",
+        "width_m": 24,
+        "road_class": "office",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 66,
+        "points": [
+          {
+            "x": -712,
+            "z": 88
+          },
+          {
+            "x": -712,
+            "z": 200
+          },
+          {
+            "x": -712,
+            "z": 312
+          }
+        ]
+      },
+      {
+        "id": "office-link-1",
+        "label": "办公纵街 1",
+        "district": "office",
+        "prefab": "Small Road - Double Sided Parking",
+        "level": "surface",
+        "width_m": 24,
+        "road_class": "office",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 67,
+        "points": [
+          {
+            "x": -592,
+            "z": 88
+          },
+          {
+            "x": -592,
+            "z": 240
+          },
+          {
+            "x": -592,
+            "z": 392
+          },
+          {
+            "x": -592,
+            "z": 544
+          }
+        ]
+      },
+      {
+        "id": "office-link-mid",
+        "label": "办公中街",
+        "district": "office",
+        "prefab": "Small Road - Double Sided Parking",
+        "level": "surface",
+        "width_m": 24,
+        "road_class": "office",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 68,
+        "points": [
+          {
+            "x": -472,
+            "z": 88
+          },
+          {
+            "x": -472,
+            "z": 200
+          },
+          {
+            "x": -472,
+            "z": 312
+          }
+        ]
+      },
+      {
+        "id": "office-link-2",
+        "label": "办公纵街 2",
+        "district": "office",
+        "prefab": "Small Road - Double Sided Parking",
+        "level": "surface",
+        "width_m": 24,
+        "road_class": "office",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 69,
+        "points": [
+          {
+            "x": -352,
+            "z": 88
+          },
+          {
+            "x": -352,
+            "z": 240
+          },
+          {
+            "x": -352,
+            "z": 392
+          },
+          {
+            "x": -352,
+            "z": 544
+          }
+        ]
+      },
+      {
+        "id": "office-link-east",
+        "label": "办公东街",
+        "district": "office",
+        "prefab": "Small Road - Double Sided Parking",
+        "level": "surface",
+        "width_m": 24,
+        "road_class": "office",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
+        "axis": "x",
+        "construction_status": "planned",
+        "construction_order": 70,
+        "points": [
+          {
+            "x": -232,
+            "z": 88
+          },
+          {
+            "x": -232,
+            "z": 200
+          },
+          {
+            "x": -232,
+            "z": 312
+          }
+        ]
+      },
+      {
+        "id": "office-south-street",
+        "label": "办公南街",
+        "district": "office",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 72,
+        "points": [
+          {
+            "x": -712,
+            "z": 88
+          },
+          {
+            "x": -592,
+            "z": 88
+          },
+          {
+            "x": -472,
+            "z": 88
+          },
+          {
+            "x": -352,
+            "z": 88
+          },
+          {
+            "x": -232,
+            "z": 88
+          }
+        ]
+      },
+      {
+        "id": "office-mid-street",
+        "label": "办公中街",
+        "district": "office",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 73,
+        "points": [
+          {
+            "x": -712,
+            "z": 200
+          },
+          {
+            "x": -592,
+            "z": 200
+          },
+          {
+            "x": -472,
+            "z": 200
+          },
+          {
+            "x": -352,
+            "z": 200
+          },
+          {
+            "x": -232,
+            "z": 200
+          }
+        ]
+      },
+      {
+        "id": "office-street",
+        "label": "办公主街",
+        "district": "office",
+        "prefab": "Small Road",
+        "level": "surface",
+        "width_m": 16,
+        "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
+        "axis": "z",
+        "construction_status": "planned",
+        "construction_order": 74,
+        "points": [
+          {
+            "x": -712,
+            "z": 312
+          },
+          {
+            "x": -592,
+            "z": 312
+          },
+          {
+            "x": -472,
+            "z": 312
+          },
+          {
+            "x": -352,
+            "z": 312
+          },
+          {
+            "x": -232,
+            "z": 312
+          }
+        ]
+      },
+      {
         "id": "yard-access",
         "label": "油场接入路",
         "district": "industrial",
@@ -1237,6 +1537,8 @@
         "level": "surface",
         "width_m": 24,
         "road_class": "collector",
+        "role": "perimeter_collector",
+        "widening_policy": "perimeter_expandable",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 70,
@@ -1247,23 +1549,23 @@
           },
           {
             "x": -1080,
-            "z": 720
+            "z": 704
           },
           {
             "x": -1080,
-            "z": 896
+            "z": 864
           },
           {
             "x": -1080,
-            "z": 1072
+            "z": 1024
           },
           {
             "x": -1080,
-            "z": 1248
+            "z": 1184
           },
           {
             "x": -1080,
-            "z": 1424
+            "z": 1328
           }
         ]
       },
@@ -1275,6 +1577,8 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 71,
@@ -1285,11 +1589,7 @@
           },
           {
             "x": -896,
-            "z": 1304
-          },
-          {
-            "x": -896,
-            "z": 1424
+            "z": 1328
           }
         ]
       },
@@ -1301,6 +1601,8 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 72,
@@ -1311,11 +1613,7 @@
           },
           {
             "x": -712,
-            "z": 1304
-          },
-          {
-            "x": -712,
-            "z": 1424
+            "z": 1328
           }
         ]
       },
@@ -1327,6 +1625,8 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 73,
@@ -1337,11 +1637,7 @@
           },
           {
             "x": -528,
-            "z": 1304
-          },
-          {
-            "x": -528,
-            "z": 1424
+            "z": 1328
           }
         ]
       },
@@ -1353,6 +1649,8 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "x",
         "construction_status": "planned",
         "construction_order": 74,
@@ -1363,11 +1661,7 @@
           },
           {
             "x": -344,
-            "z": 1304
-          },
-          {
-            "x": -344,
-            "z": 1424
+            "z": 1328
           }
         ]
       },
@@ -1379,6 +1673,8 @@
         "level": "surface",
         "width_m": 16,
         "road_class": "local",
+        "role": "interior_local",
+        "widening_policy": "forbidden",
         "axis": "z",
         "construction_status": "planned",
         "construction_order": 76,
@@ -1409,67 +1705,35 @@
         "id": "yard-main-street",
         "label": "厂区主街",
         "district": "industrial",
-        "prefab": "Large Road",
+        "prefab": "Medium Road",
         "level": "surface",
-        "width_m": 32,
-        "road_class": "spine",
+        "width_m": 24,
+        "road_class": "collector",
+        "role": "perimeter_arterial",
+        "widening_policy": "perimeter_expandable",
         "axis": "z",
         "construction_status": "planned",
         "construction_order": 77,
         "points": [
           {
             "x": -1080,
-            "z": 1304
+            "z": 1328
           },
           {
             "x": -896,
-            "z": 1304
+            "z": 1328
           },
           {
             "x": -712,
-            "z": 1304
+            "z": 1328
           },
           {
             "x": -528,
-            "z": 1304
+            "z": 1328
           },
           {
             "x": -344,
-            "z": 1304
-          }
-        ]
-      },
-      {
-        "id": "yard-north-street",
-        "label": "厂区北街",
-        "district": "industrial",
-        "prefab": "Small Road",
-        "level": "surface",
-        "width_m": 16,
-        "road_class": "local",
-        "axis": "z",
-        "construction_status": "planned",
-        "construction_order": 78,
-        "points": [
-          {
-            "x": -1080,
-            "z": 1424
-          },
-          {
-            "x": -896,
-            "z": 1424
-          },
-          {
-            "x": -712,
-            "z": 1424
-          },
-          {
-            "x": -528,
-            "z": 1424
-          },
-          {
-            "x": -344,
-            "z": 1424
+            "z": 1328
           }
         ]
       }
@@ -1483,19 +1747,19 @@
         "polygon": [
           {
             "x": -2748,
-            "z": 488
+            "z": 264
           },
           {
             "x": -2356,
-            "z": 488
+            "z": 264
           },
           {
             "x": -2356,
-            "z": 496
+            "z": 272
           },
           {
             "x": -2748,
-            "z": 496
+            "z": 272
           }
         ]
       },
@@ -1507,19 +1771,19 @@
         "polygon": [
           {
             "x": -2164,
-            "z": 488
+            "z": 264
           },
           {
             "x": -1652,
-            "z": 488
+            "z": 264
           },
           {
             "x": -1652,
-            "z": 536
+            "z": 312
           },
           {
             "x": -2164,
-            "z": 536
+            "z": 312
           }
         ]
       },
@@ -1531,19 +1795,19 @@
         "polygon": [
           {
             "x": -2764,
-            "z": 496
+            "z": 272
           },
           {
             "x": -2356,
-            "z": 496
+            "z": 272
           },
           {
             "x": -2356,
-            "z": 504
+            "z": 280
           },
           {
             "x": -2764,
-            "z": 504
+            "z": 280
           }
         ]
       },
@@ -1555,19 +1819,19 @@
         "polygon": [
           {
             "x": -2772,
-            "z": 504
+            "z": 280
           },
           {
             "x": -2356,
-            "z": 504
+            "z": 280
           },
           {
             "x": -2356,
-            "z": 520
+            "z": 296
           },
           {
             "x": -2772,
-            "z": 520
+            "z": 296
           }
         ]
       },
@@ -1579,19 +1843,19 @@
         "polygon": [
           {
             "x": -2780,
-            "z": 520
+            "z": 296
           },
           {
             "x": -2356,
-            "z": 520
+            "z": 296
           },
           {
             "x": -2356,
-            "z": 536
+            "z": 312
           },
           {
             "x": -2780,
-            "z": 536
+            "z": 312
           }
         ]
       },
@@ -1599,15 +1863,15 @@
         "id": "residential-zone-6",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 29952,
+        "area_m2": 40704,
         "polygon": [
           {
             "x": -2780,
-            "z": 536
+            "z": 312
           },
           {
             "x": -2732,
-            "z": 536
+            "z": 312
           },
           {
             "x": -2732,
@@ -1627,19 +1891,19 @@
         "polygon": [
           {
             "x": -2708,
-            "z": 552
+            "z": 328
           },
           {
             "x": -2540,
-            "z": 552
+            "z": 328
           },
           {
             "x": -2540,
-            "z": 648
+            "z": 424
           },
           {
             "x": -2708,
-            "z": 648
+            "z": 424
           }
         ]
       },
@@ -1647,23 +1911,23 @@
         "id": "residential-zone-8",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
             "x": -2532,
-            "z": 552
+            "z": 328
           },
           {
-            "x": -2364,
-            "z": 552
+            "x": -2356,
+            "z": 328
           },
           {
-            "x": -2364,
-            "z": 648
+            "x": -2356,
+            "z": 424
           },
           {
             "x": -2532,
-            "z": 648
+            "z": 424
           }
         ]
       },
@@ -1671,23 +1935,23 @@
         "id": "residential-zone-9",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
             "x": -2164,
-            "z": 552
+            "z": 328
           },
           {
-            "x": -1996,
-            "z": 552
+            "x": -1988,
+            "z": 328
           },
           {
-            "x": -1996,
-            "z": 648
+            "x": -1988,
+            "z": 424
           },
           {
             "x": -2164,
-            "z": 648
+            "z": 424
           }
         ]
       },
@@ -1695,23 +1959,23 @@
         "id": "residential-zone-10",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -1972,
-            "z": 552
+            "x": -1980,
+            "z": 328
           },
           {
             "x": -1804,
-            "z": 552
+            "z": 328
           },
           {
             "x": -1804,
-            "z": 648
+            "z": 424
           },
           {
-            "x": -1972,
-            "z": 648
+            "x": -1980,
+            "z": 424
           }
         ]
       },
@@ -1723,19 +1987,19 @@
         "polygon": [
           {
             "x": -1796,
-            "z": 552
+            "z": 328
           },
           {
             "x": -1652,
-            "z": 552
+            "z": 328
           },
           {
             "x": -1652,
-            "z": 648
+            "z": 424
           },
           {
             "x": -1796,
-            "z": 648
+            "z": 424
           }
         ]
       },
@@ -1747,19 +2011,19 @@
         "polygon": [
           {
             "x": -2708,
-            "z": 664
+            "z": 440
           },
           {
             "x": -2540,
-            "z": 664
+            "z": 440
           },
           {
             "x": -2540,
-            "z": 760
+            "z": 536
           },
           {
             "x": -2708,
-            "z": 760
+            "z": 536
           }
         ]
       },
@@ -1767,23 +2031,23 @@
         "id": "residential-zone-13",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
             "x": -2532,
-            "z": 664
+            "z": 440
           },
           {
-            "x": -2364,
-            "z": 664
+            "x": -2356,
+            "z": 440
           },
           {
-            "x": -2364,
-            "z": 760
+            "x": -2356,
+            "z": 536
           },
           {
             "x": -2532,
-            "z": 760
+            "z": 536
           }
         ]
       },
@@ -1791,23 +2055,23 @@
         "id": "residential-zone-14",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
             "x": -2164,
-            "z": 664
+            "z": 440
           },
           {
-            "x": -1996,
-            "z": 664
+            "x": -1988,
+            "z": 440
           },
           {
-            "x": -1996,
-            "z": 760
+            "x": -1988,
+            "z": 536
           },
           {
             "x": -2164,
-            "z": 760
+            "z": 536
           }
         ]
       },
@@ -1815,23 +2079,23 @@
         "id": "residential-zone-15",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -1972,
-            "z": 664
+            "x": -1980,
+            "z": 440
           },
           {
             "x": -1804,
-            "z": 664
+            "z": 440
           },
           {
             "x": -1804,
-            "z": 760
+            "z": 536
           },
           {
-            "x": -1972,
-            "z": 760
+            "x": -1980,
+            "z": 536
           }
         ]
       },
@@ -1843,19 +2107,19 @@
         "polygon": [
           {
             "x": -1796,
-            "z": 664
+            "z": 440
           },
           {
             "x": -1652,
-            "z": 664
+            "z": 440
           },
           {
             "x": -1652,
-            "z": 760
+            "z": 536
           },
           {
             "x": -1796,
-            "z": 760
+            "z": 536
           }
         ]
       },
@@ -1867,19 +2131,19 @@
         "polygon": [
           {
             "x": -2708,
-            "z": 776
+            "z": 552
           },
           {
             "x": -2540,
-            "z": 776
+            "z": 552
           },
           {
             "x": -2540,
-            "z": 872
+            "z": 648
           },
           {
             "x": -2708,
-            "z": 872
+            "z": 648
           }
         ]
       },
@@ -1887,23 +2151,23 @@
         "id": "residential-zone-18",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
             "x": -2532,
-            "z": 776
+            "z": 552
           },
           {
-            "x": -2364,
-            "z": 776
+            "x": -2356,
+            "z": 552
           },
           {
-            "x": -2364,
-            "z": 872
+            "x": -2356,
+            "z": 648
           },
           {
             "x": -2532,
-            "z": 872
+            "z": 648
           }
         ]
       },
@@ -1911,23 +2175,23 @@
         "id": "residential-zone-19",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
             "x": -2164,
-            "z": 776
+            "z": 552
           },
           {
-            "x": -1996,
-            "z": 776
+            "x": -1988,
+            "z": 552
           },
           {
-            "x": -1996,
-            "z": 872
+            "x": -1988,
+            "z": 648
           },
           {
             "x": -2164,
-            "z": 872
+            "z": 648
           }
         ]
       },
@@ -1935,23 +2199,23 @@
         "id": "residential-zone-20",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -1972,
-            "z": 776
+            "x": -1980,
+            "z": 552
           },
           {
             "x": -1804,
-            "z": 776
+            "z": 552
           },
           {
             "x": -1804,
-            "z": 872
+            "z": 648
           },
           {
-            "x": -1972,
-            "z": 872
+            "x": -1980,
+            "z": 648
           }
         ]
       },
@@ -1963,19 +2227,19 @@
         "polygon": [
           {
             "x": -1796,
-            "z": 776
+            "z": 552
           },
           {
             "x": -1652,
-            "z": 776
+            "z": 552
           },
           {
             "x": -1652,
-            "z": 872
+            "z": 648
           },
           {
             "x": -1796,
-            "z": 872
+            "z": 648
           }
         ]
       },
@@ -1987,19 +2251,19 @@
         "polygon": [
           {
             "x": -2708,
-            "z": 888
+            "z": 664
           },
           {
             "x": -2540,
-            "z": 888
+            "z": 664
           },
           {
             "x": -2540,
-            "z": 984
+            "z": 760
           },
           {
             "x": -2708,
-            "z": 984
+            "z": 760
           }
         ]
       },
@@ -2007,23 +2271,23 @@
         "id": "residential-zone-23",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
             "x": -2532,
-            "z": 888
+            "z": 664
           },
           {
-            "x": -2364,
-            "z": 888
+            "x": -2356,
+            "z": 664
           },
           {
-            "x": -2364,
-            "z": 984
+            "x": -2356,
+            "z": 760
           },
           {
             "x": -2532,
-            "z": 984
+            "z": 760
           }
         ]
       },
@@ -2031,23 +2295,23 @@
         "id": "residential-zone-24",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
             "x": -2164,
-            "z": 888
+            "z": 664
           },
           {
-            "x": -1996,
-            "z": 888
+            "x": -1988,
+            "z": 664
           },
           {
-            "x": -1996,
-            "z": 984
+            "x": -1988,
+            "z": 760
           },
           {
             "x": -2164,
-            "z": 984
+            "z": 760
           }
         ]
       },
@@ -2055,23 +2319,23 @@
         "id": "residential-zone-25",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -1972,
-            "z": 888
+            "x": -1980,
+            "z": 664
           },
           {
             "x": -1804,
-            "z": 888
+            "z": 664
           },
           {
             "x": -1804,
-            "z": 984
+            "z": 760
           },
           {
-            "x": -1972,
-            "z": 984
+            "x": -1980,
+            "z": 760
           }
         ]
       },
@@ -2083,19 +2347,19 @@
         "polygon": [
           {
             "x": -1796,
-            "z": 888
+            "z": 664
           },
           {
             "x": -1652,
-            "z": 888
+            "z": 664
           },
           {
             "x": -1652,
-            "z": 984
+            "z": 760
           },
           {
             "x": -1796,
-            "z": 984
+            "z": 760
           }
         ]
       },
@@ -2107,19 +2371,19 @@
         "polygon": [
           {
             "x": -2708,
-            "z": 1000
+            "z": 776
           },
           {
             "x": -2540,
-            "z": 1000
+            "z": 776
           },
           {
             "x": -2540,
-            "z": 1096
+            "z": 872
           },
           {
             "x": -2708,
-            "z": 1096
+            "z": 872
           }
         ]
       },
@@ -2127,23 +2391,23 @@
         "id": "residential-zone-28",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
             "x": -2532,
-            "z": 1000
+            "z": 776
           },
           {
-            "x": -2364,
-            "z": 1000
+            "x": -2356,
+            "z": 776
           },
           {
-            "x": -2364,
-            "z": 1096
+            "x": -2356,
+            "z": 872
           },
           {
             "x": -2532,
-            "z": 1096
+            "z": 872
           }
         ]
       },
@@ -2151,23 +2415,23 @@
         "id": "residential-zone-29",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
             "x": -2164,
-            "z": 1000
+            "z": 776
           },
           {
-            "x": -1996,
-            "z": 1000
+            "x": -1988,
+            "z": 776
           },
           {
-            "x": -1996,
-            "z": 1096
+            "x": -1988,
+            "z": 872
           },
           {
             "x": -2164,
-            "z": 1096
+            "z": 872
           }
         ]
       },
@@ -2175,23 +2439,23 @@
         "id": "residential-zone-30",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -1972,
-            "z": 1000
+            "x": -1980,
+            "z": 776
           },
           {
             "x": -1804,
-            "z": 1000
+            "z": 776
           },
           {
             "x": -1804,
-            "z": 1096
+            "z": 872
           },
           {
-            "x": -1972,
-            "z": 1096
+            "x": -1980,
+            "z": 872
           }
         ]
       },
@@ -2203,19 +2467,19 @@
         "polygon": [
           {
             "x": -1796,
-            "z": 1000
+            "z": 776
           },
           {
             "x": -1652,
-            "z": 1000
+            "z": 776
           },
           {
             "x": -1652,
-            "z": 1096
+            "z": 872
           },
           {
             "x": -1796,
-            "z": 1096
+            "z": 872
           }
         ]
       },
@@ -2223,23 +2487,23 @@
         "id": "residential-zone-32",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16512,
+        "area_m2": 16128,
         "polygon": [
           {
             "x": -2708,
-            "z": 1112
+            "z": 888
           },
           {
-            "x": -2364,
-            "z": 1112
+            "x": -2540,
+            "z": 888
           },
           {
-            "x": -2364,
-            "z": 1160
+            "x": -2540,
+            "z": 984
           },
           {
             "x": -2708,
-            "z": 1160
+            "z": 984
           }
         ]
       },
@@ -2247,23 +2511,23 @@
         "id": "residential-zone-33",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 8064,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -2164,
-            "z": 1112
+            "x": -2532,
+            "z": 888
           },
           {
-            "x": -1996,
-            "z": 1112
+            "x": -2356,
+            "z": 888
           },
           {
-            "x": -1996,
-            "z": 1160
+            "x": -2356,
+            "z": 984
           },
           {
-            "x": -2164,
-            "z": 1160
+            "x": -2532,
+            "z": 984
           }
         ]
       },
@@ -2271,23 +2535,23 @@
         "id": "residential-zone-34",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 15360,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -1972,
-            "z": 1112
+            "x": -2164,
+            "z": 888
           },
           {
-            "x": -1652,
-            "z": 1112
+            "x": -1988,
+            "z": 888
           },
           {
-            "x": -1652,
-            "z": 1160
+            "x": -1988,
+            "z": 984
           },
           {
-            "x": -1972,
-            "z": 1160
+            "x": -2164,
+            "z": 984
           }
         ]
       },
@@ -2295,23 +2559,23 @@
         "id": "residential-zone-35",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 13824,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -2780,
-            "z": 1272
+            "x": -1980,
+            "z": 888
           },
           {
-            "x": -2732,
-            "z": 1272
+            "x": -1804,
+            "z": 888
           },
           {
-            "x": -2732,
-            "z": 1560
+            "x": -1804,
+            "z": 984
           },
           {
-            "x": -2780,
-            "z": 1560
+            "x": -1980,
+            "z": 984
           }
         ]
       },
@@ -2319,23 +2583,23 @@
         "id": "residential-zone-36",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16512,
+        "area_m2": 13824,
         "polygon": [
           {
-            "x": -2708,
-            "z": 1272
+            "x": -1796,
+            "z": 888
           },
           {
-            "x": -2364,
-            "z": 1272
+            "x": -1652,
+            "z": 888
           },
           {
-            "x": -2364,
-            "z": 1320
+            "x": -1652,
+            "z": 984
           },
           {
-            "x": -2708,
-            "z": 1320
+            "x": -1796,
+            "z": 984
           }
         ]
       },
@@ -2343,23 +2607,23 @@
         "id": "residential-zone-37",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 8064,
+        "area_m2": 16128,
         "polygon": [
           {
-            "x": -2164,
-            "z": 1272
+            "x": -2708,
+            "z": 1000
           },
           {
-            "x": -1996,
-            "z": 1272
+            "x": -2540,
+            "z": 1000
           },
           {
-            "x": -1996,
-            "z": 1320
+            "x": -2540,
+            "z": 1096
           },
           {
-            "x": -2164,
-            "z": 1320
+            "x": -2708,
+            "z": 1096
           }
         ]
       },
@@ -2367,23 +2631,23 @@
         "id": "residential-zone-38",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 15360,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -1972,
-            "z": 1272
+            "x": -2532,
+            "z": 1000
           },
           {
-            "x": -1652,
-            "z": 1272
+            "x": -2356,
+            "z": 1000
           },
           {
-            "x": -1652,
-            "z": 1320
+            "x": -2356,
+            "z": 1096
           },
           {
-            "x": -1972,
-            "z": 1320
+            "x": -2532,
+            "z": 1096
           }
         ]
       },
@@ -2391,23 +2655,23 @@
         "id": "residential-zone-39",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -2708,
-            "z": 1336
+            "x": -2164,
+            "z": 1000
           },
           {
-            "x": -2540,
-            "z": 1336
+            "x": -1988,
+            "z": 1000
           },
           {
-            "x": -2540,
-            "z": 1432
+            "x": -1988,
+            "z": 1096
           },
           {
-            "x": -2708,
-            "z": 1432
+            "x": -2164,
+            "z": 1096
           }
         ]
       },
@@ -2415,23 +2679,23 @@
         "id": "residential-zone-40",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -2532,
-            "z": 1336
+            "x": -1980,
+            "z": 1000
           },
           {
-            "x": -2364,
-            "z": 1336
+            "x": -1804,
+            "z": 1000
           },
           {
-            "x": -2364,
-            "z": 1432
+            "x": -1804,
+            "z": 1096
           },
           {
-            "x": -2532,
-            "z": 1432
+            "x": -1980,
+            "z": 1096
           }
         ]
       },
@@ -2439,23 +2703,23 @@
         "id": "residential-zone-41",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 13824,
         "polygon": [
           {
-            "x": -2164,
-            "z": 1336
+            "x": -1796,
+            "z": 1000
           },
           {
-            "x": -1996,
-            "z": 1336
+            "x": -1652,
+            "z": 1000
           },
           {
-            "x": -1996,
-            "z": 1432
+            "x": -1652,
+            "z": 1096
           },
           {
-            "x": -2164,
-            "z": 1432
+            "x": -1796,
+            "z": 1096
           }
         ]
       },
@@ -2463,23 +2727,23 @@
         "id": "residential-zone-42",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -1972,
-            "z": 1336
+            "x": -2708,
+            "z": 1112
           },
           {
-            "x": -1804,
-            "z": 1336
+            "x": -2356,
+            "z": 1112
           },
           {
-            "x": -1804,
-            "z": 1432
+            "x": -2356,
+            "z": 1160
           },
           {
-            "x": -1972,
-            "z": 1432
+            "x": -2708,
+            "z": 1160
           }
         ]
       },
@@ -2487,23 +2751,23 @@
         "id": "residential-zone-43",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 13824,
+        "area_m2": 8448,
         "polygon": [
           {
-            "x": -1796,
-            "z": 1336
+            "x": -2164,
+            "z": 1112
           },
           {
-            "x": -1652,
-            "z": 1336
+            "x": -1988,
+            "z": 1112
           },
           {
-            "x": -1652,
-            "z": 1432
+            "x": -1988,
+            "z": 1160
           },
           {
-            "x": -1796,
-            "z": 1432
+            "x": -2164,
+            "z": 1160
           }
         ]
       },
@@ -2511,23 +2775,23 @@
         "id": "residential-zone-44",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 15744,
         "polygon": [
           {
-            "x": -2708,
-            "z": 1448
+            "x": -1980,
+            "z": 1112
           },
           {
-            "x": -2540,
-            "z": 1448
+            "x": -1652,
+            "z": 1112
           },
           {
-            "x": -2540,
-            "z": 1544
+            "x": -1652,
+            "z": 1160
           },
           {
-            "x": -2708,
-            "z": 1544
+            "x": -1980,
+            "z": 1160
           }
         ]
       },
@@ -2535,23 +2799,23 @@
         "id": "residential-zone-45",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 3072,
         "polygon": [
           {
-            "x": -2532,
-            "z": 1448
+            "x": -2780,
+            "z": 1272
           },
           {
-            "x": -2364,
-            "z": 1448
+            "x": -2732,
+            "z": 1272
           },
           {
-            "x": -2364,
-            "z": 1544
+            "x": -2732,
+            "z": 1336
           },
           {
-            "x": -2532,
-            "z": 1544
+            "x": -2780,
+            "z": 1336
           }
         ]
       },
@@ -2559,23 +2823,23 @@
         "id": "residential-zone-46",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -2164,
-            "z": 1448
+            "x": -2708,
+            "z": 1272
           },
           {
-            "x": -1996,
-            "z": 1448
+            "x": -2356,
+            "z": 1272
           },
           {
-            "x": -1996,
-            "z": 1544
+            "x": -2356,
+            "z": 1320
           },
           {
-            "x": -2164,
-            "z": 1544
+            "x": -2708,
+            "z": 1320
           }
         ]
       },
@@ -2583,23 +2847,23 @@
         "id": "residential-zone-47",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 8448,
         "polygon": [
           {
-            "x": -1972,
-            "z": 1448
+            "x": -2164,
+            "z": 1272
           },
           {
-            "x": -1804,
-            "z": 1448
+            "x": -1988,
+            "z": 1272
           },
           {
-            "x": -1804,
-            "z": 1544
+            "x": -1988,
+            "z": 1320
           },
           {
-            "x": -1972,
-            "z": 1544
+            "x": -2164,
+            "z": 1320
           }
         ]
       },
@@ -2607,23 +2871,23 @@
         "id": "residential-zone-48",
         "kind": "EU Residential Low",
         "district": "residential",
-        "area_m2": 13824,
+        "area_m2": 15744,
         "polygon": [
           {
-            "x": -1796,
-            "z": 1448
+            "x": -1980,
+            "z": 1272
           },
           {
             "x": -1652,
-            "z": 1448
+            "z": 1272
           },
           {
             "x": -1652,
-            "z": 1544
+            "z": 1320
           },
           {
-            "x": -1796,
-            "z": 1544
+            "x": -1980,
+            "z": 1320
           }
         ]
       },
@@ -2635,19 +2899,19 @@
         "polygon": [
           {
             "x": -2780,
-            "z": 1560
+            "z": 1336
           },
           {
             "x": -2356,
-            "z": 1560
+            "z": 1336
           },
           {
             "x": -2356,
-            "z": 1576
+            "z": 1352
           },
           {
             "x": -2780,
-            "z": 1576
+            "z": 1352
           }
         ]
       },
@@ -2659,19 +2923,19 @@
         "polygon": [
           {
             "x": -2164,
-            "z": 1560
+            "z": 1336
           },
           {
             "x": -1652,
-            "z": 1560
+            "z": 1336
           },
           {
             "x": -1652,
-            "z": 1608
+            "z": 1384
           },
           {
             "x": -2164,
-            "z": 1608
+            "z": 1384
           }
         ]
       },
@@ -2683,19 +2947,19 @@
         "polygon": [
           {
             "x": -2772,
-            "z": 1576
+            "z": 1352
           },
           {
             "x": -2356,
-            "z": 1576
+            "z": 1352
           },
           {
             "x": -2356,
-            "z": 1592
+            "z": 1368
           },
           {
             "x": -2772,
-            "z": 1592
+            "z": 1368
           }
         ]
       },
@@ -2707,19 +2971,19 @@
         "polygon": [
           {
             "x": -2764,
-            "z": 1592
+            "z": 1368
           },
           {
             "x": -2356,
-            "z": 1592
+            "z": 1368
           },
           {
             "x": -2356,
-            "z": 1600
+            "z": 1376
           },
           {
             "x": -2764,
-            "z": 1600
+            "z": 1376
           }
         ]
       },
@@ -2731,19 +2995,19 @@
         "polygon": [
           {
             "x": -2748,
-            "z": 1600
+            "z": 1376
           },
           {
             "x": -2356,
-            "z": 1600
+            "z": 1376
           },
           {
             "x": -2356,
-            "z": 1608
+            "z": 1384
           },
           {
             "x": -2748,
-            "z": 1608
+            "z": 1384
           }
         ]
       },
@@ -2755,19 +3019,19 @@
         "polygon": [
           {
             "x": -2356,
-            "z": 488
+            "z": 264
           },
           {
             "x": -2164,
-            "z": 488
+            "z": 264
           },
           {
             "x": -2164,
-            "z": 536
+            "z": 312
           },
           {
             "x": -2356,
-            "z": 536
+            "z": 312
           }
         ]
       },
@@ -2775,23 +3039,23 @@
         "id": "residential-zone-55",
         "kind": "EU Residential Medium Row",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -2340,
-            "z": 552
+            "x": -2348,
+            "z": 328
           },
           {
             "x": -2172,
-            "z": 552
+            "z": 328
           },
           {
             "x": -2172,
-            "z": 648
+            "z": 424
           },
           {
-            "x": -2340,
-            "z": 648
+            "x": -2348,
+            "z": 424
           }
         ]
       },
@@ -2799,23 +3063,23 @@
         "id": "residential-zone-56",
         "kind": "EU Residential Medium Row",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -2340,
-            "z": 664
+            "x": -2348,
+            "z": 440
           },
           {
             "x": -2172,
-            "z": 664
+            "z": 440
           },
           {
             "x": -2172,
-            "z": 760
+            "z": 536
           },
           {
-            "x": -2340,
-            "z": 760
+            "x": -2348,
+            "z": 536
           }
         ]
       },
@@ -2823,23 +3087,23 @@
         "id": "residential-zone-57",
         "kind": "EU Residential Medium Row",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -2340,
-            "z": 776
+            "x": -2348,
+            "z": 552
           },
           {
             "x": -2172,
-            "z": 776
+            "z": 552
           },
           {
             "x": -2172,
-            "z": 872
+            "z": 648
           },
           {
-            "x": -2340,
-            "z": 872
+            "x": -2348,
+            "z": 648
           }
         ]
       },
@@ -2847,23 +3111,23 @@
         "id": "residential-zone-58",
         "kind": "EU Residential Medium Row",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -2340,
-            "z": 888
+            "x": -2348,
+            "z": 664
           },
           {
             "x": -2172,
-            "z": 888
+            "z": 664
           },
           {
             "x": -2172,
-            "z": 984
+            "z": 760
           },
           {
-            "x": -2340,
-            "z": 984
+            "x": -2348,
+            "z": 760
           }
         ]
       },
@@ -2871,23 +3135,23 @@
         "id": "residential-zone-59",
         "kind": "EU Residential Medium Row",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -2340,
-            "z": 1000
+            "x": -2348,
+            "z": 776
           },
           {
             "x": -2172,
-            "z": 1000
+            "z": 776
           },
           {
             "x": -2172,
-            "z": 1096
+            "z": 872
           },
           {
-            "x": -2340,
-            "z": 1096
+            "x": -2348,
+            "z": 872
           }
         ]
       },
@@ -2895,23 +3159,23 @@
         "id": "residential-zone-60",
         "kind": "EU Residential Medium Row",
         "district": "residential",
-        "area_m2": 8448,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -2340,
-            "z": 1112
+            "x": -2348,
+            "z": 888
           },
           {
-            "x": -2164,
-            "z": 1112
+            "x": -2172,
+            "z": 888
           },
           {
-            "x": -2164,
-            "z": 1160
+            "x": -2172,
+            "z": 984
           },
           {
-            "x": -2340,
-            "z": 1160
+            "x": -2348,
+            "z": 984
           }
         ]
       },
@@ -2919,23 +3183,23 @@
         "id": "residential-zone-61",
         "kind": "EU Residential Medium Row",
         "district": "residential",
-        "area_m2": 8448,
+        "area_m2": 16896,
         "polygon": [
           {
-            "x": -2340,
-            "z": 1272
+            "x": -2348,
+            "z": 1000
           },
           {
-            "x": -2164,
-            "z": 1272
+            "x": -2172,
+            "z": 1000
           },
           {
-            "x": -2164,
-            "z": 1320
+            "x": -2172,
+            "z": 1096
           },
           {
-            "x": -2340,
-            "z": 1320
+            "x": -2348,
+            "z": 1096
           }
         ]
       },
@@ -2943,23 +3207,23 @@
         "id": "residential-zone-62",
         "kind": "EU Residential Medium Row",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 8832,
         "polygon": [
           {
-            "x": -2340,
-            "z": 1336
+            "x": -2348,
+            "z": 1112
           },
           {
-            "x": -2172,
-            "z": 1336
+            "x": -2164,
+            "z": 1112
           },
           {
-            "x": -2172,
-            "z": 1432
+            "x": -2164,
+            "z": 1160
           },
           {
-            "x": -2340,
-            "z": 1432
+            "x": -2348,
+            "z": 1160
           }
         ]
       },
@@ -2967,23 +3231,23 @@
         "id": "residential-zone-63",
         "kind": "EU Residential Medium Row",
         "district": "residential",
-        "area_m2": 16128,
+        "area_m2": 8832,
         "polygon": [
           {
-            "x": -2340,
-            "z": 1448
+            "x": -2348,
+            "z": 1272
           },
           {
-            "x": -2172,
-            "z": 1448
+            "x": -2164,
+            "z": 1272
           },
           {
-            "x": -2172,
-            "z": 1544
+            "x": -2164,
+            "z": 1320
           },
           {
-            "x": -2340,
-            "z": 1544
+            "x": -2348,
+            "z": 1320
           }
         ]
       },
@@ -2995,19 +3259,19 @@
         "polygon": [
           {
             "x": -2356,
-            "z": 1560
+            "z": 1336
           },
           {
             "x": -2164,
-            "z": 1560
+            "z": 1336
           },
           {
             "x": -2164,
-            "z": 1608
+            "z": 1384
           },
           {
             "x": -2356,
-            "z": 1608
+            "z": 1384
           }
         ]
       },
@@ -3015,23 +3279,23 @@
         "id": "residential-zone-65",
         "kind": "EU Residential Medium",
         "district": "residential",
-        "area_m2": 4160,
+        "area_m2": 576,
         "polygon": [
           {
             "x": -1652,
-            "z": 488
+            "z": 264
           },
           {
-            "x": -1548,
-            "z": 488
+            "x": -1580,
+            "z": 264
           },
           {
-            "x": -1548,
-            "z": 528
+            "x": -1580,
+            "z": 272
           },
           {
             "x": -1652,
-            "z": 528
+            "z": 272
           }
         ]
       },
@@ -3039,15 +3303,135 @@
         "id": "residential-zone-66",
         "kind": "EU Residential Medium",
         "district": "residential",
-        "area_m2": 256,
+        "area_m2": 704,
         "polygon": [
           {
             "x": -1652,
+            "z": 272
+          },
+          {
+            "x": -1564,
+            "z": 272
+          },
+          {
+            "x": -1564,
+            "z": 280
+          },
+          {
+            "x": -1652,
+            "z": 280
+          }
+        ]
+      },
+      {
+        "id": "residential-zone-67",
+        "kind": "EU Residential Medium",
+        "district": "residential",
+        "area_m2": 1536,
+        "polygon": [
+          {
+            "x": -1652,
+            "z": 280
+          },
+          {
+            "x": -1556,
+            "z": 280
+          },
+          {
+            "x": -1556,
+            "z": 296
+          },
+          {
+            "x": -1652,
+            "z": 296
+          }
+        ]
+      },
+      {
+        "id": "residential-zone-68",
+        "kind": "EU Residential Medium",
+        "district": "residential",
+        "area_m2": 1664,
+        "polygon": [
+          {
+            "x": -1652,
+            "z": 296
+          },
+          {
+            "x": -1548,
+            "z": 296
+          },
+          {
+            "x": -1548,
+            "z": 312
+          },
+          {
+            "x": -1652,
+            "z": 312
+          }
+        ]
+      },
+      {
+        "id": "residential-zone-69",
+        "kind": "EU Residential Medium",
+        "district": "residential",
+        "area_m2": 10368,
+        "polygon": [
+          {
+            "x": -1596,
+            "z": 312
+          },
+          {
+            "x": -1548,
+            "z": 312
+          },
+          {
+            "x": -1548,
             "z": 528
           },
           {
-            "x": -1620,
+            "x": -1596,
             "z": 528
+          }
+        ]
+      },
+      {
+        "id": "residential-zone-70",
+        "kind": "EU Residential Medium",
+        "district": "residential",
+        "area_m2": 3072,
+        "polygon": [
+          {
+            "x": -1652,
+            "z": 328
+          },
+          {
+            "x": -1620,
+            "z": 328
+          },
+          {
+            "x": -1620,
+            "z": 424
+          },
+          {
+            "x": -1652,
+            "z": 424
+          }
+        ]
+      },
+      {
+        "id": "residential-zone-71",
+        "kind": "EU Residential Medium",
+        "district": "residential",
+        "area_m2": 3072,
+        "polygon": [
+          {
+            "x": -1652,
+            "z": 440
+          },
+          {
+            "x": -1620,
+            "z": 440
           },
           {
             "x": -1620,
@@ -3060,7 +3444,7 @@
         ]
       },
       {
-        "id": "residential-zone-67",
+        "id": "residential-zone-72",
         "kind": "EU Residential Medium",
         "district": "residential",
         "area_m2": 3072,
@@ -3084,7 +3468,7 @@
         ]
       },
       {
-        "id": "residential-zone-68",
+        "id": "residential-zone-73",
         "kind": "EU Residential Medium",
         "district": "residential",
         "area_m2": 28800,
@@ -3108,151 +3492,151 @@
         ]
       },
       {
-        "id": "residential-zone-69",
-        "kind": "EU Residential Medium",
-        "district": "residential",
-        "area_m2": 3072,
-        "polygon": [
-          {
-            "x": -1652,
-            "z": 664
-          },
-          {
-            "x": -1620,
-            "z": 664
-          },
-          {
-            "x": -1620,
-            "z": 760
-          },
-          {
-            "x": -1652,
-            "z": 760
-          }
-        ]
-      },
-      {
-        "id": "residential-zone-70",
-        "kind": "EU Residential Medium",
-        "district": "residential",
-        "area_m2": 3072,
-        "polygon": [
-          {
-            "x": -1652,
-            "z": 776
-          },
-          {
-            "x": -1620,
-            "z": 776
-          },
-          {
-            "x": -1620,
-            "z": 872
-          },
-          {
-            "x": -1652,
-            "z": 872
-          }
-        ]
-      },
-      {
-        "id": "residential-zone-71",
-        "kind": "EU Residential Medium",
-        "district": "residential",
-        "area_m2": 3072,
-        "polygon": [
-          {
-            "x": -1652,
-            "z": 888
-          },
-          {
-            "x": -1620,
-            "z": 888
-          },
-          {
-            "x": -1620,
-            "z": 984
-          },
-          {
-            "x": -1652,
-            "z": 984
-          }
-        ]
-      },
-      {
-        "id": "residential-zone-72",
-        "kind": "EU Residential Medium",
-        "district": "residential",
-        "area_m2": 3072,
-        "polygon": [
-          {
-            "x": -1652,
-            "z": 1000
-          },
-          {
-            "x": -1620,
-            "z": 1000
-          },
-          {
-            "x": -1620,
-            "z": 1096
-          },
-          {
-            "x": -1652,
-            "z": 1096
-          }
-        ]
-      },
-      {
-        "id": "residential-zone-73",
-        "kind": "EU Residential Medium",
-        "district": "residential",
-        "area_m2": 1536,
-        "polygon": [
-          {
-            "x": -1652,
-            "z": 1112
-          },
-          {
-            "x": -1620,
-            "z": 1112
-          },
-          {
-            "x": -1620,
-            "z": 1160
-          },
-          {
-            "x": -1652,
-            "z": 1160
-          }
-        ]
-      },
-      {
         "id": "residential-zone-74",
         "kind": "EU Residential Medium",
         "district": "residential",
-        "area_m2": 1536,
+        "area_m2": 3072,
         "polygon": [
           {
             "x": -1652,
-            "z": 1272
+            "z": 664
           },
           {
             "x": -1620,
-            "z": 1272
+            "z": 664
           },
           {
             "x": -1620,
-            "z": 1320
+            "z": 760
           },
           {
             "x": -1652,
-            "z": 1320
+            "z": 760
           }
         ]
       },
       {
         "id": "residential-zone-75",
+        "kind": "EU Residential Medium",
+        "district": "residential",
+        "area_m2": 3072,
+        "polygon": [
+          {
+            "x": -1652,
+            "z": 776
+          },
+          {
+            "x": -1620,
+            "z": 776
+          },
+          {
+            "x": -1620,
+            "z": 872
+          },
+          {
+            "x": -1652,
+            "z": 872
+          }
+        ]
+      },
+      {
+        "id": "residential-zone-76",
+        "kind": "EU Residential Medium",
+        "district": "residential",
+        "area_m2": 3072,
+        "polygon": [
+          {
+            "x": -1652,
+            "z": 888
+          },
+          {
+            "x": -1620,
+            "z": 888
+          },
+          {
+            "x": -1620,
+            "z": 984
+          },
+          {
+            "x": -1652,
+            "z": 984
+          }
+        ]
+      },
+      {
+        "id": "residential-zone-77",
+        "kind": "EU Residential Medium",
+        "district": "residential",
+        "area_m2": 3072,
+        "polygon": [
+          {
+            "x": -1652,
+            "z": 1000
+          },
+          {
+            "x": -1620,
+            "z": 1000
+          },
+          {
+            "x": -1620,
+            "z": 1096
+          },
+          {
+            "x": -1652,
+            "z": 1096
+          }
+        ]
+      },
+      {
+        "id": "residential-zone-78",
+        "kind": "EU Residential Medium",
+        "district": "residential",
+        "area_m2": 1536,
+        "polygon": [
+          {
+            "x": -1652,
+            "z": 1112
+          },
+          {
+            "x": -1620,
+            "z": 1112
+          },
+          {
+            "x": -1620,
+            "z": 1160
+          },
+          {
+            "x": -1652,
+            "z": 1160
+          }
+        ]
+      },
+      {
+        "id": "residential-zone-79",
+        "kind": "EU Residential Medium",
+        "district": "residential",
+        "area_m2": 1536,
+        "polygon": [
+          {
+            "x": -1652,
+            "z": 1272
+          },
+          {
+            "x": -1620,
+            "z": 1272
+          },
+          {
+            "x": -1620,
+            "z": 1320
+          },
+          {
+            "x": -1652,
+            "z": 1320
+          }
+        ]
+      },
+      {
+        "id": "residential-zone-80",
         "kind": "EU Residential Medium",
         "district": "residential",
         "area_m2": 2304,
@@ -3276,170 +3660,26 @@
         ]
       },
       {
-        "id": "residential-zone-76",
-        "kind": "EU Residential Medium",
-        "district": "residential",
-        "area_m2": 3072,
-        "polygon": [
-          {
-            "x": -1652,
-            "z": 1336
-          },
-          {
-            "x": -1620,
-            "z": 1336
-          },
-          {
-            "x": -1620,
-            "z": 1432
-          },
-          {
-            "x": -1652,
-            "z": 1432
-          }
-        ]
-      },
-      {
-        "id": "residential-zone-77",
-        "kind": "EU Residential Medium",
-        "district": "residential",
-        "area_m2": 10752,
-        "polygon": [
-          {
-            "x": -1596,
-            "z": 1336
-          },
-          {
-            "x": -1548,
-            "z": 1336
-          },
-          {
-            "x": -1548,
-            "z": 1560
-          },
-          {
-            "x": -1596,
-            "z": 1560
-          }
-        ]
-      },
-      {
-        "id": "residential-zone-78",
-        "kind": "EU Residential Medium",
-        "district": "residential",
-        "area_m2": 3072,
-        "polygon": [
-          {
-            "x": -1652,
-            "z": 1448
-          },
-          {
-            "x": -1620,
-            "z": 1448
-          },
-          {
-            "x": -1620,
-            "z": 1544
-          },
-          {
-            "x": -1652,
-            "z": 1544
-          }
-        ]
-      },
-      {
-        "id": "residential-zone-79",
-        "kind": "EU Residential Medium",
-        "district": "residential",
-        "area_m2": 1664,
-        "polygon": [
-          {
-            "x": -1652,
-            "z": 1560
-          },
-          {
-            "x": -1548,
-            "z": 1560
-          },
-          {
-            "x": -1548,
-            "z": 1576
-          },
-          {
-            "x": -1652,
-            "z": 1576
-          }
-        ]
-      },
-      {
-        "id": "residential-zone-80",
-        "kind": "EU Residential Medium",
-        "district": "residential",
-        "area_m2": 1536,
-        "polygon": [
-          {
-            "x": -1652,
-            "z": 1576
-          },
-          {
-            "x": -1556,
-            "z": 1576
-          },
-          {
-            "x": -1556,
-            "z": 1592
-          },
-          {
-            "x": -1652,
-            "z": 1592
-          }
-        ]
-      },
-      {
         "id": "residential-zone-81",
         "kind": "EU Residential Medium",
         "district": "residential",
-        "area_m2": 704,
+        "area_m2": 4992,
         "polygon": [
           {
             "x": -1652,
-            "z": 1592
+            "z": 1336
           },
           {
-            "x": -1564,
-            "z": 1592
+            "x": -1548,
+            "z": 1336
           },
           {
-            "x": -1564,
-            "z": 1600
-          },
-          {
-            "x": -1652,
-            "z": 1600
-          }
-        ]
-      },
-      {
-        "id": "residential-zone-82",
-        "kind": "EU Residential Medium",
-        "district": "residential",
-        "area_m2": 576,
-        "polygon": [
-          {
-            "x": -1652,
-            "z": 1600
-          },
-          {
-            "x": -1580,
-            "z": 1600
-          },
-          {
-            "x": -1580,
-            "z": 1608
+            "x": -1548,
+            "z": 1384
           },
           {
             "x": -1652,
-            "z": 1608
+            "z": 1384
           }
         ]
       },
@@ -3447,18 +3687,18 @@
         "id": "commercial-zone-1",
         "kind": "EU Commercial Low",
         "district": "commercial",
-        "area_m2": 28800,
+        "area_m2": 8064,
         "polygon": [
           {
             "x": -772,
             "z": 480
           },
           {
-            "x": -172,
+            "x": -604,
             "z": 480
           },
           {
-            "x": -172,
+            "x": -604,
             "z": 528
           },
           {
@@ -3469,6 +3709,54 @@
       },
       {
         "id": "commercial-zone-2",
+        "kind": "EU Commercial Low",
+        "district": "commercial",
+        "area_m2": 10368,
+        "polygon": [
+          {
+            "x": -580,
+            "z": 480
+          },
+          {
+            "x": -364,
+            "z": 480
+          },
+          {
+            "x": -364,
+            "z": 528
+          },
+          {
+            "x": -580,
+            "z": 528
+          }
+        ]
+      },
+      {
+        "id": "commercial-zone-3",
+        "kind": "EU Commercial Low",
+        "district": "commercial",
+        "area_m2": 8064,
+        "polygon": [
+          {
+            "x": -340,
+            "z": 480
+          },
+          {
+            "x": -172,
+            "z": 480
+          },
+          {
+            "x": -172,
+            "z": 528
+          },
+          {
+            "x": -340,
+            "z": 528
+          }
+        ]
+      },
+      {
+        "id": "commercial-zone-4",
         "kind": "EU Commercial Low",
         "district": "commercial",
         "area_m2": 8064,
@@ -3492,7 +3780,7 @@
         ]
       },
       {
-        "id": "commercial-zone-3",
+        "id": "commercial-zone-5",
         "kind": "EU Commercial Low",
         "district": "commercial",
         "area_m2": 1088,
@@ -3516,7 +3804,7 @@
         ]
       },
       {
-        "id": "commercial-zone-4",
+        "id": "commercial-zone-6",
         "kind": "EU Commercial Low",
         "district": "commercial",
         "area_m2": 1216,
@@ -3540,7 +3828,7 @@
         ]
       },
       {
-        "id": "commercial-zone-5",
+        "id": "commercial-zone-7",
         "kind": "EU Commercial Low",
         "district": "commercial",
         "area_m2": 2560,
@@ -3564,7 +3852,7 @@
         ]
       },
       {
-        "id": "commercial-zone-6",
+        "id": "commercial-zone-8",
         "kind": "EU Commercial Low",
         "district": "commercial",
         "area_m2": 2688,
@@ -3588,7 +3876,7 @@
         ]
       },
       {
-        "id": "commercial-zone-7",
+        "id": "commercial-zone-9",
         "kind": "EU Commercial Low",
         "district": "commercial",
         "area_m2": 11520,
@@ -3612,7 +3900,7 @@
         ]
       },
       {
-        "id": "commercial-zone-8",
+        "id": "commercial-zone-10",
         "kind": "EU Commercial Low",
         "district": "commercial",
         "area_m2": 9216,
@@ -3636,7 +3924,7 @@
         ]
       },
       {
-        "id": "commercial-zone-9",
+        "id": "commercial-zone-11",
         "kind": "EU Commercial Low",
         "district": "commercial",
         "area_m2": 5760,
@@ -3660,73 +3948,25 @@
         ]
       },
       {
-        "id": "commercial-zone-10",
-        "kind": "EU Commercial Low",
-        "district": "commercial",
-        "area_m2": 9216,
-        "polygon": [
-          {
-            "x": -700,
-            "z": 784
-          },
-          {
-            "x": -604,
-            "z": 784
-          },
-          {
-            "x": -604,
-            "z": 880
-          },
-          {
-            "x": -700,
-            "z": 880
-          }
-        ]
-      },
-      {
-        "id": "commercial-zone-11",
-        "kind": "EU Commercial Low",
-        "district": "commercial",
-        "area_m2": 9216,
-        "polygon": [
-          {
-            "x": -580,
-            "z": 784
-          },
-          {
-            "x": -484,
-            "z": 784
-          },
-          {
-            "x": -484,
-            "z": 880
-          },
-          {
-            "x": -580,
-            "z": 880
-          }
-        ]
-      },
-      {
         "id": "commercial-zone-12",
         "kind": "EU Commercial Low",
         "district": "commercial",
         "area_m2": 9216,
         "polygon": [
           {
-            "x": -460,
+            "x": -700,
             "z": 784
           },
           {
-            "x": -364,
+            "x": -604,
             "z": 784
           },
           {
-            "x": -364,
+            "x": -604,
             "z": 880
           },
           {
-            "x": -460,
+            "x": -700,
             "z": 880
           }
         ]
@@ -3738,6 +3978,54 @@
         "area_m2": 9216,
         "polygon": [
           {
+            "x": -580,
+            "z": 784
+          },
+          {
+            "x": -484,
+            "z": 784
+          },
+          {
+            "x": -484,
+            "z": 880
+          },
+          {
+            "x": -580,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "commercial-zone-14",
+        "kind": "EU Commercial Low",
+        "district": "commercial",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": -460,
+            "z": 784
+          },
+          {
+            "x": -364,
+            "z": 784
+          },
+          {
+            "x": -364,
+            "z": 880
+          },
+          {
+            "x": -460,
+            "z": 880
+          }
+        ]
+      },
+      {
+        "id": "commercial-zone-15",
+        "kind": "EU Commercial Low",
+        "district": "commercial",
+        "area_m2": 9216,
+        "polygon": [
+          {
             "x": -340,
             "z": 784
           },
@@ -3756,7 +4044,7 @@
         ]
       },
       {
-        "id": "commercial-zone-14",
+        "id": "commercial-zone-16",
         "kind": "EU Commercial Low",
         "district": "commercial",
         "area_m2": 9600,
@@ -3780,7 +4068,7 @@
         ]
       },
       {
-        "id": "commercial-zone-15",
+        "id": "commercial-zone-17",
         "kind": "EU Commercial Low",
         "district": "commercial",
         "area_m2": 9344,
@@ -3804,7 +4092,7 @@
         ]
       },
       {
-        "id": "commercial-zone-16",
+        "id": "commercial-zone-18",
         "kind": "EU Commercial Low",
         "district": "commercial",
         "area_m2": 4544,
@@ -3828,7 +4116,7 @@
         ]
       },
       {
-        "id": "commercial-zone-17",
+        "id": "commercial-zone-19",
         "kind": "EU Commercial Low",
         "district": "commercial",
         "area_m2": 4288,
@@ -3852,7 +4140,7 @@
         ]
       },
       {
-        "id": "commercial-zone-18",
+        "id": "commercial-zone-20",
         "kind": "EU Commercial High",
         "district": "commercial",
         "area_m2": 20736,
@@ -3876,7 +4164,7 @@
         ]
       },
       {
-        "id": "commercial-zone-19",
+        "id": "commercial-zone-21",
         "kind": "EU Commercial High",
         "district": "commercial",
         "area_m2": 8064,
@@ -3900,7 +4188,7 @@
         ]
       },
       {
-        "id": "commercial-zone-20",
+        "id": "commercial-zone-22",
         "kind": "EU Commercial High",
         "district": "commercial",
         "area_m2": 1088,
@@ -3924,7 +4212,7 @@
         ]
       },
       {
-        "id": "commercial-zone-21",
+        "id": "commercial-zone-23",
         "kind": "EU Commercial High",
         "district": "commercial",
         "area_m2": 1216,
@@ -3948,7 +4236,7 @@
         ]
       },
       {
-        "id": "commercial-zone-22",
+        "id": "commercial-zone-24",
         "kind": "EU Commercial High",
         "district": "commercial",
         "area_m2": 2560,
@@ -3972,7 +4260,7 @@
         ]
       },
       {
-        "id": "commercial-zone-23",
+        "id": "commercial-zone-25",
         "kind": "EU Commercial High",
         "district": "commercial",
         "area_m2": 2688,
@@ -3996,7 +4284,7 @@
         ]
       },
       {
-        "id": "commercial-zone-24",
+        "id": "commercial-zone-26",
         "kind": "EU Commercial High",
         "district": "commercial",
         "area_m2": 5760,
@@ -4020,60 +4308,60 @@
         ]
       },
       {
-        "id": "commercial-zone-25",
-        "kind": "EU Commercial High",
-        "district": "commercial",
-        "area_m2": 9216,
-        "polygon": [
-          {
-            "x": -580,
-            "z": 672
-          },
-          {
-            "x": -484,
-            "z": 672
-          },
-          {
-            "x": -484,
-            "z": 768
-          },
-          {
-            "x": -580,
-            "z": 768
-          }
-        ]
-      },
-      {
-        "id": "commercial-zone-26",
-        "kind": "EU Commercial High",
-        "district": "commercial",
-        "area_m2": 9216,
-        "polygon": [
-          {
-            "x": -460,
-            "z": 672
-          },
-          {
-            "x": -364,
-            "z": 672
-          },
-          {
-            "x": -364,
-            "z": 768
-          },
-          {
-            "x": -460,
-            "z": 768
-          }
-        ]
-      },
-      {
         "id": "commercial-zone-27",
         "kind": "EU Commercial High",
         "district": "commercial",
         "area_m2": 9216,
         "polygon": [
           {
+            "x": -580,
+            "z": 672
+          },
+          {
+            "x": -484,
+            "z": 672
+          },
+          {
+            "x": -484,
+            "z": 768
+          },
+          {
+            "x": -580,
+            "z": 768
+          }
+        ]
+      },
+      {
+        "id": "commercial-zone-28",
+        "kind": "EU Commercial High",
+        "district": "commercial",
+        "area_m2": 9216,
+        "polygon": [
+          {
+            "x": -460,
+            "z": 672
+          },
+          {
+            "x": -364,
+            "z": 672
+          },
+          {
+            "x": -364,
+            "z": 768
+          },
+          {
+            "x": -460,
+            "z": 768
+          }
+        ]
+      },
+      {
+        "id": "commercial-zone-29",
+        "kind": "EU Commercial High",
+        "district": "commercial",
+        "area_m2": 9216,
+        "polygon": [
+          {
             "x": -340,
             "z": 672
           },
@@ -4088,6 +4376,630 @@
           {
             "x": -340,
             "z": 768
+          }
+        ]
+      },
+      {
+        "id": "office-zone-1",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 4352,
+        "polygon": [
+          {
+            "x": -744,
+            "z": 32
+          },
+          {
+            "x": -200,
+            "z": 32
+          },
+          {
+            "x": -200,
+            "z": 40
+          },
+          {
+            "x": -744,
+            "z": 40
+          }
+        ]
+      },
+      {
+        "id": "office-zone-2",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 4480,
+        "polygon": [
+          {
+            "x": -752,
+            "z": 40
+          },
+          {
+            "x": -192,
+            "z": 40
+          },
+          {
+            "x": -192,
+            "z": 48
+          },
+          {
+            "x": -752,
+            "z": 48
+          }
+        ]
+      },
+      {
+        "id": "office-zone-3",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 4608,
+        "polygon": [
+          {
+            "x": -760,
+            "z": 48
+          },
+          {
+            "x": -184,
+            "z": 48
+          },
+          {
+            "x": -184,
+            "z": 56
+          },
+          {
+            "x": -760,
+            "z": 56
+          }
+        ]
+      },
+      {
+        "id": "office-zone-4",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 14208,
+        "polygon": [
+          {
+            "x": -768,
+            "z": 56
+          },
+          {
+            "x": -176,
+            "z": 56
+          },
+          {
+            "x": -176,
+            "z": 80
+          },
+          {
+            "x": -768,
+            "z": 80
+          }
+        ]
+      },
+      {
+        "id": "office-zone-5",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 384,
+        "polygon": [
+          {
+            "x": -768,
+            "z": 80
+          },
+          {
+            "x": -720,
+            "z": 80
+          },
+          {
+            "x": -720,
+            "z": 88
+          },
+          {
+            "x": -768,
+            "z": 88
+          }
+        ]
+      },
+      {
+        "id": "office-zone-6",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 384,
+        "polygon": [
+          {
+            "x": -224,
+            "z": 80
+          },
+          {
+            "x": -176,
+            "z": 80
+          },
+          {
+            "x": -176,
+            "z": 88
+          },
+          {
+            "x": -224,
+            "z": 88
+          }
+        ]
+      },
+      {
+        "id": "office-zone-7",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 12544,
+        "polygon": [
+          {
+            "x": -776,
+            "z": 88
+          },
+          {
+            "x": -720,
+            "z": 88
+          },
+          {
+            "x": -720,
+            "z": 312
+          },
+          {
+            "x": -776,
+            "z": 312
+          }
+        ]
+      },
+      {
+        "id": "office-zone-8",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 6272,
+        "polygon": [
+          {
+            "x": -224,
+            "z": 88
+          },
+          {
+            "x": -168,
+            "z": 88
+          },
+          {
+            "x": -168,
+            "z": 200
+          },
+          {
+            "x": -224,
+            "z": 200
+          }
+        ]
+      },
+      {
+        "id": "office-zone-9",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 9984,
+        "polygon": [
+          {
+            "x": -704,
+            "z": 96
+          },
+          {
+            "x": -600,
+            "z": 96
+          },
+          {
+            "x": -600,
+            "z": 192
+          },
+          {
+            "x": -704,
+            "z": 192
+          }
+        ]
+      },
+      {
+        "id": "office-zone-10",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 9984,
+        "polygon": [
+          {
+            "x": -584,
+            "z": 96
+          },
+          {
+            "x": -480,
+            "z": 96
+          },
+          {
+            "x": -480,
+            "z": 192
+          },
+          {
+            "x": -584,
+            "z": 192
+          }
+        ]
+      },
+      {
+        "id": "office-zone-11",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 9984,
+        "polygon": [
+          {
+            "x": -464,
+            "z": 96
+          },
+          {
+            "x": -360,
+            "z": 96
+          },
+          {
+            "x": -360,
+            "z": 192
+          },
+          {
+            "x": -464,
+            "z": 192
+          }
+        ]
+      },
+      {
+        "id": "office-zone-12",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 9984,
+        "polygon": [
+          {
+            "x": -344,
+            "z": 96
+          },
+          {
+            "x": -240,
+            "z": 96
+          },
+          {
+            "x": -240,
+            "z": 192
+          },
+          {
+            "x": -344,
+            "z": 192
+          }
+        ]
+      },
+      {
+        "id": "office-zone-13",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 9984,
+        "polygon": [
+          {
+            "x": -704,
+            "z": 208
+          },
+          {
+            "x": -600,
+            "z": 208
+          },
+          {
+            "x": -600,
+            "z": 304
+          },
+          {
+            "x": -704,
+            "z": 304
+          }
+        ]
+      },
+      {
+        "id": "office-zone-14",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 384,
+        "polygon": [
+          {
+            "x": -768,
+            "z": 312
+          },
+          {
+            "x": -720,
+            "z": 312
+          },
+          {
+            "x": -720,
+            "z": 320
+          },
+          {
+            "x": -768,
+            "z": 320
+          }
+        ]
+      },
+      {
+        "id": "office-zone-15",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 4032,
+        "polygon": [
+          {
+            "x": -768,
+            "z": 320
+          },
+          {
+            "x": -600,
+            "z": 320
+          },
+          {
+            "x": -600,
+            "z": 344
+          },
+          {
+            "x": -768,
+            "z": 344
+          }
+        ]
+      },
+      {
+        "id": "office-zone-16",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 1280,
+        "polygon": [
+          {
+            "x": -760,
+            "z": 344
+          },
+          {
+            "x": -600,
+            "z": 344
+          },
+          {
+            "x": -600,
+            "z": 352
+          },
+          {
+            "x": -760,
+            "z": 352
+          }
+        ]
+      },
+      {
+        "id": "office-zone-17",
+        "kind": "Office Low",
+        "district": "office",
+        "area_m2": 1216,
+        "polygon": [
+          {
+            "x": -752,
+            "z": 352
+          },
+          {
+            "x": -600,
+            "z": 352
+          },
+          {
+            "x": -600,
+            "z": 360
+          },
+          {
+            "x": -752,
+            "z": 360
+          }
+        ]
+      },
+      {
+        "id": "office-zone-18",
+        "kind": "Office High",
+        "district": "office",
+        "area_m2": 6272,
+        "polygon": [
+          {
+            "x": -224,
+            "z": 200
+          },
+          {
+            "x": -168,
+            "z": 200
+          },
+          {
+            "x": -168,
+            "z": 312
+          },
+          {
+            "x": -224,
+            "z": 312
+          }
+        ]
+      },
+      {
+        "id": "office-zone-19",
+        "kind": "Office High",
+        "district": "office",
+        "area_m2": 9984,
+        "polygon": [
+          {
+            "x": -584,
+            "z": 208
+          },
+          {
+            "x": -480,
+            "z": 208
+          },
+          {
+            "x": -480,
+            "z": 304
+          },
+          {
+            "x": -584,
+            "z": 304
+          }
+        ]
+      },
+      {
+        "id": "office-zone-20",
+        "kind": "Office High",
+        "district": "office",
+        "area_m2": 9984,
+        "polygon": [
+          {
+            "x": -464,
+            "z": 208
+          },
+          {
+            "x": -360,
+            "z": 208
+          },
+          {
+            "x": -360,
+            "z": 304
+          },
+          {
+            "x": -464,
+            "z": 304
+          }
+        ]
+      },
+      {
+        "id": "office-zone-21",
+        "kind": "Office High",
+        "district": "office",
+        "area_m2": 9984,
+        "polygon": [
+          {
+            "x": -344,
+            "z": 208
+          },
+          {
+            "x": -240,
+            "z": 208
+          },
+          {
+            "x": -240,
+            "z": 304
+          },
+          {
+            "x": -344,
+            "z": 304
+          }
+        ]
+      },
+      {
+        "id": "office-zone-22",
+        "kind": "Office High",
+        "district": "office",
+        "area_m2": 384,
+        "polygon": [
+          {
+            "x": -224,
+            "z": 312
+          },
+          {
+            "x": -176,
+            "z": 312
+          },
+          {
+            "x": -176,
+            "z": 320
+          },
+          {
+            "x": -224,
+            "z": 320
+          }
+        ]
+      },
+      {
+        "id": "office-zone-23",
+        "kind": "Office High",
+        "district": "office",
+        "area_m2": 8960,
+        "polygon": [
+          {
+            "x": -584,
+            "z": 320
+          },
+          {
+            "x": -360,
+            "z": 320
+          },
+          {
+            "x": -360,
+            "z": 360
+          },
+          {
+            "x": -584,
+            "z": 360
+          }
+        ]
+      },
+      {
+        "id": "office-zone-24",
+        "kind": "Office High",
+        "district": "office",
+        "area_m2": 4032,
+        "polygon": [
+          {
+            "x": -344,
+            "z": 320
+          },
+          {
+            "x": -176,
+            "z": 320
+          },
+          {
+            "x": -176,
+            "z": 344
+          },
+          {
+            "x": -344,
+            "z": 344
+          }
+        ]
+      },
+      {
+        "id": "office-zone-25",
+        "kind": "Office High",
+        "district": "office",
+        "area_m2": 1280,
+        "polygon": [
+          {
+            "x": -344,
+            "z": 344
+          },
+          {
+            "x": -184,
+            "z": 344
+          },
+          {
+            "x": -184,
+            "z": 352
+          },
+          {
+            "x": -344,
+            "z": 352
+          }
+        ]
+      },
+      {
+        "id": "office-zone-26",
+        "kind": "Office High",
+        "district": "office",
+        "area_m2": 1216,
+        "polygon": [
+          {
+            "x": -344,
+            "z": 352
+          },
+          {
+            "x": -192,
+            "z": 352
+          },
+          {
+            "x": -192,
+            "z": 360
+          },
+          {
+            "x": -344,
+            "z": 360
           }
         ]
       },
@@ -4095,7 +5007,7 @@
         "id": "industrial-zone-1",
         "kind": "Industrial Oil",
         "district": "industrial",
-        "area_m2": 9408,
+        "area_m2": 10752,
         "polygon": [
           {
             "x": -1144,
@@ -4107,11 +5019,11 @@
           },
           {
             "x": -1088,
-            "z": 1296
+            "z": 1320
           },
           {
             "x": -1144,
-            "z": 1296
+            "z": 1320
           }
         ]
       },
@@ -4143,7 +5055,7 @@
         "id": "industrial-zone-3",
         "kind": "Industrial Oil",
         "district": "industrial",
-        "area_m2": 16128,
+        "area_m2": 8064,
         "polygon": [
           {
             "x": -1072,
@@ -4155,11 +5067,11 @@
           },
           {
             "x": -904,
-            "z": 1288
+            "z": 1240
           },
           {
             "x": -1072,
-            "z": 1288
+            "z": 1240
           }
         ]
       },
@@ -4167,7 +5079,7 @@
         "id": "industrial-zone-4",
         "kind": "Industrial Oil",
         "district": "industrial",
-        "area_m2": 16128,
+        "area_m2": 8064,
         "polygon": [
           {
             "x": -888,
@@ -4179,11 +5091,11 @@
           },
           {
             "x": -720,
-            "z": 1288
+            "z": 1240
           },
           {
             "x": -888,
-            "z": 1288
+            "z": 1240
           }
         ]
       },
@@ -4191,23 +5103,23 @@
         "id": "industrial-zone-5",
         "kind": "Industrial Oil",
         "district": "industrial",
-        "area_m2": 768,
+        "area_m2": 1344,
         "polygon": [
           {
-            "x": -1144,
-            "z": 1296
+            "x": -1072,
+            "z": 1240
           },
           {
-            "x": -1096,
-            "z": 1296
+            "x": -1016,
+            "z": 1240
           },
           {
-            "x": -1096,
-            "z": 1312
+            "x": -1016,
+            "z": 1264
           },
           {
-            "x": -1144,
-            "z": 1312
+            "x": -1072,
+            "z": 1264
           }
         ]
       },
@@ -4215,23 +5127,23 @@
         "id": "industrial-zone-6",
         "kind": "Industrial Oil",
         "district": "industrial",
-        "area_m2": 448,
+        "area_m2": 1152,
         "polygon": [
           {
-            "x": -1144,
-            "z": 1312
+            "x": -952,
+            "z": 1240
           },
           {
-            "x": -1088,
-            "z": 1312
+            "x": -904,
+            "z": 1240
           },
           {
-            "x": -1088,
-            "z": 1320
+            "x": -904,
+            "z": 1264
           },
           {
-            "x": -1144,
-            "z": 1320
+            "x": -952,
+            "z": 1264
           }
         ]
       },
@@ -4239,23 +5151,23 @@
         "id": "industrial-zone-7",
         "kind": "Industrial Oil",
         "district": "industrial",
-        "area_m2": 16128,
+        "area_m2": 1152,
         "polygon": [
           {
-            "x": -1072,
-            "z": 1320
+            "x": -888,
+            "z": 1240
           },
           {
-            "x": -904,
-            "z": 1320
+            "x": -840,
+            "z": 1240
           },
           {
-            "x": -904,
-            "z": 1416
+            "x": -840,
+            "z": 1264
           },
           {
-            "x": -1072,
-            "z": 1416
+            "x": -888,
+            "z": 1264
           }
         ]
       },
@@ -4263,23 +5175,23 @@
         "id": "industrial-zone-8",
         "kind": "Industrial Oil",
         "district": "industrial",
-        "area_m2": 16128,
+        "area_m2": 1152,
         "polygon": [
           {
-            "x": -888,
-            "z": 1320
+            "x": -768,
+            "z": 1240
           },
           {
             "x": -720,
-            "z": 1320
+            "z": 1240
           },
           {
             "x": -720,
-            "z": 1416
+            "z": 1264
           },
           {
-            "x": -888,
-            "z": 1416
+            "x": -768,
+            "z": 1264
           }
         ]
       },
@@ -4287,23 +5199,23 @@
         "id": "industrial-zone-9",
         "kind": "Industrial Oil",
         "district": "industrial",
-        "area_m2": 4928,
+        "area_m2": 9408,
         "polygon": [
           {
-            "x": -1144,
-            "z": 1336
+            "x": -1072,
+            "z": 1264
           },
           {
-            "x": -1088,
-            "z": 1336
+            "x": -904,
+            "z": 1264
           },
           {
-            "x": -1088,
-            "z": 1424
+            "x": -904,
+            "z": 1320
           },
           {
-            "x": -1144,
-            "z": 1424
+            "x": -1072,
+            "z": 1320
           }
         ]
       },
@@ -4311,23 +5223,23 @@
         "id": "industrial-zone-10",
         "kind": "Industrial Oil",
         "district": "industrial",
-        "area_m2": 384,
+        "area_m2": 9408,
         "polygon": [
           {
-            "x": -1136,
-            "z": 1424
+            "x": -888,
+            "z": 1264
           },
           {
-            "x": -1088,
-            "z": 1424
+            "x": -720,
+            "z": 1264
           },
           {
-            "x": -1088,
-            "z": 1432
+            "x": -720,
+            "z": 1320
           },
           {
-            "x": -1136,
-            "z": 1432
+            "x": -888,
+            "z": 1320
           }
         ]
       },
@@ -4335,95 +5247,95 @@
         "id": "industrial-zone-11",
         "kind": "Industrial Oil",
         "district": "industrial",
-        "area_m2": 10176,
+        "area_m2": 20736,
         "polygon": [
           {
-            "x": -1136,
-            "z": 1432
+            "x": -1144,
+            "z": 1336
           },
           {
             "x": -712,
-            "z": 1432
+            "z": 1336
           },
           {
             "x": -712,
-            "z": 1456
+            "z": 1384
           },
           {
-            "x": -1136,
-            "z": 1456
+            "x": -1144,
+            "z": 1384
           }
         ]
       },
       {
         "id": "industrial-zone-12",
-        "kind": "Industrial Oil",
+        "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 3328,
+        "area_m2": 3136,
         "polygon": [
           {
-            "x": -1128,
-            "z": 1456
+            "x": -712,
+            "z": 1128
+          },
+          {
+            "x": -320,
+            "z": 1128
+          },
+          {
+            "x": -320,
+            "z": 1136
           },
           {
             "x": -712,
-            "z": 1456
-          },
-          {
-            "x": -712,
-            "z": 1464
-          },
-          {
-            "x": -1128,
-            "z": 1464
+            "z": 1136
           }
         ]
       },
       {
         "id": "industrial-zone-13",
-        "kind": "Industrial Oil",
+        "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 3264,
+        "area_m2": 3200,
         "polygon": [
           {
-            "x": -1120,
-            "z": 1464
+            "x": -712,
+            "z": 1136
+          },
+          {
+            "x": -312,
+            "z": 1136
+          },
+          {
+            "x": -312,
+            "z": 1144
           },
           {
             "x": -712,
-            "z": 1464
-          },
-          {
-            "x": -712,
-            "z": 1472
-          },
-          {
-            "x": -1120,
-            "z": 1472
+            "z": 1144
           }
         ]
       },
       {
         "id": "industrial-zone-14",
-        "kind": "Industrial Oil",
+        "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 3200,
+        "area_m2": 3264,
         "polygon": [
           {
-            "x": -1112,
-            "z": 1472
+            "x": -712,
+            "z": 1144
+          },
+          {
+            "x": -304,
+            "z": 1144
+          },
+          {
+            "x": -304,
+            "z": 1152
           },
           {
             "x": -712,
-            "z": 1472
-          },
-          {
-            "x": -712,
-            "z": 1480
-          },
-          {
-            "x": -1112,
-            "z": 1480
+            "z": 1152
           }
         ]
       },
@@ -4431,23 +5343,23 @@
         "id": "industrial-zone-15",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 3136,
+        "area_m2": 3328,
         "polygon": [
           {
             "x": -712,
-            "z": 1128
+            "z": 1152
           },
           {
-            "x": -320,
-            "z": 1128
+            "x": -296,
+            "z": 1152
           },
           {
-            "x": -320,
-            "z": 1136
+            "x": -296,
+            "z": 1160
           },
           {
             "x": -712,
-            "z": 1136
+            "z": 1160
           }
         ]
       },
@@ -4455,23 +5367,23 @@
         "id": "industrial-zone-16",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 3200,
+        "area_m2": 6784,
         "polygon": [
           {
             "x": -712,
-            "z": 1136
+            "z": 1160
           },
           {
-            "x": -312,
-            "z": 1136
+            "x": -288,
+            "z": 1160
           },
           {
-            "x": -312,
-            "z": 1144
+            "x": -288,
+            "z": 1176
           },
           {
             "x": -712,
-            "z": 1144
+            "z": 1176
           }
         ]
       },
@@ -4479,23 +5391,23 @@
         "id": "industrial-zone-17",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 3264,
+        "area_m2": 7680,
         "polygon": [
           {
-            "x": -712,
-            "z": 1144
+            "x": -336,
+            "z": 1176
           },
           {
-            "x": -304,
-            "z": 1144
+            "x": -288,
+            "z": 1176
           },
           {
-            "x": -304,
-            "z": 1152
+            "x": -288,
+            "z": 1336
           },
           {
-            "x": -712,
-            "z": 1152
+            "x": -336,
+            "z": 1336
           }
         ]
       },
@@ -4503,23 +5415,23 @@
         "id": "industrial-zone-18",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 3328,
+        "area_m2": 8064,
         "polygon": [
           {
-            "x": -712,
-            "z": 1152
+            "x": -704,
+            "z": 1192
           },
           {
-            "x": -296,
-            "z": 1152
+            "x": -536,
+            "z": 1192
           },
           {
-            "x": -296,
-            "z": 1160
+            "x": -536,
+            "z": 1240
           },
           {
-            "x": -712,
-            "z": 1160
+            "x": -704,
+            "z": 1240
           }
         ]
       },
@@ -4527,23 +5439,23 @@
         "id": "industrial-zone-19",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 6784,
+        "area_m2": 8064,
         "polygon": [
           {
-            "x": -712,
-            "z": 1160
+            "x": -520,
+            "z": 1192
           },
           {
-            "x": -288,
-            "z": 1160
+            "x": -352,
+            "z": 1192
           },
           {
-            "x": -288,
-            "z": 1176
+            "x": -352,
+            "z": 1240
           },
           {
-            "x": -712,
-            "z": 1176
+            "x": -520,
+            "z": 1240
           }
         ]
       },
@@ -4551,23 +5463,23 @@
         "id": "industrial-zone-20",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 5760,
+        "area_m2": 1152,
         "polygon": [
           {
-            "x": -336,
-            "z": 1176
+            "x": -704,
+            "z": 1240
           },
           {
-            "x": -288,
-            "z": 1176
+            "x": -656,
+            "z": 1240
           },
           {
-            "x": -288,
-            "z": 1296
+            "x": -656,
+            "z": 1264
           },
           {
-            "x": -336,
-            "z": 1296
+            "x": -704,
+            "z": 1264
           }
         ]
       },
@@ -4575,23 +5487,23 @@
         "id": "industrial-zone-21",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 16128,
+        "area_m2": 1152,
         "polygon": [
           {
-            "x": -704,
-            "z": 1192
+            "x": -584,
+            "z": 1240
           },
           {
             "x": -536,
-            "z": 1192
+            "z": 1240
           },
           {
             "x": -536,
-            "z": 1288
+            "z": 1264
           },
           {
-            "x": -704,
-            "z": 1288
+            "x": -584,
+            "z": 1264
           }
         ]
       },
@@ -4599,23 +5511,23 @@
         "id": "industrial-zone-22",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 16128,
+        "area_m2": 1152,
         "polygon": [
           {
             "x": -520,
-            "z": 1192
+            "z": 1240
           },
           {
-            "x": -352,
-            "z": 1192
+            "x": -472,
+            "z": 1240
           },
           {
-            "x": -352,
-            "z": 1288
+            "x": -472,
+            "z": 1264
           },
           {
             "x": -520,
-            "z": 1288
+            "z": 1264
           }
         ]
       },
@@ -4623,23 +5535,23 @@
         "id": "industrial-zone-23",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 640,
+        "area_m2": 1152,
         "polygon": [
           {
-            "x": -328,
-            "z": 1296
+            "x": -400,
+            "z": 1240
           },
           {
-            "x": -288,
-            "z": 1296
+            "x": -352,
+            "z": 1240
           },
           {
-            "x": -288,
-            "z": 1312
+            "x": -352,
+            "z": 1264
           },
           {
-            "x": -328,
-            "z": 1312
+            "x": -400,
+            "z": 1264
           }
         ]
       },
@@ -4647,23 +5559,23 @@
         "id": "industrial-zone-24",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 5760,
+        "area_m2": 9408,
         "polygon": [
           {
-            "x": -336,
-            "z": 1312
+            "x": -704,
+            "z": 1264
           },
           {
-            "x": -288,
-            "z": 1312
+            "x": -536,
+            "z": 1264
           },
           {
-            "x": -288,
-            "z": 1432
+            "x": -536,
+            "z": 1320
           },
           {
-            "x": -336,
-            "z": 1432
+            "x": -704,
+            "z": 1320
           }
         ]
       },
@@ -4671,23 +5583,23 @@
         "id": "industrial-zone-25",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 16128,
+        "area_m2": 9408,
         "polygon": [
           {
-            "x": -704,
+            "x": -520,
+            "z": 1264
+          },
+          {
+            "x": -352,
+            "z": 1264
+          },
+          {
+            "x": -352,
             "z": 1320
           },
           {
-            "x": -536,
+            "x": -520,
             "z": 1320
-          },
-          {
-            "x": -536,
-            "z": 1416
-          },
-          {
-            "x": -704,
-            "z": 1416
           }
         ]
       },
@@ -4695,23 +5607,23 @@
         "id": "industrial-zone-26",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 16128,
+        "area_m2": 10176,
         "polygon": [
           {
-            "x": -520,
-            "z": 1320
+            "x": -712,
+            "z": 1336
           },
           {
-            "x": -352,
-            "z": 1320
+            "x": -288,
+            "z": 1336
           },
           {
-            "x": -352,
-            "z": 1416
+            "x": -288,
+            "z": 1360
           },
           {
-            "x": -520,
-            "z": 1416
+            "x": -712,
+            "z": 1360
           }
         ]
       },
@@ -4719,23 +5631,23 @@
         "id": "industrial-zone-27",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 6784,
+        "area_m2": 3328,
         "polygon": [
           {
             "x": -712,
-            "z": 1432
+            "z": 1360
           },
           {
-            "x": -288,
-            "z": 1432
+            "x": -296,
+            "z": 1360
           },
           {
-            "x": -288,
-            "z": 1448
+            "x": -296,
+            "z": 1368
           },
           {
             "x": -712,
-            "z": 1448
+            "z": 1368
           }
         ]
       },
@@ -4743,23 +5655,23 @@
         "id": "industrial-zone-28",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 3328,
+        "area_m2": 3264,
         "polygon": [
           {
             "x": -712,
-            "z": 1448
+            "z": 1368
           },
           {
-            "x": -296,
-            "z": 1448
+            "x": -304,
+            "z": 1368
           },
           {
-            "x": -296,
-            "z": 1456
+            "x": -304,
+            "z": 1376
           },
           {
             "x": -712,
-            "z": 1456
+            "z": 1376
           }
         ]
       },
@@ -4767,71 +5679,23 @@
         "id": "industrial-zone-29",
         "kind": "Industrial Manufacturing",
         "district": "industrial",
-        "area_m2": 3264,
-        "polygon": [
-          {
-            "x": -712,
-            "z": 1456
-          },
-          {
-            "x": -304,
-            "z": 1456
-          },
-          {
-            "x": -304,
-            "z": 1464
-          },
-          {
-            "x": -712,
-            "z": 1464
-          }
-        ]
-      },
-      {
-        "id": "industrial-zone-30",
-        "kind": "Industrial Manufacturing",
-        "district": "industrial",
         "area_m2": 3200,
         "polygon": [
           {
             "x": -712,
-            "z": 1464
+            "z": 1376
           },
           {
             "x": -312,
-            "z": 1464
+            "z": 1376
           },
           {
             "x": -312,
-            "z": 1472
+            "z": 1384
           },
           {
             "x": -712,
-            "z": 1472
-          }
-        ]
-      },
-      {
-        "id": "industrial-zone-31",
-        "kind": "Industrial Manufacturing",
-        "district": "industrial",
-        "area_m2": 3136,
-        "polygon": [
-          {
-            "x": -712,
-            "z": 1472
-          },
-          {
-            "x": -320,
-            "z": 1472
-          },
-          {
-            "x": -320,
-            "z": 1480
-          },
-          {
-            "x": -712,
-            "z": 1480
+            "z": 1384
           }
         ]
       }
@@ -4845,10 +5709,10 @@
         "kind": "service",
         "roadside_of": "res-w6",
         "planning_status": "bound",
-        "construction_status": "planned",
+        "construction_status": "completed",
         "construction_order": 80,
         "position": {
-          "x": -2600,
+          "x": -2596,
           "z": 1136
         },
         "rotation_degrees": 0,
@@ -4863,13 +5727,13 @@
         "label": "规划小学（东）",
         "name": "规划小学（东）",
         "kind": "service",
-        "roadside_of": "res-w6",
+        "roadside_of": "res-east-ring",
         "planning_status": "bound",
-        "construction_status": "planned",
+        "construction_status": "completed",
         "construction_order": 81,
         "position": {
-          "x": -1904,
-          "z": 1136
+          "x": -1572,
+          "z": 1192
         },
         "rotation_degrees": 0,
         "size_m": {
@@ -4885,7 +5749,7 @@
         "kind": "service",
         "roadside_of": "res-w7",
         "planning_status": "bound",
-        "construction_status": "planned",
+        "construction_status": "completed",
         "construction_order": 82,
         "position": {
           "x": -2128,
@@ -4905,7 +5769,7 @@
         "kind": "service",
         "roadside_of": "res-w7",
         "planning_status": "bound",
-        "construction_status": "planned",
+        "construction_status": "completed",
         "construction_order": 83,
         "position": {
           "x": -2400,
@@ -4923,13 +5787,13 @@
         "label": "儿童活动场（西）",
         "name": "儿童活动场（西）",
         "kind": "service",
-        "roadside_of": "res-w6",
+        "roadside_of": "res-west-ring",
         "planning_status": "bound",
-        "construction_status": "planned",
+        "construction_status": "completed",
         "construction_order": 84,
         "position": {
-          "x": -2664,
-          "z": 1128
+          "x": -2692,
+          "z": 1132
         },
         "rotation_degrees": 0,
         "size_m": {
@@ -4945,10 +5809,10 @@
         "kind": "service",
         "roadside_of": "res-w6",
         "planning_status": "bound",
-        "construction_status": "planned",
+        "construction_status": "completed",
         "construction_order": 85,
         "position": {
-          "x": -2160,
+          "x": -2188,
           "z": 1128
         },
         "rotation_degrees": 0,
@@ -4965,11 +5829,11 @@
         "kind": "service",
         "roadside_of": "res-w3",
         "planning_status": "bound",
-        "construction_status": "planned",
+        "construction_status": "completed",
         "construction_order": 86,
         "position": {
-          "x": -1712,
-          "z": 800
+          "x": -1724,
+          "z": 796
         },
         "rotation_degrees": 0,
         "size_m": {
@@ -4983,12 +5847,12 @@
         "label": "规划消防站",
         "name": "规划消防站",
         "kind": "service",
-        "roadside_of": "res-w4",
+        "roadside_of": "res-local-x2-south",
         "planning_status": "bound",
-        "construction_status": "planned",
+        "construction_status": "completed",
         "construction_order": 87,
         "position": {
-          "x": -2224,
+          "x": -2188,
           "z": 904
         },
         "rotation_degrees": 0,
@@ -5003,13 +5867,13 @@
         "label": "规划警察分局",
         "name": "规划警察分局",
         "kind": "service",
-        "roadside_of": "res-w8",
+        "roadside_of": "res-local-x2-south",
         "planning_status": "bound",
-        "construction_status": "planned",
+        "construction_status": "completed",
         "construction_order": 88,
         "position": {
-          "x": -2384,
-          "z": 1472
+          "x": -2196,
+          "z": 684
         },
         "rotation_degrees": 0,
         "size_m": {
@@ -5023,13 +5887,13 @@
         "label": "规划殡仪馆",
         "name": "规划殡仪馆",
         "kind": "service",
-        "roadside_of": "res-w9",
+        "roadside_of": "res-w-s2",
         "planning_status": "bound",
-        "construction_status": "planned",
+        "construction_status": "completed",
         "construction_order": 89,
         "position": {
-          "x": -2584,
-          "z": 1504
+          "x": -2560,
+          "z": 272
         },
         "rotation_degrees": 0,
         "size_m": {
@@ -5043,13 +5907,13 @@
         "label": "口袋公园 1",
         "name": "口袋公园 1",
         "kind": "service",
-        "roadside_of": "res-w3",
+        "roadside_of": "res-east-ring",
         "planning_status": "bound",
-        "construction_status": "planned",
+        "construction_status": "completed",
         "construction_order": 90,
         "position": {
-          "x": -2400,
-          "z": 784
+          "x": -1588,
+          "z": 332
         },
         "rotation_degrees": 0,
         "size_m": {
@@ -5065,7 +5929,7 @@
         "kind": "service",
         "roadside_of": "res-w5",
         "planning_status": "bound",
-        "construction_status": "planned",
+        "construction_status": "completed",
         "construction_order": 91,
         "position": {
           "x": -2096,
@@ -5083,13 +5947,13 @@
         "label": "规划水塔（住宅）",
         "name": "规划水塔（住宅）",
         "kind": "utility",
-        "roadside_of": "res-w5",
+        "roadside_of": "res-w7",
         "planning_status": "bound",
-        "construction_status": "planned",
+        "construction_status": "completed",
         "construction_order": 92,
         "position": {
-          "x": -2288,
-          "z": 968
+          "x": -2704,
+          "z": 1352
         },
         "rotation_degrees": 0,
         "size_m": {
@@ -5100,16 +5964,56 @@
       {
         "id": "bld-park-commercial",
         "prefab": "CityPark02",
-        "label": "规划商业广场",
-        "name": "规划商业广场",
+        "label": "规划商业主广场",
+        "name": "规划商业主广场",
         "kind": "service",
         "roadside_of": "shop-back-street",
         "planning_status": "bound",
-        "construction_status": "planned",
+        "construction_status": "completed",
         "construction_order": 93,
         "position": {
           "x": -424,
           "z": 856
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 47.6,
+          "z": 47.6
+        }
+      },
+      {
+        "id": "bld-park-commercial-north",
+        "prefab": "CityPark02",
+        "label": "规划商业北广场",
+        "name": "规划商业北广场",
+        "kind": "service",
+        "roadside_of": "shop-back-street",
+        "planning_status": "bound",
+        "construction_status": "completed",
+        "construction_order": 94,
+        "position": {
+          "x": -424,
+          "z": 920
+        },
+        "rotation_degrees": 0,
+        "size_m": {
+          "x": 47.6,
+          "z": 47.6
+        }
+      },
+      {
+        "id": "bld-park-office",
+        "prefab": "CityPark02",
+        "label": "规划科技绿洲广场",
+        "name": "规划科技绿洲广场",
+        "kind": "service",
+        "roadside_of": "office-south-street",
+        "planning_status": "bound",
+        "construction_status": "completed",
+        "construction_order": 95,
+        "position": {
+          "x": -464,
+          "z": 56
         },
         "rotation_degrees": 0,
         "size_m": {
@@ -5123,13 +6027,13 @@
         "label": "规划小型燃煤电厂",
         "name": "规划小型燃煤电厂",
         "kind": "utility",
-        "roadside_of": "yard-north-street",
+        "roadside_of": "yard-x4",
         "planning_status": "bound",
-        "construction_status": "planned",
-        "construction_order": 94,
+        "construction_status": "completed",
+        "construction_order": 96,
         "position": {
-          "x": -976,
-          "z": 1496
+          "x": -272,
+          "z": 1272
         },
         "rotation_degrees": 0,
         "size_m": {
@@ -5143,13 +6047,13 @@
         "label": "规划污水处理厂",
         "name": "规划污水处理厂",
         "kind": "utility",
-        "roadside_of": "yard-north-street",
+        "roadside_of": "yard-south-street",
         "planning_status": "bound",
-        "construction_status": "planned",
-        "construction_order": 95,
+        "construction_status": "completed",
+        "construction_order": 97,
         "position": {
           "x": -808,
-          "z": 1472
+          "z": 1136
         },
         "rotation_degrees": 0,
         "size_m": {
@@ -5163,13 +6067,13 @@
         "label": "规划变电站",
         "name": "规划变电站",
         "kind": "service",
-        "roadside_of": "yard-north-street",
+        "roadside_of": "yard-main-street",
         "planning_status": "bound",
-        "construction_status": "planned",
-        "construction_order": 96,
+        "construction_status": "completed",
+        "construction_order": 98,
         "position": {
-          "x": -640,
-          "z": 1464
+          "x": -1060,
+          "z": 1368
         },
         "rotation_degrees": 0,
         "size_m": {
@@ -5183,13 +6087,13 @@
         "label": "规划垃圾填埋场",
         "name": "规划垃圾填埋场",
         "kind": "service",
-        "roadside_of": "yard-north-street",
+        "roadside_of": "yard-south-street",
         "planning_status": "bound",
-        "construction_status": "planned",
-        "construction_order": 97,
+        "construction_status": "completed",
+        "construction_order": 99,
         "position": {
           "x": -448,
-          "z": 1496
+          "z": 1112
         },
         "rotation_degrees": 0,
         "size_m": {
@@ -5205,8 +6109,8 @@
         "kind": "utility",
         "roadside_of": "yard-south-street",
         "planning_status": "bound",
-        "construction_status": "planned",
-        "construction_order": 98,
+        "construction_status": "completed",
+        "construction_order": 100,
         "position": {
           "x": -496,
           "z": 1208
@@ -5218,38 +6122,18 @@
         }
       },
       {
-        "id": "bld-groundwater-pump",
-        "prefab": "GroundwaterPumpingStation01",
-        "label": "规划地下水抽水站",
-        "name": "规划地下水抽水站",
-        "kind": "utility",
-        "roadside_of": "yard-south-street",
-        "planning_status": "bound",
-        "construction_status": "planned",
-        "construction_order": 99,
-        "position": {
-          "x": -976,
-          "z": 1216
-        },
-        "rotation_degrees": 0,
-        "size_m": {
-          "x": 47.6,
-          "z": 47.6
-        }
-      },
-      {
         "id": "bld-telecom-tower",
         "prefab": "TelecomTower01",
         "label": "规划通信塔",
         "name": "规划通信塔",
         "kind": "service",
-        "roadside_of": "yard-south-street",
+        "roadside_of": "yard-x2",
         "planning_status": "bound",
-        "construction_status": "planned",
-        "construction_order": 100,
+        "construction_status": "completed",
+        "construction_order": 101,
         "position": {
-          "x": -664,
-          "z": 1224
+          "x": -676,
+          "z": 1220
         },
         "rotation_degrees": 0,
         "size_m": {
@@ -5265,16 +6149,16 @@
         "kind": "utility",
         "roadside_of": "res-w7",
         "planning_status": "bound",
-        "construction_status": "planned",
-        "construction_order": 101,
+        "construction_status": "completed",
+        "construction_order": 102,
         "position": {
-          "x": -1200,
-          "z": 1400
+          "x": -1252,
+          "z": 1348
         },
         "rotation_degrees": 0,
         "size_m": {
-          "x": 119.6,
-          "z": 119.6
+          "x": 23.6,
+          "z": 23.6
         }
       },
       {
@@ -5285,17 +6169,108 @@
         "kind": "utility",
         "roadside_of": "res-w7",
         "planning_status": "bound",
-        "construction_status": "planned",
-        "construction_order": 102,
+        "construction_status": "completed",
+        "construction_order": 103,
         "position": {
-          "x": -1376,
-          "z": 1400
+          "x": -1444,
+          "z": 1348
         },
         "rotation_degrees": 0,
         "size_m": {
-          "x": 119.6,
-          "z": 119.6
+          "x": 23.6,
+          "z": 23.6
         }
+      }
+    ],
+    "grids": [],
+    "grid_exceptions": [
+      {
+        "scope_id": "residential",
+        "road_ids": [
+          "res-west-ring",
+          "res-local-x1-south",
+          "res-mid-west-ring",
+          "res-local-x2-south",
+          "res-mid-east-ring",
+          "res-local-x3-south",
+          "res-east-ring",
+          "res-w-s2",
+          "res-w-s1",
+          "res-w1",
+          "res-w2",
+          "res-w3",
+          "res-w4",
+          "res-w5",
+          "res-w6",
+          "res-w7"
+        ],
+        "reason_codes": [
+          "NON_UNIFORM_COLUMN_SPACING",
+          "NON_UNIFORM_ROW_SPACING",
+          "PARTIAL_OR_EXTENDED_VERTICAL_LINE",
+          "PARTIAL_OR_EXTENDED_HORIZONTAL_LINE",
+          "NATIVE_GRID_BATCH_LIMIT",
+          "PERIMETER_PREFAB_MISMATCH"
+        ],
+        "message": "纵向网格线间距不一致。；横向网格线间距不一致。；纵路没有完整覆盖统一的网格南北边界，或包含额外延伸段。；横路没有完整覆盖统一的网格东西边界，或包含额外延伸段。；网格为 6×8，超过单次原生 5×5 上限。；四条外围道路不是同一 prefab，当前原生网格工具无法无损表达。"
+      },
+      {
+        "scope_id": "commercial",
+        "road_ids": [
+          "shop-link-west",
+          "shop-link-1",
+          "shop-link-2",
+          "shop-link-3",
+          "shop-link-east",
+          "shop-street",
+          "shop-mid-street",
+          "shop-back-street",
+          "trunk-avenue"
+        ],
+        "reason_codes": [
+          "NON_UNIFORM_ROW_SPACING",
+          "PARTIAL_OR_EXTENDED_VERTICAL_LINE",
+          "PARTIAL_OR_EXTENDED_HORIZONTAL_LINE",
+          "INTERNAL_ROAD_WIDTH_MISMATCH",
+          "PERIMETER_PREFAB_MISMATCH"
+        ],
+        "message": "横向网格线间距不一致。；纵路没有完整覆盖统一的网格南北边界，或包含额外延伸段。；横路没有完整覆盖统一的网格东西边界，或包含额外延伸段。；网格内部道路实际宽度不一致。；四条外围道路不是同一 prefab，当前原生网格工具无法无损表达。"
+      },
+      {
+        "scope_id": "office",
+        "road_ids": [
+          "office-link-west",
+          "office-link-1",
+          "office-link-mid",
+          "office-link-2",
+          "office-link-east",
+          "office-south-street",
+          "office-mid-street",
+          "office-street"
+        ],
+        "reason_codes": [
+          "PARTIAL_OR_EXTENDED_VERTICAL_LINE",
+          "INTERNAL_ROAD_WIDTH_MISMATCH",
+          "PERIMETER_PREFAB_MISMATCH"
+        ],
+        "message": "纵路没有完整覆盖统一的网格南北边界，或包含额外延伸段。；网格内部道路实际宽度不一致。；四条外围道路不是同一 prefab，当前原生网格工具无法无损表达。"
+      },
+      {
+        "scope_id": "industrial",
+        "road_ids": [
+          "yard-access",
+          "yard-x1",
+          "yard-x2",
+          "yard-x3",
+          "yard-x4",
+          "yard-south-street",
+          "yard-main-street"
+        ],
+        "reason_codes": [
+          "PARTIAL_OR_EXTENDED_VERTICAL_LINE",
+          "PERIMETER_PREFAB_MISMATCH"
+        ],
+        "message": "纵路没有完整覆盖统一的网格南北边界，或包含额外延伸段。；四条外围道路不是同一 prefab，当前原生网格工具无法无损表达。"
       }
     ]
   }
