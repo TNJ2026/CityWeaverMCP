@@ -33,8 +33,8 @@ function pointInBounds(point, bounds) {
 
 function buildingCorners(building) {
   const x = finite(building.position?.x), z = finite(building.position?.z);
-  const halfX = Math.max(0.5, finite(building.size_m?.x || 8) / 2);
-  const halfZ = Math.max(0.5, finite(building.size_m?.z || 8) / 2);
+  const halfX = Math.max(0.5, finite(Math.max(building.reserved_size_m?.x || 0, building.size_m?.x || 8)) / 2);
+  const halfZ = Math.max(0.5, finite(Math.max(building.reserved_size_m?.z || 0, building.size_m?.z || 8)) / 2);
   const angle = finite(building.rotation_degrees) * Math.PI / 180;
   const cos = Math.cos(angle), sin = Math.sin(angle);
   return [[-halfX, -halfZ], [halfX, -halfZ], [halfX, halfZ], [-halfX, halfZ]].map(([dx, dz]) => ({ x: x + dx * cos - dz * sin, z: z + dx * sin + dz * cos }));
@@ -55,8 +55,8 @@ function roadCrossesBuilding(road, building) {
   const angle = -finite(building.rotation_degrees) * Math.PI / 180;
   const cos = Math.cos(angle), sin = Math.sin(angle);
   const halfRoad = Math.max(0, finite(road.width_m || 8)) / 2;
-  const halfX = Math.max(0.5, finite(building.size_m?.x || 8) / 2) + halfRoad;
-  const halfZ = Math.max(0.5, finite(building.size_m?.z || 8) / 2) + halfRoad;
+  const halfX = Math.max(0.5, finite(Math.max(building.reserved_size_m?.x || 0, building.size_m?.x || 8)) / 2) + halfRoad;
+  const halfZ = Math.max(0.5, finite(Math.max(building.reserved_size_m?.z || 0, building.size_m?.z || 8)) / 2) + halfRoad;
   const local = point => {
     const dx = finite(point?.x) - centerX, dz = finite(point?.z) - centerZ;
     return { x: dx * cos - dz * sin, z: dx * sin + dz * cos };

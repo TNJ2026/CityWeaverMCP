@@ -1,5 +1,8 @@
 import { randomBytes } from 'node:crypto';
 import { queryGame as liveQueryGame, BridgeError } from './bridge-client.mjs';
+import { rankBuildingSites, siteProfile } from './building-site-selection.mjs';
+import { footprint, footprintsOverlap } from './planning-spatial.mjs';
+import { createWorkflowMetrics } from './workflow-metrics.mjs';
 
 const FAILURE_STATES = new Set(['failed', 'cancelled', 'expired', 'outcome_unknown']);
 const CATEGORY_CONFIG = {
@@ -32,11 +35,17 @@ const exactItem = (response, wanted) => response?.data?.items?.find(item => item
 const specialPlacement = prefab => /Shoreline|Floating|RoadEdge|RoadNode/i.test(prefab?.placement_flags || '') ||
   ['shoreline', 'floating', 'road_edge', 'road_node'].includes(prefab?.placement_mode);
 
-export function createBuildingWorkflow(queryGame = liveQueryGame) {
+export function createBuildingWorkflow(queryGameImpl = liveQueryGame) {
+  const metrics = createWorkflowMetrics(queryGameImpl);
+  const queryGame = metrics.query;
+  const pendingPlans = new Map();
   const plans = new Map();
   const planRequests = new Map();
+  const uncertainPlans = new Map();
   const executionRequests = new Map();
   const prefabCache = new Map();
+  const pendingPrefabs = new Map();
+  const unsupportedBatchAnalyses = new Set();
   let constructionTail = Promise.resolve();
 
   const exclusive = async fn => {
@@ -67,6 +76,14 @@ export function createBuildingWorkflow(queryGame = liveQueryGame) {
   async function discover(prefabName, requestedCategory, sessionId) {
     const cacheKey = `${sessionId}:${requestedCategory}:${prefabName.toLowerCase()}`;
     if (prefabCache.has(cacheKey)) return prefabCache.get(cacheKey);
+    if (pendingPrefabs.has(cacheKey)) return pendingPrefabs.get(cacheKey);
+    const promise = Promise.resolve().then(() => discoverUncached(prefabName, requestedCategory, cacheKey))
+      .finally(() => pendingPrefabs.delete(cacheKey));
+    pendingPrefabs.set(cacheKey, promise);
+    return promise;
+  }
+
+  async function discoverUncached(prefabName, requestedCategory, cacheKey) {
     const categories = requestedCategory === 'auto' ? Object.keys(CATEGORY_CONFIG) : [requestedCategory];
     const found = await Promise.all(categories.map(async category => {
       const config = CATEGORY_CONFIG[category];
@@ -85,22 +102,49 @@ export function createBuildingWorkflow(queryGame = liveQueryGame) {
   }
 
   async function analyze(category, prefab, candidate, radius, enabled = true) {
-    if (category === 'city_service' && !enabled) return null;
+    if (!enabled) return null;
     const position = { x: candidate.position.x, z: candidate.position.z };
     try {
       if (category === 'transport_facility') return (await queryGame('analyze_transport_catchment', { position, radius_m: radius })).data;
       if (category === 'building' && prefab.placement?.unique) return (await queryGame('analyze_attraction_impact', { position, radius_m: radius })).data;
+      if (category === 'utility_facility' && prefab.kind === 'sewage') return (await queryGame('analyze_service_coverage', { position, kind: 'all', radius_m: radius, facility_limit: 0 })).data;
       if (category !== 'city_service') return null;
-      if (prefab.kind === 'education') return (await queryGame('analyze_education_demand', { position, radius_m: radius })).data;
-      if (prefab.kind === 'park') return (await queryGame('analyze_attraction_impact', { position, radius_m: radius })).data;
+      if (prefab.kind === 'education') return (await queryGame('analyze_education_demand', compact({ position, radius_m: radius, education_level: prefab.education_level }))).data;
+      if (prefab.kind === 'park') {
+        const attraction = (await queryGame('analyze_attraction_impact', { position, radius_m: radius })).data;
+        const coverage = (await queryGame('analyze_service_coverage', { position, kind: 'park', radius_m: radius, facility_limit: 0 })).data;
+        return { ...attraction, ...coverage };
+      }
       return (await queryGame('analyze_service_coverage', { position, kind: prefab.kind || 'all', radius_m: radius, facility_limit: 16 })).data;
     } catch (error) {
       return { unavailable: true, error: error instanceof BridgeError ? `${error.code}: ${error.message}` : error.message };
     }
   }
 
-  async function createPlan(args, lockHeld = false) {
+  function createPlan(args, lockHeld = false) {
+    // Internal batch planning already owns the construction lock. Never await an
+    // external request queued for that lock; the queued call rechecks the journal.
+    if (lockHeld) return metrics.run(() => createPlanCore(args, true));
     const fingerprint = JSON.stringify(args);
+    const pending = pendingPlans.get(args.request_id);
+    if (pending) {
+      if (pending.fingerprint !== fingerprint) return Promise.reject(new BridgeError('IDEMPOTENCY_CONFLICT', 'request_id has different in-flight planning arguments.'));
+      return pending.promise;
+    }
+    const snapshot = structuredClone(args);
+    const promise = Promise.resolve().then(() => metrics.run(() => createPlanCore(snapshot, false)))
+      .finally(() => pendingPlans.delete(snapshot.request_id));
+    pendingPlans.set(args.request_id, { fingerprint, promise });
+    return promise;
+  }
+
+  async function createPlanCore(args, lockHeld) {
+    const fingerprint = JSON.stringify(args);
+    const uncertain = uncertainPlans.get(args.request_id);
+    if (uncertain) {
+      if (uncertain.fingerprint !== fingerprint) throw new BridgeError('IDEMPOTENCY_CONFLICT', 'request_id belongs to an unresolved preview.');
+      throw uncertain.error;
+    }
     const existingId = planRequests.get(args.request_id);
     if (existingId) {
       const existing = plans.get(existingId);
@@ -115,8 +159,10 @@ export function createBuildingWorkflow(queryGame = liveQueryGame) {
     const status = statusEnvelope.data || {};
     if (!status.city_loaded) throw new BridgeError('CITY_NOT_READY', 'No playable city is loaded.');
     const sessionId = statusEnvelope.meta?.session_id;
-    const beforeSpeed = speedOf(status);
-    const discovered = await discover(args.building_prefab, args.category, sessionId);
+    const finishDiscovery = metrics.mark('discovery');
+    let discovered;
+    try { discovered = await discover(args.building_prefab, args.category, sessionId); }
+    finally { finishDiscovery(); }
     const config = CATEGORY_CONFIG[discovered.category];
     const useSpecial = discovered.category === 'building' && specialPlacement(discovered.prefab);
     const planTool = useSpecial ? config.specialPlan : config.plan;
@@ -125,23 +171,101 @@ export function createBuildingWorkflow(queryGame = liveQueryGame) {
       search_radius_m: args.search_radius_m, road_side: useSpecial ? undefined : args.road_side,
       candidate_count: args.candidate_count, minimum_water_depth_m: useSpecial || discovered.category !== 'building' ? args.minimum_water_depth_m : undefined,
       reserve_upgrade_prefabs: useSpecial ? undefined : args.reserve_upgrade_prefabs,
-      consider_service_coverage: discovered.category === 'city_service' ? args.consider_service_coverage : undefined,
+      consider_service_coverage: discovered.category === 'city_service' ? false : undefined,
       coverage_radius_m: discovered.category === 'city_service' ? args.impact_radius_m : undefined
     });
-    const candidates = (await queryGame(planTool, planArgs)).data?.candidates || [];
-    const usable = args.allow_approximate_collisions ? candidates : candidates.filter(candidate => !candidate.approximate_collision);
-    if (!usable.length) throw new BridgeError('NO_BUILDING_SITE', 'The planner found no collision-free candidate. Expand the search area or choose another location.');
-
+    const finishQueue = metrics.mark('queue_wait');
     const previewCandidate = async () => {
+      finishQueue();
       let pausedByWorkflow = false;
+      let beforeSpeed;
       const attempts = [];
       try {
-        if (!status.paused) {
+        const uncertain = uncertainPlans.get(args.request_id);
+        if (uncertain) {
+          if (uncertain.fingerprint !== fingerprint) throw new BridgeError('IDEMPOTENCY_CONFLICT', 'request_id belongs to an unresolved preview.');
+          throw uncertain.error;
+        }
+        const currentStatus = await queryGame('get_game_status', {});
+        if (currentStatus.meta?.session_id !== sessionId) throw new BridgeError('STALE_BUILDING_PLAN', 'The loaded city session changed before planning.');
+        const existing = plans.get(planRequests.get(args.request_id));
+        if (existing) {
+          if (existing.fingerprint !== fingerprint) throw new BridgeError('IDEMPOTENCY_CONFLICT', 'request_id was already used with different planning arguments.');
+          if (existing.public.session_id !== sessionId) throw new BridgeError('STALE_BUILDING_PLAN', 'The loaded city session changed.');
+          return existing.public;
+        }
+        if (plans.size >= 256) throw new BridgeError('BUILDING_PLAN_LIMIT_REACHED', 'Building plan journal is full.');
+        beforeSpeed = speedOf(currentStatus.data);
+        if (!currentStatus.data.paused) {
           await queryGame('set_simulation_speed', { speed: 'paused' });
           pausedByWorkflow = true;
         }
+        // Read candidates and demand under the same construction lock. Each batch
+        // item gets a fresh snapshot after the preceding permanent placement.
+        const finishCandidates = metrics.mark('candidates');
+        let sitePlan = (await queryGame(planTool, planArgs)).data || {};
+        let candidates = sitePlan.candidates || [];
+        const size = {
+          x: Math.max(discovered.prefab.size_m?.x ?? 0, (discovered.prefab.lot_cells?.width ?? 0) * 8, (sitePlan.reserved_footprint_half_extents_m?.x ?? 0) * 2),
+          z: Math.max(discovered.prefab.size_m?.z ?? 0, (discovered.prefab.lot_cells?.depth ?? 0) * 8, (sitePlan.reserved_footprint_half_extents_m?.z ?? 0) * 2),
+        };
+        const reservations = (args.reserved_footprints ?? []).map(footprint);
+        if (reservations.some(box => !box) || (reservations.length && !(size.x > 0 && size.z > 0)))
+          throw new BridgeError('BUILDING_FOOTPRINT_REQUIRED', 'Exact footprint dimensions are required to exclude planned reservations.');
+        const filterCandidates = pool => pool.filter(candidate => candidate.position &&
+          Number.isFinite(candidate.position.x) && Number.isFinite(candidate.position.z) &&
+          (args.allow_approximate_collisions || !candidate.approximate_collision) &&
+          !reservations.some(box => footprintsOverlap(footprint({ ...candidate, size_m: size }), box)));
+        let usable = filterCandidates(candidates);
+        // Widen only within the authorized search area, never beyond the native cap.
+        let requestedCount = args.candidate_count ?? 8;
+        while (reservations.length && usable.length < Math.min(args.max_preview_attempts ?? 8, args.candidate_count ?? 8) && requestedCount < 32) {
+          requestedCount = Math.min(32, requestedCount * 2);
+          sitePlan = (await queryGame(planTool, { ...planArgs, candidate_count: requestedCount })).data || {};
+          candidates = sitePlan.candidates || [];
+          usable = filterCandidates(candidates);
+        }
+        finishCandidates();
+        metrics.count('candidates_returned', candidates.length);
+        metrics.count('candidates_usable', usable.length);
+        if (!usable.length) throw new BridgeError('NO_BUILDING_SITE', 'The planner found no collision-free candidate. Expand the search area or choose another location.');
+        const finishAnalysis = metrics.mark('analysis');
+        const strategy = args.site_selection ?? 'greedy';
+        const impacts = [];
+        let batchImpacts;
+        const profile = siteProfile(discovered.category, discovered.prefab);
+        const batchTool = { coverage: 'analyze_service_coverage', separation: 'analyze_service_coverage',
+          education: 'analyze_education_demand', transport: 'analyze_transport_catchment' }[profile];
+        const batchKey = `${sessionId}:${batchTool}`;
+        if (strategy === 'greedy' && args.consider_service_coverage !== false && batchTool && !unsupportedBatchAnalyses.has(batchKey)) {
+          try {
+            const response = await queryGame(batchTool, compact({
+              positions: usable.map(c => ({ x: c.position.x, z: c.position.z })), radius_m: args.impact_radius_m,
+              kind: batchTool === 'analyze_service_coverage' ? (discovered.category === 'city_service' ? discovered.prefab.kind : 'all') : undefined,
+              facility_limit: batchTool === 'analyze_service_coverage' ? 0 : undefined,
+              education_level: profile === 'education' ? discovered.prefab.education_level : undefined,
+            }));
+            if (response.data?.items?.length === usable.length) batchImpacts = response.data.items;
+          } catch (error) {
+            if (error instanceof BridgeError) {
+              if (!['INVALID_ARGUMENT', 'UNKNOWN_TOOL'].includes(error.code)) throw error;
+              unsupportedBatchAnalyses.add(batchKey);
+            }
+            // Older mods keep the single-position path; capability is scoped to this city session.
+          }
+        }
+        for (const [index, candidate] of usable.entries()) {
+          if (batchImpacts) { impacts.push(batchImpacts[index]); continue; }
+          impacts.push(strategy === 'greedy' && siteProfile(discovered.category, discovered.prefab) !== 'engineering'
+            ? await analyze(discovered.category, discovered.prefab, candidate, args.impact_radius_m, args.consider_service_coverage) : null);
+        }
+        finishAnalysis();
+        const finishRanking = metrics.mark('ranking');
+        const ranked = rankBuildingSites(usable, impacts, { category: discovered.category, prefab: discovered.prefab,
+          radius: args.impact_radius_m, strategy });
+        finishRanking();
         for (let index = 0; index < Math.min(usable.length, args.max_preview_attempts); index++) {
-          const candidate = usable[index];
+          const { candidate, selection } = ranked[index];
           const previewRequestId = childRequestId(args.request_id, String(index + 1));
           const previewTool = useSpecial ? config.specialPreview : config.preview;
           const previewArgs = compact({
@@ -154,24 +278,52 @@ export function createBuildingWorkflow(queryGame = liveQueryGame) {
             snap_target_id: candidate.snap_target_id || (useSpecial ? candidate.road_edge_id || candidate.road_node_id : undefined)
           });
           let operation;
+          let queuedOperationId;
+          const finishPreview = metrics.mark('preview');
+          metrics.count('preview_attempts');
           try {
             const queued = await queryGame(previewTool, previewArgs);
+            queuedOperationId = queued.data?.operation_id;
             operation = queued.data?.state === 'preview_ready' ? queued.data
               : await waitOperation(config, queued.data.operation_id, 'preview_ready', args.operation_timeout_ms, sessionId);
           } catch (error) {
+            metrics.count('preview_errors');
+            if (['WORKFLOW_TIMEOUT', 'OUTCOME_UNKNOWN', 'CITY_SESSION_CHANGED', 'GAME_TIMEOUT', 'GAME_UNAVAILABLE', 'INCOMPLETE_RESPONSE', 'INVALID_RESPONSE', 'RESPONSE_TOO_LARGE'].includes(error.code)) {
+              error.operation_id = queuedOperationId ?? error.operation_id ?? null;
+              error.request_id = previewRequestId;
+              error.recovery_required = true;
+              uncertainPlans.set(args.request_id, { fingerprint, error });
+              throw error;
+            }
             attempts.push({ candidate_index: index, state: 'error', error: error instanceof BridgeError ? `${error.code}: ${error.message}` : error.message });
             continue;
+          } finally { finishPreview(); }
+          if (operation.state === 'outcome_unknown') {
+            const error = new BridgeError('OUTCOME_UNKNOWN', 'Building preview outcome is unknown; inspect the original operation before further construction.');
+            Object.assign(error, { operation_id: operation.operation_id ?? queuedOperationId, request_id: previewRequestId, recovery_required: true });
+            uncertainPlans.set(args.request_id, { fingerprint, error });
+            throw error;
           }
           if (operation.state !== 'preview_ready') {
+            metrics.count('preview_rejections');
             attempts.push({ candidate_index: index, state: operation.state, errors: operation.errors || [], error: operation.error || null });
             continue;
           }
           const planId = id('bplan');
-          const impact = await analyze(discovered.category, discovered.prefab, candidate, args.impact_radius_m, args.consider_service_coverage);
+          let impact = ranked[index].impact ?? await analyze(discovered.category, discovered.prefab, candidate, args.impact_radius_m, args.consider_service_coverage);
+          if (batchImpacts && discovered.prefab.kind === 'park') {
+            try {
+              const attraction = (await queryGame('analyze_attraction_impact', { position: { x: candidate.position.x, z: candidate.position.z }, radius_m: args.impact_radius_m })).data;
+              impact = { ...attraction, ...impact };
+            } catch (error) { impact = { ...impact, attraction_error: error.message }; }
+          }
           const publicPlan = {
             plan_id: planId, state: 'preview_ready', session_id: sessionId, city: status.city_name,
             category: discovered.category, building_prefab: args.building_prefab, prefab: discovered.prefab,
-            selected_candidate_index: index, candidate, impact, cost: operation.cost || 0,
+            selected_candidate_index: index, candidate, impact, selection,
+            footprint_size_m: size,
+            candidate_rankings: ranked.map(row => ({ source_index: row.source_index, position: row.candidate.position, ...row.selection })),
+            cost: operation.cost || 0,
             warnings: operation.warnings || [], operation_id: operation.operation_id,
             expires_at_utc: operation.expires_at_utc, attempts, built: false
           };
@@ -325,9 +477,10 @@ export function createBuildingWorkflow(queryGame = liveQueryGame) {
             }
             results.push({
               plan_id: plan?.plan_id || null, building_prefab: item.building_prefab, state: 'failed',
+              operation_id: error.operation_id ?? null, request_id: error.request_id ?? null, recovery_required: Boolean(error.recovery_required),
               error: error instanceof BridgeError ? `${error.code}: ${error.message}` : error.message
             });
-            if (!args.continue_on_error) break;
+            if (error.recovery_required || !args.continue_on_error) break;
           }
         }
         const result = {

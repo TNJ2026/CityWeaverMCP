@@ -9,6 +9,27 @@ const baseArgs = {
   road_side: 'either', candidate_count: 8, max_preview_attempts: 8, operation_timeout_ms: 20000, continue_on_error: true,
 };
 
+test('passes successful reservations, including upgrade footprint, to subsequent building plans', async () => {
+  const reservations = [];
+  const bind = createCityPlanBuildingBinder({
+    planBuildingWorkflow: async args => {
+      reservations.push(structuredClone(args.reserved_footprints));
+      return { plan_id: `plan-${reservations.length}`, state: 'preview_ready',
+        footprint_size_m: { x: 80, z: 60 },
+        candidate: { position: { x: reservations.length * 200, z: 0 }, rotation_degrees: 90 } };
+    },
+    cancelBuildingPlan: async () => ({ state: 'cancelled' }),
+  });
+  const result = await bind({ ...baseArgs, plan: { buildings: ['a','b'].map(id => ({
+    id, prefab: 'School', position: {x:0,z:0}, size_m:{x:40,z:32},
+  })) } });
+  assert.equal(result.bound_count,2);
+  assert.deepEqual(reservations,[[],[{position:{x:200,z:0},rotation_degrees:90,size_m:{x:80,z:60}}]]);
+  assert.deepEqual(result.plan.buildings[0].reserved_size_m,{x:80,z:60});
+  await bind({...baseArgs,request_id:'bind-later',building_ids:['b'],plan:result.plan});
+  assert.deepEqual(reservations[2],[{position:{x:200,z:0},rotation_degrees:90,size_m:{x:80,z:60}}]);
+});
+
 test('binds exact position, rotation and road edge then cancels the temporary native preview', async () => {
   let plans = 0, cancellations = 0;
   const bind = createCityPlanBuildingBinder({

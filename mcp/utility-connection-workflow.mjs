@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { queryGame as liveQueryGame, BridgeError } from './bridge-client.mjs';
+import { routeUtilityAdaptive } from './utility-router.mjs';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const FAILURE_STATES = new Set(['failed', 'cancelled', 'expired', 'outcome_unknown']);
@@ -88,13 +89,36 @@ export function createUtilityConnectionWorkflow(queryGame = liveQueryGame) {
           const target = targets[index];
           const port = target.facility_port || ports.find(item => item.node_id === target.facility_port_id) || ports[index % Math.max(1, ports.length)];
           const start = port?.position || facility.position; const end = target.target_position || target.position || target.end;
-          const paths = args.routing === 'direct' ? [[start, end]] : args.routing === 'orthogonal' ? [[start, { x: end.x, z: start.z }, end]] : [[start, end], [start, { x: end.x, z: start.z }, end], [start, { x: start.x, z: end.z }, end]];
-          for (const [pathIndex, path] of paths.entries()) {
+          const rawPaths = args.routing === 'direct' ? [[start, end]] : args.routing === 'orthogonal' ? [[start, { x: end.x, z: start.z }, end]] : [[start, end], [start, { x: end.x, z: start.z }, end], [start, { x: start.x, z: end.z }, end]];
+          const seenPaths = new Set();
+          const paths = rawPaths.map(path => path.filter((p,i) => !i || p.x !== path[i-1].x || p.z !== path[i-1].z))
+            .filter(path => { const key = JSON.stringify(path.map(point)); if (path.length < 2 || seenPaths.has(key)) return false; seenPaths.add(key); return true; });
+          const simplePathCount = paths.length;
+          for (let pathIndex = 0; pathIndex <= paths.length; pathIndex++) {
+            if (pathIndex === simplePathCount && (args.routing ?? 'auto') === 'auto') {
+              const margin = 512;
+              const bounds = { min_x: Math.max(-7168, Math.min(start.x,end.x)-margin), max_x: Math.min(7168, Math.max(start.x,end.x)+margin),
+                min_z: Math.max(-7168, Math.min(start.z,end.z)-margin), max_z: Math.min(7168, Math.max(start.z,end.z)+margin) };
+              try {
+                const snapshot = (await queryGame('get_planning_map_snapshot', { bounds, include_roads: false, include_buildings: true, include_tracks: false, include_utilities: false, max_features_per_layer: 5000 })).data;
+                if (snapshot?.buildings && !snapshot.truncated) {
+                  const routed = routeUtilityAdaptive(start, end, snapshot.buildings, { excludedId: facility.facility_id });
+                  if (routed) paths.push(routed);
+                }
+              } catch (error) {
+                attempts.push({ target_index: index, path: pathIndex, state: 'routing_unavailable', error: error.message });
+              }
+            }
+            const path = paths[pathIndex];
+            if (!path) break;
             const points = path.map(point); if (port?.node_id) points[0] = { ...points[0], node_id: port.node_id }; if (target.target_node_id) points[points.length - 1] = { ...points[points.length - 1], node_id: target.target_node_id };
-            const previewArgs = { request_id: childRequestId(args.request_id, `${index + 1}-${pathIndex + 1}`), utility_prefab: args.utility_prefab || selectedPrefab.name, points };
+            const previewArgs = { request_id: childRequestId(args.request_id, `${index + 1}-${pathIndex + 1}`), utility_prefab: args.utility_prefab || target.utility_prefab || selectedPrefab.name, points };
             let operation;
             try { const queued = await queryGame('preview_utility_network', previewArgs); operation = queued.data?.state === 'preview_ready' ? queued.data : await waitOperation(queued.data.operation_id, 'preview_ready', args.operation_timeout_ms); }
-            catch (error) { attempts.push({ target_index: index, path: pathIndex, state: 'error', error: error instanceof BridgeError ? `${error.code}: ${error.message}` : error.message }); continue; }
+            catch (error) {
+              if (error instanceof BridgeError && ['WORKFLOW_TIMEOUT', 'OUTCOME_UNKNOWN', 'CITY_SESSION_CHANGED'].includes(error.code)) throw error;
+              attempts.push({ target_index: index, path: pathIndex, state: 'error', error: error instanceof BridgeError ? `${error.code}: ${error.message}` : error.message }); continue;
+            }
             if (operation?.state === 'outcome_unknown') {
               const failure = new BridgeError('OUTCOME_UNKNOWN', 'Native utility preview outcome is unknown; inspect the original operation before taking any further action.');
               failure.operation_id = operation.operation_id;

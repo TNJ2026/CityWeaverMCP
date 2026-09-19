@@ -9,6 +9,7 @@
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test test/*.test.mjs",
+    "bench:planning": "node benchmark-planning.mjs",
     "smoke": "node smoke.mjs",
     "audit:buildings": "node audit-building-prefabs.mjs"
   },

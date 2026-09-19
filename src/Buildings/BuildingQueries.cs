@@ -584,56 +584,87 @@ namespace CityWeaver
             if (!terrain.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain height data is not ready.");
             int nonZoningRoad = 0, elevatedOrSunkenRoad = 0, steepRoad = 0, unevenSite = 0;
             float halfDepth = math.max(4, footprintHalf.y); float halfWidth = math.max(4, footprintHalf.x);
-            var existing = new List<(float2 p, float r)>();
+            var existing = new PlanningSpatialIndex<(float2 p, quaternion rotation, float2 half)>();
             using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<Building>(), ComponentType.ReadOnly<Game.Objects.Transform>(), ComponentType.ReadOnly<PrefabRef>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
-            using (var entities = q.ToEntityArray(Allocator.Temp)) foreach (var e in entities) { var p = em.GetComponentData<Game.Objects.Transform>(e).m_Position.xz; float r = 8; var pe = em.GetComponentData<PrefabRef>(e).m_Prefab; if (em.HasComponent<ObjectGeometryData>(pe)) { var s = em.GetComponentData<ObjectGeometryData>(pe).m_Size.xz; r = math.length(s) * .5f; } existing.Add((p, r)); }
+            using (var entities = q.ToEntityArray(Allocator.Temp)) foreach (var e in entities)
+            {
+                var transform = em.GetComponentData<Game.Objects.Transform>(e);
+                var half = PrefabHalfExtents(em, em.GetComponentData<PrefabRef>(e).m_Prefab);
+                float r = math.length(half);
+                existing.Add(transform.m_Position.xz - r, transform.m_Position.xz + r, (transform.m_Position.xz, transform.m_Rotation, half));
+            }
             var sites = new List<RoadSite>();
             using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<Road>(), ComponentType.ReadOnly<Edge>(), ComponentType.ReadOnly<Curve>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
             using (var edges = q.ToEntityArray(Allocator.Temp)) foreach (var edge in edges)
             {
-                var curve = em.GetComponentData<Curve>(edge).m_Bezier; MathUtils.Distance(curve.xz, near, out float t); var road = MathUtils.Position(curve, t);
-                float roadDistance = math.distance(road.xz, near); if (roadDistance > radius) continue;
+                var curveData = em.GetComponentData<Curve>(edge); var curve = curveData.m_Bezier;
+                MathUtils.Distance(curve.xz, near, out float closestT);
+                if (math.distance(MathUtils.Position(curve, closestT).xz, near) > radius) continue;
+                float margin = math.min(.45f, (halfWidth + 4) / math.max(1, curveData.m_Length));
+                int samples = math.clamp((int)math.ceil(curveData.m_Length / math.max(16, halfWidth * 2)), 2, 256);
+                var sampleTs = new List<float> { math.clamp(closestT, margin, 1 - margin) };
+                for (int sample = 0; sample <= samples; sample++) sampleTs.Add(math.lerp(margin, 1 - margin, (float)sample / samples));
                 string roadPrefabName = null;
                 if (!em.HasComponent<PrefabRef>(edge)) { ++nonZoningRoad; continue; }
                 var roadPrefab = em.GetComponentData<PrefabRef>(edge).m_Prefab;
                 if (!em.HasComponent<RoadData>(roadPrefab) || (em.GetComponentData<RoadData>(roadPrefab).m_Flags & Game.Prefabs.RoadFlags.EnableZoning) == 0) { ++nonZoningRoad; continue; }
                 if (world.GetExistingSystemManaged<PrefabSystem>().TryGetPrefab<PrefabBase>(roadPrefab, out var roadPrefabObject)) roadPrefabName = roadPrefabObject.name;
-                float roadHalfWidth = 8f;
+                float roadHalfWidth = 8f, surfaceOffset = 0;
                 if (em.HasComponent<Composition>(edge))
                 {
                     var composition = em.GetComponentData<Composition>(edge).m_Edge;
-                    if (em.HasComponent<NetCompositionData>(composition)) roadHalfWidth = math.max(1f, em.GetComponentData<NetCompositionData>(composition).m_Width * .5f);
-                }
-                float u = 1 - t; float3 derivative = 3 * (curve.b - curve.a) * u * u + 6 * (curve.c - curve.b) * u * t + 3 * (curve.d - curve.c) * t * t;
-                float horizontalDerivative = math.length(derivative.xz);
-                if (horizontalDerivative < .01f || math.abs(derivative.y) / horizontalDerivative > .15f) { ++steepRoad; continue; }
-                var roadTerrainPoint = road; float terrainAtRoad = TerrainUtils.SampleHeight(ref terrain, roadTerrainPoint);
-                float roadSurface = road.y;
-                if (em.HasComponent<Composition>(edge))
-                {
-                    var composition = em.GetComponentData<Composition>(edge).m_Edge;
-                    if (em.HasComponent<NetCompositionData>(composition)) roadSurface += em.GetComponentData<NetCompositionData>(composition).m_SurfaceHeight.max;
-                }
-                float heightGap = roadSurface - terrainAtRoad;
-                if (math.abs(heightGap) > 2f) { ++elevatedOrSunkenRoad; continue; }
-                float2 tangent = math.normalizesafe(derivative.xz, new float2(1, 0)); float2 normal = new float2(-tangent.y, tangent.x);
-                foreach (var sign in side == "left" ? new[] { 1f } : side == "right" ? new[] { -1f } : new[] { 1f, -1f })
-                {
-                    float2 xz = road.xz + normal * sign * (halfDepth + roadHalfWidth + .25f); var p = new float3(xz.x, 0, xz.y); p.y = TerrainUtils.SampleHeight(ref terrain, p);
-                    float minHeight = p.y, maxHeight = p.y;
-                    foreach (var corner in new[] { xz + tangent * halfWidth + normal * halfDepth, xz + tangent * halfWidth - normal * halfDepth, xz - tangent * halfWidth + normal * halfDepth, xz - tangent * halfWidth - normal * halfDepth })
+                    if (em.HasComponent<NetCompositionData>(composition))
                     {
-                        var samplePoint = new float3(corner.x, 0, corner.y); float h = TerrainUtils.SampleHeight(ref terrain, samplePoint); minHeight = math.min(minHeight, h); maxHeight = math.max(maxHeight, h);
+                        var net = em.GetComponentData<NetCompositionData>(composition);
+                        roadHalfWidth = math.max(1f, net.m_Width * .5f); surfaceOffset = net.m_SurfaceHeight.max;
                     }
-                    float terrainRelief = maxHeight - minHeight;
-                    if (terrainRelief > 3f || math.abs(p.y - roadSurface) > 2f) { ++unevenSite; continue; }
-                    bool collision = existing.Any(x => math.distance(x.p, xz) < x.r + math.length(new float2(halfWidth, halfDepth)));
-                    float2 facingRoad = -normal * sign;
-                    sites.Add(new RoadSite { Edge = edge, RoadPosition = road, Position = p, Tangent = tangent, RotationDegrees = math.degrees(math.atan2(facingRoad.x, facingRoad.y)), Distance = roadDistance, Collision = collision, Side = sign > 0 ? "left" : "right", Score = roadDistance + (collision ? 100000 : 0), RoadPrefab = roadPrefabName, RoadSurfaceHeight = roadSurface, TerrainHeightAtRoad = terrainAtRoad, HeightGap = heightGap, TerrainRelief = terrainRelief });
+                }
+                foreach (float t in sampleTs.Distinct())
+                {
+                    var road = MathUtils.Position(curve, t);
+                    float roadDistance = math.distance(road.xz, near); if (roadDistance > radius) continue;
+                    float u = 1 - t; float3 derivative = 3 * (curve.b - curve.a) * u * u + 6 * (curve.c - curve.b) * u * t + 3 * (curve.d - curve.c) * t * t;
+                    float horizontalDerivative = math.length(derivative.xz);
+                    if (horizontalDerivative < .01f || math.abs(derivative.y) / horizontalDerivative > .15f) { ++steepRoad; continue; }
+                    var roadTerrainPoint = road; float terrainAtRoad = TerrainUtils.SampleHeight(ref terrain, roadTerrainPoint);
+                    float roadSurface = road.y + surfaceOffset;
+                    float heightGap = roadSurface - terrainAtRoad;
+                    if (math.abs(heightGap) > 2f) { ++elevatedOrSunkenRoad; continue; }
+                    float2 tangent = math.normalizesafe(derivative.xz, new float2(1, 0)); float2 normal = new float2(-tangent.y, tangent.x);
+                    foreach (var sign in side == "left" ? new[] { 1f } : side == "right" ? new[] { -1f } : new[] { 1f, -1f })
+                    {
+                        float2 xz = road.xz + normal * sign * (halfDepth + roadHalfWidth + .25f); var p = new float3(xz.x, 0, xz.y); p.y = TerrainUtils.SampleHeight(ref terrain, p);
+                        float minHeight = p.y, maxHeight = p.y;
+                        foreach (var corner in new[] { xz + tangent * halfWidth + normal * halfDepth, xz + tangent * halfWidth - normal * halfDepth, xz - tangent * halfWidth + normal * halfDepth, xz - tangent * halfWidth - normal * halfDepth })
+                        {
+                            var samplePoint = new float3(corner.x, 0, corner.y); float h = TerrainUtils.SampleHeight(ref terrain, samplePoint); minHeight = math.min(minHeight, h); maxHeight = math.max(maxHeight, h);
+                        }
+                        float terrainRelief = maxHeight - minHeight;
+                        if (terrainRelief > 3f || math.abs(p.y - roadSurface) > 2f) { ++unevenSite; continue; }
+                        float2 facingRoad = -normal * sign;
+                        float angle = math.degrees(math.atan2(facingRoad.x, facingRoad.y));
+                        float bound = math.length(new float2(halfWidth, halfDepth)) + .25f;
+                        bool collision = existing.Query(xz - bound, xz + bound).Any(x =>
+                            FootprintsOverlap(xz, quaternion.RotateY(math.radians(angle)), new float2(halfWidth, halfDepth), x.p, x.rotation, x.half));
+                        sites.Add(new RoadSite { Edge = edge, RoadPosition = road, Position = p, Tangent = tangent, RotationDegrees = math.degrees(math.atan2(facingRoad.x, facingRoad.y)), Distance = roadDistance, Collision = collision, Side = sign > 0 ? "left" : "right", Score = roadDistance + (collision ? 100000 : 0), RoadPrefab = roadPrefabName, RoadSurfaceHeight = roadSurface, TerrainHeightAtRoad = terrainAtRoad, HeightGap = heightGap, TerrainRelief = terrainRelief });
+                    }
                 }
             }
             rejected = new JObject { ["non_zoning_or_highway_edges"] = nonZoningRoad, ["elevated_or_sunken_edges"] = elevatedOrSunkenRoad, ["steep_edges"] = steepRoad, ["uneven_or_height_mismatched_sites"] = unevenSite };
-            return sites.OrderBy(x => x.Score).ThenBy(x => x.Edge.Index).Take(count).ToList();
+            // Round-robin spatial buckets prevent the nearest road from consuming
+            // the entire candidate budget before service scoring can inspect it.
+            float bucketSize = math.max(32, radius / math.max(1, math.ceil(math.sqrt(count))));
+            var ordered = sites.OrderBy(x => x.Score).ThenBy(x => x.Edge.Index).ToList();
+            var selected = new List<RoadSite>();
+            foreach (bool collision in new[] { false, true })
+            {
+                var groups = ordered.Where(x => x.Collision == collision)
+                    .GroupBy(x => ((int)math.floor(x.Position.x / bucketSize), (int)math.floor(x.Position.z / bucketSize)))
+                    .Select(g => new Queue<RoadSite>(g)).ToList();
+                while (selected.Count < count && groups.Any(g => g.Count > 0))
+                    foreach (var group in groups) if (group.Count > 0 && selected.Count < count) selected.Add(group.Dequeue());
+            }
+            return selected;
         }
 
         private JObject PlanBuildingSite(JObject args, World world)

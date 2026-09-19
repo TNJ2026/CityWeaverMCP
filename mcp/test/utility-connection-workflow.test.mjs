@@ -18,6 +18,31 @@ function baseResponses() {
   };
 }
 
+test('auto routing lazily loads obstacles after simple paths fail and previews the A* detour', async () => {
+  const responses = baseResponses();
+  responses.find_compatible_utility_targets = {items:[{...target,target_position:{x:128,z:0}}]};
+  let previews=0, snapshots=0;
+  const workflow = createUtilityConnectionWorkflow(async (tool,input) => {
+    if (tool === 'set_simulation_speed') return {data:{}};
+    if (tool === 'preview_utility_network') {
+      previews++;
+      if (previews===1) throw new BridgeError('NATIVE_REJECTED','collision');
+      assert.ok(input.points.length>2);
+      assert.ok(input.points.some(p=>Math.abs(p.z)>24));
+      return {data:{state:'preview_ready',operation_id:'detour',cost:100}};
+    }
+    if (tool === 'get_planning_map_snapshot') {
+      snapshots++; assert.equal(previews,1, 'axis-aligned duplicate paths must be removed');
+      return {data:{truncated:false,buildings:[{id:'obstacle',position:{x:64,z:0},size_m:{x:32,z:48},rotation_degrees:0}]}};
+    }
+    if (tool === 'apply_utility_operation') return {data:{state:'completed',cost:100}};
+    return {data:responses[tool]};
+  });
+  const result=await workflow.connect({...args,routing:'auto'});
+  assert.equal(result.state,'completed');
+  assert.equal(snapshots,1); assert.equal(previews,2);
+});
+
 test('discovers native port, retries rejected preview, commits and restores speed', async () => {
   const calls = [];
   const responses = baseResponses();
@@ -63,6 +88,18 @@ test('does not continue after an unknown native outcome', async () => {
   await assert.rejects(workflow.connect({ ...args, request_id: 'utility-unknown-001' }), error => error.code === 'OUTCOME_UNKNOWN');
   assert.equal(calls.filter(call => call.tool === 'preview_utility_network').length, 1);
   assert.equal(calls.filter(call => call.tool === 'apply_utility_operation').length, 1);
+});
+
+test('preview timeout does not trigger another path or A* attempt', async () => {
+  const responses=baseResponses(); let previews=0;
+  const workflow=createUtilityConnectionWorkflow(async (tool) => {
+    if (tool==='set_simulation_speed') return {data:{}};
+    if (tool==='preview_utility_network') { previews++; throw new BridgeError('WORKFLOW_TIMEOUT','preview state unknown'); }
+    if (tool==='get_planning_map_snapshot') assert.fail('must stop before routing');
+    return {data:responses[tool]};
+  });
+  await assert.rejects(workflow.connect({...args,routing:'auto'}),error=>error.code==='WORKFLOW_TIMEOUT');
+  assert.equal(previews,1);
 });
 
 test('waits for an asynchronous preview to become ready before applying', async () => {

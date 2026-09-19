@@ -84,6 +84,7 @@ export function createCityWorkflows(queryGame = liveQueryGame, dependencies = {}
           candidate_count: item.candidate_count ?? args.candidate_count,
           max_preview_attempts: item.max_preview_attempts ?? args.max_preview_attempts,
           consider_service_coverage: item.consider_service_coverage ?? true,
+          site_selection: item.site_selection ?? 'greedy',
           impact_radius_m: item.impact_radius_m ?? args.impact_radius_m,
           reserve_upgrade_prefabs: item.reserve_upgrade_prefabs || [],
           request_id: childRequestId(args.request_id, `service-${index + 1}`)

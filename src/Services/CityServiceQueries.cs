@@ -136,9 +136,55 @@ namespace CityWeaver
 
         private JObject GetCityServiceFacility(JObject args, World world) => CityServiceFacilityRow(world, ResolveCityServiceFacility(args, world), true);
 
-        private JObject AnalyzeServiceCoverage(JObject args, World world)
+        private sealed class CoverageSnapshot
+        {
+            public int ResidentialCount;
+            public readonly PlanningSpatialIndex<Tuple<float2, int, Entity>> Residences;
+            public readonly PlanningSpatialIndex<Tuple<float2, Entity, string>> Facilities;
+            public readonly Dictionary<(Tuple<float2, int, Entity>, string, float, Entity), bool> Covered = new Dictionary<(Tuple<float2, int, Entity>, string, float, Entity), bool>();
+            public CoverageSnapshot(float radius)
+            {
+                Residences = new PlanningSpatialIndex<Tuple<float2, int, Entity>>(radius);
+                Facilities = new PlanningSpatialIndex<Tuple<float2, Entity, string>>(radius);
+            }
+        }
+
+        private CoverageSnapshot ReadCoverageSnapshot(World world, float radius)
+        {
+            var snapshot = new CoverageSnapshot(radius); var em = world.EntityManager;
+            using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<Building>(), ComponentType.ReadOnly<Game.Objects.Transform>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
+            using (var entities = q.ToEntityArray(Allocator.Temp)) foreach (var e in entities)
+            {
+                var p = em.GetComponentData<Game.Objects.Transform>(e).m_Position.xz;
+                if (em.HasComponent<ResidentialProperty>(e))
+                {
+                    snapshot.ResidentialCount++;
+                    snapshot.Residences.Add(p, p, Tuple.Create(p, em.HasBuffer<Renter>(e) ? em.GetBuffer<Renter>(e, true).Length : 0, e));
+                }
+                if (!em.HasComponent<PrefabRef>(e)) continue;
+                var prefab = em.GetComponentData<PrefabRef>(e).m_Prefab;
+                if (IsCityServicePrefab(em, prefab)) snapshot.Facilities.Add(p, p, Tuple.Create(p, e, CityServiceKind(em, prefab)));
+            }
+            return snapshot;
+        }
+
+        private JObject AnalyzeServiceCoverage(JObject args, World world, CoverageSnapshot snapshot = null)
         {
             var em = world.EntityManager;
+            if (args["positions"] is JArray positions)
+            {
+                if (positions.Count < 1 || positions.Count > 32 || args["position"] != null || args["facility_id"] != null)
+                    throw new QueryException("INVALID_ARGUMENT", "Provide 1..32 positions without position or facility_id.");
+                snapshot = snapshot ?? ReadCoverageSnapshot(world, BuildingNumber(args, "radius_m", 500, 1, 5000));
+                var items = new JArray();
+                foreach (var positionToken in positions)
+                {
+                    if (!(positionToken is JObject)) throw new QueryException("INVALID_ARGUMENT", "Each position must contain x and z.");
+                    var single = (JObject)args.DeepClone(); single.Remove("positions"); single["position"] = positionToken.DeepClone();
+                    items.Add(AnalyzeServiceCoverage(single, world, snapshot));
+                }
+                return new JObject { ["items"] = items, ["snapshot_reads"] = 1 };
+            }
             string kind = ((string)args["kind"] ?? "all").ToLowerInvariant();
             if (!CityServiceKinds.Contains(kind)) throw new QueryException("INVALID_ARGUMENT", "Unsupported city-service kind.");
 
@@ -162,35 +208,28 @@ namespace CityWeaver
             float radius = BuildingNumber(args, "radius_m", 500, 1, 5000);
             int detailLimit = ComponentInspector.Int(args, "facility_limit", 32, 0, 256);
             float radiusSq = radius * radius;
-            int residentialBuildings = 0, households = 0, totalResidentialBuildings = 0;
-            using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<Building>(), ComponentType.ReadOnly<ResidentialProperty>(), ComponentType.ReadOnly<Game.Objects.Transform>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
-            using (var entities = q.ToEntityArray(Allocator.Temp))
+            snapshot = snapshot ?? ReadCoverageSnapshot(world, radius);
+            int totalResidentialBuildings = snapshot.ResidentialCount;
+            var residences = snapshot.Residences.Query(center.xz - radius, center.xz + radius)
+                .Where(r => math.distancesq(r.Item1, center.xz) <= radiusSq).ToList();
+            int residentialBuildings = residences.Count, households = residences.Sum(r => r.Item2);
+            var facilities = snapshot.Facilities.Query(center.xz - radius, center.xz + radius)
+                .Where(f => f.Item2 != target && (kind == "all" || f.Item3 == kind) && math.distancesq(f.Item1, center.xz) <= radiusSq)
+                .Select(f => Tuple.Create(math.distance(f.Item1, center.xz), f.Item2)).OrderBy(f => f.Item1).ToList();
+            int uncoveredBuildings = 0, uncoveredHouseholds = 0;
+            foreach (var residence in residences)
             {
-                totalResidentialBuildings = entities.Length;
-                foreach (var e in entities)
+                var key = (residence, kind, radius, target);
+                if (!snapshot.Covered.TryGetValue(key, out bool covered))
                 {
-                    var p = em.GetComponentData<Game.Objects.Transform>(e).m_Position;
-                    if (math.distancesq(p.xz, center.xz) > radiusSq) continue;
-                    residentialBuildings++;
-                    if (em.HasBuffer<Renter>(e)) households += em.GetBuffer<Renter>(e, true).Length;
+                    covered = snapshot.Facilities.Query(residence.Item1 - radius, residence.Item1 + radius)
+                        .Any(f => f.Item2 != target && (kind == "all" || f.Item3 == kind) && math.distancesq(f.Item1, residence.Item1) <= radiusSq);
+                    snapshot.Covered[key] = covered;
                 }
+                if (covered) continue;
+                uncoveredBuildings++;
+                uncoveredHouseholds += residence.Item2;
             }
-
-            var facilities = new List<Tuple<float, Entity>>();
-            using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<Building>(), ComponentType.ReadOnly<PrefabRef>(), ComponentType.ReadOnly<Game.Objects.Transform>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
-            using (var entities = q.ToEntityArray(Allocator.Temp))
-            {
-                foreach (var e in entities)
-                {
-                    if (e == target) continue;
-                    var prefab = em.GetComponentData<PrefabRef>(e).m_Prefab;
-                    if (!IsCityServicePrefab(em, prefab) || (kind != "all" && CityServiceKind(em, prefab) != kind)) continue;
-                    var p = em.GetComponentData<Game.Objects.Transform>(e).m_Position;
-                    float distance = math.distance(p.xz, center.xz);
-                    if (distance <= radius) facilities.Add(Tuple.Create(distance, e));
-                }
-            }
-            facilities.Sort((a, b) => a.Item1.CompareTo(b.Item1));
             var facilityRows = new JArray();
             foreach (var item in facilities.Take(detailLimit))
             {
@@ -207,10 +246,13 @@ namespace CityWeaver
                 ["total_residential_buildings"] = totalResidentialBuildings,
                 ["residential_building_share"] = totalResidentialBuildings == 0 ? 0 : (double)residentialBuildings / totalResidentialBuildings,
                 ["households_in_range"] = households,
+                ["uncovered_residential_buildings"] = uncoveredBuildings,
+                ["uncovered_households"] = uncoveredHouseholds,
+                ["marginal_coverage_model"] = "same_kind_equal_radius_union_proxy",
                 ["existing_facilities_in_range"] = facilities.Count,
                 ["nearest_existing_facility_distance_m"] = facilities.Count == 0 ? null : (JToken)facilities[0].Item1,
                 ["existing_facilities"] = facilityRows,
-                ["notes"] = "This is a configurable straight-line planning proxy. It does not reproduce native pathfinding, service simulation, district assignments or a hidden fixed game radius. Use preview_city_service_placement for authoritative placement validation."
+                ["notes"] = "This is a configurable straight-line planning proxy. Marginal coverage excludes the union of same-kind facility circles, including centers up to twice the radius away, independently of facility_limit. It does not model capacity, operating state, native pathfinding, district assignments or a hidden fixed game radius. Use preview_city_service_placement for authoritative placement validation."
             };
             if (target != Entity.Null) result["facility_id"] = m_Session + ":" + target.Index + ":" + target.Version;
             return result;
@@ -223,21 +265,26 @@ namespace CityWeaver
             if ((bool?)args["consider_service_coverage"] == true && result["candidates"] is JArray candidates)
             {
                 string serviceKind = CityServiceKind(world.EntityManager, p); float radius = BuildingNumber(args, "coverage_radius_m", 500, 1, 5000);
+                var snapshot = ReadCoverageSnapshot(world, radius);
                 foreach (var token in candidates.OfType<JObject>())
                 {
                     if (!(token["position"] is JObject position)) continue;
-                    var analysis = AnalyzeServiceCoverage(new JObject { ["position"] = position, ["kind"] = serviceKind, ["radius_m"] = radius, ["facility_limit"] = 0 }, world);
+                    var analysis = AnalyzeServiceCoverage(new JObject { ["position"] = position, ["kind"] = serviceKind, ["radius_m"] = radius, ["facility_limit"] = 0 }, world, snapshot);
                     token["coverage_residential_buildings"] = analysis["residential_buildings_in_range"];
                     token["coverage_households"] = analysis["households_in_range"];
                     token["coverage_existing_facilities"] = analysis["existing_facilities_in_range"];
+                    token["coverage_uncovered_residential_buildings"] = analysis["uncovered_residential_buildings"];
+                    token["coverage_uncovered_households"] = analysis["uncovered_households"];
                     double baseScore = (double?)token["score"] ?? 0;
-                    double share = (double?)analysis["residential_building_share"] ?? 0;
-                    token["coverage_adjusted_score"] = baseScore - share * radius + ((int?)analysis["existing_facilities_in_range"] ?? 0) * 25.0;
+                    double benefit = serviceKind == "garbage"
+                        ? -Math.Log(1 + ((int?)analysis["residential_buildings_in_range"] ?? 0))
+                        : Math.Log(1 + ((int?)analysis["uncovered_households"] ?? 0) + ((int?)analysis["uncovered_residential_buildings"] ?? 0));
+                    token["coverage_adjusted_score"] = baseScore - benefit * radius;
                 }
                 var ordered = candidates.OfType<JObject>().OrderBy(x => (double?)x["coverage_adjusted_score"] ?? (double?)x["score"] ?? double.MaxValue).ToList();
                 candidates.Clear(); foreach (var item in ordered) candidates.Add(item);
                 result["coverage_model"] = "euclidean_radius_proxy"; result["coverage_radius_m"] = radius;
-                result["coverage_note"] = "Candidates are re-ranked using residential share within the configured straight-line radius, with a small overlap penalty. Native pathfinding and service simulation remain authoritative.";
+                result["coverage_note"] = "Greedy marginal coverage: excludes residences within existing same-kind facility circles; garbage facilities instead minimize residential exposure. Capacity and native pathfinding are not modeled. Native preview and service simulation remain authoritative.";
             }
             return result;
         }
