@@ -167,6 +167,11 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   assert(interactivePlan.content.some(item => item.type === 'resource' && item.resource.mimeType === 'text/html'));
   assert(tools.some(tool => tool.name === 'deploy_grid_district'), 'high-level grid deployment tool is registered');
   const gridDeployment = tools.find(tool => tool.name === 'deploy_grid_district');
+  for (const name of ['analyze_education_demand', 'analyze_transport_catchment']) {
+    const schema = tools.find(tool => tool.name === name).inputSchema;
+    assert.equal(schema.properties.positions.maxItems, 32);
+    assert.ok(schema.properties.position, 'single-position callers remain compatible');
+  }
   assert(gridDeployment.inputSchema.required.includes('request_id'), 'grid deployment requires a stable workflow request id');
   assert.deepEqual(gridDeployment.inputSchema.properties.approval_mode.enum, ['staged', 'automatic']);
   assert.equal(gridDeployment.inputSchema.properties.approval_mode.default, 'staged');

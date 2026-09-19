@@ -1,6 +1,7 @@
 import { BridgeError } from './bridge-client.mjs';
 import { computeCityPlanId } from './planning-renderer.mjs';
 import { planBuildingWorkflow as livePlanBuildingWorkflow, cancelBuildingPlan as liveCancelBuildingPlan } from './building-workflow.mjs';
+import { footprint } from './planning-spatial.mjs';
 
 const NON_BUILDABLE_STATUSES = new Set(['built', 'completed', 'skipped']);
 const compact = value => Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined));
@@ -51,6 +52,9 @@ export function createCityPlanBuildingBinder({
     if (missingIds.length) throw new BridgeError('PLAN_BUILDING_NOT_FOUND', `The requested plan building IDs were not found: ${missingIds.join(', ')}.`);
 
     const results = [];
+    const reservations = (plan.buildings ?? []).map(building => ({ ...building, size_m: building.reserved_size_m ?? building.size_m }))
+      .filter(building => (!foundIds.has(building.id) || !building.prefab) && footprint(building))
+      .map(building => ({ position: { x: building.position.x, z: building.position.z }, rotation_degrees: building.rotation_degrees ?? 0, size_m: building.size_m }));
     for (const [index, building] of selected.entries()) {
       if (!building.prefab) {
         building.placement_status = 'conceptual';
@@ -75,6 +79,7 @@ export function createCityPlanBuildingBinder({
           mode: building.placement_mode ?? 'auto',
           minimum_water_depth_m: building.minimum_water_depth_m ?? 1,
           consider_service_coverage: false,
+          reserved_footprints: reservations,
           reserve_upgrade_prefabs: building.reserve_upgrade_prefabs ?? [],
           impact_radius_m: args.search_radius_m,
           allow_approximate_collisions: false,
@@ -126,6 +131,11 @@ export function createCityPlanBuildingBinder({
           throw new BridgeError('PLAN_BUILDING_PREVIEW_CANCEL_FAILED', `The verified temporary preview for ${building.id} could not be cancelled; stop before planning another building.`);
         }
         building.native_preview.state = 'verified_then_cancelled';
+        const reservedSize = preview.footprint_size_m?.x > 0 && preview.footprint_size_m?.z > 0 ? preview.footprint_size_m : building.size_m;
+        if (reservedSize) building.reserved_size_m = { ...reservedSize };
+        if (footprint({ ...building, size_m: reservedSize })) reservations.push({
+          position: { x: building.position.x, z: building.position.z }, rotation_degrees: building.rotation_degrees, size_m: reservedSize,
+        });
         results.push({
           building_id: building.id, state: 'bound', category: building.category,
           position: building.position, rotation_degrees: building.rotation_degrees,
@@ -147,9 +157,10 @@ export function createCityPlanBuildingBinder({
         const message = error instanceof BridgeError ? `${error.code}: ${error.message}` : (error instanceof Error ? error.message : String(error));
         results.push({ building_id: building.id, state: 'failed', error: message,
           ...(preview ? { preview_created: true, preview_cancelled: previewCancelled } : {}),
-          recovery_required: Boolean(preview && !previewCancelled),
+          operation_id: error.operation_id ?? null, request_id: error.request_id ?? null,
+          recovery_required: Boolean(error.recovery_required || (preview && !previewCancelled)),
         });
-        if ((preview && !previewCancelled) || !args.continue_on_error) break;
+        if (error.recovery_required || (preview && !previewCancelled) || !args.continue_on_error) break;
       }
     }
 

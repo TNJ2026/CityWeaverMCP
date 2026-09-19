@@ -1005,6 +1005,7 @@ namespace CityWeaver
             int columns = (int)math.ceil((max.x - min.x) / gridSize) + 1, rows = (int)math.ceil((max.y - min.y) / gridSize) + 1;
             if ((long)columns * rows > 16000) throw new QueryException("ROUTE_SEARCH_TOO_LARGE", "Increase grid_size_m or reduce max_detour_m for this route.");
             var obstacles = new List<Tuple<float2, float>>();
+            var obstacleIndex = new PlanningSpatialIndex<Tuple<float2, float>>();
             using (var query = em.CreateEntityQuery(ComponentType.ReadOnly<Game.Buildings.Building>(), ComponentType.ReadOnly<Game.Objects.Transform>(), ComponentType.ReadOnly<PrefabRef>()))
             using (var entities = query.ToEntityArray(Allocator.Temp))
             {
@@ -1018,7 +1019,9 @@ namespace CityWeaver
                         var bounds = em.GetComponentData<ObjectGeometryData>(prefab).m_Bounds;
                         radius = math.length((bounds.max - bounds.min).xz) * 0.5f + roadClearance;
                     }
-                    obstacles.Add(Tuple.Create(transform.m_Position.xz, radius));
+                    var obstacle = Tuple.Create(transform.m_Position.xz, radius);
+                    obstacles.Add(obstacle);
+                    obstacleIndex.Add(obstacle.Item1 - radius, obstacle.Item1 + radius, obstacle);
                 }
             }
             int Index(int x, int y) => x + y * columns;
@@ -1029,7 +1032,7 @@ namespace CityWeaver
             }
             bool Blocked(float2 p)
             {
-                foreach (var obstacle in obstacles) if (math.distancesq(p, obstacle.Item1) < obstacle.Item2 * obstacle.Item2) return true;
+                foreach (var obstacle in obstacleIndex.Query(p, p)) if (math.distancesq(p, obstacle.Item1) < obstacle.Item2 * obstacle.Item2) return true;
                 return false;
             }
             var total = columns * rows; var terrainHeights = Enumerable.Repeat(float.NaN, total).ToArray();

@@ -1,3 +1,4 @@
+import { createSpatialIndex, footprintBounds, sampleRoad, nearestPointPair } from './planning-spatial.mjs';
 const finite = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const snap = (value, step = 8) => Math.round(value / step) * step;
 
@@ -21,12 +22,6 @@ function distance(left, right) {
   return Math.hypot(left.x - right.x, left.z - right.z);
 }
 
-function roadSamples(road) {
-  if (road.points?.length) return road.points;
-  if (road.curve) return ['a', 'b', 'c', 'd'].map(key => road.curve[key]).filter(Boolean);
-  return [];
-}
-
 function footprintSamples(origin, width, height, step = 32) {
   const points = [];
   for (let x = 0; x <= width; x += step) {
@@ -42,12 +37,7 @@ function footprintSamples(origin, width, height, step = 32) {
 }
 
 function buildingEnvelope(building) {
-  const halfX = finite(building.size_m?.x, 16) / 2;
-  const halfZ = finite(building.size_m?.z, 16) / 2;
-  return {
-    min_x: finite(building.position?.x) - halfX, max_x: finite(building.position?.x) + halfX,
-    min_z: finite(building.position?.z) - halfZ, max_z: finite(building.position?.z) + halfZ,
-  };
+  return footprintBounds({ ...building, size_m: building.size_m ?? { x: 16, z: 16 } });
 }
 
 function rectanglesOverlap(left, right, clearance) {
@@ -74,50 +64,89 @@ export function proposeGridPlan(snapshotInput, request = {}) {
   const blockHeight = finite(request.block_height_m, 96);
   const width = columns * blockWidth;
   const height = rows * blockHeight;
-  const searchStep = finite(request.search_step_m, 32);
+  const searchStep = Math.max(8, finite(request.search_step_m, 32));
   const clearance = finite(request.building_clearance_m, 12);
-  const roadPoints = (snapshot.roads ?? []).flatMap(roadSamples);
-  const buildings = (snapshot.buildings ?? []).filter(building => building.position).map(buildingEnvelope);
+  const roadPoints = (snapshot.roads ?? []).flatMap(road => sampleRoad(road));
+  const buildings = (snapshot.buildings ?? []).filter(building => building.position).map(buildingEnvelope).filter(Boolean);
   const waterAreas = (snapshot.waters ?? []).flatMap(water => water.polygons ?? (water.polygon ? [water.polygon] : [])).map(polygonEnvelope).filter(Boolean);
   const terrainCells = snapshot.terrain?.cells ?? [];
+  const buildingIndex = createSpatialIndex(buildings, b => b);
+  const waterIndex = createSpatialIndex(waterAreas, b => b);
+  const pointBounds = p => ({ min_x: p.x, max_x: p.x, min_z: p.z, max_z: p.z });
+  const terrainIndex = createSpatialIndex(terrainCells.filter(c => c.center), c => pointBounds(c.center));
+  const roadIndex = createSpatialIndex(roadPoints, pointBounds);
   const candidates = [];
+  const regionSeeds = new Map();
+  const visited = new Set();
+  let evaluated = 0;
+  const compare = (a, b) => a.score - b.score || a.origin.x - b.origin.x || a.origin.z - b.origin.z;
 
   const startX = snap(bounds.min_x, 8);
   const endX = bounds.max_x - width;
   const startZ = snap(bounds.min_z, 8);
   const endZ = bounds.max_z - height;
 
-  for (let x = startX; x <= endX; x += searchStep) for (let z = startZ; z <= endZ; z += searchStep) {
+  const evaluate = (x, z) => {
+    if (x < startX || x > endX || z < startZ || z > endZ) return;
+    const key = `${snap(x, 8)},${snap(z, 8)}`;
+    if (visited.has(key)) return;
+    visited.add(key);
     const origin = { x: snap(x, 8), z: snap(z, 8) };
     const samples = footprintSamples(origin, width, height);
-    if (samples.some(point => !pointInOwned(point, tiles, bounds))) continue;
+    if (samples.some(point => !pointInOwned(point, tiles, bounds))) return;
     const candidateBounds = { min_x: origin.x, max_x: origin.x + width, min_z: origin.z, max_z: origin.z + height };
-    const buildingConflicts = buildings.filter(building => rectanglesOverlap(candidateBounds, building, clearance)).length;
-    const surfaceWaterConflicts = waterAreas.filter(water => rectanglesOverlap(candidateBounds, water, 0)).length;
-    const candidateTerrain = terrainCells.filter(cell => cell.center && cell.center.x >= candidateBounds.min_x && cell.center.x <= candidateBounds.max_x && cell.center.z >= candidateBounds.min_z && cell.center.z <= candidateBounds.max_z);
-    const maximumSlope = candidateTerrain.length ? Math.max(...candidateTerrain.map(cell => finite(cell.slope_degrees))) : 0;
-    const elevations = candidateTerrain.map(cell => finite(cell.elevation_m));
-    const terrainRelief = elevations.length ? Math.max(...elevations) - Math.min(...elevations) : 0;
+    const buildingConflicts = buildingIndex.query({ min_x: candidateBounds.min_x - clearance, max_x: candidateBounds.max_x + clearance, min_z: candidateBounds.min_z - clearance, max_z: candidateBounds.max_z + clearance }).filter(building => rectanglesOverlap(candidateBounds, building, clearance)).length;
+    const surfaceWaterConflicts = waterIndex.query(candidateBounds).filter(water => rectanglesOverlap(candidateBounds, water, 0)).length;
+    let terrainCount = 0, terrainKnown = true, maximumSlope = -Infinity;
+    let minimumElevation = Infinity, maximumElevation = -Infinity, steepTerrainCells = 0;
     const maximumSlopeAllowed = finite(request.maximum_slope_degrees, 12);
-    const steepTerrainCells = candidateTerrain.filter(cell => finite(cell.slope_degrees) > maximumSlopeAllowed).length;
-    const perimeter = samples.filter(point => point.x === origin.x || point.x === origin.x + width || point.z === origin.z || point.z === origin.z + height);
-    let roadDistance = 1000;
-    let connectionPoint = null;
-    let nearestRoadPoint = null;
-    for (const point of perimeter) for (const roadPoint of roadPoints) {
-      const candidateDistance = distance(point, roadPoint);
-      if (candidateDistance >= roadDistance) continue;
-      roadDistance = candidateDistance;
-      connectionPoint = point;
-      nearestRoadPoint = roadPoint;
+    for (const cell of terrainIndex.query(candidateBounds)) {
+      if (!cell.center || !pointInBounds(cell.center, candidateBounds)) continue;
+      terrainCount++;
+      terrainKnown &&= Number.isFinite(cell.slope_degrees) && Number.isFinite(cell.elevation_m);
+      const slope = finite(cell.slope_degrees), elevation = finite(cell.elevation_m);
+      maximumSlope = Math.max(maximumSlope, slope);
+      minimumElevation = Math.min(minimumElevation, elevation);
+      maximumElevation = Math.max(maximumElevation, elevation);
+      if (slope > maximumSlopeAllowed) steepTerrainCells++;
     }
+    terrainKnown &&= terrainCount > 0;
+    if (!terrainCount) maximumSlope = 0;
+    const terrainRelief = terrainCount ? maximumElevation - minimumElevation : 0;
+    const perimeter = samples.filter(point => point.x === origin.x || point.x === origin.x + width || point.z === origin.z || point.z === origin.z + height);
+    const nearbyRoadPoints = roadIndex.query({ min_x: candidateBounds.min_x - 1000, max_x: candidateBounds.max_x + 1000,
+      min_z: candidateBounds.min_z - 1000, max_z: candidateBounds.max_z + 1000 });
+    const { distance: roadDistance, source: connectionPoint, target: nearestRoadPoint } = nearestPointPair(perimeter, nearbyRoadPoints, 1000);
     const connectionPenalty = Math.abs(roadDistance - 40);
     const centerPenalty = distance({ x: origin.x + width / 2, z: origin.z + height / 2 }, { x: (bounds.min_x + bounds.max_x) / 2, z: (bounds.min_z + bounds.max_z) / 2 }) * 0.02;
-    const score = surfaceWaterConflicts * 1e9 + buildingConflicts * 1e8 + steepTerrainCells * 1e6 + terrainRelief * 100 + connectionPenalty + centerPenalty;
-    candidates.push({ origin, score, building_conflicts: buildingConflicts, surface_water_conflicts: surfaceWaterConflicts, steep_terrain_cells: steepTerrainCells, maximum_slope_degrees: Number(maximumSlope.toFixed(1)), terrain_relief_m: Number(terrainRelief.toFixed(1)), nearest_road_distance_m: Number(roadDistance.toFixed(1)), connection_point: connectionPoint, nearest_road_point: nearestRoadPoint });
+    const score = surfaceWaterConflicts * 1e9 + buildingConflicts * 1e8 + steepTerrainCells * 1e6 + terrainRelief * 100 + (terrainKnown ? 0 : 1e7) + connectionPenalty + centerPenalty;
+    const candidate = { origin, score, terrain_known: terrainKnown, building_conflicts: buildingConflicts, surface_water_conflicts: surfaceWaterConflicts, steep_terrain_cells: steepTerrainCells, maximum_slope_degrees: Number(maximumSlope.toFixed(1)), terrain_relief_m: Number(terrainRelief.toFixed(1)), nearest_road_distance_m: Number(roadDistance.toFixed(1)), connection_point: connectionPoint, nearest_road_point: nearestRoadPoint };
+    if (!terrainKnown) { candidate.maximum_slope_degrees = null; candidate.terrain_relief_m = null; }
+    candidates.push(candidate);
+    const region = `${Math.floor((origin.x-startX)/Math.max(searchStep,(endX-startX+searchStep)/4))},${Math.floor((origin.z-startZ)/Math.max(searchStep,(endZ-startZ+searchStep)/4))}`;
+    if (!regionSeeds.has(region) || compare(candidate, regionSeeds.get(region)) < 0) regionSeeds.set(region,candidate);
+    evaluated++;
+    candidates.sort(compare);
+    if (candidates.length > 8) candidates.length = 8;
+  };
+  const coarseStep = ((endX-startX)/searchStep + 1) * ((endZ-startZ)/searchStep + 1) > 4096 ? searchStep * 4 : searchStep;
+  for (let x = startX; x <= endX; x += coarseStep) for (let z = startZ; z <= endZ; z += coarseStep) evaluate(x, z);
+  if (coarseStep > searchStep) {
+    const seeds = [...regionSeeds.values()].sort(compare);
+    if (!seeds.length) {
+      for (let x = startX; x <= endX; x += searchStep) for (let z = startZ; z <= endZ; z += searchStep) evaluate(x, z);
+    } else for (const seed of seeds) {
+      for (let x = seed.origin.x-coarseStep; x <= seed.origin.x+coarseStep; x += searchStep)
+        for (let z = seed.origin.z-coarseStep; z <= seed.origin.z+coarseStep; z += searchStep) evaluate(x, z);
+    }
   }
-
-  candidates.sort((left, right) => left.score - right.score || left.origin.x - right.origin.x || left.origin.z - right.origin.z);
+  const clearCandidate = c => c.building_conflicts === 0 && c.surface_water_conflicts === 0 && c.steep_terrain_cells === 0;
+  let fallbackFineSearch = false;
+  if (coarseStep > searchStep && !candidates.some(clearCandidate)) {
+    fallbackFineSearch = true;
+    for (let x = startX; x <= endX; x += searchStep) for (let z = startZ; z <= endZ; z += searchStep) evaluate(x,z);
+  }
+  candidates.sort(compare);
   const selected = candidates[0];
   if (!selected) throw new Error('No grid footprint fits completely inside the purchased map tiles.');
 
@@ -136,7 +165,9 @@ export function proposeGridPlan(snapshotInput, request = {}) {
     proposal_id: `grid-${columns}x${rows}-${Math.round(selected.origin.x)}-${Math.round(selected.origin.z)}`,
     plan: { grids: [grid], roads: [], buildings: [], zones: [], tracks: [], utilities: [] },
     placement: selected,
-    evaluated_candidates: candidates.length,
+    evaluated_candidates: evaluated,
+    fallback_fine_search: fallbackFineSearch,
+    search_strategy: coarseStep > searchStep ? 'coarse_to_fine' : 'indexed_grid',
     bindings_ready: missingBindings.length === 0,
     missing_bindings: missingBindings,
     construction_ready: false,
