@@ -2,6 +2,8 @@
 
 检索日期：2026-09-14。适用于 Cities: Skylines II，结合 Economy 2.0 后机制、本项目记录的游戏 1.6.0f1，以及本机 MCP 能力。目录：版本与证据 → 策略选择 → 财务与观察 → 工具映射 → 来源。
 
+> **版本现实提示（2026-09-20 核对）**：本机游戏已经是 **1.6.2f1**（见 `README.md` 的本机环境表）。本文档的证据、阈值和观察窗来自 1.6.0f1 时期的样本，**没有在 1.6.2f1 下重新采集**。下文“版本待核实项”提到的 Autumn Breeze 内容现已随版本落地，而本文未逐项复核其对本机机制的实际影响。因此：策略框架与执行纪律继续有效，**具体阈值和财务基线在 1.6.2f1 存档上必须重新观察后再引用**；不要因为文件写于早期版本就假定其数字仍然成立。
+
 ## 版本与证据
 
 **已发布机制**：Economy 2.0 移除了城市政府补贴，提高服务维护成本，并调整需求、住房负担和生产。购地还需考虑地块维护费。因此不能用发行初期的补贴或暴利攻略估算收益。[经济改革](https://www.paradoxinteractive.com/games/cities-skylines-ii/news/dev-diary-economy-part-one)、[地块维护费](https://www.paradoxinteractive.com/games/cities-skylines-ii/news/economy-patch-is-here)。

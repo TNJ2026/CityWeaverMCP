@@ -1,0 +1,3844 @@
+{
+  "plan_id": "cplan-c01fc2756f7b7756",
+  "city": "佩奇代尔",
+  "name": "佩奇代尔正五边形城",
+  "target_population": 14000,
+  "bounds": {
+    "min_x": -1464,
+    "min_z": -2776,
+    "max_x": 872,
+    "max_z": 304
+  },
+  "render": {
+    "title": "佩奇代尔｜正五边形城施工图（只读规划，尚未授权施工）",
+    "width": 2200,
+    "height": 1500,
+    "view": "surface",
+    "format": "static_html"
+  },
+  "water_cell_size_m": 32,
+  "terrain_cell_size_m": 64,
+  "geometry": {
+    "pentagon": {
+      "center": {
+        "x": -472,
+        "z": -764.8
+      },
+      "circumradius_m": 925,
+      "vertices": [
+        {
+          "x": -472,
+          "z": 160
+        },
+        {
+          "x": -1352,
+          "z": -480
+        },
+        {
+          "x": -1016,
+          "z": -1512
+        },
+        {
+          "x": 72,
+          "z": -1512
+        },
+        {
+          "x": 408,
+          "z": -480
+        }
+      ],
+      "edge_length_m": [
+        1088,
+        1085,
+        1088,
+        1085,
+        1088
+      ],
+      "edge_vectors_cells_8m": [
+        [
+          136,
+          0
+        ],
+        [
+          42,
+          129
+        ],
+        [
+          -110,
+          80
+        ],
+        [
+          -110,
+          -80
+        ],
+        [
+          42,
+          -129
+        ]
+      ],
+      "regularity_note": "边向量以 8 m 格为单位相加恒为零（自动闭合），边长 136 / 135.7 格，最大偏差 0.22%，顶角偏差 < 0.2°",
+      "orientation_note": "顶点 V0 朝正北、南边水平；街区格网相位与南边、西顶点对齐"
+    },
+    "region_margin_m": {
+      "x": 206.26,
+      "z": 151.64999999999998
+    },
+    "railway_clearance_m": 664,
+    "river_clearance_m": 222,
+    "golden_block": {
+      "curb_to_curb_m": 96,
+      "center_pitch_m": 112,
+      "note": "片区内部 Small(16) ↔ Small(16) 中心距 112 m → 路缘 96 m；环路 Large(32) 与放射大道 Medium(24) 分别为 36 m / 32 m 净距与片区退让。",
+      "max_zoning_depth_m": 48
+    },
+    "sectors": [
+      {
+        "key": "ne",
+        "name": "东北产业带",
+        "from_deg": 17.9,
+        "to_deg": 90
+      },
+      {
+        "key": "n",
+        "name": "北城办公文教区",
+        "from_deg": 90,
+        "to_deg": 162.1
+      },
+      {
+        "key": "w",
+        "name": "西城中密居住区",
+        "from_deg": 162.1,
+        "to_deg": 233.9
+      },
+      {
+        "key": "s",
+        "name": "南城居住区",
+        "from_deg": 233.9,
+        "to_deg": 306.1
+      },
+      {
+        "key": "se",
+        "name": "东南花园居住区",
+        "from_deg": 306.1,
+        "to_deg": 377.9
+      }
+    ],
+    "existing_constraints": {
+      "highway_terminus": {
+        "x": -1384.4610595703125,
+        "z": -1142.673583984375,
+        "node_id": "6476c9aae8944378b59be4f588c4303c:51166:3",
+        "note": "已购区内唯一的对外机动车接口，锚点绑定当前城市会话，换存档后必须重新回读。"
+      },
+      "high_voltage_terminus": {
+        "x": -1374.68652,
+        "z": -554.980835
+      },
+      "railway_note": "铁路斜穿已购区西南角，五边形最近角点仍留 664 m 净距，全部开发单元与分区不跨越铁路。",
+      "river_note": "已购区东侧存在实测河道（深水 19.6 m / 浅滩 0.7-1.5 m）。五边形按实测西岸收缩，边界离河最近 222 m；河道整体留在五边形之外。注意 list_map_tiles 对这些格报 SurfaceWater=0，与原生水深读数矛盾，本规划以原生水深为准；区域北半区另行补测确认无水。",
+      "surface_water_note": "五边形内实测无地表水：给水只能取地下水（GroundwaterPumpingStation01 + WaterTower01），污水走河东滨水带的 WastewaterTreatmentPlant01，两者都不需要岸线。",
+      "wind_note": "实测恒定风矢量 (0.275, 0.275) → 45°；产业片区放在东北扇区外圈（下风向），内圈位于产业区上风向可住人，中间留办公缓冲片区。",
+      "terrain_note": "全场高程 617.4-617.9 m，起伏 < 1 m，无坡度约束，不需要整地。"
+    }
+  },
+  "zoning_model": {
+    "rule": "住宅/商业/工业/办公四类用途全部由 plan.grids 表达：每张片区是轴对齐规则网格，只用 Small Road，内部横纵等宽；每张片区只含一种用途，四类用途各占若干互不相邻的片区。分区由网格单元格生成，单元格四条边都是本片区自己的道路，因此任何分区都不会跨过道路，也不会与别的用途混在同一张网格里。",
+    "why_separate_grids": "mcp/city-plan-construction-workflow.mjs 的 validateGridSeparation 会拒绝「重叠或共享外围道路」的两张网格（PLAN_GRID_OVERLAP），对应《规划图指南》「相邻网格不得重复生成共享外围道路」。因此片区之间留 24 m 净距，并由 connector 连接路接入骨架。",
+    "max_blocks_per_district": "3x3（《从零建城》对单个开发单元的建议上限；原生单次网格预览硬上限为 5x5）",
+    "insets": {
+      "ring_inset_m": 34,
+      "radial_inset_m": 30,
+      "district_gap_m": 24
+    }
+  },
+  "districts": [
+    {
+      "key": "ne",
+      "name": "东北产业带",
+      "grid_count": 7,
+      "cells": 14,
+      "uses": [
+        "Office Low",
+        "Industrial Manufacturing"
+      ]
+    },
+    {
+      "key": "n",
+      "name": "北城办公文教区",
+      "grid_count": 5,
+      "cells": 12,
+      "uses": [
+        "EU Residential High",
+        "Office Low"
+      ]
+    },
+    {
+      "key": "w",
+      "name": "西城中密居住区",
+      "grid_count": 4,
+      "cells": 13,
+      "uses": [
+        "EU Commercial Low",
+        "EU Residential High"
+      ]
+    },
+    {
+      "key": "s",
+      "name": "南城居住区",
+      "grid_count": 4,
+      "cells": 14,
+      "uses": [
+        "EU Residential High"
+      ]
+    },
+    {
+      "key": "se",
+      "name": "东南花园居住区",
+      "grid_count": 4,
+      "cells": 13,
+      "uses": [
+        "EU Residential High"
+      ]
+    }
+  ],
+  "reserved_sites": [
+    {
+      "label": "中央广场（放射大道汇聚点）",
+      "shape": "circle",
+      "center": {
+        "x": -472,
+        "z": -768
+      },
+      "radius_m": 128
+    },
+    {
+      "label": "高教文教园区",
+      "shape": "rect",
+      "min_x": -448,
+      "max_x": 192,
+      "min_z": -1896,
+      "max_z": -1512,
+      "center": {
+        "x": -128,
+        "z": -1704
+      }
+    },
+    {
+      "label": "医院与体育公园",
+      "shape": "rect",
+      "min_x": 192,
+      "max_x": 832,
+      "min_z": -1896,
+      "max_z": -1512,
+      "center": {
+        "x": 512,
+        "z": -1704
+      }
+    },
+    {
+      "label": "第二/第三中学",
+      "shape": "rect",
+      "min_x": -448,
+      "max_x": 192,
+      "min_z": -2280,
+      "max_z": -1896,
+      "center": {
+        "x": -128,
+        "z": -2088
+      }
+    },
+    {
+      "label": "社会福利与市政",
+      "shape": "rect",
+      "min_x": 192,
+      "max_x": 832,
+      "min_z": -2280,
+      "max_z": -1896,
+      "center": {
+        "x": 512,
+        "z": -2088
+      }
+    },
+    {
+      "label": "公墓与火葬场",
+      "shape": "rect",
+      "min_x": -448,
+      "max_x": 192,
+      "min_z": -2472,
+      "max_z": -2280,
+      "center": {
+        "x": -128,
+        "z": -2376
+      }
+    },
+    {
+      "label": "市政公用设施群",
+      "shape": "rect",
+      "min_x": 192,
+      "max_x": 832,
+      "min_z": -2664,
+      "max_z": -2280,
+      "center": {
+        "x": 512,
+        "z": -2472
+      }
+    }
+  ],
+  "riverside_band": [
+    {
+      "label": "垃圾填埋场",
+      "min_x": 420,
+      "max_x": 548,
+      "min_z": -440,
+      "max_z": -296,
+      "note": "城市滨水带，位于环路之外、河道以西，经 riverside-access / riverside-spine 接入环路东角点。"
+    },
+    {
+      "label": "资源回收中心",
+      "min_x": 420,
+      "max_x": 572,
+      "min_z": -296,
+      "max_z": -112,
+      "note": "城市滨水带，位于环路之外、河道以西，经 riverside-access / riverside-spine 接入环路东角点。"
+    },
+    {
+      "label": "污水处理厂与变电站",
+      "min_x": 420,
+      "max_x": 508,
+      "min_z": -112,
+      "max_z": 24,
+      "note": "城市滨水带，位于环路之外、河道以西，经 riverside-access / riverside-spine 接入环路东角点。"
+    }
+  ],
+  "service_coverage": {
+    "education": [
+      "ElementarySchool02 x4（小学 1,600 座）",
+      "HighSchool02 x3（中学 1,200 座）",
+      "College01 x1（城市学院）"
+    ],
+    "healthcare": [
+      "Hospital01 x1（500 床）",
+      "MedicalClinic01 x1 + MedicalClinic02 x2"
+    ],
+    "fire": [
+      "FireHouse01 x2"
+    ],
+    "police": [
+      "PoliceStation01 x1 + PoliceStation02 x1"
+    ],
+    "garbage": [
+      "Landfill01 x1",
+      "RecyclingCenter01 x1（滨水带）"
+    ],
+    "deathcare": [
+      "Cemetery02 x1",
+      "Crematorium01 x1"
+    ],
+    "post": [
+      "PostOffice01 x1 + PostOffice02 x1"
+    ],
+    "park": [
+      "CityPark03 x3",
+      "Playground02 x2",
+      "Playground03 x1",
+      "FootballField01 x1",
+      "BasketballCourt04 x1"
+    ],
+    "welfare": [
+      "WelfareOffice01 x1"
+    ],
+    "maintenance": [
+      "ParkMaintenanceDepot01 x1"
+    ],
+    "emergency": [
+      "LargeEmergencyShelter01 x1",
+      "EarlyDisasterWarningSystem01 x1"
+    ],
+    "transport": [
+      "BusStation02 x2"
+    ],
+    "telecom": [
+      "TelecomTower01 x1",
+      "RadioMast01 x1"
+    ],
+    "power": [
+      "High-voltage Line 进线 x1",
+      "TransformerStation01 x1",
+      "TransformerStation02 x1"
+    ],
+    "water": [
+      "GroundwaterPumpingStation01 x3",
+      "WaterTower01 x2"
+    ],
+    "sewage": [
+      "WastewaterTreatmentPlant01 x1（滨水带）"
+    ],
+    "parking": [
+      "ParkingLot03 x1"
+    ]
+  },
+  "accounting": {
+    "target_population": 14000,
+    "households": 5925,
+    "people": 14220,
+    "people_range": [
+      13035,
+      16590
+    ],
+    "people_per_household": 2.4,
+    "household_area_m2": {
+      "EU Residential Low": 300,
+      "EU Residential Medium Row": 170,
+      "EU Residential Medium": 120,
+      "EU Residential High": 70
+    },
+    "household_rule": "按分区类型汇总可划区面积（每格 96x96 = 9216 m²）后 round(面积 / 户均占地)，再乘每户人数",
+    "household_by_kind": {
+      "EU Residential High": 5925
+    },
+    "zone_area_m2": {
+      "EU Residential High": 414720,
+      "EU Commercial Low": 46080,
+      "Office Low": 55296,
+      "Industrial Manufacturing": 92160
+    },
+    "grid_count": 24,
+    "grid_size_histogram": [
+      [
+        "2x2",
+        13
+      ],
+      [
+        "1x2",
+        3
+      ],
+      [
+        "1x1",
+        8
+      ]
+    ],
+    "zone_kind_cells": {
+      "residential": 45,
+      "commercial": 5,
+      "industrial": 10,
+      "office": 6
+    },
+    "zone_type_cells": {
+      "EU Residential High": 45,
+      "EU Commercial Low": 5,
+      "Office Low": 6,
+      "Industrial Manufacturing": 10
+    },
+    "residential_cells": 45,
+    "residential_zone_area_m2": 414720,
+    "building_count": 47,
+    "road_count": 42,
+    "connector_count": 24,
+    "road_length_m": 21699,
+    "road_connected_components": 1,
+    "pentagon_area_m2": 2032768,
+    "density_people_per_km2": 6995,
+    "placement_diagnostics": {
+      "tested": 44775,
+      "usable": 12202,
+      "placed": 24,
+      "rejected": {
+        "gap": 12105,
+        "core_circle": 73
+      },
+      "bySize": {
+        "2x2": 13,
+        "1x2": 3,
+        "1x1": 8
+      },
+      "skipped_bands": 3,
+      "link_edges": 80,
+      "link_components": 1
+    }
+  },
+  "construction_staging": [
+    {
+      "phase": 1,
+      "name": "门户与环路骨架",
+      "content": "gateway-highway -> pentagon-ring -> 5 条放射大道 -> riverside-access/spine",
+      "note": "先接对外高速终点并回读永久节点，再铺环路与放射；放射大道在中心汇聚点施工时应转为原生环岛（preview_intersection_roundabout）。"
+    },
+    {
+      "phase": 2,
+      "name": "生命线",
+      "content": "3 座地下水抽水站 + 2 座水塔 + 滨水污水处理厂 + 高压进线与 2 座变电站",
+      "note": "道路自带低压电/给水/污水网，设施道路侧落在普通道路功能区格子即自动接入；高压进线必须单独铺设并回读到既有高压线终点。"
+    },
+    {
+      "phase": 3,
+      "name": "网格片区逐张施工",
+      "content": "24 张片区 + 24 条连接路；每张片区走一次原生网格预览（不超过 3x3），提交后回读永久道路",
+      "note": "片区必须逐张串行、各自独立预览与提交；相邻片区不得共享外围道路。"
+    },
+    {
+      "phase": 4,
+      "name": "分区与公共服务",
+      "content": "片区道路建成后用 preview_zoning / apply_zoning 按 zone_type 施划；公共服务与公用设施建筑落在预留区与空余格",
+      "note": "每栋建筑施工前必须用 bind_city_plan_buildings 取得原生候选与 road_edge_id，不能沿用本规划的 candidate_bound 位置直接提交。"
+    }
+  ],
+  "checks": [
+    {
+      "name": "五边形全部顶点位于已购区域内",
+      "ok": true
+    },
+    {
+      "name": "四周退距 ≥ 150 m",
+      "ok": true,
+      "detail": "x 206.3 m / z 151.6 m"
+    },
+    {
+      "name": "五边形边界离实测河道 ≥ 40 m",
+      "ok": true,
+      "detail": "222.0 m"
+    },
+    {
+      "name": "全部道路与建筑离实测水域 ≥ 40 m",
+      "ok": true,
+      "detail": "无（含南城园区与滨水带）"
+    },
+    {
+      "name": "五边形离既有铁路 ≥ 150 m",
+      "ok": true,
+      "detail": "663.7 m"
+    },
+    {
+      "name": "五条边长偏差 ≤ 1%（正五边形）",
+      "ok": true,
+      "detail": "1085.3-1088.1 m"
+    },
+    {
+      "name": "五边形顶点全部落在 8 m 格点上",
+      "ok": true
+    },
+    {
+      "name": "四类用途全部由 plan.grids 表达",
+      "ok": true,
+      "detail": "24 张片区 / 66 个分区格"
+    },
+    {
+      "name": "四类用途齐全（住宅/商业/工业/办公）",
+      "ok": true,
+      "detail": "residential、commercial、office、industrial"
+    },
+    {
+      "name": "每张片区只含一种用途",
+      "ok": true
+    },
+    {
+      "name": "片区之间不重叠、不共享外围道路",
+      "ok": true,
+      "detail": "无"
+    },
+    {
+      "name": "环路与放射大道不穿过任何片区",
+      "ok": true,
+      "detail": "无"
+    },
+    {
+      "name": "每张片区都有连接路接入骨架",
+      "ok": true,
+      "detail": "无"
+    },
+    {
+      "name": "路网为单一连通分量",
+      "ok": true,
+      "detail": "1 个分量"
+    },
+    {
+      "name": "全部规划几何位于已购区域内",
+      "ok": true
+    },
+    {
+      "name": "规划建筑互不重叠",
+      "ok": true,
+      "detail": "无"
+    },
+    {
+      "name": "规划建筑不压规划道路",
+      "ok": true,
+      "detail": "无"
+    },
+    {
+      "name": "每栋建筑外缘到最近道路外缘 ≤ 8 m（沿街接入）",
+      "ok": true,
+      "detail": "最远 2.0 m"
+    },
+    {
+      "name": "全部建筑落位（含环外滨水带）",
+      "ok": true,
+      "detail": "47 / 47 栋"
+    },
+    {
+      "name": "全部公共服务与公用设施位于环路之外",
+      "ok": true,
+      "detail": "无"
+    },
+    {
+      "name": "对外接口带当前会话节点锚点",
+      "ok": true
+    },
+    {
+      "name": "非网格路网已逐组登记 grid_exceptions",
+      "ok": true,
+      "detail": "五边形中央商务核心、西城中密居住区、河东滨水市政与产业带、南城设施园、片区连接路"
+    },
+    {
+      "name": "人口落在 1.2-1.6 万",
+      "ok": true,
+      "detail": "14220 人"
+    }
+  ],
+  "notes": [],
+  "plan": {
+    "roads": [
+      {
+        "id": "pentagon-ring",
+        "label": "五边形环路（Large Road 32 m，串联五个角点）",
+        "prefab": "Large Road",
+        "width_m": 32,
+        "level": "surface",
+        "road_class": "arterial",
+        "role": "ring",
+        "district": "五边形中央商务核心",
+        "widening_policy": "perimeter_expandable",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 10,
+        "max_cost": 4000000,
+        "points": [
+          {
+            "x": -472,
+            "z": 160
+          },
+          {
+            "x": -1352,
+            "z": -480
+          },
+          {
+            "x": -1016,
+            "z": -1512
+          },
+          {
+            "x": 72,
+            "z": -1512
+          },
+          {
+            "x": 408,
+            "z": -480
+          },
+          {
+            "x": -472,
+            "z": 160
+          }
+        ]
+      },
+      {
+        "id": "radial-v0",
+        "label": "放射大道 V0（中心 → 角点 0）",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "level": "surface",
+        "road_class": "arterial",
+        "role": "radial",
+        "district": "五边形中央商务核心",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 20,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 1500000,
+        "points": [
+          {
+            "x": -472,
+            "z": -768
+          },
+          {
+            "x": -472,
+            "z": 160
+          }
+        ]
+      },
+      {
+        "id": "radial-v1",
+        "label": "放射大道 V1（中心 → 角点 1）",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "level": "surface",
+        "road_class": "arterial",
+        "role": "radial",
+        "district": "五边形中央商务核心",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 20,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 1500000,
+        "points": [
+          {
+            "x": -472,
+            "z": -768
+          },
+          {
+            "x": -1352,
+            "z": -480
+          }
+        ]
+      },
+      {
+        "id": "radial-v2",
+        "label": "放射大道 V2（中心 → 角点 2）",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "level": "surface",
+        "road_class": "arterial",
+        "role": "radial",
+        "district": "五边形中央商务核心",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 20,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 1500000,
+        "points": [
+          {
+            "x": -472,
+            "z": -768
+          },
+          {
+            "x": -1016,
+            "z": -1512
+          }
+        ]
+      },
+      {
+        "id": "radial-v3",
+        "label": "放射大道 V3（中心 → 角点 3）",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "level": "surface",
+        "road_class": "arterial",
+        "role": "radial",
+        "district": "五边形中央商务核心",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 20,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 1500000,
+        "points": [
+          {
+            "x": -472,
+            "z": -768
+          },
+          {
+            "x": 72,
+            "z": -1512
+          }
+        ]
+      },
+      {
+        "id": "radial-v4",
+        "label": "放射大道 V4（中心 → 角点 4）",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "level": "surface",
+        "road_class": "arterial",
+        "role": "radial",
+        "district": "五边形中央商务核心",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 20,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 1500000,
+        "points": [
+          {
+            "x": -472,
+            "z": -768
+          },
+          {
+            "x": 408,
+            "z": -480
+          }
+        ]
+      },
+      {
+        "id": "gateway-highway",
+        "label": "城市门户大道（角点 V1 → 绕开高压线塔 → 高速公路东侧终点）",
+        "prefab": "Large Road",
+        "width_m": 32,
+        "level": "surface",
+        "road_class": "trunk",
+        "role": "gateway",
+        "district": "西城中密居住区",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 5,
+        "max_cost": 1200000,
+        "points": [
+          {
+            "x": -1352,
+            "z": -480
+          },
+          {
+            "x": -1424,
+            "z": -560
+          },
+          {
+            "x": -1404,
+            "z": -1060
+          },
+          {
+            "x": -1384.4610595703125,
+            "z": -1142.673583984375,
+            "node_id": "6476c9aae8944378b59be4f588c4303c:51166:3"
+          }
+        ]
+      },
+      {
+        "id": "highway-portal-link",
+        "label": "高速门户连接段（西行车道端点 ↔ 东行车道端点）",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "portal",
+        "district": "西城中密居住区",
+        "planning_status": "bound",
+        "construction_status": "planned",
+        "construction_order": 4,
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -1383.5009765625,
+            "z": -1126.7022705078125,
+            "node_id": "6476c9aae8944378b59be4f588c4303c:51169:3"
+          },
+          {
+            "x": -1384.4610595703125,
+            "z": -1142.673583984375,
+            "node_id": "6476c9aae8944378b59be4f588c4303c:51166:3"
+          }
+        ]
+      },
+      {
+        "id": "riverside-access",
+        "label": "滨水接入路（环路东角点 → 滨水带）",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "riverside",
+        "district": "河东滨水市政与产业带",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 30,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 600000,
+        "points": [
+          {
+            "x": 408,
+            "z": -480
+          },
+          {
+            "x": 408,
+            "z": -456
+          }
+        ]
+      },
+      {
+        "id": "riverside-spine",
+        "label": "滨水带纵向服务路",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "riverside",
+        "district": "河东滨水市政与产业带",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 31,
+        "depends_on": [
+          "riverside-access"
+        ],
+        "max_cost": 600000,
+        "points": [
+          {
+            "x": 408,
+            "z": -456
+          },
+          {
+            "x": 408,
+            "z": 264
+          }
+        ]
+      },
+      {
+        "id": "campus-north",
+        "label": "设施园北联络路（环路东南角点 → 园区东侧）",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "campus",
+        "district": "南城设施园",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 32,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 400000,
+        "points": [
+          {
+            "x": 24,
+            "z": -1512
+          },
+          {
+            "x": 832,
+            "z": -1512
+          }
+        ]
+      },
+      {
+        "id": "campus-west",
+        "label": "设施园西侧路",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "campus",
+        "district": "南城设施园",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 32,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 400000,
+        "points": [
+          {
+            "x": -448,
+            "z": -1512
+          },
+          {
+            "x": -448,
+            "z": -2664
+          }
+        ]
+      },
+      {
+        "id": "campus-mid",
+        "label": "设施园中路",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "campus",
+        "district": "南城设施园",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 33,
+        "depends_on": [
+          "campus-north"
+        ],
+        "max_cost": 400000,
+        "points": [
+          {
+            "x": 192,
+            "z": -1512
+          },
+          {
+            "x": 192,
+            "z": -2664
+          }
+        ]
+      },
+      {
+        "id": "campus-east",
+        "label": "设施园东侧路",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "campus",
+        "district": "南城设施园",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 33,
+        "depends_on": [
+          "campus-north"
+        ],
+        "max_cost": 400000,
+        "points": [
+          {
+            "x": 832,
+            "z": -1512
+          },
+          {
+            "x": 832,
+            "z": -2664
+          }
+        ]
+      },
+      {
+        "id": "campus-cross-1",
+        "label": "设施园一横路",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "campus",
+        "district": "南城设施园",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 33,
+        "depends_on": [
+          "campus-west"
+        ],
+        "max_cost": 400000,
+        "points": [
+          {
+            "x": -448,
+            "z": -1896
+          },
+          {
+            "x": 832,
+            "z": -1896
+          }
+        ]
+      },
+      {
+        "id": "campus-cross-2",
+        "label": "设施园二横路",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "campus",
+        "district": "南城设施园",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 34,
+        "depends_on": [
+          "campus-cross-1"
+        ],
+        "max_cost": 400000,
+        "points": [
+          {
+            "x": -448,
+            "z": -2280
+          },
+          {
+            "x": 832,
+            "z": -2280
+          }
+        ]
+      },
+      {
+        "id": "campus-cross-3",
+        "label": "设施园三横路",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "campus",
+        "district": "南城设施园",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 34,
+        "depends_on": [
+          "campus-cross-2"
+        ],
+        "max_cost": 400000,
+        "points": [
+          {
+            "x": -448,
+            "z": -2472
+          },
+          {
+            "x": 832,
+            "z": -2472
+          }
+        ]
+      },
+      {
+        "id": "campus-cross-4",
+        "label": "设施园四横路",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "campus",
+        "district": "南城设施园",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 35,
+        "depends_on": [
+          "campus-cross-3"
+        ],
+        "max_cost": 400000,
+        "points": [
+          {
+            "x": -448,
+            "z": -2664
+          },
+          {
+            "x": 832,
+            "z": -2664
+          }
+        ]
+      },
+      {
+        "id": "link-0-1",
+        "label": "片区连接路 1",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -552,
+            "z": -1472
+          },
+          {
+            "x": -528,
+            "z": -1472
+          }
+        ]
+      },
+      {
+        "id": "link-1-2",
+        "label": "片区连接路 2",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -304,
+            "z": -1472
+          },
+          {
+            "x": -280,
+            "z": -1472
+          }
+        ]
+      },
+      {
+        "id": "link-6-7",
+        "label": "片区连接路 3",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -928,
+            "z": -976
+          },
+          {
+            "x": -904,
+            "z": -976
+          }
+        ]
+      },
+      {
+        "id": "link-8-9",
+        "label": "片区连接路 4",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -48,
+            "z": -976
+          },
+          {
+            "x": -24,
+            "z": -976
+          }
+        ]
+      },
+      {
+        "id": "link-12-13",
+        "label": "片区连接路 5",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -672,
+            "z": -592
+          },
+          {
+            "x": -648,
+            "z": -592
+          }
+        ]
+      },
+      {
+        "id": "link-14-15",
+        "label": "片区连接路 6",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -208,
+            "z": -592
+          },
+          {
+            "x": -184,
+            "z": -592
+          }
+        ]
+      },
+      {
+        "id": "link-14-17",
+        "label": "片区连接路 7",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -432,
+            "z": -368
+          },
+          {
+            "x": -432,
+            "z": -344
+          }
+        ]
+      },
+      {
+        "id": "link-15-23",
+        "label": "片区连接路 8",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -184,
+            "z": -368
+          },
+          {
+            "x": -184,
+            "z": -344
+          }
+        ]
+      },
+      {
+        "id": "link-18-21",
+        "label": "片区连接路 9",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -48,
+            "z": -440
+          },
+          {
+            "x": -48,
+            "z": -416
+          }
+        ]
+      },
+      {
+        "id": "link-19-22",
+        "label": "片区连接路 10",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -1040,
+            "z": -432
+          },
+          {
+            "x": -1040,
+            "z": -408
+          }
+        ]
+      },
+      {
+        "id": "link-12-16",
+        "label": "片区连接路 11",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -784,
+            "z": -368
+          },
+          {
+            "x": -792,
+            "z": -344
+          }
+        ]
+      },
+      {
+        "id": "link-9-11",
+        "label": "片区连接路 12",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": 88,
+            "z": -752
+          },
+          {
+            "x": 104,
+            "z": -728
+          }
+        ]
+      },
+      {
+        "id": "link-20-21",
+        "label": "片区连接路 13",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": 88,
+            "z": -400
+          },
+          {
+            "x": 64,
+            "z": -416
+          }
+        ]
+      },
+      {
+        "id": "link-10--1",
+        "label": "片区连接路 14",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -1232,
+            "z": -728
+          },
+          {
+            "x": -1268,
+            "z": -738
+          }
+        ]
+      },
+      {
+        "id": "link-6--1",
+        "label": "片区连接路 15",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -1152,
+            "z": -976
+          },
+          {
+            "x": -1184,
+            "z": -996
+          }
+        ]
+      },
+      {
+        "id": "link-8--1",
+        "label": "片区连接路 16",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -272,
+            "z": -976
+          },
+          {
+            "x": -308.8,
+            "z": -991.2
+          }
+        ]
+      },
+      {
+        "id": "link-3-6",
+        "label": "片区连接路 17",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -1072,
+            "z": -1000
+          },
+          {
+            "x": -1040,
+            "z": -976
+          }
+        ]
+      },
+      {
+        "id": "link-0--1",
+        "label": "片区连接路 18",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -776,
+            "z": -1248
+          },
+          {
+            "x": -798.4,
+            "z": -1214.4
+          }
+        ]
+      },
+      {
+        "id": "link-5--1",
+        "label": "片区连接路 19",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": 128,
+            "z": -1224
+          },
+          {
+            "x": 156,
+            "z": -1254
+          }
+        ]
+      },
+      {
+        "id": "link-14--1",
+        "label": "片区连接路 20",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -432,
+            "z": -480
+          },
+          {
+            "x": -472,
+            "z": -489.6
+          }
+        ]
+      },
+      {
+        "id": "link-18--1",
+        "label": "片区连接路 21",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": 64,
+            "z": -552
+          },
+          {
+            "x": 56,
+            "z": -595.2
+          }
+        ]
+      },
+      {
+        "id": "link-4--1",
+        "label": "片区连接路 22",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -592,
+            "z": -1000
+          },
+          {
+            "x": -635.2,
+            "z": -991.2
+          }
+        ]
+      },
+      {
+        "id": "link-12-22",
+        "label": "片区连接路 23",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -896,
+            "z": -368
+          },
+          {
+            "x": -928,
+            "z": -408
+          }
+        ]
+      },
+      {
+        "id": "link-13--1",
+        "label": "片区连接路 24",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "level": "surface",
+        "road_class": "collector",
+        "role": "connector",
+        "district": "片区连接路",
+        "planning_status": "conceptual",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 200000,
+        "points": [
+          {
+            "x": -536,
+            "z": -480
+          },
+          {
+            "x": -472,
+            "z": -489.6
+          }
+        ]
+      }
+    ],
+    "buildings": [
+      {
+        "id": "bld-001",
+        "label": "城市学院",
+        "name": "城市学院",
+        "prefab": "College01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -344.2,
+          "y": 0,
+          "z": -1971.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 101,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 175.6,
+          "z": 127.6
+        },
+        "reserved_size_m": {
+          "x": 179.6,
+          "z": 131.6
+        }
+      },
+      {
+        "id": "bld-002",
+        "label": "第一完全中学",
+        "name": "第一完全中学",
+        "prefab": "HighSchool02",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -204.59999999999997,
+          "y": 0,
+          "z": -1939.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 102,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 95.6,
+          "z": 63.6
+        },
+        "reserved_size_m": {
+          "x": 99.6,
+          "z": 67.6
+        }
+      },
+      {
+        "id": "bld-003",
+        "label": "区域医院",
+        "name": "区域医院",
+        "prefab": "Hospital01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 299.8,
+          "y": 0,
+          "z": -1947.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 103,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 183.6,
+          "z": 79.6
+        },
+        "reserved_size_m": {
+          "x": 187.6,
+          "z": 83.6
+        }
+      },
+      {
+        "id": "bld-004",
+        "label": "足球场",
+        "name": "足球场",
+        "prefab": "FootballField01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 443.40000000000003,
+          "y": 0,
+          "z": -1967.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 104,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 95.6,
+          "z": 119.6
+        },
+        "reserved_size_m": {
+          "x": 99.6,
+          "z": 123.6
+        }
+      },
+      {
+        "id": "bld-005",
+        "label": "篮球场",
+        "name": "篮球场",
+        "prefab": "BasketballCourt04",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 594.6000000000001,
+          "y": 0,
+          "z": -1931.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 105,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 63.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 67.6,
+          "z": 51.6
+        }
+      },
+      {
+        "id": "bld-006",
+        "label": "儿童活动区",
+        "name": "儿童活动区",
+        "prefab": "Playground03",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 642.2,
+          "y": 0,
+          "z": -1919.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 106,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 23.6,
+          "z": 23.6
+        },
+        "reserved_size_m": {
+          "x": 27.6,
+          "z": 27.6
+        }
+      },
+      {
+        "id": "bld-007",
+        "label": "第二中学",
+        "name": "第二中学",
+        "prefab": "HighSchool02",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -384.2,
+          "y": 0,
+          "z": -2323.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 107,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 95.6,
+          "z": 63.6
+        },
+        "reserved_size_m": {
+          "x": 99.6,
+          "z": 67.6
+        }
+      },
+      {
+        "id": "bld-008",
+        "label": "第三中学",
+        "name": "第三中学",
+        "prefab": "HighSchool02",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -284.59999999999997,
+          "y": 0,
+          "z": -2323.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 108,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 95.6,
+          "z": 63.6
+        },
+        "reserved_size_m": {
+          "x": 99.6,
+          "z": 67.6
+        }
+      },
+      {
+        "id": "bld-009",
+        "label": "社会福利中心",
+        "name": "社会福利中心",
+        "prefab": "WelfareOffice01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 267.8,
+          "y": 0,
+          "z": -2355.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 109,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 119.6,
+          "z": 127.6
+        },
+        "reserved_size_m": {
+          "x": 123.6,
+          "z": 131.6
+        }
+      },
+      {
+        "id": "bld-010",
+        "label": "邮政分局",
+        "name": "邮政分局",
+        "prefab": "PostOffice01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 371.40000000000003,
+          "y": 0,
+          "z": -2323.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 110,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 79.6,
+          "z": 63.6
+        },
+        "reserved_size_m": {
+          "x": 83.6,
+          "z": 67.6
+        }
+      },
+      {
+        "id": "bld-011",
+        "label": "警察局",
+        "name": "警察局",
+        "prefab": "PoliceStation01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 463.00000000000006,
+          "y": 0,
+          "z": -2319.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 111,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 95.6,
+          "z": 55.6
+        },
+        "reserved_size_m": {
+          "x": 99.6,
+          "z": 59.6
+        }
+      },
+      {
+        "id": "bld-012",
+        "label": "公墓",
+        "name": "公墓",
+        "prefab": "Cemetery02",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -376.2,
+          "y": 0,
+          "z": -2507.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 112,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 111.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 115.6,
+          "z": 51.6
+        }
+      },
+      {
+        "id": "bld-013",
+        "label": "火葬场",
+        "name": "火葬场",
+        "prefab": "Crematorium01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -284.59999999999997,
+          "y": 0,
+          "z": -2523.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 113,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 63.6,
+          "z": 79.6
+        },
+        "reserved_size_m": {
+          "x": 67.6,
+          "z": 83.6
+        }
+      },
+      {
+        "id": "bld-014",
+        "label": "公共停车场（医院与体育公园）",
+        "name": "公共停车场（医院与体育公园）",
+        "prefab": "ParkingLot03",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 697.8000000000002,
+          "y": 0,
+          "z": -1939.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 114,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 79.6,
+          "z": 63.6
+        },
+        "reserved_size_m": {
+          "x": 83.6,
+          "z": 67.6
+        }
+      },
+      {
+        "id": "bld-015",
+        "label": "垃圾填埋场",
+        "name": "垃圾填埋场",
+        "prefab": "Landfill01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 483.8,
+          "y": 0,
+          "z": -372.2
+        },
+        "rotation_degrees": 90,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 115,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 135.6,
+          "z": 119.6
+        },
+        "reserved_size_m": {
+          "x": 139.6,
+          "z": 123.6
+        }
+      },
+      {
+        "id": "bld-016",
+        "label": "资源回收中心",
+        "name": "资源回收中心",
+        "prefab": "RecyclingCenter01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 495.8,
+          "y": 0,
+          "z": -212.59999999999997
+        },
+        "rotation_degrees": 90,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 116,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 175.6,
+          "z": 143.6
+        },
+        "reserved_size_m": {
+          "x": 179.6,
+          "z": 147.6
+        }
+      },
+      {
+        "id": "bld-017",
+        "label": "污水处理厂",
+        "name": "污水处理厂",
+        "prefab": "WastewaterTreatmentPlant01",
+        "kind": "utility",
+        "category": "utility_facility",
+        "position": {
+          "x": 463.8,
+          "y": 0,
+          "z": 26.60000000000001
+        },
+        "rotation_degrees": 90,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 117,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 95.6,
+          "z": 79.6
+        },
+        "reserved_size_m": {
+          "x": 99.6,
+          "z": 83.6
+        }
+      },
+      {
+        "id": "bld-018",
+        "label": "高压变电站",
+        "name": "高压变电站",
+        "prefab": "TransformerStation02",
+        "kind": "utility",
+        "category": "utility_facility",
+        "position": {
+          "x": 439.8,
+          "y": 0,
+          "z": 90.2
+        },
+        "rotation_degrees": 90,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 118,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 23.6,
+          "z": 31.6
+        },
+        "reserved_size_m": {
+          "x": 27.6,
+          "z": 35.6
+        }
+      },
+      {
+        "id": "bld-019",
+        "label": "小学",
+        "name": "小学",
+        "prefab": "ElementarySchool02",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 243.8,
+          "y": 0,
+          "z": -2507.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 119,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 71.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 75.6,
+          "z": 51.6
+        }
+      },
+      {
+        "id": "bld-020",
+        "label": "小学",
+        "name": "小学",
+        "prefab": "ElementarySchool02",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 319.40000000000003,
+          "y": 0,
+          "z": -2507.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 120,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 71.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 75.6,
+          "z": 51.6
+        }
+      },
+      {
+        "id": "bld-021",
+        "label": "小学",
+        "name": "小学",
+        "prefab": "ElementarySchool02",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 395.00000000000006,
+          "y": 0,
+          "z": -2507.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 121,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 71.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 75.6,
+          "z": 51.6
+        }
+      },
+      {
+        "id": "bld-022",
+        "label": "小学",
+        "name": "小学",
+        "prefab": "ElementarySchool02",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 470.6000000000001,
+          "y": 0,
+          "z": -2507.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 122,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 71.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 75.6,
+          "z": 51.6
+        }
+      },
+      {
+        "id": "bld-023",
+        "label": "社区诊所",
+        "name": "社区诊所",
+        "prefab": "MedicalClinic02",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 573.8000000000002,
+          "y": 0,
+          "z": -2503.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 123,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        },
+        "reserved_size_m": {
+          "x": 43.6,
+          "z": 43.6
+        }
+      },
+      {
+        "id": "bld-024",
+        "label": "社区诊所",
+        "name": "社区诊所",
+        "prefab": "MedicalClinic02",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 617.4000000000001,
+          "y": 0,
+          "z": -2503.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 124,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        },
+        "reserved_size_m": {
+          "x": 43.6,
+          "z": 43.6
+        }
+      },
+      {
+        "id": "bld-025",
+        "label": "综合门诊",
+        "name": "综合门诊",
+        "prefab": "MedicalClinic01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 685.0000000000002,
+          "y": 0,
+          "z": -2507.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 125,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 87.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 91.6,
+          "z": 51.6
+        }
+      },
+      {
+        "id": "bld-026",
+        "label": "消防站",
+        "name": "消防站",
+        "prefab": "FireHouse01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 752.6000000000001,
+          "y": 0,
+          "z": -2503.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 126,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        },
+        "reserved_size_m": {
+          "x": 43.6,
+          "z": 43.6
+        }
+      },
+      {
+        "id": "bld-027",
+        "label": "消防站（产业区）",
+        "name": "消防站（产业区）",
+        "prefab": "FireHouse01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 227.8,
+          "y": 0,
+          "z": -2632.2
+        },
+        "rotation_degrees": 180,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 127,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        },
+        "reserved_size_m": {
+          "x": 43.6,
+          "z": 43.6
+        }
+      },
+      {
+        "id": "bld-028",
+        "label": "警察分局",
+        "name": "警察分局",
+        "prefab": "PoliceStation02",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 315,
+          "y": 0,
+          "z": -2632.2
+        },
+        "rotation_degrees": 180,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 128,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        },
+        "reserved_size_m": {
+          "x": 43.6,
+          "z": 43.6
+        }
+      },
+      {
+        "id": "bld-029",
+        "label": "邮局",
+        "name": "邮局",
+        "prefab": "PostOffice02",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 788.2000000000003,
+          "y": 0,
+          "z": -2499.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 129,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 23.6,
+          "z": 31.6
+        },
+        "reserved_size_m": {
+          "x": 27.6,
+          "z": 35.6
+        }
+      },
+      {
+        "id": "bld-030",
+        "label": "城市公园",
+        "name": "城市公园",
+        "prefab": "CityPark03",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 378.6,
+          "y": 0,
+          "z": -2620.2
+        },
+        "rotation_degrees": 180,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 130,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 79.6,
+          "z": 63.6
+        },
+        "reserved_size_m": {
+          "x": 83.6,
+          "z": 67.6
+        }
+      },
+      {
+        "id": "bld-031",
+        "label": "城市公园",
+        "name": "城市公园",
+        "prefab": "CityPark03",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 545.8,
+          "y": 0,
+          "z": -2620.2
+        },
+        "rotation_degrees": 180,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 131,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 79.6,
+          "z": 63.6
+        },
+        "reserved_size_m": {
+          "x": 83.6,
+          "z": 67.6
+        }
+      },
+      {
+        "id": "bld-032",
+        "label": "城市公园",
+        "name": "城市公园",
+        "prefab": "CityPark03",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 629.4000000000001,
+          "y": 0,
+          "z": -2620.2
+        },
+        "rotation_degrees": 180,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 132,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 79.6,
+          "z": 63.6
+        },
+        "reserved_size_m": {
+          "x": 83.6,
+          "z": 67.6
+        }
+      },
+      {
+        "id": "bld-033",
+        "label": "儿童活动场",
+        "name": "儿童活动场",
+        "prefab": "Playground02",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 685,
+          "y": 0,
+          "z": -2636.2
+        },
+        "rotation_degrees": 180,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 133,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 23.6,
+          "z": 31.6
+        },
+        "reserved_size_m": {
+          "x": 27.6,
+          "z": 35.6
+        }
+      },
+      {
+        "id": "bld-034",
+        "label": "儿童活动场",
+        "name": "儿童活动场",
+        "prefab": "Playground02",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 712.6000000000001,
+          "y": 0,
+          "z": -2636.2
+        },
+        "rotation_degrees": 180,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 134,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 23.6,
+          "z": 31.6
+        },
+        "reserved_size_m": {
+          "x": 27.6,
+          "z": 35.6
+        }
+      },
+      {
+        "id": "bld-035",
+        "label": "公园养护段",
+        "name": "公园养护段",
+        "prefab": "ParkMaintenanceDepot01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 756.2,
+          "y": 0,
+          "z": -2612.2
+        },
+        "rotation_degrees": 180,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 135,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 55.6,
+          "z": 79.6
+        },
+        "reserved_size_m": {
+          "x": 59.6,
+          "z": 83.6
+        }
+      },
+      {
+        "id": "bld-036",
+        "label": "应急避难所",
+        "name": "应急避难所",
+        "prefab": "LargeEmergencyShelter01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 227.8,
+          "y": 0,
+          "z": -2703.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 136,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 39.6,
+          "z": 55.6
+        },
+        "reserved_size_m": {
+          "x": 43.6,
+          "z": 59.6
+        }
+      },
+      {
+        "id": "bld-037",
+        "label": "灾害预警中心",
+        "name": "灾害预警中心",
+        "prefab": "EarlyDisasterWarningSystem01",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 375,
+          "y": 0,
+          "z": -2703.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 137,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 79.6,
+          "z": 55.6
+        },
+        "reserved_size_m": {
+          "x": 83.6,
+          "z": 59.6
+        }
+      },
+      {
+        "id": "bld-038",
+        "label": "公交枢纽站",
+        "name": "公交枢纽站",
+        "prefab": "BusStation02",
+        "kind": "service",
+        "category": "transport_facility",
+        "position": {
+          "x": 470.2,
+          "y": 0,
+          "z": -2699.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 138,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 31.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 35.6,
+          "z": 51.6
+        }
+      },
+      {
+        "id": "bld-039",
+        "label": "公交枢纽站",
+        "name": "公交枢纽站",
+        "prefab": "BusStation02",
+        "kind": "service",
+        "category": "transport_facility",
+        "position": {
+          "x": 505.8,
+          "y": 0,
+          "z": -2699.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 139,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 31.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 35.6,
+          "z": 51.6
+        }
+      },
+      {
+        "id": "bld-040",
+        "label": "地下水抽水站",
+        "name": "地下水抽水站",
+        "prefab": "GroundwaterPumpingStation01",
+        "kind": "utility",
+        "category": "utility_facility",
+        "position": {
+          "x": 549.4000000000001,
+          "y": 0,
+          "z": -2699.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 140,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 47.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 51.6,
+          "z": 51.6
+        }
+      },
+      {
+        "id": "bld-041",
+        "label": "地下水抽水站",
+        "name": "地下水抽水站",
+        "prefab": "GroundwaterPumpingStation01",
+        "kind": "utility",
+        "category": "utility_facility",
+        "position": {
+          "x": 601,
+          "y": 0,
+          "z": -2699.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 141,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 47.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 51.6,
+          "z": 51.6
+        }
+      },
+      {
+        "id": "bld-042",
+        "label": "地下水抽水站",
+        "name": "地下水抽水站",
+        "prefab": "GroundwaterPumpingStation01",
+        "kind": "utility",
+        "category": "utility_facility",
+        "position": {
+          "x": 652.6000000000001,
+          "y": 0,
+          "z": -2699.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 142,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 47.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 51.6,
+          "z": 51.6
+        }
+      },
+      {
+        "id": "bld-043",
+        "label": "水塔",
+        "name": "水塔",
+        "prefab": "WaterTower01",
+        "kind": "utility",
+        "category": "utility_facility",
+        "position": {
+          "x": 696.2,
+          "y": 0,
+          "z": -2691.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 143,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 31.6,
+          "z": 31.6
+        },
+        "reserved_size_m": {
+          "x": 35.6,
+          "z": 35.6
+        }
+      },
+      {
+        "id": "bld-044",
+        "label": "水塔",
+        "name": "水塔",
+        "prefab": "WaterTower01",
+        "kind": "utility",
+        "category": "utility_facility",
+        "position": {
+          "x": 731.8000000000002,
+          "y": 0,
+          "z": -2691.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 144,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 31.6,
+          "z": 31.6
+        },
+        "reserved_size_m": {
+          "x": 35.6,
+          "z": 35.6
+        }
+      },
+      {
+        "id": "bld-045",
+        "label": "变电站",
+        "name": "变电站",
+        "prefab": "TransformerStation01",
+        "kind": "utility",
+        "category": "utility_facility",
+        "position": {
+          "x": 775.4000000000001,
+          "y": 0,
+          "z": -2703.8
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 145,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 47.6,
+          "z": 55.6
+        },
+        "reserved_size_m": {
+          "x": 51.6,
+          "z": 59.6
+        }
+      },
+      {
+        "id": "bld-046",
+        "label": "通信塔",
+        "name": "通信塔",
+        "prefab": "TelecomTower01",
+        "kind": "utility",
+        "category": "utility_facility",
+        "position": {
+          "x": 792.2,
+          "y": 0,
+          "z": -2367.3999999999996
+        },
+        "rotation_degrees": 270,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 146,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 55.6,
+          "z": 55.6
+        },
+        "reserved_size_m": {
+          "x": 59.6,
+          "z": 59.6
+        }
+      },
+      {
+        "id": "bld-047",
+        "label": "无线电桅杆",
+        "name": "无线电桅杆",
+        "prefab": "RadioMast01",
+        "kind": "utility",
+        "category": "utility_facility",
+        "position": {
+          "x": 808.2,
+          "y": 0,
+          "z": -2415
+        },
+        "rotation_degrees": 270,
+        "rotation_source": "road_tangent",
+        "placement_status": "candidate_bound",
+        "construction_status": "planned",
+        "construction_order": 147,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 3000000,
+        "size_m": {
+          "x": 31.6,
+          "z": 23.6
+        },
+        "reserved_size_m": {
+          "x": 35.6,
+          "z": 27.6
+        }
+      }
+    ],
+    "zones": [],
+    "grids": [
+      {
+        "id": "grid-s-1",
+        "label": "EU Residential High 2x2 片区",
+        "district": "南城居住区",
+        "origin": {
+          "x": -776,
+          "z": -1472
+        },
+        "columns": 2,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Residential High",
+        "zone_kind": "residential",
+        "construction_status": "planned",
+        "construction_order": 40,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-s-2",
+        "label": "EU Residential High 2x2 片区",
+        "district": "南城居住区",
+        "origin": {
+          "x": -528,
+          "z": -1472
+        },
+        "columns": 2,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Residential High",
+        "zone_kind": "residential",
+        "construction_status": "planned",
+        "construction_order": 41,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-s-3",
+        "label": "EU Residential High 1x2 片区",
+        "district": "南城居住区",
+        "origin": {
+          "x": -280,
+          "z": -1472
+        },
+        "columns": 1,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Residential High",
+        "zone_kind": "residential",
+        "construction_status": "planned",
+        "construction_order": 42,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-w-4",
+        "label": "EU Commercial Low 2x2 片区",
+        "district": "西城中密居住区",
+        "origin": {
+          "x": -1072,
+          "z": -1224
+        },
+        "columns": 2,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Commercial Low",
+        "zone_kind": "commercial",
+        "construction_status": "planned",
+        "construction_order": 43,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-s-5",
+        "label": "EU Residential High 2x2 片区",
+        "district": "南城居住区",
+        "origin": {
+          "x": -592,
+          "z": -1224
+        },
+        "columns": 2,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Residential High",
+        "zone_kind": "residential",
+        "construction_status": "planned",
+        "construction_order": 44,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-se-6",
+        "label": "EU Residential High 2x2 片区",
+        "district": "东南花园居住区",
+        "origin": {
+          "x": -96,
+          "z": -1224
+        },
+        "columns": 2,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Residential High",
+        "zone_kind": "residential",
+        "construction_status": "planned",
+        "construction_order": 45,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-w-7",
+        "label": "EU Residential High 2x2 片区",
+        "district": "西城中密居住区",
+        "origin": {
+          "x": -1152,
+          "z": -976
+        },
+        "columns": 2,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Residential High",
+        "zone_kind": "residential",
+        "construction_status": "planned",
+        "construction_order": 46,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-w-8",
+        "label": "EU Residential High 2x2 片区",
+        "district": "西城中密居住区",
+        "origin": {
+          "x": -904,
+          "z": -976
+        },
+        "columns": 2,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Residential High",
+        "zone_kind": "residential",
+        "construction_status": "planned",
+        "construction_order": 47,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-se-9",
+        "label": "EU Residential High 2x2 片区",
+        "district": "东南花园居住区",
+        "origin": {
+          "x": -272,
+          "z": -976
+        },
+        "columns": 2,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Residential High",
+        "zone_kind": "residential",
+        "construction_status": "planned",
+        "construction_order": 48,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-se-10",
+        "label": "EU Residential High 2x2 片区",
+        "district": "东南花园居住区",
+        "origin": {
+          "x": -24,
+          "z": -976
+        },
+        "columns": 2,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Residential High",
+        "zone_kind": "residential",
+        "construction_status": "planned",
+        "construction_order": 49,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-w-11",
+        "label": "EU Commercial Low 1x1 片区",
+        "district": "西城中密居住区",
+        "origin": {
+          "x": -1232,
+          "z": -728
+        },
+        "columns": 1,
+        "rows": 1,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Commercial Low",
+        "zone_kind": "commercial",
+        "construction_status": "planned",
+        "construction_order": 50,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-se-12",
+        "label": "EU Residential High 1x1 片区",
+        "district": "东南花园居住区",
+        "origin": {
+          "x": 104,
+          "z": -728
+        },
+        "columns": 1,
+        "rows": 1,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Residential High",
+        "zone_kind": "residential",
+        "construction_status": "planned",
+        "construction_order": 51,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-n-13",
+        "label": "EU Residential High 2x2 片区",
+        "district": "北城办公文教区",
+        "origin": {
+          "x": -896,
+          "z": -592
+        },
+        "columns": 2,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Residential High",
+        "zone_kind": "residential",
+        "construction_status": "planned",
+        "construction_order": 52,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-n-14",
+        "label": "Office Low 1x2 片区",
+        "district": "北城办公文教区",
+        "origin": {
+          "x": -648,
+          "z": -592
+        },
+        "columns": 1,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "Office Low",
+        "zone_kind": "office",
+        "construction_status": "planned",
+        "construction_order": 53,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-ne-15",
+        "label": "Office Low 2x2 片区",
+        "district": "东北产业带",
+        "origin": {
+          "x": -432,
+          "z": -592
+        },
+        "columns": 2,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "Office Low",
+        "zone_kind": "office",
+        "construction_status": "planned",
+        "construction_order": 54,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-ne-16",
+        "label": "Industrial Manufacturing 1x2 片区",
+        "district": "东北产业带",
+        "origin": {
+          "x": -184,
+          "z": -592
+        },
+        "columns": 1,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "Industrial Manufacturing",
+        "zone_kind": "industrial",
+        "construction_status": "planned",
+        "construction_order": 55,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-n-17",
+        "label": "EU Residential High 2x2 片区",
+        "district": "北城办公文教区",
+        "origin": {
+          "x": -792,
+          "z": -344
+        },
+        "columns": 2,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Residential High",
+        "zone_kind": "residential",
+        "construction_status": "planned",
+        "construction_order": 56,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-ne-18",
+        "label": "Industrial Manufacturing 2x2 片区",
+        "district": "东北产业带",
+        "origin": {
+          "x": -432,
+          "z": -344
+        },
+        "columns": 2,
+        "rows": 2,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "Industrial Manufacturing",
+        "zone_kind": "industrial",
+        "construction_status": "planned",
+        "construction_order": 57,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-ne-19",
+        "label": "Industrial Manufacturing 1x1 片区",
+        "district": "东北产业带",
+        "origin": {
+          "x": -48,
+          "z": -552
+        },
+        "columns": 1,
+        "rows": 1,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "Industrial Manufacturing",
+        "zone_kind": "industrial",
+        "construction_status": "planned",
+        "construction_order": 58,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-n-20",
+        "label": "EU Residential High 1x1 片区",
+        "district": "北城办公文教区",
+        "origin": {
+          "x": -1040,
+          "z": -544
+        },
+        "columns": 1,
+        "rows": 1,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Residential High",
+        "zone_kind": "residential",
+        "construction_status": "planned",
+        "construction_order": 59,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-ne-21",
+        "label": "Industrial Manufacturing 1x1 片区",
+        "district": "东北产业带",
+        "origin": {
+          "x": 88,
+          "z": -512
+        },
+        "columns": 1,
+        "rows": 1,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "Industrial Manufacturing",
+        "zone_kind": "industrial",
+        "construction_status": "planned",
+        "construction_order": 60,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-ne-22",
+        "label": "Industrial Manufacturing 1x1 片区",
+        "district": "东北产业带",
+        "origin": {
+          "x": -48,
+          "z": -416
+        },
+        "columns": 1,
+        "rows": 1,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "Industrial Manufacturing",
+        "zone_kind": "industrial",
+        "construction_status": "planned",
+        "construction_order": 61,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-n-23",
+        "label": "EU Residential High 1x1 片区",
+        "district": "北城办公文教区",
+        "origin": {
+          "x": -1040,
+          "z": -408
+        },
+        "columns": 1,
+        "rows": 1,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "EU Residential High",
+        "zone_kind": "residential",
+        "construction_status": "planned",
+        "construction_order": 62,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      },
+      {
+        "id": "grid-ne-24",
+        "label": "Industrial Manufacturing 1x1 片区",
+        "district": "东北产业带",
+        "origin": {
+          "x": -184,
+          "z": -344
+        },
+        "columns": 1,
+        "rows": 1,
+        "block_width_m": 112,
+        "block_height_m": 112,
+        "road_prefab": "Small Road",
+        "road_width_m": 16,
+        "zone_type": "Industrial Manufacturing",
+        "zone_kind": "industrial",
+        "construction_status": "planned",
+        "construction_order": 63,
+        "depends_on": [
+          "pentagon-ring"
+        ],
+        "max_cost": 900000
+      }
+    ],
+    "utilities": [
+      {
+        "id": "hv-import",
+        "label": "高压进线（既有高压线终点 → 高压变电站）",
+        "prefab": "High-voltage Line",
+        "network_type": "electricity",
+        "level": "surface",
+        "construction_status": "planned",
+        "construction_order": 90,
+        "max_cost": 400000,
+        "points": [
+          {
+            "x": -1374.68652,
+            "z": -554.980835
+          },
+          {
+            "x": 439.8,
+            "z": 90.2
+          }
+        ]
+      }
+    ],
+    "tracks": [],
+    "grid_exceptions": [
+      {
+        "scope_id": "五边形中央商务核心",
+        "road_ids": [
+          "pentagon-ring",
+          "radial-v0",
+          "radial-v1",
+          "radial-v2",
+          "radial-v3",
+          "radial-v4"
+        ],
+        "reason_codes": [
+          "NON_AXIS_ALIGNED_ROAD",
+          "INCOMPLETE_RECTANGULAR_LATTICE"
+        ],
+        "message": "存在非水平、非垂直或坐标无效的道路。；至少需要两条纵路和两条横路才能形成完整矩形网格。"
+      },
+      {
+        "scope_id": "西城中密居住区",
+        "road_ids": [
+          "gateway-highway",
+          "highway-portal-link"
+        ],
+        "reason_codes": [
+          "EXPLICIT_ROAD_ANCHOR",
+          "NON_AXIS_ALIGNED_ROAD",
+          "INCOMPLETE_RECTANGULAR_LATTICE"
+        ],
+        "message": "原生网格无法保留道路控制点的既有节点或边绑定。；存在非水平、非垂直或坐标无效的道路。；至少需要两条纵路和两条横路才能形成完整矩形网格。"
+      },
+      {
+        "scope_id": "河东滨水市政与产业带",
+        "road_ids": [
+          "riverside-access",
+          "riverside-spine"
+        ],
+        "reason_codes": [
+          "INCOMPLETE_RECTANGULAR_LATTICE",
+          "SPLIT_OR_DUPLICATE_GRID_LINE"
+        ],
+        "message": "至少需要两条纵路和两条横路才能形成完整矩形网格。；同一网格线上存在分段或重复道路，不能无损合并为一次原生网格预览。"
+      },
+      {
+        "scope_id": "南城设施园",
+        "road_ids": [
+          "campus-north",
+          "campus-west",
+          "campus-mid",
+          "campus-east",
+          "campus-cross-1",
+          "campus-cross-2",
+          "campus-cross-3",
+          "campus-cross-4"
+        ],
+        "reason_codes": [
+          "NON_UNIFORM_ROW_SPACING",
+          "PARTIAL_OR_EXTENDED_HORIZONTAL_LINE"
+        ],
+        "message": "横向网格线间距不一致。；横路没有完整覆盖统一的网格东西边界，或包含额外延伸段。"
+      },
+      {
+        "scope_id": "片区连接路",
+        "road_ids": [
+          "link-0-1",
+          "link-1-2",
+          "link-6-7",
+          "link-8-9",
+          "link-12-13",
+          "link-14-15",
+          "link-14-17",
+          "link-15-23",
+          "link-18-21",
+          "link-19-22",
+          "link-12-16",
+          "link-9-11",
+          "link-20-21",
+          "link-10--1",
+          "link-6--1",
+          "link-8--1",
+          "link-3-6",
+          "link-0--1",
+          "link-5--1",
+          "link-14--1",
+          "link-18--1",
+          "link-4--1",
+          "link-12-22",
+          "link-13--1"
+        ],
+        "reason_codes": [
+          "NON_AXIS_ALIGNED_ROAD",
+          "SPLIT_OR_DUPLICATE_GRID_LINE",
+          "NON_UNIFORM_COLUMN_SPACING",
+          "NON_UNIFORM_ROW_SPACING",
+          "PARTIAL_OR_EXTENDED_VERTICAL_LINE",
+          "PARTIAL_OR_EXTENDED_HORIZONTAL_LINE"
+        ],
+        "message": "存在非水平、非垂直或坐标无效的道路。；同一网格线上存在分段或重复道路，不能无损合并为一次原生网格预览。；纵向网格线间距不一致。；横向网格线间距不一致。；纵路没有完整覆盖统一的网格南北边界，或包含额外延伸段。；横路没有完整覆盖统一的网格东西边界，或包含额外延伸段。"
+      }
+    ]
+  }
+}

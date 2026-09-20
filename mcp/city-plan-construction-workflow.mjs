@@ -1,3 +1,4 @@
+import { withPrefabCatalog } from './prefab-catalog-service.mjs';
 import { queryGame as liveQueryGame, BridgeError } from './bridge-client.mjs';
 import { computeCityPlanId, expandCityPlan } from './planning-renderer.mjs';
 
@@ -371,8 +372,8 @@ function operationSummary(operation) {
 }
 
 export function createCityPlanConstructionWorkflow(queryGame = liveQueryGame) {
+  queryGame = withPrefabCatalog(queryGame);
   let mutationTail = Promise.resolve();
-  const buildingBindingCache = new Map();
   const exclusive = async fn => {
     const previous = mutationTail;
     let release;
@@ -398,8 +399,6 @@ export function createCityPlanConstructionWorkflow(queryGame = liveQueryGame) {
   }
 
   async function resolveBuildingBinding(batch, sessionId) {
-    const cacheKey = `${sessionId}:${batch.building_category}:${batch.building_prefab}`;
-    if (buildingBindingCache.has(cacheKey)) return buildingBindingCache.get(cacheKey);
     const categories = batch.building_category === 'auto' ? Object.keys(BUILDING_DOMAINS) : [batch.building_category];
     const found = [];
     for (const category of categories) {
@@ -419,9 +418,9 @@ export function createCityPlanConstructionWorkflow(queryGame = liveQueryGame) {
     const result = {
       ...binding,
       special: binding.category === 'building' && /Shoreline|Floating|RoadEdge|RoadNode|shoreline|floating|road_edge|road_node/.test(placement),
-      requires_road_edge: /RoadSide/i.test(placement),
+      // placement_flags 列出的是“允许的落位面”，含 RoadSide 不等于必须临路；以 prefab.requires_road 为准
+      requires_road_edge: binding.prefab.requires_road === true,
     };
-    buildingBindingCache.set(cacheKey, result);
     return result;
   }
 
@@ -458,7 +457,7 @@ export function createCityPlanConstructionWorkflow(queryGame = liveQueryGame) {
     const status = statusEnvelope.data ?? {};
     if (!status.city_loaded) throw workflowError('CITY_NOT_READY', 'No playable city is loaded.');
     const sessionId = sessionIdOf(statusEnvelope);
-    const compiled = compileCityPlanRoads(args.bounds, args.plan, args.approved_plan_id);
+    const compiled = args.compiled_plan ?? compileCityPlanRoads(args.bounds, args.plan, args.approved_plan_id);
     const bindingByBatch = [];
     for (const batch of compiled.batches) {
       const runtime = await resolveBatchRuntime(batch, sessionId);
@@ -650,7 +649,8 @@ export function createCityPlanConstructionWorkflow(queryGame = liveQueryGame) {
       const status = statusEnvelope.data ?? {};
       if (!status.city_loaded) throw workflowError('CITY_NOT_READY', 'No playable city is loaded.');
       const sessionId = sessionIdOf(statusEnvelope); checkSession(args.expected_session_id, statusEnvelope);
-      const compiled = compileCityPlanRoads(args.bounds, args.plan, args.approved_plan_id);
+      // compiled_plan is supplied only by the persistent handle adapter, never MCP input.
+      const compiled = args.compiled_plan ?? compileCityPlanRoads(args.bounds, args.plan, args.approved_plan_id);
       if (compiled.virtual_sandbox.state !== 'valid') throw workflowError('VIRTUAL_PLAN_INVALID', 'The virtual road sandbox found blocking geometry errors. Re-render and approve a corrected plan.', { errors: compiled.virtual_sandbox.errors });
       const batch = args.batch_id
         ? compiled.batches.find(item => item.batch_id === args.batch_id)

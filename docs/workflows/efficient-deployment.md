@@ -12,6 +12,10 @@ node tools/survey-space.mjs --auto-find residential --anchor -1138,528 --mode qu
 
 ## 领域高层编排
 
+常用prefab目录由统一的会话缓存复用；资产目录与地图实例分别处理。失效、统计与限制见[prefab目录缓存](prefab-catalog-cache.md)。目录缓存不替代现场预览与永久回读。
+
+规划网页和完整几何默认留在服务端文件中，后续优先使用 `plan_ref`、`construction_id` 与小型 `next_action`；摘要失败时用 `evidence_ref` 按字段分页诊断。具体调用及恢复限制见[规划数据引用与紧凑响应](planning-token-efficiency.md)。
+
 当一次请求跨越多个建设阶段时，使用 MCP 高层工具而不是在客户端并发拼接底层调用：
 
 - `deploy_service_cluster`：按服务建筑逐项完成影响分析、选址、原生预览、提交和回读，可将完成的设施分配到指定行政区。

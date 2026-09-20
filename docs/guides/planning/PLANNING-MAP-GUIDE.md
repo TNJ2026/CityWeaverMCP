@@ -142,12 +142,14 @@
 
 ## 完整规划按图施工
 
+MCP现支持持久化 `plan_ref` / `construction_id`，默认返回紧凑摘要与网页文件链接。推荐按[规划数据引用与紧凑响应](../../workflows/planning-token-efficiency.md)执行：渲染后用 `plan_ref + approved_plan_id` 准备施工，再原样使用带状态版本的小型 `next_action`。下文完整 `bounds + plan` 流程继续作为兼容入口；引用方式不改变审批或原生验收要求。
+
 `prepare_city_plan_construction` 与 `advance_city_plan_construction` 让 `render_city_plan` 的结构化 `plan` 成为道路、可直接放置建筑及独立水电管网施工的唯一几何来源，而不是从 SVG 像素反推坐标。
 
 ### 标准流程
 
-1. 先调用 `render_city_plan`，向用户展示图片并保存返回的 `plan_id`。
-2. 用户确认后，用完全相同的 `bounds`、`plan` 和该 `approved_plan_id` 调用 `prepare_city_plan_construction`。任何坐标、prefab、依赖或顺序变化都会产生不同哈希并以 `PLAN_APPROVAL_MISMATCH` 拒绝。
+1. 先调用 `render_city_plan`，打开返回的网页文件，并保存 `plan_ref` 和 `plan_id`。
+2. 用户确认后，优先用 `plan_ref` 和该 `approved_plan_id` 调用 `prepare_city_plan_construction`，保存返回的 `construction_id`。兼容入口可传完全相同的 `bounds`、`plan`。任何坐标、prefab、依赖或顺序变化都会产生不同哈希并以 `PLAN_APPROVAL_MISMATCH` 拒绝。
 3. 准备结果先建立不写入游戏的虚拟施工沙盒，检查道路拓扑，并把道路、建筑和独立水电管网编译为确定性原生批次。它把网格展开为稳定对象 ID 用于图面和回读；当前 `preview_road_grid` 单次原生预览最多支持 `5×5` 个街区，因此更大的规划网格必须先拆成多个不超过该上限的施工网格，而不是把城市规划本身限制为固定的 NxN 模板。
 4. 普通路线按 `construction_order` 和 `depends_on` 排序；执行器以 240 米为安全上限等分长直线，避免原生端点吸附和浮点换算后恰好 256 米的边界段被拒绝；只有整条路线超过原生 16 点限制时才拆成相邻批次。虚拟沙盒不会在地下或其他位置创建游戏道路。路段长度四个口径的分工见[游戏物理规则](../../reference/GAME-PHYSICS-RULES.md) §1.4。
 5. 沿 `next_action` 调用 `advance_city_plan_construction(action="preview_batch")`。该步骤只从已批准规划读取 prefab 和最终世界坐标，按批次类型调用道路、建筑、市政服务、交通设施、公用设施或独立管网的游戏原生 preview，不允许调用方另传任意施工坐标。
@@ -399,7 +401,7 @@ node tools/scratch/<脚本>.mjs [--plan public-services|master] [--plan-file <�
 
 规划文件的必需结构：`bounds`（施工与验收范围）加 `plan.buildings[]`，每栋建筑至少有 `id`、`prefab`、`position`（`x`/`z` 为米制世界坐标）。目标清单通过 `plan_ids.<方案键>` 精确绑定每套方案中的建筑；显式 ID 不存在时立即报错，不会回落到同 prefab 的另一栋建筑。仅兼容未声明 `plan_ids` 的旧清单时才按 prefab 回落，因此规划内 `id` 必须非空且唯一，重复 prefab 尤其必须配置精确 ID。施工跳过和阶段验收同时核对 prefab 与目标位置，不能因为规划范围内存在另一栋同 prefab 建筑而误判完成。
 
-**新增或替换规划文件的做法**：`render_city_plan` 只返回自包含 HTML 与 `plan_id`，结构化 `plan` 由调用方持有，不会自动落盘。把决定沿用的 `bounds` + `plan` 存进 `plans/`，在清单的 `plans` 目录里登记路径与方案键，再跑一次 `node tools/tests/test-plan-targets.mjs`。`artifacts/` 仍是一次性产物目录（会被 Git 忽略），不要在那里放权威规划。
+**新增或替换规划文件的做法**：MCP 1.24.0起，`render_city_plan` 将自包含网页与不可变结构化规划写入持久化存储，返回文件链接、`plan_ref` 与 `plan_id`，默认不内嵌HTML。运行时存储默认在 `artifacts/planning-store/`，可通过 `CITYWEAVER_PLANNING_STORE` 指定独立持久目录；其中活动施工日志、规划及证据不能按普通临时产物清理。需要版本控制和长期维护的方案仍应将 `bounds` + `plan` 归档进 `plans/`，在规划清单中登记路径与方案键，再运行 `node tools/tests/test-plan-targets.mjs`。归档文件不替代当前会话的施工状态。详见[规划数据引用与紧凑响应](../../workflows/planning-token-efficiency.md)。
 
 ### 复现与安全
 

@@ -4,6 +4,23 @@
 
 ## 设施
 
+### 道路公交站牌、顶棚与有轨电车站点
+
+独立道路站点不是公交站建筑。`list_road_stop_prefabs` 枚举当前加载的、支持 `RoadEdge` 放置的公交及有轨电车 `StaticObjectPrefab`，排除车站建筑和升级。可按 `transport_type="Bus"` 或 `"Tram"` 筛选，默认 `"all"`。返回 `requires_tram_track`，不要将这些站点名称传给建筑放置工具。
+
+有轨电车沿用同一套选址、预览、提交、查询和取消接口。选择带有永久电车轨道车道的道路；兼容检查读取实时 `SubLane`、`TrackLane` 和 `TrackLaneData.m_TrackTypes`，所以也支持通过道路升级添加的轨道。无电车轨道时报 `TRAM_TRACK_REQUIRED`；提交前及永久回读再次检查，永久对象还必须具有 `Game.Routes.TramStop`。这里不负责铺轨，不接受纯独立轨道边，也不保证所选道路侧能上下客；具体方向、站台净空和接驳由原生预览及后续线路寻路验证。
+
+1. 查询目录和永久道路，选定精确 `stop_prefab` 与 `road_edge_id`。
+2. `plan_road_stop_site` 接收这两个字段、`edge_parameter`（道路曲线参数，0.05–0.95，默认0.5）和 `road_side`（相对道路曲线起终方向的 `left` 或 `right`）。候选位置读取道路当前的 `EdgeGeometry`、`NetCompositionData` 和 `NetCompositionArea`，按游戏原生尺寸规则吸附到指定侧人行道的可建区域；不使用道路预制件的半宽作为位置，不选择中央分隔带。没有足够宽的可建人行道时返回 `ROAD_STOP_NO_BUILDABLE_SIDEWALK`。候选临路位置不是原生通过证明。
+3. 暂停后，以完全相同的四个字段及稳定 `request_id` 调用 `preview_road_stop_placement`。接口重新计算候选，避免传入任意坐标配错误道路 ID。
+4. 轮询 `get_road_stop_operation`，只有 `preview_ready`、`can_commit=true`、无错误及警告才调用 `apply_road_stop_operation(operation_id, request_id, max_cost)`。
+5. `completed` 额外要求永久对象具有 `TransportStop`、`ConnectedRoute` 缓冲区以及指向目标永久道路的 `Attached.m_Parent`；返回 `result_stop_ids` 可用于线路站序。超时或 `outcome_unknown` 只能先查原操作，不能换 ID 重建。
+6. 未提交预览使用 `cancel_road_stop_preview`。预览若会删除现有对象则拒绝；本工具不会替换旧站或自动修改线路。
+
+替换公交站建筑时，先建新道路站点并用线路工具验证完整站序可寻路，再拆旧站，避免先拆导致环线失效。这里只验收道路吸附，线路可达和乘客步行接驳仍须通过线路原生寻路与运营观察确认。
+
+验证脚本：`node mcp/smoke-road-stop.mjs placement.json`。文件包含 `stop_prefab`、`road_edge_id`、`edge_parameter` 和 `road_side`；自动识别公交或电车，要求已暂停，执行预览/取消、幂等冲突及预算拒绝检查，不永久施工。电车测试可另传一个已知无轨道路 ID 作为第三个命令行参数，验证 `TRAM_TRACK_REQUIRED`。2026-09-20 已在奥本山存档验证 `NA_BusStop02`：小型道路与大型道路左侧的预览、永久放置及 `Attached.m_Parent` 回读通过，两个站点成功接入既有公交环线。此记录不代表有轨电车、其他道路断面或所有资产已完成实机验证。
+
 `list_transport_facility_prefabs` 枚举当前游戏实际加载并已解锁的客运/货运车站、车辆段、机场、港口和交通枢纽。结果包含精确 prefab 名、运输类型、轨道类型、容量、占地、物理尺寸、建造费用和原生放置模式。
 
 ## 公共交通设施建设要求
@@ -49,11 +66,17 @@
 
 `list_transport_facility_upgrades`、`preview_transport_facility_upgrade` 和 `preview_transport_facility_upgrade_removal` 覆盖兼容升级模块；名称、启停和政策使用 `set_transport_facility_name`、`set_transport_facility_active`、`list_transport_facility_policies` 与 `set_transport_facility_policy`。升级列表复用通用建筑升级几何，返回主体侧吸附点，并在原生范围允许时返回 `road_side_candidates`。主体侧模式使用返回的 `placement_side` 与 `placement_offset_m`；道路侧模式必须把候选的 `position`、`rotation_degrees` 和 `road_edge_id` 原样传给 `preview_transport_facility_upgrade`。隔着道路仍保持设施所有权，但不能覆盖道路，最终以原生预览为准。
 
+## 航道
+
+Seaway 查询、原生预览、提交、取消和拆除接口见 [航道 MCP 指南](WATERWAY-GUIDE.md)。当前源码已接入，运行游戏是否支持须检查 `get_query_capabilities`；不能用铁路或普通道路接口冒充航道。
+
+标准货运港口的岸线候选、内部航道接驳及水电污水/首船验收，按 [港口施工与验收要点](WATERWAY-GUIDE.md#港口施工与验收要点) 执行。1.23.1已完成同型Medium Seaway接港实测；异宽Narrow→Medium接头仍有限制，不能根据同型成功推断异宽可用。
+
 ## 轨道
 
 `list_transport_track_prefabs` 返回游戏中的 `TrackPrefab`，包含 Train、Subway、Tram 类型及速度、宽度、最大坡度、允许长度、高程范围和单位长度费用。`list_transport_tracks` 与 `get_transport_track` 读取永久轨道、端点节点、曲线和所有者。
 
-`preview_transport_track` 接受 2 到 16 个点，每两个相邻点形成一个原生直线轨道段：
+`preview_transport_track` 接受 2 到 16 个点；未传 `curves` 时，相邻点形成直线段，传入时按下文“轨道曲线接驳”创建真实曲线：
 
 - 新点使用 `x`、`z`，可用 `elevation_m` 指定相对地形高度。
 - `node_id` 精确连接已有轨道节点。
@@ -77,6 +100,15 @@
 ## 官方资料边界
 
 本文于 2026-09-18 复核了官方的[公共与货运交通机制](https://www.paradoxinteractive.com/zh-CN/games/cities-skylines-ii/features/public-cargo-transportation)、[Bridges & Ports 港口/渡轮机制](https://www.paradoxinteractive.com/games/cities-skylines-ii/news/bridges-and-ports-dev-diary-ports)和[City Stations 资产范围](https://www.paradoxinteractive.com/games/cities-skylines-ii/add-ons/cities-skylines-ii-city-stations)。官方页面说明系统规则，但不保证每个版本、地图和资产包的精确占地、坡度、容量或内部 prefab 名称；这些字段必须在当前城市通过 MCP 实时发现并以原生 preview 为最终裁决。
-# 交通走廊高层流程
 
-`deploy_transit_corridor` 按“交通设施 -> 轨道 -> 线路”顺序串行建设。轨道使用 `preview_transport_track` 的连续点列，线路必须传入当前城市真实且兼容的 `stop_ids`；轨道预览或提交失败时不会创建线路。每阶段保留原生 operation ID，`outcome_unknown` 只能查询原操作。
+## 交通走廊高层流程
+
+`deploy_transit_corridor` 按“交通设施 -> 轨道 -> 线路”顺序串行建设。当前实现（`mcp/city-workflows.mjs`）只转发轨道 prefab 和连续点列，未转发 `curves`/`min_radius_m`；需要曲线时使用直接轨道接口。线路必须传入当前城市真实且兼容的 `stop_ids`；轨道预览或提交失败时不会创建线路。每阶段保留原生 operation ID，`outcome_unknown` 只能查询原操作。
+
+## 轨道曲线接驳
+
+`preview_transport_track` 支持 `curves` 数组，与 `points` 的每一段一一对应；元素为道路接口同格式的 quadratic/cubic 控制点，`null` 表示直线。省略数组时保持原来的折线行为。曲线链默认 `min_radius_m=150`，显式参数范围为 0–5000 米；这是设计检查值，不是现实铁路标准或游戏统一限制。
+
+预览会检查水平曲率采样半径、退化尖点、相邻段切线偏差（最大 5 度），以及原有长度、坡度、碰撞规则。半径基于每段 257 个样本，不是解析最小值证明；施工应留出裕量。`curve_segments` 返回控制点和采样半径，直线半径为 null。连接现有轨道时还必须回读其端点切线，选择同向平缓并入；该接口尚未自动检查既有网络接头角度。原生施工完成后仍须回读实际曲线并检验连接和寻路，不能以预检替代竣工验收。
+
+铁路站区的联合选址、附属端口、原生道路合并、永久曲线和实际调度检查见 [铁路站区检查清单](RAIL-STATION-CHECKLIST.md)。

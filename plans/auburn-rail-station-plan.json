@@ -1,0 +1,584 @@
+{
+  "bounds": {
+    "min_x": -3178.12,
+    "min_z": -1499.80884,
+    "max_x": -1412.48181,
+    "max_z": -102.578857
+  },
+  "plan": {
+    "grids": [],
+    "grid_exceptions": [
+      {
+        "scope_id": "rail-station-access",
+        "road_ids": [
+          "east-ramp",
+          "highway-bridge",
+          "west-ramp",
+          "station-spine",
+          "station-front",
+          "terminus-front",
+          "terminus-entry"
+        ],
+        "reason_codes": [
+          "irregular_geometry"
+        ],
+        "message": "跨高速直线接入、站区连接路、站前宽路和总站支路构成不规则专用交通骨架。"
+      }
+    ],
+    "roads": [
+      {
+        "id": "east-ramp",
+        "label": "直线接入东坡道｜248米",
+        "prefab": "Medium Road",
+        "planning_status": "conceptual",
+        "construction_status": "built",
+        "level": "elevated",
+        "width_m": 24,
+        "points": [
+          {
+            "x": -1472,
+            "y": 532.1956,
+            "z": -688
+          },
+          {
+            "x": -1720,
+            "y": 550,
+            "z": -688
+          }
+        ]
+      },
+      {
+        "id": "highway-bridge",
+        "label": "跨高速高架桥｜暂定桥面550米",
+        "prefab": "Medium Road",
+        "planning_status": "conceptual",
+        "construction_status": "built",
+        "level": "elevated",
+        "width_m": 24,
+        "points": [
+          {
+            "x": -1720,
+            "y": 550,
+            "z": -688
+          },
+          {
+            "x": -1960,
+            "y": 550,
+            "z": -688
+          }
+        ]
+      },
+      {
+        "id": "west-ramp",
+        "label": "直线接入西坡道｜240米",
+        "prefab": "Medium Road",
+        "planning_status": "conceptual",
+        "construction_status": "built",
+        "level": "elevated",
+        "width_m": 24,
+        "points": [
+          {
+            "x": -1960,
+            "y": 550,
+            "z": -688
+          },
+          {
+            "x": -2200,
+            "y": 538.6014,
+            "z": -688
+          }
+        ]
+      },
+      {
+        "id": "station-spine",
+        "label": "站区南北连接路｜避开铁路",
+        "prefab": "Medium Road",
+        "planning_status": "conceptual",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 24,
+        "points": [
+          {
+            "x": -2200,
+            "y": 538.6014,
+            "z": -688
+          },
+          {
+            "x": -2200,
+            "y": 548.3479,
+            "z": -912
+          },
+          {
+            "x": -2200,
+            "y": 570.0087,
+            "z": -1140
+          }
+        ]
+      },
+      {
+        "id": "station-front",
+        "label": "中间横向宽路｜西端止于铁路之前",
+        "prefab": "Medium Road",
+        "planning_status": "conceptual",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 24,
+        "points": [
+          {
+            "x": -2460,
+            "y": 570.0087,
+            "z": -1140
+          },
+          {
+            "x": -2200,
+            "y": 570.0087,
+            "z": -1140
+          },
+          {
+            "x": -1640,
+            "y": 570.0087,
+            "z": -1140
+          }
+        ]
+      },
+      {
+        "id": "terminus-front",
+        "label": "火车总站站前接驳路｜铁路北侧绕行",
+        "prefab": "Medium Road",
+        "planning_status": "conceptual",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 24,
+        "points": [
+          {
+            "x": -2200,
+            "z": -912
+          },
+          {
+            "x": -2820,
+            "z": -912
+          }
+        ]
+      },
+      {
+        "id": "terminus-entry",
+        "label": "总站东端入口短路",
+        "prefab": "Medium Road",
+        "planning_status": "conceptual",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 24,
+        "points": [
+          {
+            "x": -2568,
+            "z": -912
+          },
+          {
+            "x": -2568,
+            "z": -960
+          },
+          {
+            "x": -2568,
+            "z": -1080
+          }
+        ]
+      }
+    ],
+    "buildings": [
+      {
+        "id": "passenger",
+        "label": "小型客运站",
+        "prefab": "TrainStation02",
+        "planning_status": "bound",
+        "placement_status": "native_preview_verified",
+        "construction_status": "planned",
+        "kind": "service",
+        "category": "transport_facility",
+        "position": {
+          "x": -1742.66638,
+          "y": 570.0087,
+          "z": -1168.24988
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 199.6,
+          "z": 31.6
+        },
+        "road_side": "right",
+        "road_edge_id": "517681222ce549b1adc8b5eab596d85e:150729:9",
+        "placement_binding": {
+          "session_id": "517681222ce549b1adc8b5eab596d85e",
+          "building_plan_id": "bplan-204968cc91645c56",
+          "operation_id": "44dc204b55b54b229826ebc8848f24d1",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Medium Road"
+        },
+        "native_preview": {
+          "operation_id": "44dc204b55b54b229826ebc8848f24d1",
+          "state": "verified_then_cancelled",
+          "cost": 75000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T00:38:20.8846650Z"
+        },
+        "reserved_size_m": {
+          "x": 200,
+          "z": 32
+        }
+      },
+      {
+        "id": "cargo",
+        "label": "货运火车站",
+        "prefab": "CargoTrainTerminal01",
+        "planning_status": "bound",
+        "placement_status": "native_preview_verified",
+        "construction_status": "planned",
+        "kind": "service",
+        "category": "transport_facility",
+        "position": {
+          "x": -2388.5,
+          "y": 570.0087,
+          "z": -1220.25
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 303.6,
+          "z": 135.6
+        },
+        "road_side": "right",
+        "road_edge_id": "517681222ce549b1adc8b5eab596d85e:114149:9",
+        "placement_binding": {
+          "session_id": "517681222ce549b1adc8b5eab596d85e",
+          "building_plan_id": "bplan-db14dff1f461073c",
+          "operation_id": "2dbd1a88fa4e42d9b4964ceb76f43328",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Medium Road"
+        },
+        "native_preview": {
+          "operation_id": "2dbd1a88fa4e42d9b4964ceb76f43328",
+          "state": "verified_then_cancelled",
+          "cost": 150000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T00:38:21.1914216Z"
+        },
+        "reserved_size_m": {
+          "x": 304,
+          "z": 136
+        }
+      },
+      {
+        "id": "yard",
+        "label": "小型车辆段预留",
+        "prefab": "RailYard02",
+        "planning_status": "bound",
+        "placement_status": "native_preview_verified",
+        "construction_status": "planned",
+        "kind": "service",
+        "category": "transport_facility",
+        "position": {
+          "x": -2097.33325,
+          "y": 570.0087,
+          "z": -1212.25
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 271.6,
+          "z": 119.6
+        },
+        "road_side": "right",
+        "road_edge_id": "517681222ce549b1adc8b5eab596d85e:135949:9",
+        "placement_binding": {
+          "session_id": "517681222ce549b1adc8b5eab596d85e",
+          "building_plan_id": "bplan-d4197b60194ac138",
+          "operation_id": "af10749702de4e3585ac362ea9aed33a",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Medium Road"
+        },
+        "native_preview": {
+          "operation_id": "af10749702de4e3585ac362ea9aed33a",
+          "state": "verified_then_cancelled",
+          "cost": 120000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T00:38:21.5609383Z"
+        },
+        "reserved_size_m": {
+          "x": 272,
+          "z": 120
+        }
+      },
+      {
+        "id": "terminus",
+        "label": "火车总站｜横向设计，待原生绑定",
+        "prefab": "TrainStationTerminus01",
+        "planning_status": "bound",
+        "placement_status": "native_preview_verified",
+        "construction_status": "planned",
+        "kind": "service",
+        "category": "transport_facility",
+        "position": {
+          "x": -2700.25,
+          "y": 571.1962,
+          "z": -1020
+        },
+        "rotation_degrees": 90,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 119.6,
+          "z": 239.6
+        },
+        "road_side": "right",
+        "road_edge_id": "517681222ce549b1adc8b5eab596d85e:224148:29",
+        "placement_binding": {
+          "session_id": "517681222ce549b1adc8b5eab596d85e",
+          "building_plan_id": "bplan-7cad3985dedc7e2c",
+          "operation_id": "eaba665c00fa40ebb6dac31ddaeaaff7",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Medium Road"
+        },
+        "native_preview": {
+          "operation_id": "eaba665c00fa40ebb6dac31ddaeaaff7",
+          "state": "verified_then_cancelled",
+          "cost": 125000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T00:38:21.8710872Z"
+        },
+        "reserved_size_m": {
+          "x": 120,
+          "z": 240
+        }
+      }
+    ],
+    "zones": [],
+    "tracks": [
+      {
+        "id": "rail-approach",
+        "label": "西侧铁路道岔与接入走廊｜不穿宽路",
+        "prefab": "Double Train Track",
+        "planning_status": "conceptual",
+        "track_type": "train",
+        "level": "surface",
+        "width_m": 12,
+        "points": [
+          {
+            "x": -2687.775525,
+            "z": -1299.600295
+          },
+          {
+            "x": -2640,
+            "z": -1330
+          },
+          {
+            "x": -2570,
+            "z": -1380
+          }
+        ]
+      },
+      {
+        "id": "rear-rail",
+        "label": "站区后方双线铁路走廊",
+        "prefab": "Double Train Track",
+        "planning_status": "conceptual",
+        "track_type": "train",
+        "level": "surface",
+        "width_m": 12,
+        "points": [
+          {
+            "x": -2570,
+            "z": -1380
+          },
+          {
+            "x": -2300,
+            "z": -1380
+          },
+          {
+            "x": -2020,
+            "z": -1380
+          },
+          {
+            "x": -1640,
+            "z": -1380
+          }
+        ]
+      },
+      {
+        "id": "cargo-port",
+        "label": "货站端口接驳预留",
+        "prefab": "Double Train Track",
+        "planning_status": "conceptual",
+        "track_type": "train",
+        "level": "surface",
+        "width_m": 12,
+        "points": [
+          {
+            "x": -2570,
+            "z": -1380
+          },
+          {
+            "x": -2610,
+            "z": -1335
+          },
+          {
+            "x": -2570,
+            "z": -1290
+          }
+        ]
+      },
+      {
+        "id": "yard-port",
+        "label": "车辆段端口接驳预留",
+        "prefab": "Double Train Track",
+        "planning_status": "conceptual",
+        "track_type": "train",
+        "level": "surface",
+        "width_m": 12,
+        "points": [
+          {
+            "x": -2270,
+            "z": -1380
+          },
+          {
+            "x": -2250,
+            "z": -1310
+          },
+          {
+            "x": -2220,
+            "z": -1250
+          }
+        ]
+      },
+      {
+        "id": "passenger-port",
+        "label": "客站端口接驳预留",
+        "prefab": "Double Train Track",
+        "planning_status": "conceptual",
+        "track_type": "train",
+        "level": "surface",
+        "width_m": 12,
+        "points": [
+          {
+            "x": -1930,
+            "z": -1380
+          },
+          {
+            "x": -1940,
+            "z": -1280
+          },
+          {
+            "x": -1920,
+            "z": -1195
+          }
+        ]
+      },
+      {
+        "id": "terminus-port-1",
+        "label": "总站轨道端点 1 接驳｜设计坐标",
+        "prefab": "Double Train Track",
+        "planning_status": "conceptual",
+        "track_type": "train",
+        "level": "surface",
+        "width_m": 12,
+        "points": [
+          {
+            "x": -2826.2505874634,
+            "z": -1039.0001144409
+          },
+          {
+            "x": -2852,
+            "z": -1039.0001144409
+          },
+          {
+            "x": -2864,
+            "z": -1056
+          }
+        ]
+      },
+      {
+        "id": "terminus-port-2",
+        "label": "总站轨道端点 2 接驳｜设计坐标",
+        "prefab": "Double Train Track",
+        "planning_status": "conceptual",
+        "track_type": "train",
+        "level": "surface",
+        "width_m": 12,
+        "points": [
+          {
+            "x": -2826.2504730225,
+            "z": -1023.69995880127
+          },
+          {
+            "x": -2852,
+            "z": -1023.69995880127
+          },
+          {
+            "x": -2864,
+            "z": -1056
+          }
+        ]
+      },
+      {
+        "id": "terminus-link",
+        "label": "总站接入既有铁路｜道岔及纵坡待预检",
+        "prefab": "Double Train Track",
+        "planning_status": "conceptual",
+        "track_type": "train",
+        "level": "surface",
+        "width_m": 12,
+        "points": [
+          {
+            "x": -2864,
+            "z": -1056
+          },
+          {
+            "x": -2856,
+            "z": -1136
+          },
+          {
+            "x": -2800,
+            "z": -1224
+          },
+          {
+            "x": -2687.775525,
+            "z": -1299.600295
+          }
+        ]
+      }
+    ],
+    "utilities": []
+  },
+  "include_existing": true,
+  "include_terrain": true,
+  "include_water": false,
+  "terrain_cell_size_m": 128,
+  "max_features_per_layer": 3000,
+  "render": {
+    "format": "static_html",
+    "title": "奥本山铁路站区 V5｜四座设施原生预检通过",
+    "width": 1440,
+    "height": 1000
+  },
+  "rail_curve_revision": {
+    "status": "awaiting_deployment_and_replanning",
+    "minimum_design_radius_m": 150,
+    "requirement": "Broad genuine curves and tangent-continuous connections; rebuild acute bends in new connectors.",
+    "evidence": "artifacts/auburn-rail-curve-correction.json",
+    "passenger_and_cargo_lines_created": false
+  }
+}

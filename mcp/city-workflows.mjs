@@ -1,3 +1,4 @@
+import { withPrefabCatalog } from './prefab-catalog-service.mjs';
 import { queryGame as liveQueryGame, BridgeError } from './bridge-client.mjs';
 import { deployDistrict as liveDeployDistrict } from '../tools/deploy-district.mjs';
 import { deployBuildingPlans as liveDeployBuildingPlans } from './building-workflow.mjs';
@@ -17,6 +18,7 @@ function workflowError(code, message, details = {}) {
 }
 
 export function createCityWorkflows(queryGame = liveQueryGame, dependencies = {}) {
+  queryGame = withPrefabCatalog(queryGame);
   const deployDistrict = dependencies.deployDistrict || liveDeployDistrict;
   const deployBuildingPlans = dependencies.deployBuildingPlans || liveDeployBuildingPlans;
   const requests = new Map();

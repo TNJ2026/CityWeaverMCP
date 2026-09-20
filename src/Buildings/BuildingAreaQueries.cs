@@ -233,7 +233,7 @@ namespace CityWeaver
                 if (existing.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another building-area operation.");
                 return existing;
             }
-            if (m_BuildingAreaOperations.Count >= 128) throw new QueryException("BUILDING_AREA_OPERATION_LIMIT", "This city session has reached 128 building-area operations.");
+            if (m_BuildingAreaOperations.Count >= 4096) throw new QueryException("BUILDING_AREA_OPERATION_LIMIT", "This city session has reached 4096 building-area operations.");
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before previewing a building-area change.");
             var tool = world.GetOrCreateSystemManaged<McpBuildingAreaToolSystem>(); var toolSystem = world.GetExistingSystemManaged<ToolSystem>();
             if (tool.Busy || !(toolSystem.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");

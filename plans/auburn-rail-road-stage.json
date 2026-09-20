@@ -1,0 +1,114 @@
+{
+  "bounds": {
+    "min_x": -3178.12,
+    "min_z": -1499.80884,
+    "max_x": -1412.48181,
+    "max_z": -102.578857
+  },
+  "plan": {
+    "roads": [
+      {
+        "id": "station-spine",
+        "label": "站区南北连接路｜避开铁路",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": -2200,
+            "z": -688,
+            "y": 538.6014
+          },
+          {
+            "x": -2200,
+            "z": -912,
+            "y": 548.3479
+          },
+          {
+            "x": -2200,
+            "z": -1140,
+            "y": 559.546143
+          }
+        ],
+        "planning_status": "conceptual",
+        "level": "surface"
+      },
+      {
+        "id": "station-front",
+        "label": "中间横向宽路｜西端止于铁路之前",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": -2460,
+            "z": -1140
+          },
+          {
+            "x": -2200,
+            "z": -1140
+          },
+          {
+            "x": -1640,
+            "z": -1140
+          }
+        ],
+        "planning_status": "conceptual",
+        "level": "surface"
+      },
+      {
+        "id": "terminus-front",
+        "label": "火车总站站前接驳路｜铁路北侧绕行",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": -2200,
+            "z": -912
+          },
+          {
+            "x": -2820,
+            "z": -912
+          }
+        ],
+        "planning_status": "conceptual",
+        "level": "surface"
+      },
+      {
+        "id": "terminus-entry",
+        "label": "总站东端入口短路",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": -2568,
+            "z": -912
+          },
+          {
+            "x": -2568,
+            "z": -1056
+          }
+        ],
+        "planning_status": "conceptual",
+        "level": "surface"
+      }
+    ],
+    "grid_exceptions": [
+      {
+        "scope_id": "rail-station-access",
+        "reason_codes": [
+          "irregular_geometry"
+        ],
+        "road_ids": [
+          "east-ramp",
+          "highway-bridge",
+          "west-ramp",
+          "station-spine",
+          "station-front",
+          "terminus-front",
+          "terminus-entry"
+        ],
+        "message": "跨高速直线接入、站区连接路、站前宽路和总站支路构成不规则专用交通骨架。"
+      }
+    ]
+  },
+  "approved_plan_id": "cplan-5de35f27b9934322"
+}

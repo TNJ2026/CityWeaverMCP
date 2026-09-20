@@ -1,0 +1,2370 @@
+{
+  "bounds": {
+    "min_x": 4800,
+    "min_z": 200,
+    "max_x": 7100,
+    "max_z": 2800
+  },
+  "plan": {
+    "grids": [],
+    "grid_exceptions": [
+      {
+        "scope_id": "octagonal-town",
+        "road_ids": [
+          "ring-80-1",
+          "ring-80-2",
+          "ring-80-3",
+          "ring-80-4",
+          "ring-80-5",
+          "ring-80-6",
+          "ring-80-7",
+          "ring-80-8",
+          "ring-200-1",
+          "ring-200-2",
+          "ring-200-3",
+          "ring-200-4",
+          "ring-200-5",
+          "ring-200-6",
+          "ring-200-7",
+          "ring-200-8",
+          "ring-360-1",
+          "ring-360-2",
+          "ring-360-3",
+          "ring-360-4",
+          "ring-360-5",
+          "ring-360-6",
+          "ring-360-7",
+          "ring-360-8",
+          "ring-520-1",
+          "ring-520-2",
+          "ring-520-3",
+          "ring-520-4",
+          "ring-520-5",
+          "ring-520-6",
+          "ring-520-7",
+          "ring-520-8",
+          "ring-680-1",
+          "ring-680-2",
+          "ring-680-3",
+          "ring-680-4",
+          "ring-680-5",
+          "ring-680-6",
+          "ring-680-7",
+          "ring-680-8",
+          "spoke-1",
+          "spoke-2",
+          "spoke-3",
+          "spoke-4",
+          "spoke-5",
+          "spoke-6",
+          "spoke-7",
+          "spoke-8",
+          "south-corner-approach",
+          "south-rail-bridge",
+          "south-corner-descent",
+          "east-corner-access",
+          "east-rail-north-ramp",
+          "east-rail-bridge",
+          "east-rail-south-ramp",
+          "shared-distributor",
+          "interchange-approach",
+          "interchange-overpass-north",
+          "interchange-overpass",
+          "interchange-overpass-south",
+          "ramp-west-in",
+          "ramp-east-out",
+          "ramp-east-in",
+          "ramp-west-out"
+        ],
+        "reason_codes": [
+          "irregular_geometry"
+        ],
+        "message": "用户指定正八角形外环及八条放射路，扇区和同心道路无法无损表示为轴对齐矩形网格。"
+      }
+    ],
+    "roads": [
+      {
+        "id": "ring-80-1",
+        "label": "ring-80-1",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5680.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5656.568542,
+            "z": 2086.568542
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-80-2",
+        "label": "ring-80-2",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5656.568542,
+            "z": 2086.568542
+          },
+          {
+            "x": 5600.0,
+            "z": 2110.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-80-3",
+        "label": "ring-80-3",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5600.0,
+            "z": 2110.0
+          },
+          {
+            "x": 5543.431458,
+            "z": 2086.568542
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-80-4",
+        "label": "ring-80-4",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5543.431458,
+            "z": 2086.568542
+          },
+          {
+            "x": 5520.0,
+            "z": 2030.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-80-5",
+        "label": "ring-80-5",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5520.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5543.431458,
+            "z": 1973.431458
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-80-6",
+        "label": "ring-80-6",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5543.431458,
+            "z": 1973.431458
+          },
+          {
+            "x": 5600.0,
+            "z": 1950.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-80-7",
+        "label": "ring-80-7",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5600.0,
+            "z": 1950.0
+          },
+          {
+            "x": 5656.568542,
+            "z": 1973.431458
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-80-8",
+        "label": "ring-80-8",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5656.568542,
+            "z": 1973.431458
+          },
+          {
+            "x": 5680.0,
+            "z": 2030.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-200-1",
+        "label": "ring-200-1",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5800.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5741.421356,
+            "z": 2171.421356
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-200-2",
+        "label": "ring-200-2",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5741.421356,
+            "z": 2171.421356
+          },
+          {
+            "x": 5600.0,
+            "z": 2230.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-200-3",
+        "label": "ring-200-3",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5600.0,
+            "z": 2230.0
+          },
+          {
+            "x": 5458.578644,
+            "z": 2171.421356
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-200-4",
+        "label": "ring-200-4",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5458.578644,
+            "z": 2171.421356
+          },
+          {
+            "x": 5400.0,
+            "z": 2030.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-200-5",
+        "label": "ring-200-5",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5400.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5458.578644,
+            "z": 1888.578644
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-200-6",
+        "label": "ring-200-6",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5458.578644,
+            "z": 1888.578644
+          },
+          {
+            "x": 5600.0,
+            "z": 1830.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-200-7",
+        "label": "ring-200-7",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5600.0,
+            "z": 1830.0
+          },
+          {
+            "x": 5741.421356,
+            "z": 1888.578644
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-200-8",
+        "label": "ring-200-8",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5741.421356,
+            "z": 1888.578644
+          },
+          {
+            "x": 5800.0,
+            "z": 2030.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-360-1",
+        "label": "ring-360-1",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5960.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5907.2792205000005,
+            "z": 2157.2792205
+          },
+          {
+            "x": 5854.558441,
+            "z": 2284.558441
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-360-2",
+        "label": "ring-360-2",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5854.558441,
+            "z": 2284.558441
+          },
+          {
+            "x": 5727.2792205000005,
+            "z": 2337.2792205
+          },
+          {
+            "x": 5600.0,
+            "z": 2390.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-360-3",
+        "label": "ring-360-3",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5600.0,
+            "z": 2390.0
+          },
+          {
+            "x": 5472.7207794999995,
+            "z": 2337.2792205
+          },
+          {
+            "x": 5345.441559,
+            "z": 2284.558441
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-360-4",
+        "label": "ring-360-4",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5345.441559,
+            "z": 2284.558441
+          },
+          {
+            "x": 5292.7207794999995,
+            "z": 2157.2792205
+          },
+          {
+            "x": 5240.0,
+            "z": 2030.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-360-5",
+        "label": "ring-360-5",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5240.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5292.7207794999995,
+            "z": 1902.7207795
+          },
+          {
+            "x": 5345.441559,
+            "z": 1775.441559
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-360-6",
+        "label": "ring-360-6",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5345.441559,
+            "z": 1775.441559
+          },
+          {
+            "x": 5472.7207794999995,
+            "z": 1722.7207795
+          },
+          {
+            "x": 5600.0,
+            "z": 1670.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-360-7",
+        "label": "ring-360-7",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5600.0,
+            "z": 1670.0
+          },
+          {
+            "x": 5727.2792205000005,
+            "z": 1722.7207795
+          },
+          {
+            "x": 5854.558441,
+            "z": 1775.441559
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-360-8",
+        "label": "ring-360-8",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5854.558441,
+            "z": 1775.441559
+          },
+          {
+            "x": 5907.2792205000005,
+            "z": 1902.7207795
+          },
+          {
+            "x": 5960.0,
+            "z": 2030.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-520-1",
+        "label": "ring-520-1",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 6120.0,
+            "z": 2030.0
+          },
+          {
+            "x": 6043.847763,
+            "z": 2213.8477629999998
+          },
+          {
+            "x": 5967.695526,
+            "z": 2397.695526
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-520-2",
+        "label": "ring-520-2",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5967.695526,
+            "z": 2397.695526
+          },
+          {
+            "x": 5783.847763,
+            "z": 2473.8477629999998
+          },
+          {
+            "x": 5600.0,
+            "z": 2550.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-520-3",
+        "label": "ring-520-3",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5600.0,
+            "z": 2550.0
+          },
+          {
+            "x": 5416.152237,
+            "z": 2473.8477629999998
+          },
+          {
+            "x": 5232.304474,
+            "z": 2397.695526
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-520-4",
+        "label": "ring-520-4",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5232.304474,
+            "z": 2397.695526
+          },
+          {
+            "x": 5156.152237,
+            "z": 2213.8477629999998
+          },
+          {
+            "x": 5080.0,
+            "z": 2030.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-520-5",
+        "label": "ring-520-5",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5080.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5156.152237,
+            "z": 1846.152237
+          },
+          {
+            "x": 5232.304474,
+            "z": 1662.304474
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-520-6",
+        "label": "ring-520-6",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5232.304474,
+            "z": 1662.304474
+          },
+          {
+            "x": 5416.152237,
+            "z": 1586.152237
+          },
+          {
+            "x": 5600.0,
+            "z": 1510.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-520-7",
+        "label": "ring-520-7",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5600.0,
+            "z": 1510.0
+          },
+          {
+            "x": 5783.847763,
+            "z": 1586.152237
+          },
+          {
+            "x": 5967.695526,
+            "z": 1662.304474
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-520-8",
+        "label": "ring-520-8",
+        "prefab": "Small Road",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 5967.695526,
+            "z": 1662.304474
+          },
+          {
+            "x": 6043.847763,
+            "z": 1846.152237
+          },
+          {
+            "x": 6120.0,
+            "z": 2030.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-680-1",
+        "label": "ring-680-1",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 6280.0,
+            "z": 2030.0
+          },
+          {
+            "x": 6213.610870333333,
+            "z": 2190.277537
+          },
+          {
+            "x": 6147.221740666667,
+            "z": 2350.555074
+          },
+          {
+            "x": 6080.832611,
+            "z": 2510.832611
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-680-2",
+        "label": "ring-680-2",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 6080.832611,
+            "z": 2510.832611
+          },
+          {
+            "x": 5920.555074,
+            "z": 2577.2217406666664
+          },
+          {
+            "x": 5760.277537,
+            "z": 2643.6108703333334
+          },
+          {
+            "x": 5600.0,
+            "z": 2710.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-680-3",
+        "label": "ring-680-3",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5600.0,
+            "z": 2710.0
+          },
+          {
+            "x": 5439.722463,
+            "z": 2643.6108703333334
+          },
+          {
+            "x": 5279.444926,
+            "z": 2577.2217406666664
+          },
+          {
+            "x": 5119.167389,
+            "z": 2510.832611
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-680-4",
+        "label": "ring-680-4",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5119.167389,
+            "z": 2510.832611
+          },
+          {
+            "x": 5052.778259333333,
+            "z": 2350.555074
+          },
+          {
+            "x": 4986.389129666667,
+            "z": 2190.277537
+          },
+          {
+            "x": 4920.0,
+            "z": 2030.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-680-5",
+        "label": "ring-680-5",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 4920.0,
+            "z": 2030.0
+          },
+          {
+            "x": 4986.389129666667,
+            "z": 1869.722463
+          },
+          {
+            "x": 5052.778259333333,
+            "z": 1709.444926
+          },
+          {
+            "x": 5119.167389,
+            "z": 1549.167389
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-680-6",
+        "label": "ring-680-6",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5119.167389,
+            "z": 1549.167389
+          },
+          {
+            "x": 5279.444926,
+            "z": 1482.7782593333334
+          },
+          {
+            "x": 5439.722463,
+            "z": 1416.3891296666666
+          },
+          {
+            "x": 5600.0,
+            "z": 1350.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-680-7",
+        "label": "ring-680-7",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5600.0,
+            "z": 1350.0
+          },
+          {
+            "x": 5760.277537,
+            "z": 1416.3891296666666
+          },
+          {
+            "x": 5920.555074,
+            "z": 1482.7782593333334
+          },
+          {
+            "x": 6080.832611,
+            "z": 1549.167389
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ring-680-8",
+        "label": "ring-680-8",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 6080.832611,
+            "z": 1549.167389
+          },
+          {
+            "x": 6147.221740666667,
+            "z": 1709.444926
+          },
+          {
+            "x": 6213.610870333333,
+            "z": 1869.722463
+          },
+          {
+            "x": 6280.0,
+            "z": 2030.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "spoke-1",
+        "label": "spoke-1",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5680.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5800.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5960.0,
+            "z": 2030.0
+          },
+          {
+            "x": 6120.0,
+            "z": 2030.0
+          },
+          {
+            "x": 6280.0,
+            "z": 2030.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "spoke-2",
+        "label": "spoke-2",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5656.568542,
+            "z": 2086.568542
+          },
+          {
+            "x": 5741.421356,
+            "z": 2171.421356
+          },
+          {
+            "x": 5854.558441,
+            "z": 2284.558441
+          },
+          {
+            "x": 5967.695526,
+            "z": 2397.695526
+          },
+          {
+            "x": 6080.832611,
+            "z": 2510.832611
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "spoke-3",
+        "label": "spoke-3",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5600.0,
+            "z": 2110.0
+          },
+          {
+            "x": 5600.0,
+            "z": 2230.0
+          },
+          {
+            "x": 5600.0,
+            "z": 2390.0
+          },
+          {
+            "x": 5600.0,
+            "z": 2550.0
+          },
+          {
+            "x": 5600.0,
+            "z": 2710.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "spoke-4",
+        "label": "spoke-4",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5543.431458,
+            "z": 2086.568542
+          },
+          {
+            "x": 5458.578644,
+            "z": 2171.421356
+          },
+          {
+            "x": 5345.441559,
+            "z": 2284.558441
+          },
+          {
+            "x": 5232.304474,
+            "z": 2397.695526
+          },
+          {
+            "x": 5119.167389,
+            "z": 2510.832611
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "spoke-5",
+        "label": "spoke-5",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5520.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5400.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5240.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5080.0,
+            "z": 2030.0
+          },
+          {
+            "x": 4920.0,
+            "z": 2030.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "spoke-6",
+        "label": "spoke-6",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5543.431458,
+            "z": 1973.431458
+          },
+          {
+            "x": 5458.578644,
+            "z": 1888.578644
+          },
+          {
+            "x": 5345.441559,
+            "z": 1775.441559
+          },
+          {
+            "x": 5232.304474,
+            "z": 1662.304474
+          },
+          {
+            "x": 5119.167389,
+            "z": 1549.167389
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "spoke-7",
+        "label": "spoke-7",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5600.0,
+            "z": 1950.0
+          },
+          {
+            "x": 5600.0,
+            "z": 1830.0
+          },
+          {
+            "x": 5600.0,
+            "z": 1670.0
+          },
+          {
+            "x": 5600.0,
+            "z": 1510.0
+          },
+          {
+            "x": 5600.0,
+            "z": 1350.0
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "spoke-8",
+        "label": "spoke-8",
+        "prefab": "Medium Road",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 5656.568542,
+            "z": 1973.431458
+          },
+          {
+            "x": 5741.421356,
+            "z": 1888.578644
+          },
+          {
+            "x": 5854.558441,
+            "z": 1775.441559
+          },
+          {
+            "x": 5967.695526,
+            "z": 1662.304474
+          },
+          {
+            "x": 6080.832611,
+            "z": 1549.167389
+          }
+        ],
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "south-corner-approach",
+        "label": "A 南角主入口北坡",
+        "points": [
+          {
+            "x": 5600,
+            "z": 1350,
+            "y": 541.7962
+          },
+          {
+            "x": 5600,
+            "z": 1195,
+            "y": 554
+          }
+        ],
+        "width_m": 24,
+        "prefab": "Medium Road",
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "south-rail-bridge",
+        "label": "A 跨铁路桥｜桥面暂定554米",
+        "points": [
+          {
+            "x": 5600,
+            "z": 1195,
+            "y": 554
+          },
+          {
+            "x": 5600,
+            "z": 1095,
+            "y": 554
+          }
+        ],
+        "width_m": 24,
+        "prefab": "Medium Road",
+        "level": "elevated",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "south-corner-descent",
+        "label": "A 南坡与集散路接点",
+        "points": [
+          {
+            "x": 5600,
+            "z": 1095,
+            "y": 554
+          },
+          {
+            "x": 5600,
+            "z": 900,
+            "y": 541.94574
+          }
+        ],
+        "width_m": 24,
+        "prefab": "Medium Road",
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "east-corner-access",
+        "label": "B 东角货运入口",
+        "points": [
+          {
+            "x": 6280,
+            "z": 2030,
+            "y": 533.5081
+          },
+          {
+            "x": 6500,
+            "z": 2030,
+            "y": 535.0171
+          },
+          {
+            "x": 6500,
+            "z": 1800,
+            "y": 536
+          },
+          {
+            "x": 6500,
+            "z": 1500,
+            "y": 538.6929
+          }
+        ],
+        "width_m": 24,
+        "prefab": "Medium Road",
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "east-rail-north-ramp",
+        "label": "B 跨铁路桥北坡",
+        "points": [
+          {
+            "x": 6500,
+            "z": 1500,
+            "y": 538.6929
+          },
+          {
+            "x": 6500,
+            "z": 1195,
+            "y": 553
+          }
+        ],
+        "width_m": 24,
+        "prefab": "Medium Road",
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "east-rail-bridge",
+        "label": "B 跨铁路桥｜桥面暂定553米",
+        "points": [
+          {
+            "x": 6500,
+            "z": 1195,
+            "y": 553
+          },
+          {
+            "x": 6500,
+            "z": 1095,
+            "y": 553
+          }
+        ],
+        "width_m": 24,
+        "prefab": "Medium Road",
+        "level": "elevated",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "east-rail-south-ramp",
+        "label": "B 跨铁路桥南坡",
+        "points": [
+          {
+            "x": 6500,
+            "z": 1095,
+            "y": 553
+          },
+          {
+            "x": 6500,
+            "z": 900,
+            "y": 541.94574
+          }
+        ],
+        "width_m": 24,
+        "prefab": "Medium Road",
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "shared-distributor",
+        "label": "南部集散路｜连接两角入口",
+        "points": [
+          {
+            "x": 5600,
+            "z": 900,
+            "y": 541.94574
+          },
+          {
+            "x": 5780,
+            "z": 900,
+            "y": 541.94574
+          },
+          {
+            "x": 5960,
+            "z": 900,
+            "y": 541.94574
+          },
+          {
+            "x": 6140,
+            "z": 900,
+            "y": 541.94574
+          },
+          {
+            "x": 6300,
+            "z": 940,
+            "y": 543
+          },
+          {
+            "x": 6500,
+            "z": 900,
+            "y": 541.94574
+          }
+        ],
+        "width_m": 24,
+        "prefab": "Medium Road",
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "interchange-approach-r2",
+        "label": "集散路至立交北端",
+        "points": [
+          {
+            "x": 6300,
+            "z": 940,
+            "y": 543
+          },
+          {
+            "x": 6400,
+            "z": 760,
+            "y": 547
+          }
+        ],
+        "width_m": 24,
+        "prefab": "Medium Road",
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "interchange-overpass-north",
+        "label": "立交桥北坡",
+        "points": [
+          {
+            "x": 6400,
+            "z": 760,
+            "y": 547
+          },
+          {
+            "x": 6470,
+            "z": 634,
+            "y": 558
+          }
+        ],
+        "width_m": 24,
+        "prefab": "Medium Road",
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "interchange-overpass",
+        "label": "跨高速桥｜暂定558米",
+        "points": [
+          {
+            "x": 6470,
+            "z": 634,
+            "y": 558
+          },
+          {
+            "x": 6530,
+            "z": 526,
+            "y": 558
+          }
+        ],
+        "width_m": 24,
+        "prefab": "Medium Road",
+        "level": "elevated",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "interchange-overpass-south",
+        "label": "立交桥南坡",
+        "points": [
+          {
+            "x": 6530,
+            "z": 526,
+            "y": 558
+          },
+          {
+            "x": 6600,
+            "z": 400,
+            "y": 553
+          }
+        ],
+        "width_m": 24,
+        "prefab": "Medium Road",
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ramp-west-in",
+        "label": "西侧高速来车 → 小镇｜概念曲线",
+        "points": [
+          {
+            "x": 6194.128,
+            "y": 544.675537,
+            "z": 364.2622
+          },
+          {
+            "x": 6206.344244,
+            "y": 544.744188535375,
+            "z": 374.01192872499996
+          },
+          {
+            "x": 6220.1493120000005,
+            "y": 544.852466473,
+            "z": 381.5881438
+          },
+          {
+            "x": 6235.420107999998,
+            "y": 544.9998641601248,
+            "z": 387.2133985749999
+          },
+          {
+            "x": 6252.033536000002,
+            "y": 545.1858749440001,
+            "z": 391.1102464000001
+          },
+          {
+            "x": 6269.8665,
+            "y": 545.409992171875,
+            "z": 393.50124062500004
+          },
+          {
+            "x": 6288.795903999999,
+            "y": 545.6717091909999,
+            "z": 394.60893459999994
+          },
+          {
+            "x": 6308.698652,
+            "y": 545.970519348625,
+            "z": 394.655881675
+          },
+          {
+            "x": 6329.451648,
+            "y": 546.305915992,
+            "z": 393.8646352
+          },
+          {
+            "x": 6350.931796000001,
+            "y": 546.677392468375,
+            "z": 392.45774852500006
+          },
+          {
+            "x": 6373.016,
+            "y": 547.084442125,
+            "z": 390.657775
+          },
+          {
+            "x": 6395.581164,
+            "y": 547.526558309125,
+            "z": 388.68726797500005
+          },
+          {
+            "x": 6418.504192,
+            "y": 548.003234368,
+            "z": 386.7687808
+          },
+          {
+            "x": 6441.661988,
+            "y": 548.5139636488749,
+            "z": 385.12486682499997
+          },
+          {
+            "x": 6464.931455999999,
+            "y": 549.0582394989999,
+            "z": 383.97807939999996
+          },
+          {
+            "x": 6488.1895,
+            "y": 549.635555265625,
+            "z": 383.550971875
+          },
+          {
+            "x": 6511.313024,
+            "y": 550.2454042960001,
+            "z": 384.0660976
+          },
+          {
+            "x": 6534.178932,
+            "y": 550.887279937375,
+            "z": 385.746009925
+          },
+          {
+            "x": 6556.664128,
+            "y": 551.5606755370001,
+            "z": 388.8132622
+          },
+          {
+            "x": 6578.6455160000005,
+            "y": 552.265084442125,
+            "z": 393.490407775
+          },
+          {
+            "x": 6600.0,
+            "y": 553.0,
+            "z": 400.0
+          }
+        ],
+        "width_m": 8,
+        "prefab": "Highway Oneway - 1 lane",
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ramp-east-out",
+        "label": "小镇 → 东侧高速｜概念曲线",
+        "points": [
+          {
+            "x": 6600.0,
+            "y": 553.0,
+            "z": 400.0
+          },
+          {
+            "x": 6617.560020499999,
+            "y": 552.8723354949999,
+            "z": 404.90601897499994
+          },
+          {
+            "x": 6634.280164000001,
+            "y": 552.7886839600001,
+            "z": 413.35815180000003
+          },
+          {
+            "x": 6650.220553499999,
+            "y": 552.7480583649999,
+            "z": 424.9575123249999
+          },
+          {
+            "x": 6665.441312000002,
+            "y": 552.7494716800002,
+            "z": 439.3052144000001
+          },
+          {
+            "x": 6680.0025625,
+            "y": 552.791936875,
+            "z": 456.002371875
+          },
+          {
+            "x": 6693.964427999998,
+            "y": 552.8744669199998,
+            "z": 474.65009859999986
+          },
+          {
+            "x": 6707.3870314999995,
+            "y": 552.996074785,
+            "z": 494.84950842499995
+          },
+          {
+            "x": 6720.3304960000005,
+            "y": 553.15577344,
+            "z": 516.2017152000001
+          },
+          {
+            "x": 6732.854944500001,
+            "y": 553.352575855,
+            "z": 538.3078327750001
+          },
+          {
+            "x": 6745.0205,
+            "y": 553.585495,
+            "z": 560.768975
+          },
+          {
+            "x": 6756.8872855,
+            "y": 553.853543845,
+            "z": 583.186255725
+          },
+          {
+            "x": 6768.515424,
+            "y": 554.15573536,
+            "z": 605.1607888
+          },
+          {
+            "x": 6779.9650384999995,
+            "y": 554.4910825149999,
+            "z": 626.293688075
+          },
+          {
+            "x": 6791.296251999999,
+            "y": 554.8585982799999,
+            "z": 646.1860674
+          },
+          {
+            "x": 6802.569187499999,
+            "y": 555.257295625,
+            "z": 664.439040625
+          },
+          {
+            "x": 6813.843968,
+            "y": 555.68618752,
+            "z": 680.6537216
+          },
+          {
+            "x": 6825.1807165,
+            "y": 556.144286935,
+            "z": 694.431224175
+          },
+          {
+            "x": 6836.639556,
+            "y": 556.63060684,
+            "z": 705.3726622
+          },
+          {
+            "x": 6848.2806095,
+            "y": 557.1441602049999,
+            "z": 713.0791495249999
+          },
+          {
+            "x": 6860.164,
+            "y": 557.68396,
+            "z": 717.1518
+          }
+        ],
+        "width_m": 8,
+        "prefab": "Highway Oneway - 1 lane",
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ramp-east-in",
+        "label": "东侧高速来车 → 小镇｜概念曲线",
+        "points": [
+          {
+            "x": 6856.779,
+            "y": 557.1507,
+            "z": 736.863159
+          },
+          {
+            "x": 6838.798395124999,
+            "y": 556.5223314125,
+            "z": 734.7694259476249
+          },
+          {
+            "x": 6819.931891000001,
+            "y": 555.8848603000001,
+            "z": 734.3042429110001
+          },
+          {
+            "x": 6800.241903374999,
+            "y": 555.2419236374999,
+            "z": 735.253212520875
+          },
+          {
+            "x": 6779.790848000002,
+            "y": 554.5971584000001,
+            "z": 737.4019374080002
+          },
+          {
+            "x": 6758.641140625001,
+            "y": 553.9542015625,
+            "z": 740.536020203125
+          },
+          {
+            "x": 6736.855196999999,
+            "y": 553.3166900999998,
+            "z": 744.4410635369999
+          },
+          {
+            "x": 6714.495432875,
+            "y": 552.6882609875,
+            "z": 748.9026700403749
+          },
+          {
+            "x": 6691.624264,
+            "y": 552.0725512,
+            "z": 753.7064423439999
+          },
+          {
+            "x": 6668.304106125001,
+            "y": 551.4731977125001,
+            "z": 758.6379830786252
+          },
+          {
+            "x": 6644.597375,
+            "y": 550.8938375,
+            "z": 763.482894875
+          },
+          {
+            "x": 6620.566486375001,
+            "y": 550.3381075375,
+            "z": 768.026780363875
+          },
+          {
+            "x": 6596.273856000001,
+            "y": 549.8096448,
+            "z": 772.0552421760001
+          },
+          {
+            "x": 6571.781899624999,
+            "y": 549.3120862625,
+            "z": 775.3538829421249
+          },
+          {
+            "x": 6547.153033,
+            "y": 548.8490688999999,
+            "z": 777.708305293
+          },
+          {
+            "x": 6522.449671875,
+            "y": 548.4242296875,
+            "z": 778.904111859375
+          },
+          {
+            "x": 6497.734232,
+            "y": 548.0412056,
+            "z": 778.7269052720001
+          },
+          {
+            "x": 6473.069129125,
+            "y": 547.7036336125,
+            "z": 776.962288161625
+          },
+          {
+            "x": 6448.516779,
+            "y": 547.4151507,
+            "z": 773.395863159
+          },
+          {
+            "x": 6424.1395973749995,
+            "y": 547.1793938375,
+            "z": 767.813232894875
+          },
+          {
+            "x": 6400.0,
+            "y": 547.0,
+            "z": 760.0
+          }
+        ],
+        "width_m": 8,
+        "prefab": "Highway Oneway - 1 lane",
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      },
+      {
+        "id": "ramp-west-out",
+        "label": "小镇 → 西侧高速｜概念曲线",
+        "points": [
+          {
+            "x": 6400.0,
+            "y": 547.0,
+            "z": 760.0
+          },
+          {
+            "x": 6378.668783203749,
+            "y": 546.8500362499999,
+            "z": 752.3713348464998
+          },
+          {
+            "x": 6359.5502656300005,
+            "y": 546.7002900000001,
+            "z": 741.6906787720001
+          },
+          {
+            "x": 6342.457146501249,
+            "y": 546.5509787499999,
+            "z": 728.2660408554999
+          },
+          {
+            "x": 6327.202125040002,
+            "y": 546.4023200000001,
+            "z": 712.4054301760002
+          },
+          {
+            "x": 6313.59790046875,
+            "y": 546.25453125,
+            "z": 694.4168558125
+          },
+          {
+            "x": 6301.457172009998,
+            "y": 546.1078299999999,
+            "z": 674.6083268439999
+          },
+          {
+            "x": 6290.59263888625,
+            "y": 545.96243375,
+            "z": 653.2878523495
+          },
+          {
+            "x": 6280.81700032,
+            "y": 545.8185599999999,
+            "z": 630.763441408
+          },
+          {
+            "x": 6271.942955533751,
+            "y": 545.6764262500001,
+            "z": 607.3431030985001
+          },
+          {
+            "x": 6263.78320375,
+            "y": 545.53625,
+            "z": 583.3348465
+          },
+          {
+            "x": 6256.150444191249,
+            "y": 545.39824875,
+            "z": 559.0466806915
+          },
+          {
+            "x": 6248.85737608,
+            "y": 545.26264,
+            "z": 534.786614752
+          },
+          {
+            "x": 6241.716698638749,
+            "y": 545.12964125,
+            "z": 510.8626577604999
+          },
+          {
+            "x": 6234.5411110899995,
+            "y": 544.99947,
+            "z": 487.58281879599997
+          },
+          {
+            "x": 6227.14331265625,
+            "y": 544.87234375,
+            "z": 465.2551069375
+          },
+          {
+            "x": 6219.3360025599995,
+            "y": 544.74848,
+            "z": 444.187531264
+          },
+          {
+            "x": 6210.93188002375,
+            "y": 544.62809625,
+            "z": 424.6881008545
+          },
+          {
+            "x": 6201.74364427,
+            "y": 544.51141,
+            "z": 407.064824788
+          },
+          {
+            "x": 6191.583994521249,
+            "y": 544.39863875,
+            "z": 391.62571214350004
+          },
+          {
+            "x": 6180.26563,
+            "y": 544.29,
+            "z": 378.678772
+          }
+        ],
+        "width_m": 8,
+        "prefab": "Highway Oneway - 1 lane",
+        "level": "surface",
+        "planning_status": "conceptual",
+        "construction_status": "planned"
+      }
+    ],
+    "zones": [
+      {
+        "id": "sector-1",
+        "label": "① 东北工业与物流",
+        "kind": "industrial",
+        "polygon": [
+          {
+            "x": 5705.0,
+            "z": 2030.0
+          },
+          {
+            "x": 6255.0,
+            "z": 2030.0
+          },
+          {
+            "x": 6063.154942,
+            "z": 2493.154942
+          },
+          {
+            "x": 5674.246212,
+            "z": 2104.246212
+          }
+        ]
+      },
+      {
+        "id": "sector-2",
+        "label": "② 北部办公与缓冲",
+        "kind": "office",
+        "polygon": [
+          {
+            "x": 5674.246212,
+            "z": 2104.246212
+          },
+          {
+            "x": 6063.154942,
+            "z": 2493.154942
+          },
+          {
+            "x": 5600.0,
+            "z": 2685.0
+          },
+          {
+            "x": 5600.0,
+            "z": 2135.0
+          }
+        ]
+      },
+      {
+        "id": "sector-3",
+        "label": "③ 西北住宅",
+        "kind": "residential",
+        "polygon": [
+          {
+            "x": 5600.0,
+            "z": 2135.0
+          },
+          {
+            "x": 5600.0,
+            "z": 2685.0
+          },
+          {
+            "x": 5136.845058,
+            "z": 2493.154942
+          },
+          {
+            "x": 5525.753788,
+            "z": 2104.246212
+          }
+        ]
+      },
+      {
+        "id": "sector-4",
+        "label": "④ 西部住宅",
+        "kind": "residential",
+        "polygon": [
+          {
+            "x": 5525.753788,
+            "z": 2104.246212
+          },
+          {
+            "x": 5136.845058,
+            "z": 2493.154942
+          },
+          {
+            "x": 4945.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5495.0,
+            "z": 2030.0
+          }
+        ]
+      },
+      {
+        "id": "sector-5",
+        "label": "⑤ 西南住宅",
+        "kind": "residential",
+        "polygon": [
+          {
+            "x": 5495.0,
+            "z": 2030.0
+          },
+          {
+            "x": 4945.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5136.845058,
+            "z": 1566.845058
+          },
+          {
+            "x": 5525.753788,
+            "z": 1955.753788
+          }
+        ]
+      },
+      {
+        "id": "sector-6",
+        "label": "⑥ 南西公共服务",
+        "kind": "service",
+        "polygon": [
+          {
+            "x": 5525.753788,
+            "z": 1955.753788
+          },
+          {
+            "x": 5136.845058,
+            "z": 1566.845058
+          },
+          {
+            "x": 5600.0,
+            "z": 1375.0
+          },
+          {
+            "x": 5600.0,
+            "z": 1925.0
+          }
+        ]
+      },
+      {
+        "id": "sector-7",
+        "label": "⑦ 南东商业门户",
+        "kind": "commercial",
+        "polygon": [
+          {
+            "x": 5600.0,
+            "z": 1925.0
+          },
+          {
+            "x": 5600.0,
+            "z": 1375.0
+          },
+          {
+            "x": 6063.154942,
+            "z": 1566.845058
+          },
+          {
+            "x": 5674.246212,
+            "z": 1955.753788
+          }
+        ]
+      },
+      {
+        "id": "sector-8",
+        "label": "⑧ 东南办公",
+        "kind": "office",
+        "polygon": [
+          {
+            "x": 5674.246212,
+            "z": 1955.753788
+          },
+          {
+            "x": 6063.154942,
+            "z": 1566.845058
+          },
+          {
+            "x": 6255.0,
+            "z": 2030.0
+          },
+          {
+            "x": 5705.0,
+            "z": 2030.0
+          }
+        ]
+      }
+    ],
+    "buildings": [
+      {
+        "id": "facility-1",
+        "label": "小学",
+        "prefab": "ElementarySchool02",
+        "position": {
+          "x": 5439.272958,
+          "z": 2418.029404
+        },
+        "size_m": {
+          "x": 71.6,
+          "z": 47.6
+        },
+        "rotation_degrees": null,
+        "rotation_source": "unresolved",
+        "placement_status": "conceptual",
+        "construction_status": "planned",
+        "category": "city_service"
+      },
+      {
+        "id": "facility-2",
+        "label": "社区诊所",
+        "prefab": "MedicalClinic02",
+        "position": {
+          "x": 5211.970596,
+          "z": 2190.727042
+        },
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        },
+        "rotation_degrees": null,
+        "rotation_source": "unresolved",
+        "placement_status": "conceptual",
+        "construction_status": "planned",
+        "category": "city_service"
+      },
+      {
+        "id": "facility-3",
+        "label": "小学",
+        "prefab": "ElementarySchool02",
+        "position": {
+          "x": 5211.970596,
+          "z": 1869.272958
+        },
+        "size_m": {
+          "x": 71.6,
+          "z": 47.6
+        },
+        "rotation_degrees": null,
+        "rotation_source": "unresolved",
+        "placement_status": "conceptual",
+        "construction_status": "planned",
+        "category": "city_service"
+      },
+      {
+        "id": "facility-4",
+        "label": "中学",
+        "prefab": "HighSchool02",
+        "position": {
+          "x": 5443.099793,
+          "z": 1651.209392
+        },
+        "size_m": {
+          "x": 95.6,
+          "z": 63.6
+        },
+        "rotation_degrees": null,
+        "rotation_source": "unresolved",
+        "placement_status": "conceptual",
+        "construction_status": "planned",
+        "category": "city_service"
+      },
+      {
+        "id": "facility-5",
+        "label": "警务站",
+        "prefab": "PoliceStation02",
+        "position": {
+          "x": 5506.242559,
+          "z": 1803.649515
+        },
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        },
+        "rotation_degrees": null,
+        "rotation_source": "unresolved",
+        "placement_status": "conceptual",
+        "construction_status": "planned",
+        "category": "city_service"
+      },
+      {
+        "id": "facility-6",
+        "label": "邮局",
+        "prefab": "PostOffice02",
+        "position": {
+          "x": 5756.900207,
+          "z": 1651.209392
+        },
+        "size_m": {
+          "x": 23.6,
+          "z": 31.6
+        },
+        "rotation_degrees": null,
+        "rotation_source": "unresolved",
+        "placement_status": "conceptual",
+        "construction_status": "planned",
+        "category": "city_service"
+      },
+      {
+        "id": "facility-7",
+        "label": "消防站",
+        "prefab": "FireHouse01",
+        "position": {
+          "x": 5978.790608,
+          "z": 1873.099793
+        },
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        },
+        "rotation_degrees": null,
+        "rotation_source": "unresolved",
+        "placement_status": "conceptual",
+        "construction_status": "planned",
+        "category": "city_service"
+      },
+      {
+        "id": "facility-8",
+        "label": "工业消防",
+        "prefab": "FireHouse02",
+        "position": {
+          "x": 5978.790608,
+          "z": 2186.900207
+        },
+        "size_m": {
+          "x": 23.6,
+          "z": 31.6
+        },
+        "rotation_degrees": null,
+        "rotation_source": "unresolved",
+        "placement_status": "conceptual",
+        "construction_status": "planned",
+        "category": "city_service"
+      },
+      {
+        "id": "facility-9",
+        "label": "社区公园",
+        "prefab": "CityPark02",
+        "position": {
+          "x": 5373.649515,
+          "z": 1936.242559
+        },
+        "size_m": {
+          "x": 47.6,
+          "z": 47.6
+        },
+        "rotation_degrees": null,
+        "rotation_source": "unresolved",
+        "placement_status": "conceptual",
+        "construction_status": "planned",
+        "category": "city_service"
+      },
+      {
+        "id": "facility-10",
+        "label": "社区公园",
+        "prefab": "CityPark02",
+        "position": {
+          "x": 5506.242559,
+          "z": 2256.350485
+        },
+        "size_m": {
+          "x": 47.6,
+          "z": 47.6
+        },
+        "rotation_degrees": null,
+        "rotation_source": "unresolved",
+        "placement_status": "conceptual",
+        "construction_status": "planned",
+        "category": "city_service"
+      },
+      {
+        "id": "facility-11",
+        "label": "自行车停放室",
+        "prefab": "BicycleParkingHall01",
+        "position": {
+          "x": 5756.900207,
+          "z": 2408.790608
+        },
+        "size_m": {
+          "x": 39.6,
+          "z": 15.6
+        },
+        "rotation_degrees": null,
+        "rotation_source": "unresolved",
+        "placement_status": "conceptual",
+        "construction_status": "planned",
+        "category": "city_service"
+      }
+    ],
+    "tracks": [],
+    "utilities": []
+  },
+  "include_existing": true,
+  "include_water": true,
+  "include_terrain": true,
+  "water_cell_size_m": 16,
+  "terrain_cell_size_m": 128,
+  "render": {
+    "format": "static_html",
+    "title": "奥本山 · 正八角城镇 V2｜顶点出入口",
+    "width": 1600,
+    "height": 1100,
+    "view": "combined"
+  }
+}

@@ -1,3 +1,4 @@
+import { withPrefabCatalog } from './prefab-catalog-service.mjs';
 import { randomBytes } from 'node:crypto';
 import { queryGame as liveQueryGame, BridgeError } from './bridge-client.mjs';
 import { routeUtilityAdaptive } from './utility-router.mjs';
@@ -26,8 +27,8 @@ const connectionMatchesPrefab = (connection, prefab) => {
 const point = p => ({ x: p.x, z: p.z });
 
 export function createUtilityConnectionWorkflow(queryGame = liveQueryGame) {
+  queryGame = withPrefabCatalog(queryGame);
   const requests = new Map();
-  const prefabCache = new Map();
   let writeTail = Promise.resolve();
   const exclusive = async fn => { const previous = writeTail; let release; writeTail = new Promise(resolve => { release = resolve; }); await previous; try { return await fn(); } finally { release(); } };
 
@@ -65,14 +66,8 @@ export function createUtilityConnectionWorkflow(queryGame = liveQueryGame) {
         // Avoid a full prefab enumeration for the common existing-network path.
         let selectedPrefab = args.utility_prefab && targets.length ? { name: args.utility_prefab } : targets[0]?.utility_prefab ? { name: targets[0].utility_prefab } : null;
         if (!selectedPrefab) {
-          const sessionId = statusEnvelope.meta?.session_id || statusEnvelope.data?.session_id || 'unknown';
-          const cacheKey = `${sessionId}:utility-prefabs`;
-          let prefabs = prefabCache.get(cacheKey);
-          if (!prefabs) {
-            const prefabsResponse = await queryGame('list_utility_network_prefabs', { network_type: 'all', include_markers: false, unlocked_only: true });
-            prefabs = prefabsResponse.data?.items || [];
-            prefabCache.set(cacheKey, prefabs);
-          }
+          const prefabsResponse = await queryGame('list_utility_network_prefabs', { network_type: 'all', include_markers: false, unlocked_only: true });
+          const prefabs = prefabsResponse.data?.items || [];
           selectedPrefab = args.utility_prefab ? prefabs.find(item => item.name?.toLowerCase() === args.utility_prefab.toLowerCase()) : prefabs.find(item => connectionMatchesPrefab(connection, item));
         }
         if (!selectedPrefab) throw new BridgeError('UTILITY_PREFAB_NOT_FOUND', 'No unlocked utility network prefab matches the requested connection.');

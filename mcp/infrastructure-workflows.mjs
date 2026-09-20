@@ -1,3 +1,4 @@
+import { withPrefabCatalog } from './prefab-catalog-service.mjs';
 import { queryGame as liveQueryGame, BridgeError } from './bridge-client.mjs';
 import { connectUtilityFacility as liveConnectUtilityFacility } from './utility-connection-workflow.mjs';
 
@@ -15,6 +16,7 @@ function workflowError(code, message, details = {}) {
 }
 
 export function createInfrastructureWorkflows(queryGame = liveQueryGame, dependencies = {}) {
+  queryGame = withPrefabCatalog(queryGame);
   const connectUtilityFacility = dependencies.connectUtilityFacility || liveConnectUtilityFacility;
   const requests = new Map();
   let constructionTail = Promise.resolve();

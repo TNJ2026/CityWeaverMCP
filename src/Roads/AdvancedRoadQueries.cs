@@ -100,7 +100,7 @@ namespace CityWeaver
             {
                 var edge = ParseEntity((string)token, em);
                 if (!IsPermanentRoad(em, edge)) throw new QueryException("INVALID_ROAD_EDGE", "Every edge_id must identify an existing permanent road edge.");
-                var lanes = new JArray(); int carCount = 0, parkingCount = 0, usableParkingCount = 0, publicOnly = 0, bottlenecks = 0;
+                var lanes = new JArray(); int carCount = 0, parkingCount = 0, usableParkingCount = 0, publicOnly = 0, bottlenecks = 0, bicycleCount = 0, dedicatedBicycleCount = 0;
                 if (em.HasBuffer<NetSubLane>(edge))
                 {
                     var buffer = em.GetBuffer<NetSubLane>(edge, true);
@@ -109,6 +109,14 @@ namespace CityWeaver
                         var lane = buffer[i].m_SubLane;
                         if (!em.Exists(lane) || em.HasComponent<Deleted>(lane)) continue;
                         var row = new JObject { ["lane_id"] = EntityId(lane), ["buffer_index"] = i, ["path_methods"] = buffer[i].m_PathMethods.ToString() };
+                        var methods = buffer[i].m_PathMethods;
+                        var bicycleAllowed = (methods & Game.Pathfind.PathMethod.Bicycle) != 0;
+                        if (em.HasComponent<NetCarLane>(lane) && (em.GetComponentData<NetCarLane>(lane).m_Flags & (CarLaneFlags.ForbidBicycles | CarLaneFlags.Forbidden)) != 0) bicycleAllowed = false;
+                        var dedicatedBicycle = bicycleAllowed && (methods & (Game.Pathfind.PathMethod.Road | Game.Pathfind.PathMethod.Pedestrian | Game.Pathfind.PathMethod.Parking)) == 0;
+                        if (bicycleAllowed) bicycleCount++;
+                        if (dedicatedBicycle) dedicatedBicycleCount++;
+                        row["bicycle_allowed"] = bicycleAllowed;
+                        row["dedicated_bicycle_lane"] = dedicatedBicycle;
                         if (em.HasComponent<NetCarLane>(lane))
                         {
                             var car = em.GetComponentData<NetCarLane>(lane); carCount++;
@@ -141,7 +149,11 @@ namespace CityWeaver
                     }
                 }
                 var prefab = em.GetComponentData<PrefabRef>(edge).m_Prefab;
+                var upgrades = em.HasComponent<Upgraded>(edge) ? em.GetComponentData<Upgraded>(edge).m_Flags : default(CompositionFlags);
                 result.Add(new JObject { ["edge_id"] = EntityId(edge), ["prefab_entity_id"] = EntityId(prefab), ["car_lane_count"] = carCount,
+                    ["left_bicycle_lane"] = (upgrades.m_Left & CompositionFlags.Side.SecondaryLane) != 0,
+                    ["right_bicycle_lane"] = (upgrades.m_Right & CompositionFlags.Side.SecondaryLane) != 0,
+                    ["bicycle_allowed_lane_count"] = bicycleCount, ["dedicated_bicycle_lane_count"] = dedicatedBicycleCount,
                     ["parking_lane_count"] = parkingCount, ["usable_parking_lane_count"] = usableParkingCount,
                     ["public_transport_only_lane_count"] = publicOnly, ["bottleneck_lane_count"] = bottlenecks, ["lanes"] = lanes });
             }
@@ -235,6 +247,7 @@ namespace CityWeaver
             var sourceId = (string)args["source_operation_id"] ?? "";
             if (!m_RoadOperations.TryGetValue(sourceId, out var source) || source.Session != m_Session) throw new QueryException("ROAD_OPERATION_NOT_FOUND", "Unknown source operation in this city session.");
             if (source.State != "completed") throw new QueryException("UNDO_SOURCE_NOT_COMPLETED", "Only a completed operation can be undone.");
+            if (source.CurveMode == "intersection_prefab") throw new QueryException("UNDO_NOT_AVAILABLE", "An intersection stamp may include decorations and terrain changes; road-only undo cannot restore the whole asset. Inspect and remove intended roads explicitly.");
             var key = RequestKey(args); var fingerprint = "undo:" + sourceId;
             if (m_RoadRequestIds.TryGetValue(key, out var oldId)) { var old = m_RoadOperations[oldId]; if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another operation."); return old.Json(); }
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before undoing road policies.");

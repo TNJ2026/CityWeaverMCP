@@ -1,0 +1,2759 @@
+{
+  "cityName": "美瑞迪安",
+  "theme": "European",
+  "title": "美瑞迪安｜圆形城镇 2 万人口综合规划施工图（网页版）",
+  "plan_id": "cplan-7ad8322963938f70",
+  "bounds": {
+    "min_x": -1558.26,
+    "min_z": -934.96,
+    "max_x": 1558.26,
+    "max_z": 2804.87
+  },
+  "plan": {
+    "grids": [],
+    "grid_exceptions": [],
+    "roads": [
+      {
+        "id": "inner-ring-ne",
+        "label": "内环集散路（东北段）",
+        "prefab": "Medium Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 320,
+            "z": 1024
+          },
+          {
+            "x": 312,
+            "z": 1088
+          },
+          {
+            "x": 296,
+            "z": 1144
+          },
+          {
+            "x": 264,
+            "z": 1200
+          },
+          {
+            "x": 224,
+            "z": 1248
+          },
+          {
+            "x": 176,
+            "z": 1288
+          },
+          {
+            "x": 120,
+            "z": 1320
+          },
+          {
+            "x": 64,
+            "z": 1336
+          },
+          {
+            "x": 0,
+            "z": 1344
+          }
+        ],
+        "construction_order": 10
+      },
+      {
+        "id": "inner-ring-nw",
+        "label": "内环集散路（西北段）",
+        "prefab": "Medium Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 0,
+            "z": 1344
+          },
+          {
+            "x": -64,
+            "z": 1336
+          },
+          {
+            "x": -120,
+            "z": 1320
+          },
+          {
+            "x": -176,
+            "z": 1288
+          },
+          {
+            "x": -224,
+            "z": 1248
+          },
+          {
+            "x": -264,
+            "z": 1200
+          },
+          {
+            "x": -296,
+            "z": 1144
+          },
+          {
+            "x": -312,
+            "z": 1088
+          },
+          {
+            "x": -320,
+            "z": 1024
+          }
+        ],
+        "construction_order": 10
+      },
+      {
+        "id": "inner-ring-sw",
+        "label": "内环集散路（西南段）",
+        "prefab": "Medium Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 24,
+        "points": [
+          {
+            "x": -320,
+            "z": 1024
+          },
+          {
+            "x": -312,
+            "z": 960
+          },
+          {
+            "x": -296,
+            "z": 904
+          },
+          {
+            "x": -264,
+            "z": 848
+          },
+          {
+            "x": -224,
+            "z": 800
+          },
+          {
+            "x": -176,
+            "z": 760
+          },
+          {
+            "x": -120,
+            "z": 728
+          },
+          {
+            "x": -64,
+            "z": 712
+          },
+          {
+            "x": 0,
+            "z": 704
+          }
+        ],
+        "construction_order": 10
+      },
+      {
+        "id": "inner-ring-se",
+        "label": "内环集散路（东南段）",
+        "prefab": "Medium Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 0,
+            "z": 704
+          },
+          {
+            "x": 64,
+            "z": 712
+          },
+          {
+            "x": 120,
+            "z": 728
+          },
+          {
+            "x": 176,
+            "z": 760
+          },
+          {
+            "x": 224,
+            "z": 800
+          },
+          {
+            "x": 264,
+            "z": 848
+          },
+          {
+            "x": 296,
+            "z": 904
+          },
+          {
+            "x": 312,
+            "z": 960
+          },
+          {
+            "x": 320,
+            "z": 1024
+          }
+        ],
+        "construction_order": 10
+      },
+      {
+        "id": "mid-ring-ne",
+        "label": "中环联络路（东北段）",
+        "prefab": "Small Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 560,
+            "z": 1024
+          },
+          {
+            "x": 552,
+            "z": 1136
+          },
+          {
+            "x": 520,
+            "z": 1240
+          },
+          {
+            "x": 464,
+            "z": 1336
+          },
+          {
+            "x": 392,
+            "z": 1416
+          },
+          {
+            "x": 312,
+            "z": 1488
+          },
+          {
+            "x": 216,
+            "z": 1544
+          },
+          {
+            "x": 112,
+            "z": 1576
+          },
+          {
+            "x": 0,
+            "z": 1584
+          }
+        ],
+        "construction_order": 20
+      },
+      {
+        "id": "mid-ring-nw",
+        "label": "中环联络路（西北段）",
+        "prefab": "Small Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 0,
+            "z": 1584
+          },
+          {
+            "x": -112,
+            "z": 1576
+          },
+          {
+            "x": -216,
+            "z": 1544
+          },
+          {
+            "x": -312,
+            "z": 1488
+          },
+          {
+            "x": -392,
+            "z": 1416
+          },
+          {
+            "x": -464,
+            "z": 1336
+          },
+          {
+            "x": -520,
+            "z": 1240
+          },
+          {
+            "x": -552,
+            "z": 1136
+          },
+          {
+            "x": -560,
+            "z": 1024
+          }
+        ],
+        "construction_order": 20
+      },
+      {
+        "id": "mid-ring-sw",
+        "label": "中环联络路（西南段）",
+        "prefab": "Small Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 16,
+        "points": [
+          {
+            "x": -560,
+            "z": 1024
+          },
+          {
+            "x": -552,
+            "z": 912
+          },
+          {
+            "x": -520,
+            "z": 808
+          },
+          {
+            "x": -464,
+            "z": 712
+          },
+          {
+            "x": -392,
+            "z": 632
+          },
+          {
+            "x": -312,
+            "z": 560
+          },
+          {
+            "x": -216,
+            "z": 504
+          },
+          {
+            "x": -112,
+            "z": 472
+          },
+          {
+            "x": 0,
+            "z": 464
+          }
+        ],
+        "construction_order": 20
+      },
+      {
+        "id": "mid-ring-se",
+        "label": "中环联络路（东南段）",
+        "prefab": "Small Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 0,
+            "z": 464
+          },
+          {
+            "x": 112,
+            "z": 472
+          },
+          {
+            "x": 216,
+            "z": 504
+          },
+          {
+            "x": 312,
+            "z": 560
+          },
+          {
+            "x": 392,
+            "z": 632
+          },
+          {
+            "x": 464,
+            "z": 712
+          },
+          {
+            "x": 520,
+            "z": 808
+          },
+          {
+            "x": 552,
+            "z": 912
+          },
+          {
+            "x": 560,
+            "z": 1024
+          }
+        ],
+        "construction_order": 20
+      },
+      {
+        "id": "outer-ring-ne",
+        "label": "外环快速集散道（东北段）",
+        "prefab": "Medium Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 800,
+            "z": 1024
+          },
+          {
+            "x": 784,
+            "z": 1184
+          },
+          {
+            "x": 736,
+            "z": 1328
+          },
+          {
+            "x": 664,
+            "z": 1472
+          },
+          {
+            "x": 568,
+            "z": 1592
+          },
+          {
+            "x": 448,
+            "z": 1688
+          },
+          {
+            "x": 304,
+            "z": 1760
+          },
+          {
+            "x": 160,
+            "z": 1808
+          },
+          {
+            "x": 0,
+            "z": 1824
+          }
+        ],
+        "construction_order": 30
+      },
+      {
+        "id": "outer-ring-nw",
+        "label": "外环快速集散道（西北段）",
+        "prefab": "Medium Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 0,
+            "z": 1824
+          },
+          {
+            "x": -160,
+            "z": 1808
+          },
+          {
+            "x": -304,
+            "z": 1760
+          },
+          {
+            "x": -448,
+            "z": 1688
+          },
+          {
+            "x": -568,
+            "z": 1592
+          },
+          {
+            "x": -664,
+            "z": 1472
+          },
+          {
+            "x": -736,
+            "z": 1328
+          },
+          {
+            "x": -784,
+            "z": 1184
+          },
+          {
+            "x": -800,
+            "z": 1024
+          }
+        ],
+        "construction_order": 30
+      },
+      {
+        "id": "outer-ring-sw",
+        "label": "外环快速集散道（西南段）",
+        "prefab": "Medium Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 24,
+        "points": [
+          {
+            "x": -800,
+            "z": 1024
+          },
+          {
+            "x": -784,
+            "z": 864
+          },
+          {
+            "x": -736,
+            "z": 720
+          },
+          {
+            "x": -664,
+            "z": 576
+          },
+          {
+            "x": -568,
+            "z": 456
+          },
+          {
+            "x": -448,
+            "z": 360
+          },
+          {
+            "x": -304,
+            "z": 288
+          },
+          {
+            "x": -160,
+            "z": 240
+          },
+          {
+            "x": 0,
+            "z": 224
+          }
+        ],
+        "construction_order": 30
+      },
+      {
+        "id": "outer-ring-se",
+        "label": "外环快速集散道（东南段）",
+        "prefab": "Medium Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 0,
+            "z": 224
+          },
+          {
+            "x": 160,
+            "z": 240
+          },
+          {
+            "x": 304,
+            "z": 288
+          },
+          {
+            "x": 448,
+            "z": 360
+          },
+          {
+            "x": 568,
+            "z": 456
+          },
+          {
+            "x": 664,
+            "z": 576
+          },
+          {
+            "x": 736,
+            "z": 720
+          },
+          {
+            "x": 784,
+            "z": 864
+          },
+          {
+            "x": 800,
+            "z": 1024
+          }
+        ],
+        "construction_order": 30
+      },
+      {
+        "id": "ew-outer-to-mid-west",
+        "label": "东西主轴大道（西外至西中）",
+        "prefab": "Large Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 32,
+        "points": [
+          {
+            "x": -800,
+            "z": 1024
+          },
+          {
+            "x": -560,
+            "z": 1024
+          }
+        ],
+        "construction_order": 15
+      },
+      {
+        "id": "ew-mid-to-inner-west",
+        "label": "东西主轴大道（西中至西内）",
+        "prefab": "Large Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 32,
+        "points": [
+          {
+            "x": -560,
+            "z": 1024
+          },
+          {
+            "x": -320,
+            "z": 1024
+          }
+        ],
+        "construction_order": 15
+      },
+      {
+        "id": "ew-inner-to-center-west",
+        "label": "东西主轴大道（西内至中心）",
+        "prefab": "Large Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 32,
+        "points": [
+          {
+            "x": -320,
+            "z": 1024
+          },
+          {
+            "x": 0,
+            "z": 1024
+          }
+        ],
+        "construction_order": 15
+      },
+      {
+        "id": "ew-center-to-inner-east",
+        "label": "东西主轴大道（中心至东内）",
+        "prefab": "Large Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 32,
+        "points": [
+          {
+            "x": 0,
+            "z": 1024
+          },
+          {
+            "x": 320,
+            "z": 1024
+          }
+        ],
+        "construction_order": 15
+      },
+      {
+        "id": "ew-inner-to-mid-east",
+        "label": "东西主轴大道（东内至东中）",
+        "prefab": "Large Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 32,
+        "points": [
+          {
+            "x": 320,
+            "z": 1024
+          },
+          {
+            "x": 560,
+            "z": 1024
+          }
+        ],
+        "construction_order": 15
+      },
+      {
+        "id": "ew-mid-to-outer-east",
+        "label": "东西主轴大道（东中至东外）",
+        "prefab": "Large Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 32,
+        "points": [
+          {
+            "x": 560,
+            "z": 1024
+          },
+          {
+            "x": 800,
+            "z": 1024
+          }
+        ],
+        "construction_order": 15
+      },
+      {
+        "id": "ew-outer-to-highway-hub",
+        "label": "东西主轴大道（高速连接段）",
+        "prefab": "Large Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 32,
+        "points": [
+          {
+            "x": 800,
+            "z": 1024
+          },
+          {
+            "x": 880,
+            "z": 1024
+          }
+        ],
+        "construction_order": 15
+      },
+      {
+        "id": "highway-connector-inbound",
+        "label": "高速进城接驳道",
+        "prefab": "Medium Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 880,
+            "z": 1024
+          },
+          {
+            "x": 877,
+            "z": 1138
+          }
+        ],
+        "construction_order": 18
+      },
+      {
+        "id": "highway-connector-outbound",
+        "label": "高速出城接驳道",
+        "prefab": "Medium Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 24,
+        "points": [
+          {
+            "x": 880,
+            "z": 1024
+          },
+          {
+            "x": 877,
+            "z": 1118
+          }
+        ],
+        "construction_order": 18
+      },
+      {
+        "id": "ns-outer-to-mid-south",
+        "label": "南北主轴大道（南外至南中）",
+        "prefab": "Large Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 32,
+        "points": [
+          {
+            "x": 0,
+            "z": 224
+          },
+          {
+            "x": 0,
+            "z": 464
+          }
+        ],
+        "construction_order": 15
+      },
+      {
+        "id": "ns-mid-to-inner-south",
+        "label": "南北主轴大道（南中至南内）",
+        "prefab": "Large Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 32,
+        "points": [
+          {
+            "x": 0,
+            "z": 464
+          },
+          {
+            "x": 0,
+            "z": 704
+          }
+        ],
+        "construction_order": 15
+      },
+      {
+        "id": "ns-inner-to-center-south",
+        "label": "南北主轴大道（南内至中心）",
+        "prefab": "Large Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 32,
+        "points": [
+          {
+            "x": 0,
+            "z": 704
+          },
+          {
+            "x": 0,
+            "z": 1024
+          }
+        ],
+        "construction_order": 15
+      },
+      {
+        "id": "ns-center-to-inner-north",
+        "label": "南北主轴大道（中心至北内）",
+        "prefab": "Large Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 32,
+        "points": [
+          {
+            "x": 0,
+            "z": 1024
+          },
+          {
+            "x": 0,
+            "z": 1344
+          }
+        ],
+        "construction_order": 15
+      },
+      {
+        "id": "ns-inner-to-mid-north",
+        "label": "南北主轴大道（北内至北中）",
+        "prefab": "Large Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 32,
+        "points": [
+          {
+            "x": 0,
+            "z": 1344
+          },
+          {
+            "x": 0,
+            "z": 1584
+          }
+        ],
+        "construction_order": 15
+      },
+      {
+        "id": "ns-mid-to-outer-north",
+        "label": "南北主轴大道（北中至北外）",
+        "prefab": "Large Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 32,
+        "points": [
+          {
+            "x": 0,
+            "z": 1584
+          },
+          {
+            "x": 0,
+            "z": 1824
+          }
+        ],
+        "construction_order": 15
+      },
+      {
+        "id": "diag-inner-to-mid-ne",
+        "label": "东北产业辐射道（内段）",
+        "prefab": "Small Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 224,
+            "z": 1248
+          },
+          {
+            "x": 392,
+            "z": 1416
+          }
+        ],
+        "construction_order": 25
+      },
+      {
+        "id": "diag-mid-to-outer-ne",
+        "label": "东北产业辐射道（外段）",
+        "prefab": "Small Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 392,
+            "z": 1416
+          },
+          {
+            "x": 568,
+            "z": 1592
+          }
+        ],
+        "construction_order": 25
+      },
+      {
+        "id": "diag-inner-to-mid-nw",
+        "label": "西北都会居住辐射道（内段）",
+        "prefab": "Small Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 16,
+        "points": [
+          {
+            "x": -224,
+            "z": 1248
+          },
+          {
+            "x": -392,
+            "z": 1416
+          }
+        ],
+        "construction_order": 25
+      },
+      {
+        "id": "diag-mid-to-outer-nw",
+        "label": "西北都会居住辐射道（外段）",
+        "prefab": "Small Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 16,
+        "points": [
+          {
+            "x": -392,
+            "z": 1416
+          },
+          {
+            "x": -568,
+            "z": 1592
+          }
+        ],
+        "construction_order": 25
+      },
+      {
+        "id": "diag-inner-to-mid-sw",
+        "label": "西南生态居住辐射道（内段）",
+        "prefab": "Small Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 16,
+        "points": [
+          {
+            "x": -224,
+            "z": 800
+          },
+          {
+            "x": -392,
+            "z": 632
+          }
+        ],
+        "construction_order": 25
+      },
+      {
+        "id": "diag-mid-to-outer-sw",
+        "label": "西南生态居住辐射道（外段）",
+        "prefab": "Small Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 16,
+        "points": [
+          {
+            "x": -392,
+            "z": 632
+          },
+          {
+            "x": -568,
+            "z": 456
+          }
+        ],
+        "construction_order": 25
+      },
+      {
+        "id": "diag-inner-to-mid-se",
+        "label": "东南商务金融辐射道（内段）",
+        "prefab": "Small Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 224,
+            "z": 800
+          },
+          {
+            "x": 392,
+            "z": 632
+          }
+        ],
+        "construction_order": 25
+      },
+      {
+        "id": "diag-mid-to-outer-se",
+        "label": "东南商务金融辐射道（外段）",
+        "prefab": "Small Road",
+        "construction_status": "built",
+        "level": "surface",
+        "width_m": 16,
+        "points": [
+          {
+            "x": 392,
+            "z": 632
+          },
+          {
+            "x": 568,
+            "z": 456
+          }
+        ],
+        "construction_order": 25
+      }
+    ],
+    "buildings": [
+      {
+        "id": "bld-city-hall",
+        "label": "市政大厦",
+        "prefab": "CityHall01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "building",
+        "position": {
+          "x": -92.00006,
+          "y": 385.233673,
+          "z": 1120.24988
+        },
+        "rotation_degrees": 180,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 127.6,
+          "z": 159.6
+        },
+        "reserved_size_m": {
+          "x": 128,
+          "z": 160
+        },
+        "road_edge_id": "96749350ac0446519e4eae2a98396ae8:58863:11",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "907094d019314caba0ce5625253d81f6",
+          "state": "verified_then_cancelled",
+          "cost": 1600000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:30:05.4385791Z"
+        },
+        "placement_binding": {
+          "session_id": "96749350ac0446519e4eae2a98396ae8",
+          "building_plan_id": "bplan-e22f14bdba090f86",
+          "operation_id": "907094d019314caba0ce5625253d81f6",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 2,
+          "road_prefab": "Large Road"
+        }
+      },
+      {
+        "id": "bld-general-hospital",
+        "label": "中央综合医院",
+        "prefab": "Hospital01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 326.9657,
+          "y": 385.233673,
+          "z": 1195.12317
+        },
+        "rotation_degrees": -119.744873,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 183.6,
+          "z": 79.6
+        },
+        "reserved_size_m": {
+          "x": 184,
+          "z": 80
+        },
+        "road_edge_id": "96749350ac0446519e4eae2a98396ae8:50963:29",
+        "road_side": "right",
+        "native_preview": {
+          "operation_id": "61269babb0264f9da56969faac9bbc99",
+          "state": "verified_then_cancelled",
+          "cost": 1880000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:30:06.9715855Z"
+        },
+        "placement_binding": {
+          "session_id": "96749350ac0446519e4eae2a98396ae8",
+          "building_plan_id": "bplan-75dcd1d7d1442b3d",
+          "operation_id": "61269babb0264f9da56969faac9bbc99",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 6,
+          "road_prefab": "Medium Road"
+        }
+      },
+      {
+        "id": "bld-college",
+        "label": "美瑞迪安学院",
+        "prefab": "College01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -347.8035,
+          "y": 385.233673,
+          "z": 840.96936
+        },
+        "rotation_degrees": 60.2550964,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 175.6,
+          "z": 127.6
+        },
+        "reserved_size_m": {
+          "x": 176,
+          "z": 128
+        },
+        "road_edge_id": "96749350ac0446519e4eae2a98396ae8:58839:7",
+        "road_side": "right",
+        "native_preview": {
+          "operation_id": "152d2534053e4f25940c00cbc6573a54",
+          "state": "verified_then_cancelled",
+          "cost": 750000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:30:07.6950801Z"
+        },
+        "placement_binding": {
+          "session_id": "96749350ac0446519e4eae2a98396ae8",
+          "building_plan_id": "bplan-8c07eb2bfa36d03a",
+          "operation_id": "152d2534053e4f25940c00cbc6573a54",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 2,
+          "road_prefab": "Medium Road"
+        }
+      },
+      {
+        "id": "bld-police-hq",
+        "label": "市警察局总部",
+        "prefab": "PoliceHeadquarters01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 88.00001,
+          "y": 385.233673,
+          "z": 1120.25
+        },
+        "rotation_degrees": 180,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 143.6,
+          "z": 159.6
+        },
+        "reserved_size_m": {
+          "x": 144,
+          "z": 160
+        },
+        "road_edge_id": "96749350ac0446519e4eae2a98396ae8:58434:9",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "c8d36e9efab84aa799a7a57f21d6d3c9",
+          "state": "verified_then_cancelled",
+          "cost": 2100000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:30:08.2070442Z"
+        },
+        "placement_binding": {
+          "session_id": "96749350ac0446519e4eae2a98396ae8",
+          "building_plan_id": "bplan-b3a2fb8be59f616b",
+          "operation_id": "c8d36e9efab84aa799a7a57f21d6d3c9",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 1,
+          "road_prefab": "Large Road"
+        }
+      },
+      {
+        "id": "bld-central-park",
+        "label": "中央市民休闲公园",
+        "prefab": "CityPark02",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -80,
+          "y": 385.233673,
+          "z": 983.75
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 47.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 48,
+          "z": 48
+        },
+        "road_edge_id": "96749350ac0446519e4eae2a98396ae8:58863:11",
+        "road_side": "right",
+        "native_preview": {
+          "operation_id": "268a4e75802e4befb7b569a06729e9d1",
+          "state": "verified_then_cancelled",
+          "cost": 20000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:30:08.5309628Z"
+        },
+        "placement_binding": {
+          "session_id": "96749350ac0446519e4eae2a98396ae8",
+          "building_plan_id": "bplan-ec7ab460b8c4839d",
+          "operation_id": "268a4e75802e4befb7b569a06729e9d1",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Large Road"
+        }
+      },
+      {
+        "id": "bld-substation-ne",
+        "label": "产业区主变电站",
+        "prefab": "TransformerStation01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "utility",
+        "category": "utility_facility",
+        "position": {
+          "x": 596,
+          "y": 385.233673,
+          "z": 979.75
+        },
+        "rotation_degrees": 0,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 47.6,
+          "z": 55.6
+        },
+        "reserved_size_m": {
+          "x": 48,
+          "z": 56
+        },
+        "road_edge_id": "96749350ac0446519e4eae2a98396ae8:58995:15",
+        "road_side": "right",
+        "native_preview": {
+          "operation_id": "eece82d340344d4fb5074eb042254675",
+          "state": "verified_then_cancelled",
+          "cost": 30000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:30:08.9935685Z"
+        },
+        "placement_binding": {
+          "session_id": "96749350ac0446519e4eae2a98396ae8",
+          "building_plan_id": "bplan-d0bfb748261e9054",
+          "operation_id": "eece82d340344d4fb5074eb042254675",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 1,
+          "road_prefab": "Large Road"
+        }
+      },
+      {
+        "id": "bld-water-pump-ne",
+        "label": "地下水供水总站",
+        "prefab": "GroundwaterPumpingStation01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "utility",
+        "category": "utility_facility",
+        "position": {
+          "x": 497.4105,
+          "y": 385.233673,
+          "z": 1203.754
+        },
+        "rotation_degrees": 72.89728,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 47.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 48,
+          "z": 48
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68508:29",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "9b0a4a8861104353947f8287b2a69e1b",
+          "state": "verified_then_cancelled",
+          "cost": 40000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:19.7230603Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-c6ab28dade398f0e",
+          "operation_id": "9b0a4a8861104353947f8287b2a69e1b",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Small Road"
+        }
+      },
+      {
+        "id": "bld-sewage-treatment",
+        "label": "现代污水净化厂",
+        "prefab": "WastewaterTreatmentPlant01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "utility",
+        "category": "utility_facility",
+        "position": {
+          "x": 702.8751,
+          "y": 385.233673,
+          "z": 1262.14551
+        },
+        "rotation_degrees": 71.56505,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 95.6,
+          "z": 79.6
+        },
+        "reserved_size_m": {
+          "x": 96,
+          "z": 80
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68477:185",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "7153bc97356348859b84836ef3b3cb31",
+          "state": "verified_then_cancelled",
+          "cost": 400000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:19.9863768Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-ab0545b83cb3dcc4",
+          "operation_id": "7153bc97356348859b84836ef3b3cb31",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Medium Road"
+        }
+      },
+      {
+        "id": "bld-water-tower-ne",
+        "label": "市政保压水塔",
+        "prefab": "WaterTower01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "utility",
+        "category": "utility_facility",
+        "position": {
+          "x": 477.436554,
+          "y": 385.233673,
+          "z": 1264.83887
+        },
+        "rotation_degrees": 59.743557,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 31.6,
+          "z": 31.6
+        },
+        "reserved_size_m": {
+          "x": 32,
+          "z": 32
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68509:29",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "c25a4f7bb9294357aa390b0dd844606e",
+          "state": "verified_then_cancelled",
+          "cost": 60000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:20.2247586Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-8a67ae7e6ceffdb3",
+          "operation_id": "c25a4f7bb9294357aa390b0dd844606e",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Small Road"
+        }
+      },
+      {
+        "id": "bld-recycling-center",
+        "label": "垃圾资源循环中心",
+        "prefab": "RecyclingCenter01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 676.988159,
+          "y": 385.233673,
+          "z": 1590.63062
+        },
+        "rotation_degrees": -128.6598,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 175.6,
+          "z": 143.6
+        },
+        "reserved_size_m": {
+          "x": 176,
+          "z": 144
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68473:175",
+        "road_side": "right",
+        "native_preview": {
+          "operation_id": "2f6aaa8206b54f759ac480ae066c7c5e",
+          "state": "verified_then_cancelled",
+          "cost": 880000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:20.4844502Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-0cfb3945f4b068e2",
+          "operation_id": "2f6aaa8206b54f759ac480ae066c7c5e",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Medium Road"
+        }
+      },
+      {
+        "id": "bld-road-maintenance",
+        "label": "城市道路养护基地",
+        "prefab": "RoadMaintenanceDepot01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 237.965439,
+          "y": 385.233673,
+          "z": 1341.51514
+        },
+        "rotation_degrees": 134.999985,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 79.6,
+          "z": 95.6
+        },
+        "reserved_size_m": {
+          "x": 80,
+          "z": 96
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68532:29",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "b93476de454442fd94707adbd90e49c0",
+          "state": "verified_then_cancelled",
+          "cost": 75000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:20.7776742Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-90da085fa0265dbe",
+          "operation_id": "b93476de454442fd94707adbd90e49c0",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Small Road"
+        }
+      },
+      {
+        "id": "bld-fire-station-hq",
+        "label": "中央消防总局",
+        "prefab": "FireStation01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 309.235657,
+          "y": 385.233673,
+          "z": 465.48172
+        },
+        "rotation_degrees": -30.2564278,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 111.6,
+          "z": 143.6
+        },
+        "reserved_size_m": {
+          "x": 112,
+          "z": 144
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68538:29",
+        "road_side": "right",
+        "native_preview": {
+          "operation_id": "58cb6e3b71ed4ce09b80c40ec64522e1",
+          "state": "verified_then_cancelled",
+          "cost": 2150000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:21.0734998Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-1346e6675e30ab72",
+          "operation_id": "58cb6e3b71ed4ce09b80c40ec64522e1",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Small Road"
+        }
+      },
+      {
+        "id": "bld-bus-terminal-se",
+        "label": "高速公路换乘公交总站",
+        "prefab": "BusStation01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "transport_facility",
+        "position": {
+          "x": 480.014282,
+          "y": 385.233673,
+          "z": 882.9187
+        },
+        "rotation_degrees": 107.102722,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 103.6,
+          "z": 103.6
+        },
+        "reserved_size_m": {
+          "x": 104,
+          "z": 104
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68493:31",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "46c3146a2f0e409e9607820bd6c36928",
+          "state": "verified_then_cancelled",
+          "cost": 200000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:21.3088487Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-7c453d4bef65238a",
+          "operation_id": "46c3146a2f0e409e9607820bd6c36928",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Small Road"
+        }
+      },
+      {
+        "id": "bld-post-office-se",
+        "label": "东南区邮政中心",
+        "prefab": "PostOffice01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 484.003143,
+          "y": 385.233673,
+          "z": 1072.25
+        },
+        "rotation_degrees": 180,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 79.6,
+          "z": 63.6
+        },
+        "reserved_size_m": {
+          "x": 80,
+          "z": 64
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:75094:21",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "168313f24a444a188be49971b43a23e7",
+          "state": "verified_then_cancelled",
+          "cost": 250000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:21.5656679Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-d010e79bed9cc600",
+          "operation_id": "168313f24a444a188be49971b43a23e7",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Large Road"
+        }
+      },
+      {
+        "id": "bld-parking-hall-se",
+        "label": "商办立体公共停车楼",
+        "prefab": "ParkingHall03",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 338.055237,
+          "y": 385.233673,
+          "z": 919.241333
+        },
+        "rotation_degrees": -74.05461,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 63.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 64,
+          "z": 48
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68453:163",
+        "road_side": "right",
+        "native_preview": {
+          "operation_id": "50f28e5912734b41b06f4dd28fe81158",
+          "state": "verified_then_cancelled",
+          "cost": 200000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:21.8514079Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-aaa1bff0e5643e2f",
+          "operation_id": "50f28e5912734b41b06f4dd28fe81158",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Medium Road"
+        }
+      },
+      {
+        "id": "bld-park-maintenance-se",
+        "label": "绿化与公园维护站",
+        "prefab": "ParkMaintenanceDepot01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": 406.7292,
+          "y": 385.233673,
+          "z": 720.492065
+        },
+        "rotation_degrees": 131.987213,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 55.6,
+          "z": 79.6
+        },
+        "reserved_size_m": {
+          "x": 56,
+          "z": 80
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68488:31",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "8cb88a4f68c64197abb0653910cb4c09",
+          "state": "verified_then_cancelled",
+          "cost": 90000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:22.1445469Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-dd74276e426b0999",
+          "operation_id": "8cb88a4f68c64197abb0653910cb4c09",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Small Road"
+        }
+      },
+      {
+        "id": "bld-elem-school-sw",
+        "label": "西南第一实验小学",
+        "prefab": "ElementarySchool02",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -508.6354,
+          "y": 385.233673,
+          "z": 880.726868
+        },
+        "rotation_degrees": -107.102722,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 71.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 72,
+          "z": 48
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68518:29",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "13fdf1297e984cbe9f43ddd625b7c6a9",
+          "state": "verified_then_cancelled",
+          "cost": 40000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:22.4315161Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-7ffbc67db9d04023",
+          "operation_id": "13fdf1297e984cbe9f43ddd625b7c6a9",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Small Road"
+        }
+      },
+      {
+        "id": "bld-clinic-sw",
+        "label": "西南社区家庭诊所",
+        "prefab": "MedicalClinic02",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -271.584167,
+          "y": 385.233673,
+          "z": 935.93634
+        },
+        "rotation_degrees": -105.9454,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        },
+        "reserved_size_m": {
+          "x": 40,
+          "z": 40
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:75085:21",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "4c908e3f15cd4c5ca55152b617f30035",
+          "state": "verified_then_cancelled",
+          "cost": 30000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:22.7132757Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-839b611e22ca9874",
+          "operation_id": "4c908e3f15cd4c5ca55152b617f30035",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Medium Road"
+        }
+      },
+      {
+        "id": "bld-fire-house-sw",
+        "label": "西南社区消防所",
+        "prefab": "FireHouse01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -526.238159,
+          "y": 385.233673,
+          "z": 947.8419
+        },
+        "rotation_degrees": -94.08561,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        },
+        "reserved_size_m": {
+          "x": 40,
+          "z": 40
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68513:29",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "28416a567bd94573bbc505e2b4e2c65e",
+          "state": "verified_then_cancelled",
+          "cost": 120000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:22.9902295Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-a60c0b4625e05417",
+          "operation_id": "28416a567bd94573bbc505e2b4e2c65e",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Small Road"
+        }
+      },
+      {
+        "id": "bld-community-park-sw",
+        "label": "西南林荫社区公园",
+        "prefab": "CityPark02",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -421.29776,
+          "y": 385.233673,
+          "z": 712.761841
+        },
+        "rotation_degrees": -131.987213,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 47.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 48,
+          "z": 48
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68519:29",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "b936642b5e3445499757bed8bd3ca342",
+          "state": "verified_then_cancelled",
+          "cost": 20000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:23.2741264Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-8180e358e5e47367",
+          "operation_id": "b936642b5e3445499757bed8bd3ca342",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Small Road"
+        }
+      },
+      {
+        "id": "bld-cemetery-sw",
+        "label": "西区宁静生命纪念园",
+        "prefab": "Cemetery02",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -676.743958,
+          "y": 385.233673,
+          "z": 682.5453
+        },
+        "rotation_degrees": -116.565048,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 111.6,
+          "z": 47.6
+        },
+        "reserved_size_m": {
+          "x": 112,
+          "z": 48
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68485:25",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "93c5259e93774485a1df1a1953b4bbc8",
+          "state": "verified_then_cancelled",
+          "cost": 42000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:23.5928175Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-f212d230e7726caa",
+          "operation_id": "93c5259e93774485a1df1a1953b4bbc8",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Medium Road"
+        }
+      },
+      {
+        "id": "bld-elem-school-nw",
+        "label": "西北区第二小学",
+        "prefab": "ElementarySchool01",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -523.9679,
+          "y": 385.233673,
+          "z": 1313.07959
+        },
+        "rotation_degrees": 120.256454,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 143.6,
+          "z": 63.6
+        },
+        "reserved_size_m": {
+          "x": 144,
+          "z": 64
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68522:29",
+        "road_side": "right",
+        "native_preview": {
+          "operation_id": "41616f9f55d34f4c93dac0fe963da3af",
+          "state": "verified_then_cancelled",
+          "cost": 100000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:23.8552924Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-2fa98c14e2266acf",
+          "operation_id": "41616f9f55d34f4c93dac0fe963da3af",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Small Road"
+        }
+      },
+      {
+        "id": "bld-high-school-nw",
+        "label": "美瑞迪安完全高级中学",
+        "prefab": "HighSchool02",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -732.000061,
+          "y": 385.233673,
+          "z": 1072.25
+        },
+        "rotation_degrees": 180,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 95.6,
+          "z": 63.6
+        },
+        "reserved_size_m": {
+          "x": 96,
+          "z": 64
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68503:29",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "e87ba45468954bdbb0a01b9952fb8884",
+          "state": "verified_then_cancelled",
+          "cost": 150000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:24.0999957Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-a45c1cd461c28def",
+          "operation_id": "e87ba45468954bdbb0a01b9952fb8884",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Large Road"
+        }
+      },
+      {
+        "id": "bld-police-station-nw",
+        "label": "西北区公安分局",
+        "prefab": "PoliceStation02",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -399.9952,
+          "y": 385.233673,
+          "z": 1060.24988
+        },
+        "rotation_degrees": 180,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 39.6,
+          "z": 39.6
+        },
+        "reserved_size_m": {
+          "x": 40,
+          "z": 40
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68472:175",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "0168e4b0d4ec44899843767200e91908",
+          "state": "verified_then_cancelled",
+          "cost": 100000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:24.3799751Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-7c6c2044c5727b6f",
+          "operation_id": "0168e4b0d4ec44899843767200e91908",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Large Road"
+        }
+      },
+      {
+        "id": "bld-city-park-nw",
+        "label": "西北都会文化公园",
+        "prefab": "CityPark03",
+        "planning_status": "bound",
+        "placement_status": "built",
+        "construction_status": "built",
+        "kind": "service",
+        "category": "city_service",
+        "position": {
+          "x": -404.647919,
+          "y": 385.233673,
+          "z": 1341.77917
+        },
+        "rotation_degrees": -48.01281,
+        "rotation_source": "road_tangent",
+        "size_m": {
+          "x": 79.6,
+          "z": 63.6
+        },
+        "reserved_size_m": {
+          "x": 80,
+          "z": 64
+        },
+        "road_edge_id": "3effb90db06f481d8e5b2103ad5a2f94:68525:29",
+        "road_side": "left",
+        "native_preview": {
+          "operation_id": "44925e4aeaaf4b4d83edd49d2f72186c",
+          "state": "verified_then_cancelled",
+          "cost": 42000,
+          "warnings": [],
+          "errors": [],
+          "error": null,
+          "expires_at_utc": "2026-09-20T07:42:24.6696417Z"
+        },
+        "placement_binding": {
+          "session_id": "3effb90db06f481d8e5b2103ad5a2f94",
+          "building_plan_id": "bplan-5e42351d57812aef",
+          "operation_id": "44925e4aeaaf4b4d83edd49d2f72186c",
+          "preview_state": "preview_ready",
+          "preview_cancelled": true,
+          "candidate_index": 0,
+          "road_prefab": "Small Road"
+        }
+      }
+    ],
+    "zones": [
+      {
+        "id": "zone-ne-ind-inner",
+        "kind": "industrial",
+        "label": "Industrial Manufacturing",
+        "district": "东北先进制造园",
+        "polygon": [
+          {
+            "x": 528,
+            "z": 1096
+          },
+          {
+            "x": 504,
+            "z": 1208
+          },
+          {
+            "x": 448,
+            "z": 1312
+          },
+          {
+            "x": 376,
+            "z": 1400
+          },
+          {
+            "x": 288,
+            "z": 1472
+          },
+          {
+            "x": 184,
+            "z": 1528
+          },
+          {
+            "x": 72,
+            "z": 1552
+          },
+          {
+            "x": 48,
+            "z": 1368
+          },
+          {
+            "x": 120,
+            "z": 1344
+          },
+          {
+            "x": 184,
+            "z": 1312
+          },
+          {
+            "x": 240,
+            "z": 1264
+          },
+          {
+            "x": 288,
+            "z": 1208
+          },
+          {
+            "x": 320,
+            "z": 1144
+          },
+          {
+            "x": 344,
+            "z": 1072
+          }
+        ]
+      },
+      {
+        "id": "zone-ne-ind-outer",
+        "kind": "industrial",
+        "label": "Industrial Manufacturing",
+        "district": "东北先进制造园",
+        "polygon": [
+          {
+            "x": 768,
+            "z": 1128
+          },
+          {
+            "x": 728,
+            "z": 1296
+          },
+          {
+            "x": 656,
+            "z": 1440
+          },
+          {
+            "x": 552,
+            "z": 1576
+          },
+          {
+            "x": 416,
+            "z": 1680
+          },
+          {
+            "x": 272,
+            "z": 1752
+          },
+          {
+            "x": 104,
+            "z": 1792
+          },
+          {
+            "x": 80,
+            "z": 1600
+          },
+          {
+            "x": 200,
+            "z": 1568
+          },
+          {
+            "x": 312,
+            "z": 1512
+          },
+          {
+            "x": 416,
+            "z": 1440
+          },
+          {
+            "x": 488,
+            "z": 1336
+          },
+          {
+            "x": 544,
+            "z": 1224
+          },
+          {
+            "x": 576,
+            "z": 1104
+          }
+        ]
+      },
+      {
+        "id": "zone-se-com-inner",
+        "kind": "commercial",
+        "label": "EU Commercial High",
+        "district": "东南商办金融区",
+        "polygon": [
+          {
+            "x": 72,
+            "z": 496
+          },
+          {
+            "x": 184,
+            "z": 520
+          },
+          {
+            "x": 288,
+            "z": 576
+          },
+          {
+            "x": 376,
+            "z": 648
+          },
+          {
+            "x": 448,
+            "z": 736
+          },
+          {
+            "x": 504,
+            "z": 840
+          },
+          {
+            "x": 528,
+            "z": 952
+          },
+          {
+            "x": 344,
+            "z": 976
+          },
+          {
+            "x": 320,
+            "z": 904
+          },
+          {
+            "x": 288,
+            "z": 840
+          },
+          {
+            "x": 240,
+            "z": 784
+          },
+          {
+            "x": 184,
+            "z": 736
+          },
+          {
+            "x": 120,
+            "z": 704
+          },
+          {
+            "x": 48,
+            "z": 680
+          }
+        ]
+      },
+      {
+        "id": "zone-se-off-outer",
+        "kind": "office",
+        "label": "Office High",
+        "district": "东南商办金融区",
+        "polygon": [
+          {
+            "x": 104,
+            "z": 256
+          },
+          {
+            "x": 272,
+            "z": 296
+          },
+          {
+            "x": 416,
+            "z": 368
+          },
+          {
+            "x": 552,
+            "z": 472
+          },
+          {
+            "x": 656,
+            "z": 608
+          },
+          {
+            "x": 728,
+            "z": 752
+          },
+          {
+            "x": 768,
+            "z": 920
+          },
+          {
+            "x": 576,
+            "z": 944
+          },
+          {
+            "x": 544,
+            "z": 824
+          },
+          {
+            "x": 488,
+            "z": 712
+          },
+          {
+            "x": 416,
+            "z": 608
+          },
+          {
+            "x": 312,
+            "z": 536
+          },
+          {
+            "x": 200,
+            "z": 480
+          },
+          {
+            "x": 80,
+            "z": 448
+          }
+        ]
+      },
+      {
+        "id": "zone-sw-res-inner",
+        "kind": "residential",
+        "label": "EU Residential Medium Row",
+        "district": "西南生态居住区",
+        "polygon": [
+          {
+            "x": -528,
+            "z": 952
+          },
+          {
+            "x": -504,
+            "z": 840
+          },
+          {
+            "x": -448,
+            "z": 736
+          },
+          {
+            "x": -376,
+            "z": 648
+          },
+          {
+            "x": -288,
+            "z": 576
+          },
+          {
+            "x": -184,
+            "z": 520
+          },
+          {
+            "x": -72,
+            "z": 496
+          },
+          {
+            "x": -48,
+            "z": 680
+          },
+          {
+            "x": -120,
+            "z": 704
+          },
+          {
+            "x": -184,
+            "z": 736
+          },
+          {
+            "x": -240,
+            "z": 784
+          },
+          {
+            "x": -288,
+            "z": 840
+          },
+          {
+            "x": -320,
+            "z": 904
+          },
+          {
+            "x": -344,
+            "z": 976
+          }
+        ]
+      },
+      {
+        "id": "zone-sw-res-outer",
+        "kind": "residential",
+        "label": "EU Residential Low",
+        "district": "西南生态居住区",
+        "polygon": [
+          {
+            "x": -768,
+            "z": 920
+          },
+          {
+            "x": -728,
+            "z": 752
+          },
+          {
+            "x": -656,
+            "z": 608
+          },
+          {
+            "x": -552,
+            "z": 472
+          },
+          {
+            "x": -416,
+            "z": 368
+          },
+          {
+            "x": -272,
+            "z": 296
+          },
+          {
+            "x": -104,
+            "z": 256
+          },
+          {
+            "x": -80,
+            "z": 448
+          },
+          {
+            "x": -200,
+            "z": 480
+          },
+          {
+            "x": -312,
+            "z": 536
+          },
+          {
+            "x": -416,
+            "z": 608
+          },
+          {
+            "x": -488,
+            "z": 712
+          },
+          {
+            "x": -544,
+            "z": 824
+          },
+          {
+            "x": -576,
+            "z": 944
+          }
+        ]
+      },
+      {
+        "id": "zone-nw-res-inner",
+        "kind": "residential",
+        "label": "EU Residential Medium",
+        "district": "西北都会居住区",
+        "polygon": [
+          {
+            "x": -72,
+            "z": 1552
+          },
+          {
+            "x": -184,
+            "z": 1528
+          },
+          {
+            "x": -288,
+            "z": 1472
+          },
+          {
+            "x": -376,
+            "z": 1400
+          },
+          {
+            "x": -448,
+            "z": 1312
+          },
+          {
+            "x": -504,
+            "z": 1208
+          },
+          {
+            "x": -528,
+            "z": 1096
+          },
+          {
+            "x": -344,
+            "z": 1072
+          },
+          {
+            "x": -320,
+            "z": 1144
+          },
+          {
+            "x": -288,
+            "z": 1208
+          },
+          {
+            "x": -240,
+            "z": 1264
+          },
+          {
+            "x": -184,
+            "z": 1312
+          },
+          {
+            "x": -120,
+            "z": 1344
+          },
+          {
+            "x": -48,
+            "z": 1368
+          }
+        ]
+      },
+      {
+        "id": "zone-nw-res-outer",
+        "kind": "residential",
+        "label": "EU Residential High",
+        "district": "西北都会居住区",
+        "polygon": [
+          {
+            "x": -104,
+            "z": 1792
+          },
+          {
+            "x": -272,
+            "z": 1752
+          },
+          {
+            "x": -416,
+            "z": 1680
+          },
+          {
+            "x": -552,
+            "z": 1576
+          },
+          {
+            "x": -656,
+            "z": 1440
+          },
+          {
+            "x": -728,
+            "z": 1296
+          },
+          {
+            "x": -768,
+            "z": 1128
+          },
+          {
+            "x": -576,
+            "z": 1104
+          },
+          {
+            "x": -544,
+            "z": 1224
+          },
+          {
+            "x": -488,
+            "z": 1336
+          },
+          {
+            "x": -416,
+            "z": 1440
+          },
+          {
+            "x": -312,
+            "z": 1512
+          },
+          {
+            "x": -200,
+            "z": 1568
+          },
+          {
+            "x": -80,
+            "z": 1600
+          }
+        ]
+      }
+    ],
+    "tracks": [],
+    "utilities": [
+      {
+        "id": "util-water-trunk-1",
+        "prefab": "Large Water Pipe",
+        "construction_status": "built",
+        "network_type": "water",
+        "level": "underground",
+        "width_m": 2,
+        "points": [
+          {
+            "x": 580,
+            "z": 1238
+          },
+          {
+            "x": 320,
+            "z": 1024
+          },
+          {
+            "x": 0,
+            "z": 1024
+          }
+        ]
+      },
+      {
+        "id": "util-water-ring-inner",
+        "prefab": "Large Water Pipe",
+        "construction_status": "built",
+        "network_type": "water",
+        "level": "underground",
+        "width_m": 2,
+        "points": [
+          {
+            "x": 320,
+            "z": 1024
+          },
+          {
+            "x": 0,
+            "z": 1344
+          },
+          {
+            "x": -320,
+            "z": 1024
+          },
+          {
+            "x": 0,
+            "z": 704
+          },
+          {
+            "x": 320,
+            "z": 1024
+          }
+        ]
+      },
+      {
+        "id": "util-sewage-trunk-1",
+        "prefab": "Large Sewage Pipe",
+        "construction_status": "built",
+        "network_type": "sewage",
+        "level": "underground",
+        "width_m": 2,
+        "points": [
+          {
+            "x": 0,
+            "z": 1024
+          },
+          {
+            "x": 320,
+            "z": 1024
+          },
+          {
+            "x": 650,
+            "z": 1250
+          }
+        ]
+      },
+      {
+        "id": "util-power-line-1",
+        "prefab": "High-voltage Ground Cable",
+        "construction_status": "built",
+        "network_type": "electricity",
+        "level": "underground",
+        "width_m": 2,
+        "points": [
+          {
+            "x": 596,
+            "z": 1068
+          },
+          {
+            "x": 320,
+            "z": 1024
+          },
+          {
+            "x": 0,
+            "z": 1024
+          }
+        ]
+      }
+    ]
+  }
+}

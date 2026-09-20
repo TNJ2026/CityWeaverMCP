@@ -7,6 +7,7 @@
 | 城市概览 | `get_game_status`、`get_city_summary`；连接、人口、幸福度、健康、资金、建筑分类 | `mcp/README.md` |
 | 规划图、建筑精确绑定、网格预检与分阶段施工 | `get_planning_map_snapshot`、`render_city_plan`、`propose_grid_plan`、`propose_city_plan`、`bind_city_plan_buildings`、`prepare_grid_native_preview`、`advance_grid_construction`、`deploy_grid_district`、`prepare_city_plan_construction`、`advance_city_plan_construction`；静态网页显示全部可购买地图格，规划与施工仅限已购区域；建筑绑定用临时原生预览取得精确朝向和道路边后立即取消；规则子网格优先保存在 `plan.grids[]`，只有不能无损表示时才使用逐路方案并记录 `grid_exceptions` | `docs/guides/planning/PLANNING-MAP-GUIDE.md` |
 | 当前镜头与施工聚焦 | `get_camera_view`、`capture_game_view`、`focus_camera`；读取当前游戏镜头覆盖范围、捕获游戏画面，并在施工目标不可见时平滑聚焦；玩家输入立即取消自动移动 | `docs/guides/planning/CAMERA-VIEW-GUIDE.md` |
+| 建筑、分区与道路联合验收 | 容量与实际使用、分区成长、服务工作区、主干道范围与沿街依赖 | `docs/workflows/CITY-CONSTRUCTION-CHECKLIST.md` |
 | 城市管理 | `set_city_name`、`set_city_configuration`、`set_city_money`、`set_city_policy`；名称、配置、全市政策、资金、修正值、统计历史 | `docs/guides/city/CITY-MANAGEMENT-GUIDE.md` |
 | 道路与路口 | `list_road_prefabs`、`preview_road`、`preview_road_route`、`preview_road_grid`、`preview_road_autoroute`；曲线、平行路、环路、自动接入、立交、高架/隧道、升级、拆除、反向、装饰、停车变体、路口规则、道路政策和部分撤销 | `docs/guides/roads/ROAD-GUIDE.md` |
 | 建筑 | `list_building_prefabs`、`list_building_upgrades`、`plan_building_workflow`、`execute_building_plan`、`deploy_building_plans`、`preview_building_placement`、`preview_building_upgrade`；支持端到端放置及升级范围、主体侧吸附和范围内道路侧候选 | `docs/guides/buildings/BUILDING-GUIDE.md`、`docs/guides/city/CITY-SERVICE-GUIDE.md` |
@@ -16,6 +17,7 @@
 | 行政区 | 边界创建、重画、删除、命名、政策、点定位和服务覆盖；`set_district_name`、`set_district_policy`、`set_service_districts` | `docs/guides/areas/DISTRICT-GUIDE.md` |
 | 公交线路 | `list_transport_line_prefabs`、`list_transport_lines`；创建、站序、线路与站名、颜色、班表、票价、车辆数、编号、均匀发车、请求车辆与返场、删除 | `docs/guides/transport/TRANSPORT-GUIDE.md` |
 | 公交设施和轨道 | `list_transport_facility_prefabs`、`list_transport_facilities`、`list_transport_facility_upgrades`、`preview_transport_facility_upgrade`、`list_transport_track_prefabs`、`preview_transport_track`；设施建筑事务、升级范围/道路侧候选及轨道连接和拆除 | `docs/guides/transport/TRANSPORT-INFRASTRUCTURE-GUIDE.md` |
+| 铁路站区规划与验收 | 联合选址、真实曲线接轨、永久道路绑定、水电、线路及实际发车分层验证 | `docs/guides/transport/RAIL-STATION-CHECKLIST.md` |
 | 电水污水与管网 | `list_utility_facility_prefabs`、`list_utility_facilities`、`list_utility_connection_points`、`find_compatible_utility_targets`、`connect_utility_facility`、`build_utility_backbone`、`list_utility_networks`；按真实设施端口和连接层完成电力、供水、污水、通信、独立管网、资源管道查询和建设 | `docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md` |
 | 公共服务 | `list_city_service_prefabs`、`list_city_service_facilities`、`analyze_service_coverage`、`analyze_education_demand`、`analyze_attraction_impact`、`deploy_service_cluster`；医疗、消防、警察、教育、垃圾、殡葬、维护、公园、邮政、停车、福利、研究、应急，支持选址与建筑事务 | `docs/guides/city/CITY-SERVICE-GUIDE.md` |
 | 道路拥堵修复 | `analyze_road_traffic`、`repair_congested_corridor`；按瓶颈选择道路升级、平行分流或自动绕行，所有写入经过原生 preview/apply | `docs/guides/roads/ROAD-GUIDE.md` |

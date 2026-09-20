@@ -18,23 +18,10 @@
 
 当前接口操作道路拥有的分区格。专业产业区域、水域专用区域能出现在区域列表中，但其实际建筑生成还取决于资源区、水面、产业区工具以及对应游戏规则。
 
-## 地图主题与分区预设绑定实战铁律
+## 精确名称与成长验收
 
-- **严禁使用无前缀泛型名称**：
-  在实际建城中，严禁盲目传入 `"Residential Low"` 或 `"Commercial Low"`。虽然预览和提交能返回 `completed`，但游戏后台找不到泛型匹配模型，会导致划区长期 100% 全空、人口零增长。
-- **主题与精确分区映射表**：
-  - **欧洲主题（`European`）**：
-    - 低密度住宅：`"EU Residential Low"`
-    - 中密度联排住宅：`"EU Residential Medium Row"`
-    - 低密度商业：`"EU Commercial Low"`
-  - **北美主题（`North American`）**：
-    - 低密度住宅：`"NA Residential Low"`
-    - 中密度联排住宅：`"NA Residential Medium Row"`
-    - 低密度商业：`"NA Commercial Low"`
-  - **通用工业与办公**：
-    - 标准低密度制造业工业区：`"Industrial Manufacturing"`（不受主题限制）
-- **操作标准流程**：
-  1. 调用 `get_city_configuration` 查明当前存档的 `theme` 字段。
-  2. 调用 `list_zone_types` 获取对应主题的 `zone_index` 与精确全称。
-  3. 传入 `preview_zoning` 时，必须使用上述带前缀的完整字符串。
+以当前 `list_zone_types` 返回的精确名称为准，不猜测展示名、主题前缀或其他存档中的名称。EU/NA 前缀是部分资产的命名方式，不能要求所有分区带此前缀，也不能据无前缀判定无效。
 
+分区提交成功只证明原生格子写入，不证明建筑已经成长、人口入住或企业就业增加。长期空地应联合检查需求、精确区域类型、可用格子、道路和水电等条件，不能只凭空置现象断定名称错误。
+
+住宅、商业、办公和工业的分批开发与检查见 [城市建设检查清单](../../workflows/CITY-CONSTRUCTION-CHECKLIST.md)。
