@@ -1,3 +1,4 @@
+import { withPrefabCatalog } from './prefab-catalog-service.mjs';
 import { queryGame as liveQueryGame, BridgeError } from './bridge-client.mjs';
 
 const TERMINAL_FAILURES = new Set(['failed', 'cancelled', 'expired', 'outcome_unknown']);
@@ -41,6 +42,7 @@ function operationSummary(operation) {
 }
 
 export function createGridConstructionWorkflow(queryGame = liveQueryGame) {
+  queryGame = withPrefabCatalog(queryGame);
   let writeTail = Promise.resolve();
 
   const exclusive = async fn => {

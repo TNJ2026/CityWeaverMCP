@@ -134,3 +134,5 @@
 # 高层服务设施批量部署
 
 需要一次放置多座警察、消防、医院、学校、邮政或其他公共服务设施时，使用 `deploy_service_cluster`。它会逐座执行覆盖/需求分析、候选选址、原生 preview/apply 和实体回读；可选 `district_ids` 会在设施完成后设置服务行政区。返回 `phases`/`results` 和费用，失败或 `outcome_unknown` 会停止后续阶段，不能换 `request_id` 盲目重提。
+
+批量选址、兼容升级、服务工作区及实际运营检查见 [城市建设检查清单](../../workflows/CITY-CONSTRUCTION-CHECKLIST.md)。

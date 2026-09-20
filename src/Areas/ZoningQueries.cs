@@ -180,7 +180,7 @@ namespace CityWeaver
         {
             var key = RequestKey(args); var fingerprint = args.ToString(Formatting.None);
             if (m_ZoningRequestIds.TryGetValue(key, out var existingId)) { var existing = m_ZoningOperations[existingId]; if (existing.Fingerprint != fingerprint) throw new QueryException("REQUEST_ID_CONFLICT", "request_id was already used with different zoning arguments."); return existing; }
-            if (m_ZoningOperations.Count >= 128) throw new QueryException("TOO_MANY_OPERATIONS", "This city session already contains 128 zoning operations.");
+            if (m_ZoningOperations.Count >= 4096) throw new QueryException("TOO_MANY_OPERATIONS", "This city session already contains 4096 zoning operations.");
             var side = ((string)args["road_side"] ?? "both").ToLowerInvariant(); if (side != "left" && side != "right" && side != "both") throw new QueryException("INVALID_ARGUMENT", "road_side must be left, right, or both.");
             int depth = ComponentInspector.Int(args, "depth_cells", 6, 1, 6); bool overwrite = args["overwrite"] != null && (bool)args["overwrite"];
             bool includeOccupied = args["include_occupied"] != null && (bool)args["include_occupied"]; var zoneName = (string)args["zone"] ?? ""; ResolveZone(zoneName, world, out var zoneData);

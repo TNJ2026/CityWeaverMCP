@@ -287,7 +287,7 @@ test('rejects a roadside building preview without an exact road binding', async 
   const id = computeCityPlanId(bounds, buildingPlan);
   const queryGame = async tool => {
     if (tool === 'get_game_status') return envelope({ city_loaded: true, city_name: '韦福德', paused: true, selected_speed: 0 });
-    if (tool === 'list_city_service_prefabs') return envelope({ items: [{ name: 'MedicalClinic01', locked: false, placement_flags: 'RoadSide, OnGround' }] });
+    if (tool === 'list_city_service_prefabs') return envelope({ items: [{ name: 'MedicalClinic01', locked: false, placement_flags: 'RoadSide, OnGround', requires_road: true }] });
     throw new Error(`Unexpected tool ${tool}`);
   };
   await assert.rejects(

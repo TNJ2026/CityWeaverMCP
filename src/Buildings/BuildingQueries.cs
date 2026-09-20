@@ -45,6 +45,8 @@ namespace CityWeaver
         public readonly List<BuildingPlacementPlan> Placements = new List<BuildingPlacementPlan>();
         public int ExpectedResultCount = 1;
         public bool CommitRequested, ApplyDispatched, CancelRequested;
+        public bool RoadStopPlacement;
+        public string RoadStopTransportType;
         public DateTime Created = DateTime.UtcNow, Expires = DateTime.UtcNow.AddMinutes(5);
         public bool Terminal => State == "completed" || State == "failed" || State == "cancelled" || State == "expired" || State == "outcome_unknown";
         public string EntityId(Entity e) => e == Entity.Null ? null : Session + ":" + e.Index + ":" + e.Version;
@@ -490,11 +492,20 @@ namespace CityWeaver
             var atRoad = road; float roadTerrain = TerrainUtils.SampleHeight(ref terrain, atRoad); if (math.abs(roadSurface - roadTerrain) > 2f) throw new QueryException("ROAD_TERRAIN_HEIGHT_MISMATCH", "The road surface must remain within 2 metres of terrain for a building entrance.");
             float entranceDistance = roadHalfWidth + half.y + .25f; float2 center = road.xz + normal * sign * entranceDistance;
             float2 facingRoad = -normal * sign; float angle = math.degrees(math.atan2(facingRoad.x, facingRoad.y)); var rotation = quaternion.RotateY(math.radians(angle));
+            bool shoreline = em.HasComponent<PlaceableObjectData>(prefab) &&
+                (em.GetComponentData<PlaceableObjectData>(prefab).m_Flags & Game.Objects.PlacementFlags.Shoreline) != 0;
+            var surface = world.GetExistingSystemManaged<WaterSystem>().GetSurfaceData(out var waterDeps); waterDeps.Complete();
+            if (shoreline && !surface.isCreated) throw new QueryException("WATER_UNAVAILABLE", "Shoreline foundations require live water samples.");
             float min = float.MaxValue, max = float.MinValue;
             for (int ix = -1; ix <= 1; ix++) for (int iz = -1; iz <= 1; iz++)
             {
-                float2 sample = center + tangent * (half.x * ix) + normal * (half.y * iz); var p = new float3(sample.x, 0, sample.y); float h = TerrainUtils.SampleHeight(ref terrain, p); min = math.min(min, h); max = math.max(max, h);
+                float2 sample = center + tangent * (half.x * ix) + normal * (half.y * iz); var p = new float3(sample.x, 0, sample.y);
+                // A shoreline building intentionally spans deep water. Seabed relief
+                // belongs to native shoreline validation, not the dry foundation test.
+                if (shoreline && WaterUtils.SampleDepth(ref surface, p) > .01f) continue;
+                float h = TerrainUtils.SampleHeight(ref terrain, p); min = math.min(min, h); max = math.max(max, h);
             }
+            if (min == float.MaxValue) throw new QueryException("NO_DRY_FOUNDATION", "Shoreline building requires a dry roadside foundation.");
             float relief = max - min; if (relief > maxRelief) throw new QueryException("FOUNDATION_RELIEF_TOO_HIGH", "The requested foundation exceeds max_terrain_relief_m.");
             if (relief > .25f && !autoLevel) throw new QueryException("FOUNDATION_LEVELING_REQUIRED", "Enable auto_level_foundations or select flatter terrain.");
             var position = new float3(center.x, roadSurface, center.y); string roadName = null; world.GetExistingSystemManaged<PrefabSystem>().TryGetPrefab<PrefabBase>(roadPrefab, out var rp); roadName = rp?.name;
@@ -813,7 +824,7 @@ namespace CityWeaver
         {
             var key = RequestKey(args); var fingerprint = new JObject { ["type"] = "batch_place", ["args"] = args.DeepClone() }.ToString(Formatting.None);
             if (m_BuildingRequestIds.TryGetValue(key, out var oldId)) { var old = m_BuildingOperations[oldId]; if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another building operation."); return old; }
-            if (m_BuildingOperations.Count >= 128) throw new QueryException("BUILDING_OPERATION_LIMIT", "This city session has reached 128 building operations; reload the city to reset the journal.");
+            if (m_BuildingOperations.Count >= 4096) throw new QueryException("BUILDING_OPERATION_LIMIT", "This city session has reached 4096 building operations; reload the city to reset the journal.");
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before previewing a building change.");
             var tool = BuildingTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
             var em = world.EntityManager; string prefabName = (string)args["building_prefab"]; var prefab = ResolveBuildingPrefab(prefabName, world, false);
@@ -846,7 +857,7 @@ namespace CityWeaver
         {
             var key = RequestKey(args); var fingerprint = new JObject { ["type"] = type, ["args"] = args.DeepClone() }.ToString(Formatting.None);
             if (m_BuildingRequestIds.TryGetValue(key, out var oldId)) { var old = m_BuildingOperations[oldId]; if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another building operation."); return old; }
-            if (m_BuildingOperations.Count >= 128) throw new QueryException("BUILDING_OPERATION_LIMIT", "This city session has reached 128 building operations; reload the city to reset the journal.");
+            if (m_BuildingOperations.Count >= 4096) throw new QueryException("BUILDING_OPERATION_LIMIT", "This city session has reached 4096 building operations; reload the city to reset the journal.");
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before previewing a building change.");
             var tool = BuildingTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
             var em = world.EntityManager; var op = new BuildingOperation { Session = m_Session, RequestId = key, Fingerprint = fingerprint, Type = type };

@@ -123,7 +123,7 @@ namespace CityWeaver
         {
             if (string.IsNullOrEmpty(tool)) return false;
             return tool.StartsWith("preview_road", StringComparison.Ordinal) ||
-                tool == "preview_intersection_roundabout" || tool == "preview_terrain" ||
+                tool == "preview_intersection_roundabout" || tool == "preview_intersection_prefab" || tool == "preview_terrain" ||
                 tool.StartsWith("preview_building_", StringComparison.Ordinal) || tool == "preview_special_building_placement" ||
                 tool == "preview_zoning" || tool.StartsWith("preview_district_", StringComparison.Ordinal) ||
                 tool.StartsWith("preview_transport_facility_", StringComparison.Ordinal) || tool.StartsWith("preview_transport_track", StringComparison.Ordinal) ||

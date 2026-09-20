@@ -53,6 +53,16 @@
 
 ## 道路治理注意
 
+### 自行车道升级
+
+`preview_road_features` 支持可选布尔参数 `left_bicycle_lane` / `right_bicycle_lane`。左右以道路起点到终点为准；`true` 启用该侧原生自行车道，`false` 移除，省略保留原值。启用会清除该侧显式停车及禁自行车标记；绿化、人行道、轨道等其他选项不自动改动，组合是否合法由原生预览判断。需要移除草带时显式传 `left_decoration: "none"` / `right_decoration: "none"`。
+
+先从 `list_road_prefabs.supports_bicycle_lanes` 检查原生预设的标记能力。该字段不代表任意升级组合都能放置。暂停后按原流程预览 → `get_road_operation` → `build_road` → 完成回读。参数参与幂等校验，完成检查包含原生 `SecondaryLane` 自行车道标记，不能只凭绿化变化判定成功。
+
+运行模拟后用 `inspect_road_lanes` 核验左右配置、`dedicated_bicycle_lane_count` 以及 `usable_parking_lane_count`。`bicycle_allowed_lane_count` 包含允许骑行的混行道路；专用车道统计仅包含允许 Bicycle 且不含 Road/Pedestrian/Parking 寻路方式的子车道。子车道记录可能因节点拆分而重复，不等同于道路横断面车道数；整条骑行路线连通仍需另外验证。
+
+示例：`{"request_id":"trunk-bike-001","edge_ids":["当前永久道路ID"],"left_bicycle_lane":true,"right_bicycle_lane":true,"left_decoration":"none","right_decoration":"none"}`。本功能编译及接口测试不替代当前存档的原生放置与骑行连通验收。
+
 - 使用 `preview_road_ring` 建设多节点圆环后，应读取各环上节点的实际控制状态。若游戏自动加上信号灯并造成环流互锁，可对对应节点使用 `preview_intersection_control` 设置 `uncontrolled`；原生单节点环岛则优先使用 `preview_intersection_roundabout`。
 - 环上接入口的斑马线可能阻断持续车流。确认行人流量确实造成问题后，可用 `preview_intersection_rules` 对具体入口关闭 `crosswalk_enabled`，同时规划替代步行过街路径，而不是全城统一禁用。
 - 主干道和圆环需要稳定通行能力时，检查实际可用停车车道。可用 `preview_road_parking` 切换无停车变体，或在道路支持时用 `preview_road_features` 添加草带、树带；提交后用 `inspect_road_lanes` 验证 `usable_parking_lane_count`。
@@ -80,7 +90,7 @@
 - 一个操作只允许一次提交，同一提交请求 ID/预算重试返回当前状态。
 - 网络超时后查询原操作，不使用新请求 ID 重建。
 - `completed` 表示候选路段均已成为无 Temp 标记的永久道路。`outcome_unknown` 表示已派发但未能验证全部结果，必须检查现有道路，不能自动重放。
-- 操作记录仅保存在当前城市会话内，最多 128 个。加载其他存档或重启后失效，旧提交不可自动重放。
+- 操作记录仅保存在当前城市会话内，最多 4096 个。加载其他存档或重启后失效，旧提交不可自动重放。
 - 不依赖跨帧阻塞 HTTP：工具快速返回操作 ID，游戏工具帧推进状态机，暂停模拟时也能运行。
 
 ## 本机诊断
@@ -98,3 +108,17 @@
 已生成节点、车道、道路几何和分区组件。随后通过两端 `node_id` 追加约 101.85 米两车道道路，将测试路接入北侧既有双向道路，费用 416；新路两端和原有节点的 ConnectedEdge 双向引用均已验证。大量路段和复杂地形仍未覆盖，不等同于全部道路场景验证。建设结果当前在运行中的城市内，未由本测试自动保存存档。
 
 2026-09-13 既有高速纵向移动验证：在“蒂拉格兰德”中一次提交移动 32 段 `Highway Twoway - 4 lanes` 和 33 个共享节点，最终中心线高度约为 521.695–522.445 米，全部道路和节点的 `Elevation` 为 10 米。32 段共用的边组合带有原生 `Elevated` 标志；对 127 个曲线控制点采样后，实际道路中心线最低仍高于地形约 2.062 米，没有地下点。32 段车道均可读取，连接节点数保持 33，模拟继续运行且桥接正常。
+
+## 交叉路口菜单预设（原生资产）
+
+`list_intersection_prefabs` 查询游戏实际载入的交叉路口资产，返回精确名称、锁定状态、支持状态、子道路类型、局部曲线包围范围和基础造价。`supported=false` 的混合非道路网络资产不能通过此接口施工。曲线包围范围不包含道路宽度或装饰，不能代替碰撞检查；基础造价也不是最终费用。
+
+施工流程：暂停 → 默认选择工具 → `preview_intersection_prefab({request_id, intersection_prefab, position:{x,z}, rotation_degrees})` → `get_road_operation` → 核对 `preview_ready`、`can_commit`、空错误和费用 → `build_road` → 查询至 `completed`。取消使用 `cancel_road_preview`。坐标是世界米制，角度沿 Y 轴，范围 −360..360°；地面高度取实时地形。沿用道路事务的幂等、超时、会话和预算约束。
+
+此接口使用游戏 `ObjectToolBaseSystem.CreateDefinitions` 的原生 stamp 模式，保留预设内道路、匝道、高程、附加道路选项和左右行驶制处理。它与 `preview_road_interchange` 不同：后者只为两条已交叉且有高差的道路生成四条匝道。
+
+建成结果包含 `created_road_ids` 和 `connection_points`（永久节点 ID、世界位置、连接边数），供后续接线。放置预设不会自动完成周边高速改线或小镇道路接驳，仍需检查方向与连通性。原生警告、错误或建筑拆除会阻止提交。预设可能包含装饰及地形变化，因此不提供仅删除道路的自动整座撤销；需要按实际对象单独规划拆除。
+
+验证状态：接口 schema 与参数转发由桥接测试覆盖；C# 编译通过后仍须在加载新版模组的测试存档中完成原生预览、取消及施工回读验收，不将编译通过视为游戏内验收。
+
+主干道范围识别、停车改自行车道、第二出口和改造前后沿街依赖检查见 [城市建设检查清单](../../workflows/CITY-CONSTRUCTION-CHECKLIST.md)。

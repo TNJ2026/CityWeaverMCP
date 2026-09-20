@@ -90,3 +90,13 @@ node road-operation.mjs cancel OPERATION_ID
 - `smoke-*-live.mjs` 不一定只读，许多会建设、改资金或触发灾害。普通使用与技能验证不批量执行这些脚本；仅在用户授权相应实机测试范围时阅读并选择。
 - 用户要求维护模组时，开发入口为 `src/Core/Mod.cs`、`src/Core/GameQueryService.cs`、各领域 `*Queries.cs`、`Mcp*ToolSystem.cs` 和 `mcp/server.mjs`。`build.ps1 -Stage` 仅暂存；普通 `build.ps1` 会部署并替换模组目录，且要求退出游戏。
 - 技能入口源码位于项目 `skills/cities-skylines2`；完整工作流和领域指南位于 `docs`，个人目录中的同名技能是安装副本。更新时先维护仓库内容，再同步安装副本。新增功能更新功能地图；不要把历史工具总数当兼容性检查。
+
+## 铁路线预览的 TOOL_BUSY 残留（2026-09-20 已知实现边界）
+
+当前 `src/Transport/TransportQueries.cs` 在线路预览中先登记 operation/request ID，再调用原生工具 `Begin`。若 `Begin` 抛出 `TOOL_BUSY`，可能留下没有活动工具承接的 `queued` 记录；相同请求会持续返回该记录，取消也可能只设置取消标志而不进入终态。
+
+这不同于一般仍在处理的排队任务。先查询原操作、检查是否提交过及是否已有永久线路；不能因为等待较久就换 ID 重建。只有确认属于未提交的孤立预览、已请求取消且原生工具释放后，才重新发起预览；无法确认时停止写入并保留诊断。若未来修复了登记顺序或取消处理，应重新验证并移除此历史限制。线路 apply 必须复用 preview 的 request ID。
+
+### 后处理器误报工具链不完整
+
+官方 ModPostProcessor 直接读取用户级 `CSII_UNITYVERSION` 注册表配置；仅有进程环境变量和 MSBuild 参数仍不够。2026-09-20 已确认：受限运行环境中读取为空，但正常权限环境的用户配置和 Unity 安装均完好。在能够读取用户配置的环境运行构建即可，无需重装或修改官方后处理器。`build.ps1` 现在会提前给出明确诊断。先 `-Stage` 验证完整后处理；部署前退出游戏并备份旧模组，部署后核对版本及文件哈希。

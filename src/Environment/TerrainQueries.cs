@@ -132,7 +132,7 @@ namespace CityWeaver
                 if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another terrain operation.");
                 return old.Json();
             }
-            if (m_TerrainOperations.Count >= 128) throw new QueryException("TERRAIN_OPERATION_LIMIT", "This city session has reached 128 terrain operations; reload the city to reset the journal.");
+            if (m_TerrainOperations.Count >= 4096) throw new QueryException("TERRAIN_OPERATION_LIMIT", "This city session has reached 4096 terrain operations; reload the city to reset the journal.");
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before previewing terrain changes.");
             var tool = TerrainTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>();
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");

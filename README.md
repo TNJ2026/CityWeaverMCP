@@ -23,16 +23,20 @@ MCP 工具清单以运行时 `tools/list` 为准。规划工具可基于当前�
 - `CityWeaver.csproj`：保留官方引用、源码生成器和后处理构建流程。
 - `Properties/`：官方发布模板；其中描述、游戏版本等仍为占位配置，发布前需填写。
 
-## 本机环境（2026-09-13 检查）
+## 本机环境（2026-09-20 检查）
 
 | 项目 | 检查结果 |
 | --- | --- |
 | 游戏路径 | `E:\SteamLibrary\steamapps\common\Cities Skylines II` |
-| 游戏用户数据记录的版本 | `1.6.0f1 (419.d6c6) [6216.19404]` |
+| 游戏版本（`Player.log` 实测） | `1.6.2f1 (767.21d1) [6300.26419]` |
+| 游戏所用 Unity 引擎 | `2022.3.71f1 (c9bf13b0b844)` |
+| 构建工具链契约 `CSII_UNITYVERSION` | `2022.3.62f2`（见下方说明） |
 | .NET SDK | `8.0.425` |
 | 模组目标框架 / C# | `net48` / `9.0`，由官方 Mod.props 决定 |
 | 工具链 Unity / Entities | `2022.3.62f2` / `1.3.10` |
-| 官方后处理器运行时 | `.NET 6` |
+| 官方后处理器运行时 | `.NET 6`（本机私有解压 `6.0.36`） |
+
+**工具链版本与引擎版本不是同一个量。** `CSII_UNITYVERSION` 是官方工程读取的用户级注册表配置，本机固定为 `2022.3.62f2`，决定 Mod.props 里的引用程序集路径；它不随游戏更新自动改变，值为旧版不一定代表配置损坏。判断实际运行版本要看 `Player.log` 的 `Game version` 与 `Initialize engine version`，或 `Cities2.exe` 的文件版本。两者不一致时以 `Player.log` 为准；只有官方工具链报错时才去核对该变量。
 
 官方工程读取用户级 `CSII_*` 环境变量，当前已正确指向 E 盘游戏；无需修改共享 Mod.props。
 
@@ -40,6 +44,8 @@ MCP 工具清单以运行时 `tools/list` 为准。规划工具可基于当前�
 下载来源和哈希保存在 `.tools/runtime-source.json`。`.tools` 为本机工具目录，不纳入版本控制。
 `build.ps1` 仅在构建期间设置进程内 DOTNET_ROOT / DOTNET_ROOT_X64，完成后恢复。
 在其他电脑上需要先安装游戏官方工具链、.NET SDK，以及后处理器所需的 .NET 6 运行时；本机私有运行时不会随源码传递。
+
+2026-09-20 构建实测：在普通权限环境中，`.tools/dotnet` 的私有运行时可用，`-Stage` 与部署构建均成功（后处理 + Windows/macOS/Linux 三平台 Burst）。官方后处理器直接读取用户级注册表里的 `CSII_UNITYVERSION`，仅有进程环境变量和 MSBuild 参数不够，因此脚本会提前诊断并在启动构建前给出明确报错，见[调用、事务与诊断](docs/workflows/operations.md)。
 
 ## 构建
 
@@ -73,6 +79,7 @@ MCP 工具清单以运行时 `tools/list` 为准。规划工具可基于当前�
 MCP 版本已通过暂存构建与官方后处理（0 警告、0 错误），以及 8 项通信/MCP 自动测试。
 MCP 版本已通过主菜单及暂停城市中的真实查询、建筑分页和实体详情联调，具体记录见 `docs/validation/VALIDATION.md`。尚未发布到 Paradox Mods。
 0.2.0 已在真实城市中验证通用查询：目录发现 1229 种类型，878 种有实例的类型成功抽样（部分嵌套原生数据明确标记不支持），349 种无实例，Deleted/Temp 按设计排除。详细数据口径和验证边界见 MCP 文档。
+1.23.1 于 2026-09-20 完成暂存与部署构建（官方后处理 + 三平台 Burst，0 错误），并通过 134 项 MCP 自动测试。本期新增交叉路口菜单预设、路边公交/电车站台和航道，并为道路升级加入自行车道。其中**航道**已有实机记录（奥本山存档：标准货运港口、同型航道接入、首船，见 `docs/guides/transport/WATERWAY-GUIDE.md`）；**路口预设与路边站台仍只有编译与接口测试覆盖，尚未实机验收**（见 `docs/guides/roads/ROAD-GUIDE.md` 与 `docs/guides/transport/TRANSPORT-INFRASTRUCTURE-GUIDE.md`）。构建与接口测试通过不等于游戏内验收。
 
 ## 参考
 

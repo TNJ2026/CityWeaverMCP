@@ -153,7 +153,7 @@ namespace CityWeaver
         {
             string key = RequestKey(args), fp = new JObject { ["type"] = type, ["target"] = target, ["new_value"] = newValue }.ToString(Formatting.None);
             if (m_EconomyRequestIds.TryGetValue(key, out var existing)) { var prior = m_EconomyOperations[existing]; if (prior.Fingerprint != fp) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another economy operation."); return prior; }
-            if (m_EconomyOperations.Count >= 256) throw new QueryException("TOO_MANY_OPERATIONS", "This city session already contains 256 economy operations.");
+            if (m_EconomyOperations.Count >= 4096) throw new QueryException("TOO_MANY_OPERATIONS", "This city session already contains 4096 economy operations.");
             var op = new EconomyOperation { Session = m_Session, RequestId = key, Fingerprint = fp, Type = type, Target = target, OldValue = oldValue, NewValue = newValue };
             m_EconomyOperations.Add(op.Id, op); m_EconomyRequestIds.Add(key, op.Id); return op;
         }

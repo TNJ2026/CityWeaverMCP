@@ -15,9 +15,11 @@ namespace CityWeaver
 {
     // An ordinary ToolBaseSystem participates in the game's output/apply barriers.
     // No direct permanent road or money writes and no patch to the stock tool are needed.
-    public sealed partial class McpRoadToolSystem : ToolBaseSystem
+    public sealed partial class McpRoadToolSystem : ObjectToolBaseSystem
     {
         private RoadOperation m_Operation;
+        private NativeList<ControlPoint> m_StampControlPoints;
+        private bool IsIntersectionPrefab => m_Operation.CurveMode == "intersection_prefab";
         private readonly List<Entity> m_Definitions = new List<Entity>();
         private int m_Phase, m_Ticks, m_StableTicks;
         private string m_LastSignature;
@@ -39,6 +41,7 @@ namespace CityWeaver
         private bool IsIntersectionControl => m_Operation.OperationType == "intersection_control";
         private bool IsIntersectionRoundabout => m_Operation.OperationType == "intersection_roundabout";
         private bool IsIntersectionRules => m_Operation.OperationType == "intersection_rules";
+        private bool IsWaterway => m_Operation.TransactionKind == "waterway";
         private bool IsTransportTrack => m_Operation.TransactionKind == "transport_track";
         private bool IsUtilityNetwork => m_Operation.TransactionKind == "utility_network";
         private bool IsUtilityPrefab(Entity prefab) => EntityManager.Exists(prefab) &&
@@ -48,12 +51,14 @@ namespace CityWeaver
         protected override void OnCreate()
         {
             base.OnCreate();
+            m_StampControlPoints = new NativeList<ControlPoint>(1, Allocator.Persistent);
             m_TempQuery = GetEntityQuery(new EntityQueryDesc { All = new[] { ComponentType.ReadOnly<Temp>() }, None = new[] { ComponentType.ReadOnly<Deleted>() } });
             // This query intentionally includes every generated network edge. Road operations
             // filter by Road below; transport-track operations filter by prefab TrackData.
             m_RoadQuery = GetEntityQuery(new EntityQueryDesc { All = new[] { ComponentType.ReadOnly<Temp>(), ComponentType.ReadOnly<Edge>(), ComponentType.ReadOnly<PrefabRef>() }, None = new[] { ComponentType.ReadOnly<Deleted>() } });
             m_WarningQuery = GetEntityQuery(ComponentType.ReadOnly<Warning>());
         }
+        protected override void OnDestroy() { if (m_StampControlPoints.IsCreated) m_StampControlPoints.Dispose(); base.OnDestroy(); }
         public void Begin(RoadOperation operation)
         {
             if (Busy) throw new QueryException("TOOL_BUSY", "Another road operation is active.");
@@ -243,6 +248,13 @@ namespace CityWeaver
                         var actual = EntityManager.Exists(target) && EntityManager.HasComponent<Upgraded>(target)
                             ? EntityManager.GetComponentData<Upgraded>(target).m_Flags : default(CompositionFlags);
                         var mask = IsRoadFeatures ? CompositionFlags.optionMask : new CompositionFlags(~(CompositionFlags.General)0u, ~(CompositionFlags.Side)0u, ~(CompositionFlags.Side)0u);
+                        if (IsRoadFeatures)
+                        {
+                            // Bicycle lanes are directional flags, outside the native decoration option mask.
+                            var bicycleMask = CompositionFlags.Side.SecondaryLane | CompositionFlags.Side.ForbidSecondary | CompositionFlags.Side.ParkingSpaces;
+                            mask.m_Left |= bicycleMask;
+                            mask.m_Right |= bicycleMask;
+                        }
                         if (EntityManager.Exists(target) && !EntityManager.HasComponent<Deleted>(target) && !EntityManager.HasComponent<Temp>(target) && (actual & mask) == (segment.UpgradeFlags & mask))
                             completedTargets.Add(target);
                         else if (EntityManager.Exists(target) && !EntityManager.HasComponent<Deleted>(target)) pendingTarget = true;
@@ -317,12 +329,15 @@ namespace CityWeaver
                     if (EntityManager.HasComponent<Temp>(e)) { pending++; continue; }
                     if (EntityManager.HasComponent<Edge>(e) && (IsTransportTrack
                         ? EntityManager.HasComponent<TrackData>(EntityManager.GetComponentData<PrefabRef>(e).m_Prefab)
+                        : IsWaterway ? EntityManager.HasComponent<Game.Net.Waterway>(e) && EntityManager.HasComponent<WaterwayData>(EntityManager.GetComponentData<PrefabRef>(e).m_Prefab)
                         : IsUtilityNetwork ? IsUtilityPrefab(EntityManager.GetComponentData<PrefabRef>(e).m_Prefab)
                         : EntityManager.HasComponent<Road>(e))) completed.Add(e);
                 }
                 if (pending > 0 && m_Ticks < 120) return;
                 op.CreatedEdges = completed;
                 if (completed.Count == 0 || pending > 0 || completed.Count != m_Candidates.Count) { Fail("APPLY_OUTCOME_UNKNOWN"); return; }
+                if (IsIntersectionPrefab && !StampTopologyValid(completed))
+                { if (m_Ticks < 120) return; Fail("APPLY_OUTCOME_UNKNOWN"); return; }
                 if (op.ZoningAligned && op.PlannerStrategy != null)
                 {
                     if (!TryReadAppliedZoning(completed, out var orderly))
@@ -334,6 +349,7 @@ namespace CityWeaver
                     op.ZoningValidation = "verified"; op.ZoningOrderly = true;
                 }
                 op.State = "completed";
+                if (IsIntersectionPrefab) ReadStampConnectionPoints(completed);
                 Mod.log.Info("Road completed: " + op.Id + " permanent_edges=" + completed.Count);
                 Finish();
             }
@@ -342,6 +358,7 @@ namespace CityWeaver
         {
             var op = m_Operation;
             if (!IsDemolish && !IsZoning && !IsRoadFeatures && !IsIntersectionRules && !IsIntersectionControl && !IsIntersectionRoundabout && (!EntityManager.Exists(op.Prefab) || RoadOperation.IsLocked(EntityManager, op.Prefab))) return false;
+            if (IsIntersectionPrefab) return EntityManager.HasComponent<AssetStampData>(op.Prefab);
             if (IsIntersectionControl || IsIntersectionRoundabout)
             {
                 foreach (var node in op.TargetNodes)
@@ -352,8 +369,9 @@ namespace CityWeaver
             {
                 foreach (var target in op.TargetEdges)
                     if (!EntityManager.Exists(target) || EntityManager.HasComponent<Deleted>(target) || EntityManager.HasComponent<Temp>(target) || !EntityManager.HasComponent<Edge>(target) ||
-                        (!IsTransportTrack && !IsUtilityNetwork && !EntityManager.HasComponent<Road>(target)) ||
+                        (!IsTransportTrack && !IsWaterway && !IsUtilityNetwork && !EntityManager.HasComponent<Road>(target)) ||
                         (IsTransportTrack && (!EntityManager.HasComponent<PrefabRef>(target) || !EntityManager.HasComponent<TrackData>(EntityManager.GetComponentData<PrefabRef>(target).m_Prefab)))) return false;
+                    else if (IsWaterway && (!EntityManager.HasComponent<Game.Net.Waterway>(target) || !EntityManager.HasComponent<PrefabRef>(target) || !EntityManager.HasComponent<WaterwayData>(EntityManager.GetComponentData<PrefabRef>(target).m_Prefab))) return false;
                     else if (IsUtilityNetwork && (!EntityManager.HasComponent<PrefabRef>(target) || !IsUtilityPrefab(EntityManager.GetComponentData<PrefabRef>(target).m_Prefab))) return false;
                 return op.TargetEdges.Count > 0;
             }
@@ -366,7 +384,7 @@ namespace CityWeaver
                     if (!EntityManager.Exists(endpoint.Item1) || EntityManager.HasComponent<Deleted>(endpoint.Item1) || EntityManager.HasComponent<Temp>(endpoint.Item1)) return false;
                     float3 actual;
                     if (endpoint.Item3 > 0 && endpoint.Item3 < 1 && EntityManager.HasComponent<Edge>(endpoint.Item1) && EntityManager.HasComponent<Curve>(endpoint.Item1) &&
-                        (EntityManager.HasComponent<Road>(endpoint.Item1) || IsTransportTrack && EntityManager.HasComponent<PrefabRef>(endpoint.Item1) && EntityManager.HasComponent<TrackData>(EntityManager.GetComponentData<PrefabRef>(endpoint.Item1).m_Prefab) || IsUtilityNetwork && EntityManager.HasComponent<PrefabRef>(endpoint.Item1) && IsUtilityPrefab(EntityManager.GetComponentData<PrefabRef>(endpoint.Item1).m_Prefab)))
+                        (EntityManager.HasComponent<Road>(endpoint.Item1) || IsWaterway && EntityManager.HasComponent<Game.Net.Waterway>(endpoint.Item1) || IsTransportTrack && EntityManager.HasComponent<PrefabRef>(endpoint.Item1) && EntityManager.HasComponent<TrackData>(EntityManager.GetComponentData<PrefabRef>(endpoint.Item1).m_Prefab) || IsUtilityNetwork && EntityManager.HasComponent<PrefabRef>(endpoint.Item1) && IsUtilityPrefab(EntityManager.GetComponentData<PrefabRef>(endpoint.Item1).m_Prefab)))
                         actual = MathUtils.Position(EntityManager.GetComponentData<Curve>(endpoint.Item1).m_Bezier, endpoint.Item3);
                     else if (EntityManager.HasComponent<Node>(endpoint.Item1)) actual = EntityManager.GetComponentData<Node>(endpoint.Item1).m_Position;
                     else return false;
@@ -463,6 +481,8 @@ namespace CityWeaver
                     if ((temp.m_Flags & TempFlags.Cancel) == 0) op.Cost += temp.m_Cost;
                     if (temp.m_Original != Entity.Null && EntityManager.HasComponent<Game.Buildings.Building>(temp.m_Original) && (temp.m_Flags & (TempFlags.Delete | TempFlags.Replace)) != 0)
                         op.Errors.Add("WOULD_REMOVE_BUILDING");
+                    if (IsIntersectionPrefab && temp.m_Original != Entity.Null && EntityManager.HasComponent<Road>(temp.m_Original) && (temp.m_Flags & (TempFlags.Delete | TempFlags.Replace)) != 0)
+                        op.Errors.Add("WOULD_REMOVE_EXISTING_ROAD");
                     if (EntityManager.HasComponent<Game.Buildings.Building>(e)) op.Errors.Add("UNEXPECTED_BUILDING_PREVIEW");
                 }
             }
@@ -472,16 +492,21 @@ namespace CityWeaver
                 {
                     var temp = EntityManager.GetComponentData<Temp>(e);
                     var generatedPrefab = EntityManager.GetComponentData<PrefabRef>(e).m_Prefab;
-                    if (IsTransportTrack)
+                    if (IsTransportTrack || IsWaterway)
                     {
-                        if (!EntityManager.HasComponent<TrackData>(generatedPrefab)) continue;
+                        if (IsWaterway ? !EntityManager.HasComponent<WaterwayData>(generatedPrefab) : !EntityManager.HasComponent<TrackData>(generatedPrefab)) continue;
                         if (IsDemolish)
                         {
                             if (op.TargetEdges.Contains(temp.m_Original) && (temp.m_Flags & TempFlags.Delete) != 0) m_Candidates.Add(e);
                         }
                         else if (op.OperationType == "create" && temp.m_Original == Entity.Null && (temp.m_Flags & (TempFlags.Delete | TempFlags.Cancel)) == 0)
                         {
-                            if (generatedPrefab != op.Prefab) op.Errors.Add("UNEXPECTED_TRACK_PREVIEW"); else m_Candidates.Add(e);
+                            if (generatedPrefab != op.Prefab)
+                            {
+                                if (IsWaterway && IsWaterwaySplitRemnant(e, generatedPrefab)) m_SplitRemnants.Add(e);
+                                else op.Errors.Add(IsWaterway ? "UNEXPECTED_WATERWAY_PREVIEW" : "UNEXPECTED_TRACK_PREVIEW");
+                            }
+                            else m_Candidates.Add(e);
                         }
                         continue;
                     }
@@ -501,7 +526,11 @@ namespace CityWeaver
                         { if (generatedPrefab != op.Prefab) op.Errors.Add("UNEXPECTED_UTILITY_PREVIEW"); else m_Candidates.Add(e); }
                         continue;
                     }
-                    if (!EntityManager.HasComponent<Road>(e)) continue;
+                    if (!EntityManager.HasComponent<Road>(e))
+                    {
+                        if (IsIntersectionPrefab && (temp.m_Flags & (TempFlags.Delete | TempFlags.Cancel)) == 0) op.Errors.Add("UNSUPPORTED_STAMP_NETWORK");
+                        continue;
+                    }
                     if (IsUpgrade || IsReverse || IsElevation || IsZoning || IsRoadFeatures || IsIntersectionRules)
                     {
                         if (!op.TargetEdges.Contains(temp.m_Original) || (temp.m_Flags & (TempFlags.Delete | TempFlags.Cancel)) != 0) continue;
@@ -535,6 +564,7 @@ namespace CityWeaver
         }
         private bool ExpectedRoadPrefab(Entity prefab)
         {
+            if (IsIntersectionPrefab) return m_Operation.StampRoadPrefabs.Contains(prefab);
             if (prefab == m_Operation.Prefab) return true;
             foreach (var segment in m_Operation.Segments)
             {
@@ -554,6 +584,27 @@ namespace CityWeaver
         // A split always yields exactly the two halves of one edge, so a split remnant is always
         // node-adjacent to a sibling preview edge carrying the very same prefab. A genuinely wrong
         // prefab cannot satisfy that, because the operation only ever generates its own prefab.
+        private bool IsWaterwaySplitRemnant(Entity edge, Entity prefab)
+        {
+            if (!EntityManager.HasComponent<Curve>(edge)) return false;
+            var generated = EntityManager.GetComponentData<Curve>(edge).m_Bezier;
+            foreach (var segment in m_Operation.Segments)
+            foreach (var target in new[] { segment.StartTarget, segment.EndTarget })
+            {
+                if (target == Entity.Null || !EntityManager.Exists(target) ||
+                    !EntityManager.HasComponent<Game.Net.Waterway>(target) ||
+                    !EntityManager.HasComponent<Curve>(target) || !EntityManager.HasComponent<PrefabRef>(target) ||
+                    EntityManager.GetComponentData<PrefabRef>(target).m_Prefab != prefab) continue;
+                var original = EntityManager.GetComponentData<Curve>(target).m_Bezier;
+                if (MathUtils.Length(generated) > MathUtils.Length(original) + 1) continue;
+                bool onOriginal = true;
+                for (int i = 0; i <= 8; i++)
+                    if (MathUtils.Distance(original.xz, MathUtils.Position(generated, i / 8f).xz, out float t) > 1)
+                    { onOriginal = false; break; }
+                if (onOriginal) return true;
+            }
+            return false;
+        }
         private bool IsSplitRemnantOfExistingRoad(Entity edge, Entity prefab)
         {
             if (!EntityManager.Exists(edge) || !EntityManager.HasComponent<Edge>(edge)) return false;
@@ -578,6 +629,19 @@ namespace CityWeaver
         private void CreateDefinition()
         {
             var op = m_Operation; m_Definitions.Clear();
+            if (IsIntersectionPrefab)
+            {
+                var config = World.GetExistingSystemManaged<Game.City.CityConfigurationSystem>();
+                m_StampControlPoints.Clear();
+                m_StampControlPoints.Add(new ControlPoint { m_Position = op.Start, m_HitPosition = op.Start,
+                    m_Rotation = quaternion.RotateY(math.radians(op.StampRotationDegrees)), m_ElementIndex = new int2(-1) });
+                // The same native asset-stamping pipeline used by the intersection menu:
+                // preserves sub-network topology, elevations, upgrades and left-hand traffic.
+                CreateDefinitions(op.Prefab, Entity.Null, Entity.Null, Entity.Null, Entity.Null, Entity.Null, config.defaultTheme,
+                    m_StampControlPoints, default(NativeReference<AttachmentData>), false, config.leftHandTraffic, false, true,
+                    100, 0, .5f, 0, 0, RandomSeed.Next(), Snap.All, Game.Tools.AgeMask.Sapling, false, default, default);
+                return;
+            }
             if (IsElevation)
             {
                 for (int i = 0; i < op.ElevatedNodes.Count; i++)
@@ -657,6 +721,41 @@ namespace CityWeaver
         {
             foreach (var definition in m_Definitions) if (definition != Entity.Null && EntityManager.Exists(definition)) EntityManager.DestroyEntity(definition);
             m_Definitions.Clear();
+        }
+        private bool StampTopologyValid(List<Entity> roads)
+        {
+            foreach (var road in roads)
+            {
+                var edge = EntityManager.GetComponentData<Edge>(road);
+                foreach (var node in new[] { edge.m_Start, edge.m_End })
+                {
+                    if (!EntityManager.Exists(node) || EntityManager.HasComponent<Temp>(node) || EntityManager.HasComponent<Deleted>(node) ||
+                        !EntityManager.HasComponent<Node>(node) || !EntityManager.HasBuffer<ConnectedEdge>(node)) return false;
+                    bool found = false;
+                    foreach (var connected in EntityManager.GetBuffer<ConnectedEdge>(node, true)) if (connected.m_Edge == road) { found = true; break; }
+                    if (!found) return false;
+                }
+            }
+            return true;
+        }
+        private void ReadStampConnectionPoints(List<Entity> roads)
+        {
+            var counts = new Dictionary<Entity, int>();
+            foreach (var road in roads)
+            {
+                var edge = EntityManager.GetComponentData<Edge>(road);
+                foreach (var node in new[] { edge.m_Start, edge.m_End })
+                    counts[node] = counts.TryGetValue(node, out var count) ? count + 1 : 1;
+            }
+            m_Operation.ConnectionPoints.Clear();
+            foreach (var pair in counts)
+            {
+                if (pair.Value != 1 || !EntityManager.HasComponent<Node>(pair.Key)) continue;
+                var p = EntityManager.GetComponentData<Node>(pair.Key).m_Position;
+                int connected = EntityManager.HasBuffer<ConnectedEdge>(pair.Key) ? EntityManager.GetBuffer<ConnectedEdge>(pair.Key, true).Length : 0;
+                m_Operation.ConnectionPoints.Add(new JObject { ["node_id"] = m_Operation.EntityId(pair.Key),
+                    ["position"] = new JObject { ["x"] = p.x, ["y"] = p.y, ["z"] = p.z }, ["connected_edge_count"] = connected });
+            }
         }
         private void Fail(string reason)
         {

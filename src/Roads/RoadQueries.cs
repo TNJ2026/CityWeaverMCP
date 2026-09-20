@@ -37,6 +37,10 @@ namespace CityWeaver
         public int PlannerObstacleCount;
         public string UndoOf;
         public string TransactionKind;
+        public float MinimumWaterDepth;
+        public float StampRotationDegrees;
+        public HashSet<Entity> StampRoadPrefabs = new HashSet<Entity>();
+        public JArray ConnectionPoints = new JArray();
         public List<RoadDirectChange> DirectChanges = new List<RoadDirectChange>();
         public bool ZoningAligned;
         public int GridColumns, GridRows;
@@ -152,6 +156,10 @@ namespace CityWeaver
             ["errors"] = Errors.DeepClone(), ["error"] = Error,
             ["expires_at_utc"] = Expires.ToString("O"), ["commit_dispatched"] = ApplyDispatched,
             ["created_road_ids"] = new JArray(CreatedEdges.Select(EntityId)),
+            ["intersection_prefab"] = CurveMode == "intersection_prefab" ? PrefabName : null,
+            ["placement_position"] = CurveMode == "intersection_prefab" ? Point(Start) : null,
+            ["rotation_degrees"] = CurveMode == "intersection_prefab" ? new JValue(StampRotationDegrees) : null,
+            ["connection_points"] = ConnectionPoints.DeepClone(),
             ["split_remnant_road_ids"] = new JArray(SplitRemnantEdges.Select(EntityId)),
             ["can_commit"] = State == "preview_ready" && !CancelRequested && !CommitRequested,
             ["note"] = "A preview is temporary. Only completed confirms permanent road entities. Poll this ID after a timeout; do not submit another placement." };
@@ -200,6 +208,8 @@ namespace CityWeaver
             ["zoning_right_enabled"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_Right & CompositionFlags.Side.ZonesDisabled) == 0) : null,
             ["left_wide_sidewalk"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_Left & CompositionFlags.Side.WideSidewalk) != 0) : null,
             ["right_wide_sidewalk"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_Right & CompositionFlags.Side.WideSidewalk) != 0) : null,
+            ["left_bicycle_lane"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_Left & CompositionFlags.Side.SecondaryLane) != 0) : null,
+            ["right_bicycle_lane"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_Right & CompositionFlags.Side.SecondaryLane) != 0) : null,
             ["left_decoration"] = HasUpgradeFlags ? Decoration(UpgradeFlags.m_Left) : null,
             ["right_decoration"] = HasUpgradeFlags ? Decoration(UpgradeFlags.m_Right) : null,
             ["wide_median"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_General & CompositionFlags.General.WideMedian) != 0) : null,
@@ -377,6 +387,7 @@ namespace CityWeaver
                     ["default_direction"] = forward != backward ? (forward ? "forward" : "backward") : "both",
                     ["zoning_enabled"] = (road.m_Flags & Game.Prefabs.RoadFlags.EnableZoning) != 0,
                     ["uses_highway_rules"] = (road.m_Flags & Game.Prefabs.RoadFlags.UseHighwayRules) != 0,
+                    ["supports_bicycle_lanes"] = em.HasComponent<NetData>(e) && (em.GetComponentData<NetData>(e).m_SideFlagMask & CompositionFlags.Side.SecondaryLane) != 0,
                     ["locked"] = RoadOperation.IsLocked(em, e), ["modes"] = new JArray("straight", "quadratic", "cubic", "elevated", "tunnel", "polyline"), ["max_length_m"] = 256 };
                 row.Merge(RoadPrefabTraits(prefab.name, e, em)); rows.Add(row);
             }
@@ -483,7 +494,7 @@ namespace CityWeaver
                 if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another route.");
                 return old.Json();
             }
-            if (m_RoadOperations.Count >= 128) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 128 road operations; reload the city to reset the journal.");
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>();
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before previewing a road.");
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
@@ -534,7 +545,7 @@ namespace CityWeaver
                 if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another route.");
                 return old.Json();
             }
-            if (m_RoadOperations.Count >= 128) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 128 road operations; reload the city to reset the journal.");
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>();
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before previewing a road route.");
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
@@ -581,7 +592,7 @@ namespace CityWeaver
             var direction = (string)args["direction"] ?? "auto";
             if (direction != "auto" && direction != "clockwise" && direction != "counterclockwise") throw new QueryException("INVALID_ARGUMENT", "direction must be auto, clockwise or counterclockwise.");
             if (direction == "auto") direction = world.GetExistingSystemManaged<Game.City.CityConfigurationSystem>().leftHandTraffic ? "clockwise" : "counterclockwise";
-            if (m_RoadOperations.Count >= 128) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 128 road operations; reload the city to reset the journal.");
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); var em = world.EntityManager;
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before previewing a road ring.");
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
@@ -638,7 +649,7 @@ namespace CityWeaver
                 if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another road grid.");
                 return old.Json();
             }
-            if (m_RoadOperations.Count >= 128) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 128 road operations; reload the city to reset the journal.");
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var columns = ComponentInspector.Int(args, "columns", -1, 1, 5); var rows = ComponentInspector.Int(args, "rows", -1, 1, 5);
             var blockWidth = ComponentInspector.Int(args, "block_width_m", -1, 32, 240); var blockHeight = ComponentInspector.Int(args, "block_height_m", -1, 32, 240);
             var autoConnect = args["auto_connect"] != null && (bool)args["auto_connect"];
@@ -780,7 +791,7 @@ namespace CityWeaver
                 if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another parallel-road operation.");
                 return old.Json();
             }
-            if (m_RoadOperations.Count >= 128) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 128 road operations; reload the city to reset the journal.");
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var ids = args["edge_ids"] as JArray;
             if (ids == null || ids.Count < 1 || ids.Count > 32) throw new QueryException("INVALID_ARGUMENT", "edge_ids must contain 1..32 ordered road edge IDs.");
             var side = (string)args["side"];
@@ -972,7 +983,7 @@ namespace CityWeaver
             var gridSize = Number("grid_size_m", 24, 16, 48); var maxDetour = Number("max_detour_m", 192, 64, 512);
             if (zoningAlignment && math.abs(gridSize / 8f - math.round(gridSize / 8f)) > 0.001f)
                 throw new QueryException("INVALID_ARGUMENT", "grid_size_m must be a multiple of 8 metres when zoning_alignment is enabled.");
-            if (m_RoadOperations.Count >= 128) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 128 road operations; reload the city to reset the journal.");
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); var em = world.EntityManager;
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before planning a road route.");
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
@@ -1121,7 +1132,7 @@ namespace CityWeaver
                 if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another road operation.");
                 return old.Json();
             }
-            if (m_RoadOperations.Count >= 128) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 128 road operations; reload the city to reset the journal.");
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var clearance = TerrainNumber(args, "clearance_m", 0.5f, 0.05f, 50f);
             var ids = args["edge_ids"] as JArray;
             if (ids == null || ids.Count < 1 || ids.Count > 64) throw new QueryException("INVALID_ARGUMENT", "edge_ids must contain 1..64 road edge IDs.");
@@ -1186,7 +1197,7 @@ namespace CityWeaver
                 if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another road operation.");
                 return old.Json();
             }
-            if (m_RoadOperations.Count >= 128) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 128 road operations; reload the city to reset the journal.");
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); var em = world.EntityManager;
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before reversing a one-way road.");
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
@@ -1234,7 +1245,7 @@ namespace CityWeaver
                 return old.Json();
             }
             if (args["left_enabled"] == null && args["right_enabled"] == null) throw new QueryException("INVALID_ARGUMENT", "Set left_enabled or right_enabled.");
-            if (m_RoadOperations.Count >= 128) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 128 road operations; reload the city to reset the journal.");
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); var em = world.EntityManager;
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before changing road zoning.");
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
@@ -1276,6 +1287,7 @@ namespace CityWeaver
             var key = RequestKey(args);
             var fingerprint = new JObject { ["operation_type"] = "road_features", ["edge_ids"] = args["edge_ids"]?.DeepClone(),
                 ["left_wide_sidewalk"] = args["left_wide_sidewalk"]?.DeepClone(), ["right_wide_sidewalk"] = args["right_wide_sidewalk"]?.DeepClone(),
+                ["left_bicycle_lane"] = args["left_bicycle_lane"]?.DeepClone(), ["right_bicycle_lane"] = args["right_bicycle_lane"]?.DeepClone(),
                 ["left_decoration"] = args["left_decoration"]?.DeepClone(), ["right_decoration"] = args["right_decoration"]?.DeepClone(),
                 ["wide_median"] = args["wide_median"]?.DeepClone(), ["median_decoration"] = args["median_decoration"]?.DeepClone() }.ToString(Formatting.None);
             if (m_RoadRequestIds.TryGetValue(key, out var oldId))
@@ -1284,8 +1296,11 @@ namespace CityWeaver
                 if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another road operation.");
                 return old.Json();
             }
-            string[] fields = { "left_wide_sidewalk", "right_wide_sidewalk", "left_decoration", "right_decoration", "wide_median", "median_decoration" };
+            string[] fields = { "left_wide_sidewalk", "right_wide_sidewalk", "left_bicycle_lane", "right_bicycle_lane", "left_decoration", "right_decoration", "wide_median", "median_decoration" };
             if (fields.All(field => args[field] == null)) throw new QueryException("INVALID_ARGUMENT", "Set at least one road feature.");
+            foreach (var field in new[] { "left_bicycle_lane", "right_bicycle_lane" })
+                if (args[field] != null && args[field].Type != JTokenType.Boolean)
+                    throw new QueryException("INVALID_ARGUMENT", field + " must be a boolean.");
             string ReadDecoration(string field)
             {
                 var value = (string)args[field];
@@ -1293,7 +1308,7 @@ namespace CityWeaver
                 return value;
             }
             var leftDecoration = ReadDecoration("left_decoration"); var rightDecoration = ReadDecoration("right_decoration"); var medianDecoration = ReadDecoration("median_decoration");
-            if (m_RoadOperations.Count >= 128) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 128 road operations; reload the city to reset the journal.");
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); var em = world.EntityManager;
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before changing road features.");
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
@@ -1314,12 +1329,24 @@ namespace CityWeaver
                 var requestedGeneral = (args["wide_median"] != null ? CompositionFlags.General.WideMedian : 0) |
                     (args["median_decoration"] != null ? CompositionFlags.General.PrimaryMiddleBeautification | CompositionFlags.General.SecondaryMiddleBeautification : 0);
                 var requestedSide = (args["left_wide_sidewalk"] != null || args["right_wide_sidewalk"] != null ? CompositionFlags.Side.WideSidewalk : 0) |
+                    (args["left_bicycle_lane"] != null || args["right_bicycle_lane"] != null ? CompositionFlags.Side.SecondaryLane : 0) |
                     (args["left_decoration"] != null || args["right_decoration"] != null ? CompositionFlags.Side.PrimaryBeautification | CompositionFlags.Side.SecondaryBeautification : 0);
                 if ((netData.m_GeneralFlagMask & requestedGeneral) != requestedGeneral || (netData.m_SideFlagMask & requestedSide) != requestedSide)
                     throw new QueryException("ROAD_FEATURE_UNSUPPORTED", originalBase.name + " does not support every requested feature.");
                 var flags = em.HasComponent<Upgraded>(target) ? em.GetComponentData<Upgraded>(target).m_Flags : default(CompositionFlags); var before = flags;
-                void SetSide(ref CompositionFlags.Side side, JToken wide, string decoration)
+                void SetSide(ref CompositionFlags.Side side, JToken wide, string decoration, JToken bicycle)
                 {
+                    if (bicycle != null)
+                    {
+                        // Native BicycleLane/OppositeBicycleLane map to SecondaryLane.
+                        // Preserve unrelated options; incompatible compositions are rejected by native preview.
+                        if ((bool)bicycle)
+                        {
+                            side |= CompositionFlags.Side.SecondaryLane;
+                            side &= ~(CompositionFlags.Side.ForbidSecondary | CompositionFlags.Side.ParkingSpaces);
+                        }
+                        else side &= ~CompositionFlags.Side.SecondaryLane;
+                    }
                     if (wide != null) { if ((bool)wide) side |= CompositionFlags.Side.WideSidewalk; else side &= ~CompositionFlags.Side.WideSidewalk; }
                     if (decoration != null)
                     {
@@ -1328,8 +1355,8 @@ namespace CityWeaver
                         else if (decoration == "trees") side |= CompositionFlags.Side.SecondaryBeautification;
                     }
                 }
-                SetSide(ref flags.m_Left, args["left_wide_sidewalk"], leftDecoration);
-                SetSide(ref flags.m_Right, args["right_wide_sidewalk"], rightDecoration);
+                SetSide(ref flags.m_Left, args["left_wide_sidewalk"], leftDecoration, args["left_bicycle_lane"]);
+                SetSide(ref flags.m_Right, args["right_wide_sidewalk"], rightDecoration, args["right_bicycle_lane"]);
                 if (args["wide_median"] != null) { if ((bool)args["wide_median"]) flags.m_General |= CompositionFlags.General.WideMedian; else flags.m_General &= ~CompositionFlags.General.WideMedian; }
                 if (medianDecoration != null)
                 {
@@ -1365,7 +1392,7 @@ namespace CityWeaver
             }
             if (mode != "traffic_lights" && mode != "all_way_stop" && mode != "uncontrolled" && mode != "automatic")
                 throw new QueryException("INVALID_ARGUMENT", "mode must be traffic_lights, all_way_stop, uncontrolled or automatic.");
-            if (m_RoadOperations.Count >= 128) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 128 road operations; reload the city to reset the journal.");
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); var em = world.EntityManager;
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before changing intersection controls.");
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
@@ -1413,7 +1440,7 @@ namespace CityWeaver
                 if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another road operation.");
                 return old.Json();
             }
-            if (m_RoadOperations.Count >= 128) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 128 road operations; reload the city to reset the journal.");
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); var em = world.EntityManager;
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before changing an intersection into a roundabout.");
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
@@ -1469,7 +1496,7 @@ namespace CityWeaver
             }
             if (args["left_turn"] == null && args["right_turn"] == null && args["straight"] == null && args["crosswalk_enabled"] == null)
                 throw new QueryException("INVALID_ARGUMENT", "Set at least one turn rule or crosswalk_enabled.");
-            if (m_RoadOperations.Count >= 128) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 128 road operations; reload the city to reset the journal.");
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); var em = world.EntityManager;
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before changing intersection rules.");
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
@@ -1529,7 +1556,7 @@ namespace CityWeaver
                 if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another road operation.");
                 return old.Json();
             }
-            if (m_RoadOperations.Count >= 128) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 128 road operations; reload the city to reset the journal.");
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); var em = world.EntityManager;
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before changing a road.");
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
@@ -1591,6 +1618,8 @@ namespace CityWeaver
             }
             if (op.State != "preview_ready" || op.CancelRequested || DateTime.UtcNow >= op.Expires) throw new QueryException("ROAD_NOT_READY", "Wait for a valid unexpired preview before committing.");
             if (op.Cost > maxCost) throw new QueryException("COST_LIMIT", "Preview cost exceeds max_cost.");
+            if (op.TransactionKind == "waterway" && op.OperationType == "create")
+                foreach (var segment in op.Segments) ValidateWaterwayCurve(segment.Curve, op.Prefab, World.DefaultGameObjectInjectionWorld, op.MinimumWaterDepth);
             op.CommitRequestId = key; op.MaxCost = maxCost; op.CommitRequested = true; op.State = "commit_queued";
             if (op.OperationType == "road_policies")
             {

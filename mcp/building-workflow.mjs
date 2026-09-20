@@ -1,3 +1,4 @@
+import { withPrefabCatalog } from './prefab-catalog-service.mjs';
 import { randomBytes } from 'node:crypto';
 import { queryGame as liveQueryGame, BridgeError } from './bridge-client.mjs';
 import { rankBuildingSites, siteProfile } from './building-site-selection.mjs';
@@ -36,15 +37,13 @@ const specialPlacement = prefab => /Shoreline|Floating|RoadEdge|RoadNode/i.test(
   ['shoreline', 'floating', 'road_edge', 'road_node'].includes(prefab?.placement_mode);
 
 export function createBuildingWorkflow(queryGameImpl = liveQueryGame) {
-  const metrics = createWorkflowMetrics(queryGameImpl);
+  const metrics = createWorkflowMetrics(withPrefabCatalog(queryGameImpl));
   const queryGame = metrics.query;
   const pendingPlans = new Map();
   const plans = new Map();
   const planRequests = new Map();
   const uncertainPlans = new Map();
   const executionRequests = new Map();
-  const prefabCache = new Map();
-  const pendingPrefabs = new Map();
   const unsupportedBatchAnalyses = new Set();
   let constructionTail = Promise.resolve();
 
@@ -74,16 +73,6 @@ export function createBuildingWorkflow(queryGameImpl = liveQueryGame) {
   }
 
   async function discover(prefabName, requestedCategory, sessionId) {
-    const cacheKey = `${sessionId}:${requestedCategory}:${prefabName.toLowerCase()}`;
-    if (prefabCache.has(cacheKey)) return prefabCache.get(cacheKey);
-    if (pendingPrefabs.has(cacheKey)) return pendingPrefabs.get(cacheKey);
-    const promise = Promise.resolve().then(() => discoverUncached(prefabName, requestedCategory, cacheKey))
-      .finally(() => pendingPrefabs.delete(cacheKey));
-    pendingPrefabs.set(cacheKey, promise);
-    return promise;
-  }
-
-  async function discoverUncached(prefabName, requestedCategory, cacheKey) {
     const categories = requestedCategory === 'auto' ? Object.keys(CATEGORY_CONFIG) : [requestedCategory];
     const found = await Promise.all(categories.map(async category => {
       const config = CATEGORY_CONFIG[category];
@@ -97,7 +86,6 @@ export function createBuildingWorkflow(queryGameImpl = liveQueryGame) {
     if (specialized.length > 1) throw new BridgeError('AMBIGUOUS_BUILDING_CATEGORY', `Prefab ${prefabName} appears in multiple specialized categories; set category explicitly.`);
     const match = specialized[0] || found.find(x => x.prefab);
     if (!match) throw new BridgeError('BUILDING_PREFAB_NOT_FOUND', `No unlocked exact prefab named ${prefabName} was found.`);
-    prefabCache.set(cacheKey, match);
     return match;
   }
 

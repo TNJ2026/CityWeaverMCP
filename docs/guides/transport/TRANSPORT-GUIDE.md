@@ -20,7 +20,7 @@
 1. 暂停城市。
 2. 调用预览工具并保存 `operation_id`。
 3. 轮询 `get_transport_line_operation`，直到状态为 `preview_ready` 或 `failed`。
-4. 检查原生验证错误；仅对 `preview_ready` 操作调用 `apply_transport_line_operation`。
+4. 检查原生验证错误；仅对 `preview_ready` 操作调用 `apply_transport_line_operation`，必须沿用该 preview 的同一 `request_id`，不能另造提交 ID。
 5. 继续轮询到 `completed`，读取 `result_line_id`。
 
 重复使用同一 `request_id` 和同一参数会返回原操作；同一 ID 配合不同参数会被拒绝。未提交的预览可用 `cancel_transport_line_preview` 清理。城市重新加载后实体 ID 和操作 ID 会失效。
@@ -41,3 +41,9 @@
 
 车辆请求仍需兼容车辆段和连通网络；模组提交原生请求，具体车辆生成、路径、上下客和换乘继续由游戏模拟执行。目标车辆数受当前线路 prefab 的原生政策滑块范围限制。退线会设置游戏自身的 `AbandonRoute` 状态，不会瞬间删除载客车辆。
 
+
+## 运营验收
+
+永久线路创建成功后，分别记录目标车辆数、实际车辆数与车辆段能力；目标数量以该线路实时原生范围为准。没有待处理写事务时推进模拟，检查车辆实际路径、目标、移动和卡住状态。负数路线距离保留为不可用/异常数据，结合分段与车辆路径诊断，不当作物理长度，也不单独作为断轨结论。
+
+首次发车不代表完整往返、全部站台可用或长期吞吐达标。铁路详细检查见 [铁路站区检查清单](RAIL-STATION-CHECKLIST.md)。

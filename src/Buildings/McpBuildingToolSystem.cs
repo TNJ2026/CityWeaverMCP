@@ -142,7 +142,10 @@ namespace CityWeaver
 
         private bool TargetValid()
         {
-            var op = m_Operation; if (op.Target == Entity.Null) return op.Prefab != Entity.Null && EntityManager.Exists(op.Prefab);
+            var op = m_Operation;
+            if (op.RoadStopPlacement && (!EntityManager.Exists(op.ParentRoad) || !EntityManager.HasComponent<Road>(op.ParentRoad) || EntityManager.HasComponent<Deleted>(op.ParentRoad) || EntityManager.HasComponent<Temp>(op.ParentRoad))) return false;
+            if (op.RoadStopPlacement && !GameQueryService.RoadStopNetworkCompatible(EntityManager, op.Prefab, op.ParentRoad)) return false;
+            if (op.Target == Entity.Null) return op.Prefab != Entity.Null && EntityManager.Exists(op.Prefab);
             if (!EntityManager.Exists(op.Target) || EntityManager.HasComponent<Deleted>(op.Target) || EntityManager.HasComponent<Temp>(op.Target)) return false;
             if (!EntityManager.HasComponent<PrefabRef>(op.Target) || EntityManager.GetComponentData<PrefabRef>(op.Target).m_Prefab != op.OriginalPrefab) return false;
             if (op.Type == "move") { var t = EntityManager.GetComponentData<Game.Objects.Transform>(op.Target); return math.distance(t.m_Position, op.OriginalPosition) < .01f && math.distance(t.m_Rotation.value, op.OriginalRotation.value) < .01f; }
@@ -215,6 +218,17 @@ namespace CityWeaver
                 if (relevant) m_Candidates.Add(e);
             }
             m_Candidates.Sort((a, b) => a.Index.CompareTo(b.Index)); op.PreviewEntities.Clear(); op.PreviewEntities.AddRange(m_Candidates);
+            if (op.RoadStopPlacement)
+            {
+                if (op.Warnings.Count > 0) op.Errors.Add("ROAD_STOP_HAS_NATIVE_WARNINGS");
+                bool attached = m_Candidates.Any(e => EntityManager.HasComponent<PrefabRef>(e) && EntityManager.GetComponentData<PrefabRef>(e).m_Prefab == op.Prefab && StopAttachedToRoad(e, op.ParentRoad));
+                if (!attached) op.Errors.Add("ROAD_STOP_NOT_ATTACHED");
+                using (var all = m_TempQuery.ToEntityArray(Allocator.Temp)) foreach (var e in all)
+                {
+                    var t = EntityManager.GetComponentData<Temp>(e);
+                    if (t.m_Original != Entity.Null && (t.m_Flags & TempFlags.Delete) != 0) { op.Errors.Add("ROAD_STOP_WOULD_DELETE_EXISTING_OBJECT"); break; }
+                }
+            }
             signature = op.Cost + ":" + string.Join(",", m_Candidates.Select(e => e.Index + ":" + e.Version)) + ":" + op.Errors + ":" + op.Warnings;
             return m_Candidates.Count > 0;
         }
@@ -228,7 +242,17 @@ namespace CityWeaver
             }
             if (op.Type == "rebuild") { if (EntityManager.Exists(op.Target) && !EntityManager.HasComponent<Destroyed>(op.Target)) { op.ResultEntities.Add(op.Target); return true; } }
             foreach (var e in m_Candidates) if (EntityManager.Exists(e) && !EntityManager.HasComponent<Deleted>(e) && !EntityManager.HasComponent<Temp>(e) && EntityManager.HasComponent<PrefabRef>(e) && (op.Prefab == Entity.Null || EntityManager.GetComponentData<PrefabRef>(e).m_Prefab == op.Prefab)) op.ResultEntities.Add(e);
+            if (op.RoadStopPlacement) op.ResultEntities.RemoveAll(e => !EntityManager.HasComponent<Game.Routes.TransportStop>(e) || !EntityManager.HasBuffer<Game.Routes.ConnectedRoute>(e) || !StopAttachedToRoad(e, op.ParentRoad) ||
+                !GameQueryService.RoadStopNetworkCompatible(EntityManager, op.Prefab, op.ParentRoad) ||
+                (op.RoadStopTransportType == "Tram" && !EntityManager.HasComponent<Game.Routes.TramStop>(e)));
             return op.ResultEntities.Count >= op.ExpectedResultCount && (op.Type != "replace" || !EntityManager.Exists(op.Target) || EntityManager.HasComponent<Deleted>(op.Target));
+        }
+        private bool StopAttachedToRoad(Entity e, Entity road)
+        {
+            if (!EntityManager.HasComponent<Game.Objects.Attached>(e)) return false;
+            var parent = EntityManager.GetComponentData<Game.Objects.Attached>(e).m_Parent;
+            if (EntityManager.Exists(parent) && EntityManager.HasComponent<Temp>(parent)) parent = EntityManager.GetComponentData<Temp>(parent).m_Original;
+            return parent == road && EntityManager.Exists(road) && !EntityManager.HasComponent<Deleted>(road);
         }
         private void DestroyDefinitions() { foreach (var e in m_Definitions) if (EntityManager.Exists(e)) EntityManager.DestroyEntity(e); m_Definitions.Clear(); }
         private void Fail(string reason) { if (m_Operation == null) return; m_Operation.State = m_Operation.ApplyDispatched ? "outcome_unknown" : "failed"; m_Operation.Error = reason; Mod.log.Warn("Building operation " + m_Operation.Id + ": " + reason); Finish(); }

@@ -1,3 +1,7 @@
+import { contentHash } from './planning-store.mjs';
+import { BoundedCache } from './bounded-cache.mjs';
+const derivedCache = new BoundedCache(32 * 1024 * 1024, 8);
+export const inspectPlanningDerivedCache = () => derivedCache.inspect();
 import { createSpatialIndex, footprintBounds, sampleRoad, nearestPointPair } from './planning-spatial.mjs';
 const finite = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const snap = (value, step = 8) => Math.round(value / step) * step;
@@ -52,6 +56,26 @@ function polygonEnvelope(polygon) {
   return { min_x: Math.min(...xs), max_x: Math.max(...xs), min_z: Math.min(...zs), max_z: Math.max(...zs) };
 }
 
+function snapshotIndexes(snapshot) {
+  const layers = { roads: snapshot.roads ?? [], buildings: snapshot.buildings ?? [], waters: snapshot.waters ?? [], terrain: snapshot.terrain ?? null };
+  const key = contentHash(layers);
+  const cached = derivedCache.get(key);
+  if (cached) return cached;
+  snapshot = structuredClone(layers);
+  const roadPoints = (snapshot.roads ?? []).flatMap(road => sampleRoad(road));
+  const buildings = (snapshot.buildings ?? []).filter(building => building.position).map(buildingEnvelope).filter(Boolean);
+  const waterAreas = (snapshot.waters ?? []).flatMap(water => water.polygons ?? (water.polygon ? [water.polygon] : [])).map(polygonEnvelope).filter(Boolean);
+  const terrainCells = snapshot.terrain?.cells ?? [];
+  const buildingIndex = createSpatialIndex(buildings, b => b);
+  const waterIndex = createSpatialIndex(waterAreas, b => b);
+  const pointBounds = p => ({ min_x: p.x, max_x: p.x, min_z: p.z, max_z: p.z });
+  const terrainIndex = createSpatialIndex(terrainCells.filter(c => c.center), c => pointBounds(c.center));
+  const roadIndex = createSpatialIndex(roadPoints, pointBounds);
+  const result = { roadPoints, buildings, waterAreas, terrainCells, buildingIndex, waterIndex, terrainIndex, roadIndex };
+  derivedCache.set(key, result, Buffer.byteLength(JSON.stringify(layers)) * 16);
+  return result;
+}
+
 export function proposeGridPlan(snapshotInput, request = {}) {
   const snapshot = snapshotInput ?? {};
   const tiles = snapshot.purchased_tiles ?? [];
@@ -66,15 +90,7 @@ export function proposeGridPlan(snapshotInput, request = {}) {
   const height = rows * blockHeight;
   const searchStep = Math.max(8, finite(request.search_step_m, 32));
   const clearance = finite(request.building_clearance_m, 12);
-  const roadPoints = (snapshot.roads ?? []).flatMap(road => sampleRoad(road));
-  const buildings = (snapshot.buildings ?? []).filter(building => building.position).map(buildingEnvelope).filter(Boolean);
-  const waterAreas = (snapshot.waters ?? []).flatMap(water => water.polygons ?? (water.polygon ? [water.polygon] : [])).map(polygonEnvelope).filter(Boolean);
-  const terrainCells = snapshot.terrain?.cells ?? [];
-  const buildingIndex = createSpatialIndex(buildings, b => b);
-  const waterIndex = createSpatialIndex(waterAreas, b => b);
-  const pointBounds = p => ({ min_x: p.x, max_x: p.x, min_z: p.z, max_z: p.z });
-  const terrainIndex = createSpatialIndex(terrainCells.filter(c => c.center), c => pointBounds(c.center));
-  const roadIndex = createSpatialIndex(roadPoints, pointBounds);
+  const { roadPoints, buildings, waterAreas, terrainCells, buildingIndex, waterIndex, terrainIndex, roadIndex } = snapshotIndexes(snapshot);
   const candidates = [];
   const regionSeeds = new Map();
   const visited = new Set();

@@ -1,0 +1,14 @@
+import {Client} from '@modelcontextprotocol/sdk/client/index.js';import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';import {readFile,appendFile} from 'node:fs/promises';
+const c=new Client({name:'octagon-facilities',version:'1'}),file='artifacts/octagon-facilities.jsonl';
+async function call(name,args){let r=await c.callTool({name,arguments:args},undefined,{timeout:60000});let v=r.structuredContent;if(r.isError||!v?.ok)throw Error(JSON.stringify(v??r));return v.data;}
+async function log(v){await appendFile(file,JSON.stringify({at:new Date().toISOString(),...v})+'\n');}
+try{await c.connect(new StdioClientTransport({command:process.execPath,args:[new URL('./server.mjs',import.meta.url).pathname.replace(/^\/(\w:)/,'$1')]}));
+let q=JSON.parse(await readFile('plans/auburn-octagon-town.json','utf8'));
+let items=[{id:'transformer',prefab:'TransformerStation02',position:{x:6480,z:840},category:'utility_facility'},{id:'sewage',prefab:'WastewaterTreatmentPlant01',position:{x:6160,z:2260},category:'utility_facility'},...q.plan.buildings,{id:'deathcare',prefab:'Cemetery02',position:{x:5390,z:1580},category:'city_service'},{id:'recycling',prefab:'RecyclingCenter01',position:{x:6190,z:2180},category:'city_service'},{id:'maintenance',prefab:'RoadMaintenanceDepot01',position:{x:6300,z:1900},category:'city_service'}];
+let old='';try{old=await readFile(file,'utf8')}catch{}let done=new Set(old.trim().split('\n').filter(Boolean).map(JSON.parse).filter(x=>x.stage==='completed').map(x=>x.id));
+for(let it of items){if(done.has(it.id))continue;let args={request_id:'oct-v2-'+it.id+'-site',building_prefab:it.prefab,category:it.category,near:{x:it.position.x,z:it.position.z},search_radius_m:150,candidate_count:24,max_preview_attempts:12,consider_service_coverage:false};await log({stage:'request',id:it.id,args});let p=await call('plan_building_workflow',args);await log({stage:'preview',id:it.id,plan:p});if(p.state!=='preview_ready'||p.warnings?.length||p.cost>1000000)throw Error('Invalid preview/budget '+it.id);
+let d=await call('execute_building_plan',{request_id:'oct-v2-'+it.id+'-commit',plan_id:p.plan_id,max_cost:p.cost,resume_speed:'paused'});await log({stage:d.state==='completed'?'completed':'needs_audit',id:it.id,result:d});console.log(JSON.stringify({id:it.id,state:d.state,cost:d.cost,entities:d.result_entity_ids,road:d.road_binding}));if(d.state!=='completed')throw Error('Needs audit '+it.id);
+for(const id of d.result_entity_ids){let raw=await call('get_entity_components',{entity_id:id,components:['Game.Buildings.Building','Game.Buildings.ElectricityConsumer','Game.Buildings.WaterConsumer']});await log({stage:'raw_readback',id:it.id,raw});if(!raw.components['Game.Buildings.Building']?.fields?.m_RoadEdge)throw Error('Missing raw road binding');}
+}
+}catch(e){await log({stage:'stopped',error:e.message});console.error(e.message);process.exitCode=1;}finally{await c.close()}
+

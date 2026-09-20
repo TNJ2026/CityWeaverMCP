@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { fileURLToPath } from 'node:url';
+import { readToolMedia } from './tool-media.mjs';
 
 const [toolName, argsPath, outputPath] = process.argv.slice(2);
 if (!toolName || !argsPath || !outputPath) {
@@ -18,15 +19,7 @@ await client.connect(new StdioClientTransport({
 try {
   const result = await client.callTool({ name: toolName, arguments: args });
   if (result.isError) throw new Error(JSON.stringify(result.structuredContent ?? result.content));
-  const media = result.content.find(item => item.type === 'image' || item.type === 'resource');
-  if (!media) throw new Error(`${toolName} returned no image or embedded resource`);
-  if (media.type === 'image') {
-    await writeFile(outputPath, Buffer.from(media.data, 'base64'));
-  } else if (typeof media.resource?.text === 'string') {
-    await writeFile(outputPath, media.resource.text, 'utf8');
-  } else {
-    throw new Error(`${toolName} returned an unsupported media payload`);
-  }
+  await writeFile(outputPath, await readToolMedia(result));
   console.log(JSON.stringify({ output_path: outputPath, result: result.structuredContent }, null, 2));
 } finally {
   await client.close();
