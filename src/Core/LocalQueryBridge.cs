@@ -35,25 +35,11 @@ namespace CityWeaver
         private string m_EndpointPath;
         private bool m_Registered;
         private Guid m_UpdaterId;
-        private int m_AuthenticatedClients;
-        private long m_LastAuthenticatedRequestTicks;
 
         public static bool IsRunning => Volatile.Read(ref s_Current) != null;
 
-        public static int ClientState
-        {
-            get
-            {
-                var bridge = Volatile.Read(ref s_Current);
-                if (bridge == null) return 0;
-                if (Volatile.Read(ref bridge.m_AuthenticatedClients) > 0) return 2;
-                var ticks = Interlocked.Read(ref bridge.m_LastAuthenticatedRequestTicks);
-                return ticks > 0 && DateTime.UtcNow.Ticks - ticks <= TimeSpan.FromSeconds(30).Ticks ? 1 : 0;
-            }
-        }
-
         // AutomaticSettings polls this value and refreshes read-only status fields when it changes.
-        public static int GetStatusVersion() => (IsRunning ? 10 : 0) + ClientState;
+        public static int GetStatusVersion() => IsRunning ? 1 : 0;
 
         public LocalQueryBridge(GameQueryService queries) { m_Queries = queries; }
 
@@ -106,7 +92,6 @@ namespace CityWeaver
 
         private async Task Serve(TcpClient client)
         {
-            var authenticated = false;
             try
             {
                 using (client)
@@ -136,9 +121,6 @@ namespace CityWeaver
                             else if (request["tool"]?.Type != JTokenType.String || (request["arguments"] != null && request["arguments"].Type != JTokenType.Object)) response = Error("INVALID_REQUEST", "Expected tool string and arguments object.");
                             else
                             {
-                                authenticated = true;
-                                Interlocked.Increment(ref m_AuthenticatedClients);
-                                Interlocked.Exchange(ref m_LastAuthenticatedRequestTicks, DateTime.UtcNow.Ticks);
                                 if (m_Queue.Count >= 32) response = Error("BUSY", "Game query queue is full. Retry later.");
                                 else
                                 {
@@ -161,11 +143,6 @@ namespace CityWeaver
             catch (Exception ex) { Mod.log.Warn("Query connection failed: " + ex.GetType().Name); }
             finally
             {
-                if (authenticated)
-                {
-                    Interlocked.Exchange(ref m_LastAuthenticatedRequestTicks, DateTime.UtcNow.Ticks);
-                    Interlocked.Decrement(ref m_AuthenticatedClients);
-                }
                 m_OpenClients.TryRemove(client, out _);
                 m_Clients.Release();
             }

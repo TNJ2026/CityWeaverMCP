@@ -434,7 +434,7 @@ namespace CityWeaver
         {
             var ready = IsReady();
             var result = new JObject { ["connected"] = true, ["city_loaded"] = ready, ["loading"] = GameManager.instance.isGameLoading,
-                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.23.1", ["read_only"] = false };
+                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.23.2", ["read_only"] = false };
             result["paused"] = JValue.CreateNull();
             if (ready)
             {

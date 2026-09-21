@@ -25,10 +25,6 @@ namespace CityWeaver
         [SettingsUIValueVersion(typeof(LocalQueryBridge), nameof(LocalQueryBridge.GetStatusVersion))]
         public string BridgeStatus => LocalQueryBridge.IsRunning ? "运行中" : "未启动";
 
-        [SettingsUISection(kSection, kConnection)]
-        [SettingsUIValueVersion(typeof(LocalQueryBridge), nameof(LocalQueryBridge.GetStatusVersion))]
-        public string McpClientStatus => LocalQueryBridge.ClientState == 2 ? "已连接" : LocalQueryBridge.ClientState == 1 ? "最近活跃" : "未连接";
-
         [SettingsUIButton]
         [SettingsUIDisableByCondition(typeof(Setting), nameof(IsBridgeRunning))]
         [SettingsUISection(kSection, kConnection)]
@@ -82,8 +78,6 @@ namespace CityWeaver
                 { m_Setting.GetOptionGroupLocaleID(Setting.kGeneral), m_Chinese ? "开发验证" : "Development check" },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.BridgeStatus)), m_Chinese ? "桥接服务" : "Bridge service" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.BridgeStatus)), m_Chinese ? "显示游戏内本机桥接服务是否正在运行。" : "Shows whether the in-game local bridge service is running." },
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.McpClientStatus)), m_Chinese ? "MCP 客户端" : "MCP client" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.McpClientStatus)), m_Chinese ? "已连接表示正在处理认证请求；最近活跃表示 30 秒内处理过请求。" : "Connected means an authenticated request is active; recently active means a request completed in the last 30 seconds." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.StartBridgeService)), m_Chinese ? "启动桥接服务" : "Start bridge service" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.StartBridgeService)), m_Chinese ? "启动本机桥接服务并生成新的连接端点。" : "Start the local bridge service and create a new endpoint." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.StopBridgeService)), m_Chinese ? "停止桥接服务" : "Stop bridge service" },

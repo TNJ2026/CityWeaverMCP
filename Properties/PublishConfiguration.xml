@@ -4,11 +4,14 @@
 	<!--Name of the mod to display to players-->
 	<DisplayName Value="CityWeaver" />
 	<!--Short description of the mod-->
-	<ShortDescription Value="This is a short description" />
+	<ShortDescription Value="Local MCP bridge for inspecting and building Cities: Skylines II cities. Requires a separate MCP server." />
 	<!--Long description of the mod. Single line or multi line. Supports minimal markdown subset-->
-	<!--LongDescription Value="This is a long description" /-->
 	<LongDescription>
-This is a long description
+CityWeaver is a code mod that provides an authenticated local bridge for external MCP tools. With a separately installed compatible CityWeaver MCP server, those tools can inspect a loaded city and run supported construction workflows through the game's native preview and apply systems.
+
+This Paradox Mods download contains the in-game bridge only. It does not include the Node.js MCP server or an AI client, and it does not add standalone in-game construction controls. Without the companion server, the bridge has no user-facing city tools.
+
+The bridge binds to 127.0.0.1 and creates a new authentication token each time it starts. Construction tools can change your city and spend in-game money. Back up important saves before using them. Some features have not been verified in every game version or map.
 	</LongDescription>
 	<!--Thumbnail-->
 	<Thumbnail Value="Properties/Thumbnail.png" />
@@ -19,19 +22,19 @@ This is a long description
 	<!--Link to the forum post where the mod can be discussed-->
 	<ForumLink Value="" />
 	<!--Version of the mod-->
-	<ModVersion Value="1.23.1" />
+	<ModVersion Value="1.23.2" />
 	<!--Recommended version of the base game to use the mod-->
-	<GameVersion Value="1.0.*" />
+	<GameVersion Value="1.6.2*" />
 	<!--Dependency for the mod, can be set multiple times-->
 	<Dependency Id="" />
 	<!--Required DLC, can be set multiple times. Supported values are "Landmark Buildings", "San Fransisco Set", "Beach Properties", "Urban Promenades", "Modern Architecture"-->
 	<RequiredDLC Value="" />
 	<!--Change log for new version. Single line or multi line. Supports minimal markdown subset-->
-	<ChangeLog Value="" />
+	<ChangeLog Value="Initial Paradox Mods release. Updated for game 1.6.2f1 and removed the misleading MCP client activity indicator from mod settings." />
 	<!--<ChangeLog>
 	</ChangeLog>-->
 	<!--External link, can be set multiple times. supported types are "discord", "github", "youtube", "twitch", "x", "paypal", "patreon", "buymeacoffee", "kofi", "crowdin", "gitlab", "gofundme"-->
-	<ExternalLink Type="" Url="" />
+	<ExternalLink Type="github" Url="https://github.com/TNJ2026/CityWeaverMCP" />
 	<!--Supported values Public, Private, Unlisted-->
 	<AccessLevel Value="Public" />
 </Publish>
