@@ -15,7 +15,7 @@ CityWeaver 是游戏内代码模组，`mcp/` 中的 Node.js MCP 服务是独立�
 
 ## 后续更新
 
-- 新版本：更新模组版本与变更日志，使用 `PublishNewVersion`；不要重新创建同名模组。
+- 新版本：更新模组版本与变更日志，运行 `./build.ps1 -Configuration Release -Stage` 和 `./tools/check-publish.ps1 -RequireStagedBuild -UpdateVersion`，再使用 `PublishNewVersion`；不要重新创建同名模组。
 - 仅修改发布页资料：使用 `UpdatePublishedConfiguration`。
 - 每次上传后核对商店显示的版本、兼容游戏版本、下载内容及公开状态。
 - `build.ps1` 的普通部署、`-Stage` 暂存和 IDE 的 Publish 是三种不同操作；不能把本地构建成功当成已上传。

@@ -1,10 +1,11 @@
-param([switch]$RequireStagedBuild)
+param([switch]$RequireStagedBuild, [switch]$UpdateVersion)
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $publishPath = Join-Path $projectRoot 'Properties\PublishConfiguration.xml'
 $projectPath = Join-Path $projectRoot 'CityWeaver.csproj'
-$profilePath = Join-Path $projectRoot 'Properties\PublishProfiles\PublishNewMod.pubxml'
+$profileName = if ($UpdateVersion) { 'PublishNewVersion.pubxml' } else { 'PublishNewMod.pubxml' }
+$profilePath = Join-Path $projectRoot ('Properties\PublishProfiles\' + $profileName)
 
 [xml]$publish = Get-Content -LiteralPath $publishPath -Raw
 [xml]$project = Get-Content -LiteralPath $projectPath -Raw
@@ -29,8 +30,12 @@ if ([string]::IsNullOrWhiteSpace($shortDescription) -or
 if ([string]$publish.Publish.GameVersion.Value -eq '1.0.*') {
     throw 'The supported game version is still the template placeholder.'
 }
-if ([string]$profile.Project.PropertyGroup.ModPublisherCommand -ne 'Publish') {
-    throw 'PublishNewMod.pubxml does not select the first-release Publish command.'
+$expectedCommand = if ($UpdateVersion) { 'NewVersion' } else { 'Publish' }
+if ([string]$profile.Project.PropertyGroup.ModPublisherCommand -ne $expectedCommand) {
+    throw "$profileName does not select the $expectedCommand command."
+}
+if ($UpdateVersion -and [string]::IsNullOrWhiteSpace([string]$publish.Publish.ModId.Value)) {
+    throw 'An existing Paradox Mods ModId is required for NewVersion.'
 }
 
 $thumbnailPath = Join-Path $projectRoot ([string]$publish.Publish.Thumbnail.Value)
