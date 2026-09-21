@@ -1,12 +1,12 @@
 # Paradox Mods 发布 CityWeaver
 
-CityWeaver 是游戏内代码模组，`mcp/` 中的 Node.js MCP 服务是独立组件。Paradox Mods 的代码模组包只包含游戏端构建产物；发布游戏模组不会自动分发 MCP 服务。公开发布前，应给玩家一个可获取且版本兼容的 MCP 服务安装渠道和使用说明，否则仅订阅模组无法使用城市查询或施工工具。
+CityWeaver 是游戏内代码模组，`mcp/` 中的 Node.js MCP 服务是独立组件，目前按 **Windows** 平台提供支持。Paradox Mods 的代码模组包只包含游戏端构建产物；发布游戏模组不会自动分发 MCP 服务。发布页的 GitHub 链接应指向可获取兼容 MCP 服务的项目，并在说明中明确还需 Node.js 20+ 和支持 STDIO MCP 的 Agent。仅订阅模组无法使用城市查询或施工工具。
 
 ## 首次发布前
 
 1. 确认游戏版本、已验证功能和已知限制；不要把编译或接口测试等同于全部实机验收。
 2. 检查 `CityWeaver.csproj`、`src/Core/GameQueryService.cs` 的 `bridge_version` 和 `Properties/PublishConfiguration.xml` 的 `ModVersion` 一致。`mcp/package.json` 是独立服务版本，不要求与模组版本相同。
-3. 检查发布页名称、说明、兼容游戏版本、缩略图、更新日志和公开级别。首次发布时 `ModId` 留空；之后更新必须填写平台返回的真实 ID。
+3. 检查发布页名称、Windows 支持范围、独立 MCP 服务要求、GitHub 链接、兼容游戏版本、缩略图、更新日志和公开级别。首次发布时 `ModId` 留空；之后更新必须填写平台返回的真实 ID。当前 `GameVersion=1.6.2*` 基于本机 1.6.2f1 记录，上传前仍须核对待发布游戏版本。
 4. 保存并退出游戏后运行 `./build.ps1 -Configuration Release -Stage`，再运行 `./tools/check-publish.ps1 -RequireStagedBuild`。此命令只验证和暂存，不上传。
 5. 确认暂存目录只包含预期的游戏端 DLL/Burst 文件，不包含桥接令牌、日志、存档、规划图和开发脚本。
 6. 在 Visual Studio 或 Rider 中选 `PublishNewMod` 发布配置，登录自己的 Paradox 账户，并在确认公开内容后执行发布。上传成功后回读页面、下载包和模组 ID，在另一套安装环境验证订阅安装。

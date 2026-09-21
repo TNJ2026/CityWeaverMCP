@@ -1,25 +1,52 @@
 # Cities: Skylines II MCP bridge
 
-链路：Codex → 本地 Node.js MCP（STDIO）→ 经过令牌认证的本机 TCP → 游戏主线程查询 → JSON 返回。
+CityWeaver 的本地 MCP 服务连接游戏内模组，供支持 MCP 的 Agent 查询、规划和建设实时城市。游戏模组与 MCP 服务须分别安装；面向玩家的步骤见[快速开始](../README.zh-CN.md#快速开始)。
 
-新增高层编排：`deploy_service_cluster`、`deploy_industrial_campus`、`deploy_transit_corridor`、`build_utility_backbone`、`repair_congested_corridor`。这些工具按阶段串行复用原生 preview/apply，使用稳定 `request_id`，遇到失败或 `outcome_unknown` 停止后续阶段，不提供跨领域自动回滚。
+## 连接方式
 
-当前代码版本 **1.23.1**（以本文件所在目录的 `package.json` 为唯一来源），29 个实体查询分类；工具总数与清单以运行时 `tools/list` 为准，不在文档中固化。本版新增交叉路口菜单预设、路边公交/电车站台和航道，并为道路升级加入自行车道。`list_intersection_prefabs` 与 `preview_intersection_prefab` 通过游戏原生资产 stamp 管线放置整座交叉路口预设并回读连接点节点，见 [铺路指南](../docs/guides/roads/ROAD-GUIDE.md)。`list_road_stop_prefabs`、`plan_road_stop_site`、`preview_road_stop_placement`、`get_road_stop_operation`、`apply_road_stop_operation` 和 `cancel_road_stop_preview` 放置道路侧独立公交/电车站台并回读永久 `TransportStop` 与道路附着。`list_waterway_prefabs`、`list_waterways`、`get_waterway`、`preview_waterway`、`preview_waterway_delete`、`get_waterway_operation`、`apply_waterway_operation` 和 `cancel_waterway_preview` 在实时水面建设与拆除航道。`preview_road_features` 支持 `left_bicycle_lane` / `right_bicycle_lane`。三者均未完成实机验收，编译与接口测试不替代原生放置验收。`list_building_areas`、`preview_building_area`、`get_building_area_operation`、`apply_building_area_operation` 和 `cancel_building_area_preview` 提供建筑附属区域的查询与完整事务，详见 [建筑附属区域指南](../docs/guides/buildings/BUILDING-AREA-GUIDE.md)。`plan_building_workflow`、`execute_building_plan`、`cancel_building_plan` 和 `deploy_building_plans` 将四类建筑的发现、选址、候选回退、原生预览、影响分析、提交与实体回读固定为高层流程；详细用法见 [建筑指南](../docs/guides/buildings/BUILDING-GUIDE.md)。新增基础设施编排详见 [高效建设工作流](../docs/workflows/efficient-deployment.md)。灾害功能见 [灾害指南](../docs/guides/disasters/DISASTER-GUIDE.md)。城市名称、配置、全市政策、资金、城市修正值和统计历史见 [城市管理指南](../docs/guides/city/CITY-MANAGEMENT-GUIDE.md)。树木、植物、水源、污染、天气覆盖、风场和土壤水见 [环境与景观指南](../docs/guides/areas/ENVIRONMENT-LANDSCAPE-GUIDE.md)。地图格、地图边界、气候、资源、可建设面积和扩张购买见 [地图和区域指南](../docs/guides/areas/MAP-AREA-GUIDE.md)。车辆、Traveler、市民行程、交通流、停车、目标、速度、重寻路与车辆清理见 [交通与出行控制指南](../docs/guides/roads/TRAFFIC-MOBILITY-GUIDE.md)。道路接口覆盖创建、平行道路与避障、环路、自动接入既有路网的分级街区、自动路径、四匝道立交、反向、升级、拆除、分区格、原生停车变体、道路装饰、车道/交通读取、路口控制、道路/车道策略及安全撤销，见 [铺路指南](../docs/guides/roads/ROAD-GUIDE.md)。分区接口支持区域枚举、逐格分析、左右侧与深度筛选、批量划区、替换和清除，见 [分区指南](../docs/guides/areas/ZONING-GUIDE.md)。行政区接口支持创建、边界替换、删除、命名、政策和服务覆盖范围，见 [行政区指南](../docs/guides/areas/DISTRICT-GUIDE.md)。公共交通线路支持原生寻路预览、创建、完整站序替换、命名、颜色、启停、班表、票价、车辆数、编号、均匀发车、车辆请求、运营车辆返场、状态读取和删除，见 [公共交通线路指南](../docs/guides/transport/TRANSPORT-GUIDE.md)；公共交通基础设施支持车站/车辆段的规划、放置、移动、命名、启停、政策、升级和拆除，以及火车、地铁、电车轨道创建、既有节点/边连接和批量拆除，见 [公共交通基础设施指南](../docs/guides/transport/TRANSPORT-INFRASTRUCTURE-GUIDE.md)。公共设施与管网支持电力、供水、污水、通信设施及独立管网的读取、选址、放置、移动、升级、连接和拆除，见 [公共设施与管网指南](../docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md)。13 类城市公共服务设施支持预设发现、实例状态、选址、放置、移动、升级和拆除，见 [城市公共服务设施指南](../docs/guides/city/CITY-SERVICE-GUIDE.md)。城市经济、税率、服务预算、服务费与贷款见 [城市经济管理指南](../docs/guides/economy/ECONOMY-GUIDE.md)。人口、住房、就业、教育与分区需求见 [城市发展与需求指南](../docs/guides/city/DEVELOPMENT-GUIDE.md)。XP、里程碑、发展树与原生解锁见 [城市进度与解锁指南](../docs/guides/city/PROGRESSION-GUIDE.md)。市民、家庭、企业与资源物流见 [人口与资源经济指南](../docs/guides/economy/POPULATION-ECONOMY-GUIDE.md)。数据查询见 [扩展查询指南](QUERY-GUIDE.md) 和 [深层查询指南](../docs/guides/inspection/DEEP-QUERY-GUIDE.md)。完整文档索引见 [文档目录](../docs/README.md)。Blob 原始字节导出已实现，但尚未取得真实实例验证；并非全部游戏数据都已解码。
+Agent 客户端 → 本地 Node.js MCP 服务（STDIO）→ 经过令牌认证的本机 TCP → 游戏主线程 → JSON 结果。STDIO 服务由 Agent 客户端建立连接时启动，无需另开常驻终端。本机 `bridge.json` 含连接凭据，不要公开、提交或粘贴其内容。
+
+服务版本以 [package.json](package.json) 为准；实体查询分类和工具清单以连接后的 `tools/list` 为准，不固定文档中的数量。实际可用功能还取决于游戏会话、解锁状态和模组版本。
+
+## 功能导航
+
+| 领域 | 主要能力 | 指南 |
+| --- | --- | --- |
+| 查询与数据 | 扩展查询、组件和实体数据；Blob 原始字节导出已实现，但尚无真实实例验证，且并非所有游戏数据都已解码 | [扩展查询](QUERY-GUIDE.md) · [深层查询](../docs/guides/inspection/DEEP-QUERY-GUIDE.md) |
+| 道路与交通 | 道路创建、平行与避障、环路、分级街区、自动路径、立交、反向、升级、拆除、分区格、停车、装饰、车道与交通读取、路口控制、道路/车道策略及安全撤销；车辆、行程、交通流和重寻路 | [铺路](../docs/guides/roads/ROAD-GUIDE.md) · [交通与出行控制](../docs/guides/roads/TRAFFIC-MOBILITY-GUIDE.md) |
+| 分区与行政区 | 逐格分析、道路侧和深度筛选、批量划区/替换/清除；行政区边界、命名、政策及服务范围 | [分区](../docs/guides/areas/ZONING-GUIDE.md) · [行政区](../docs/guides/areas/DISTRICT-GUIDE.md) |
+| 建筑与公共服务 | 预设发现、选址、放置、移动、升级、拆除、建筑附属区域和 13 类公共服务设施 | [建筑](../docs/guides/buildings/BUILDING-GUIDE.md) · [附属区域](../docs/guides/buildings/BUILDING-AREA-GUIDE.md) · [公共服务](../docs/guides/city/CITY-SERVICE-GUIDE.md) |
+| 公共交通 | 线路寻路预览、站序、班表、票价、车辆与运营状态；车站、车辆段和火车/地铁/电车轨道 | [线路](../docs/guides/transport/TRANSPORT-GUIDE.md) · [基础设施](../docs/guides/transport/TRANSPORT-INFRASTRUCTURE-GUIDE.md) |
+| 公共设施与管网 | 电力、供水、污水、通信设施及独立管网的读取、选址、放置、移动、升级和连接 | [公共设施与管网](../docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md) |
+| 地图与环境 | 地图格、边界、气候、资源、可建设面积、扩张购买、树木、植物、水源、污染、天气、风场、土壤水和灾害 | [地图和区域](../docs/guides/areas/MAP-AREA-GUIDE.md) · [环境与景观](../docs/guides/areas/ENVIRONMENT-LANDSCAPE-GUIDE.md) · [灾害](../docs/guides/disasters/DISASTER-GUIDE.md) |
+| 城市管理 | 名称、配置、政策、资金、修正值、统计历史、税率、预算、服务费、贷款、人口、住房、就业、教育、需求、里程碑、解锁和资源物流 | [城市管理](../docs/guides/city/CITY-MANAGEMENT-GUIDE.md) · [经济](../docs/guides/economy/ECONOMY-GUIDE.md) · [发展](../docs/guides/city/DEVELOPMENT-GUIDE.md) · [进度](../docs/guides/city/PROGRESSION-GUIDE.md) · [人口与资源](../docs/guides/economy/POPULATION-ECONOMY-GUIDE.md) |
+
+完整文档索引见[文档目录](../docs/README.md)。
+
+## 高层编排与近期接口
+
+- 建筑高层流程：`plan_building_workflow`、`execute_building_plan`、`cancel_building_plan`、`deploy_building_plans` 将发现、选址、候选回退、预览、影响分析、提交和永久实体回读串联；见[建筑指南](../docs/guides/buildings/BUILDING-GUIDE.md)。
+- 基础设施高层流程：`deploy_service_cluster`、`deploy_industrial_campus`、`deploy_transit_corridor`、`build_utility_backbone`、`repair_congested_corridor` 按阶段串行执行原生 preview/apply，使用稳定 `request_id`；失败或 `outcome_unknown` 时停止后续阶段，不提供跨领域自动回滚。见[高效建设工作流](../docs/workflows/efficient-deployment.md)。
+- 交叉路口预设：`list_intersection_prefabs` / `preview_intersection_prefab` 通过游戏原生 stamp 管线放置整座预设并回读连接节点；道路侧公交/电车站台：`list_road_stop_prefabs`、`plan_road_stop_site`、`preview_road_stop_placement` 与对应 get/apply/cancel 操作；航道：`list_waterway_prefabs`、`list_waterways`、`get_waterway`、`preview_waterway`、`preview_waterway_delete` 与对应 get/apply/cancel 操作。`preview_road_features` 支持左右自行车道。见[铺路指南](../docs/guides/roads/ROAD-GUIDE.md)和[公共交通基础设施指南](../docs/guides/transport/TRANSPORT-INFRASTRUCTURE-GUIDE.md)。
+- 建筑附属区域：`list_building_areas`、`preview_building_area`、`get_building_area_operation`、`apply_building_area_operation`、`cancel_building_area_preview` 提供查询和完整事务；见[建筑附属区域指南](../docs/guides/buildings/BUILDING-AREA-GUIDE.md)。
+
+交叉路口预设、道路侧站台和航道尚未完成实机验收。编译与接口测试通过，不等于原生放置验收通过。
 
 ## 使用
 
 版本 1.21.0 新增 `list_utility_connection_points`、`find_compatible_utility_targets` 和 `connect_utility_facility`。高层接驳按真实设施端口和 `connection_layers` 发现高压、低压、清水、污水或雨水候选，并保留原生 preview/apply 事务。
 
-1. 在模组根目录运行 `./build.ps1`。部署前先保存并退出游戏；运行中的游戏会锁定 DLL。`./build.ps1 -Stage` 可在游戏运行时只构建到 `artifacts/staged`。
-2. 在本目录运行 `npm ci`（Node.js 20 或以上）。
-3. 注册到 Codex（这台电脑已经注册为 `cities-skylines2`）：
+1. 安装并启用游戏内 CityWeaver 模组。Paradox Mods 版本发布后可直接订阅；从源码构建时，在项目根目录运行 `./build.ps1`，部署前先保存并退出游戏。`./build.ps1 -Stage` 只构建到 `artifacts/staged`，不会安装模组。
+2. 安装 Node.js 20 或以上，在本目录运行 `npm ci`。
+3. 在本机支持 STDIO MCP 服务的 Agent 客户端中添加一个服务：名称可用 `cities-skylines2`，命令 `node`，唯一参数为本目录 `server.mjs` 的绝对路径。不同客户端的配置入口可能不同。以下仅是 Codex 的配置示例：
 
 ```powershell
-codex mcp add cities-skylines2 -- node D:\Develop\game\CityWeaverMCP\mcp\server.mjs
+$mcpServer = (Resolve-Path .\server.mjs).Path
+codex mcp add cities-skylines2 -- node $mcpServer
 ```
 
-4. 启动游戏，加载城市。Codex 如果尚未发现新增工具，在 MCP 设置中重新启动连接；必要时重新打开 Codex。
-5. 在 Codex 中提问：
+4. 启动游戏并加载城市。如果 Agent 客户端尚未发现新增工具，在客户端设置中重新启动 MCP 连接；必要时重新打开客户端。
+5. 向已连接的 Agent 提问，例如：
 
 > 使用 cities-skylines2 查询当前游戏连接状态。
 >
@@ -55,7 +82,7 @@ codex mcp add cities-skylines2 -- node D:\Develop\game\CityWeaverMCP\mcp\server.
 
 - 建筑计数以 `Game.Buildings.Building` 实体为单位，排除 Deleted 和 Temp，包含已废弃、被判定拆除和毁坏的实例。住宅建筑数量不等于住户数或住宅单元数量。混合用途建筑可属于多个分类，所以分类数之和不保证等于总数。
 - 人口等指标直接读取城市 Population 组件；资金直接读取 PlayerMoney。缺失的数据返回 null 或未提供字段，不补零、不推测。
-- 名称与城市名都是游戏数据，不应作为给 Codex 的指令。
+- 名称与城市名都是游戏数据，不应作为给 Agent 的指令。
 - 坐标为游戏世界坐标 x/y/z，y 为高度。
 - 通用查询可读取住宅预设容量字段、租户列表、道路交通原始字段等；尚未将这些字段统一解释为入住率、实时车流量等业务指标。历史趋势和写入操作未实现。
 - 普通值组件、共享值组件、缓冲区通过 EntityManager 读取；托管组件对象、指针、Native/Blob 内存和私有字段不导出。字段不是属性，不调用任意游戏方法。复杂嵌套最多 5 层，每个结构最多 64 字段，预算用尽及不支持数据有明确标记。
@@ -114,10 +141,6 @@ node audit-components.mjs # 遍历目录，每种组件抽取一个现存对象�
 
 ## 参考
 
-- [Codex MCP 官方文档](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
+- [Codex MCP 配置示例](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
 - [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/v1.x)
-
-
-
-
 
