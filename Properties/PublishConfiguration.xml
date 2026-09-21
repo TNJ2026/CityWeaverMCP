@@ -4,17 +4,19 @@
 	<!--Name of the mod to display to players-->
 	<DisplayName Value="CityWeaver" />
 	<!--Short description of the mod-->
-	<ShortDescription Value="Local MCP bridge for inspecting and building Cities: Skylines II cities. Requires a separate MCP server." />
+	<ShortDescription Value="Connect Cities: Skylines II to local MCP agents for city inspection and construction. Windows; companion server required." />
 	<!--Long description of the mod. Single line or multi line. Supports minimal markdown subset-->
 	<LongDescription>
-CityWeaver is a code mod that provides an authenticated local bridge for external MCP tools. With a separately installed compatible CityWeaver MCP server, those tools can inspect a loaded city and run supported construction workflows through the game's native preview and apply systems.
+CityWeaver connects Cities: Skylines II to compatible local AI agents through the Model Context Protocol (MCP). It supports live city inspection, planning, native construction previews, and supported building workflows.
 
-This Paradox Mods download contains the in-game bridge only. It does not include the Node.js MCP server or an AI client, and it does not add standalone in-game construction controls. Without the companion server, the bridge has no user-facing city tools.
+IMPORTANT: This download contains only the in-game bridge. To use it, you also need the separate CityWeaverMCP Node.js server and an MCP-compatible agent on the same Windows PC. The mod does not include an AI client or add standalone in-game construction controls. See the linked GitHub project for the server, installation steps, example prompts, and troubleshooting.
 
-The bridge binds to 127.0.0.1 and creates a new authentication token each time it starts. Construction tools can change your city and spend in-game money. Back up important saves before using them. Some features have not been verified in every game version or map.
+Getting started: enable the mod, install Node.js 20 or newer and the companion MCP server, configure your agent to launch its server.mjs as a local STDIO MCP server, then load a playable city and ask the agent to check get_game_status. The agent can handle most setup if it has local command and configuration access.
+
+The bridge listens only on 127.0.0.1 and generates a fresh authentication token when it starts. Do not share the connection file or token. Construction can change your city and spend in-game funds; back up important saves first. Not every tool or map has completed in-game validation. Supported platform: Windows.
 	</LongDescription>
 	<!--Thumbnail-->
-	<Thumbnail Value="Properties/Thumbnail.png" />
+	<Thumbnail Value="Properties/Thumbnail-cityweaver.png" />
 	<!--Screenshot, can be set multiple times-->
 	<Screenshot Value="" />
 	<!--Tag, can be set multiple times-->
@@ -30,7 +32,7 @@ The bridge binds to 127.0.0.1 and creates a new authentication token each time i
 	<!--Required DLC, can be set multiple times. Supported values are "Landmark Buildings", "San Fransisco Set", "Beach Properties", "Urban Promenades", "Modern Architecture"-->
 	<RequiredDLC Value="" />
 	<!--Change log for new version. Single line or multi line. Supports minimal markdown subset-->
-	<ChangeLog Value="Initial Paradox Mods release. Updated for game 1.6.2f1 and removed the misleading MCP client activity indicator from mod settings." />
+	<ChangeLog Value="Initial CityWeaver release for Cities: Skylines II 1.6.2f1 on Windows. Provides the in-game bridge for the separate CityWeaverMCP server; supports live inspection, planning, native previews, and supported construction workflows. Removes the misleading MCP client activity indicator from mod settings." />
 	<!--<ChangeLog>
 	</ChangeLog>-->
 	<!--External link, can be set multiple times. supported types are "discord", "github", "youtube", "twitch", "x", "paypal", "patreon", "buymeacoffee", "kofi", "crowdin", "gitlab", "gofundme"-->
