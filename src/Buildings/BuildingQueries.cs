@@ -33,7 +33,7 @@ namespace CityWeaver
     {
         public string Id = Guid.NewGuid().ToString("N"), Session, RequestId, Fingerprint;
         public string Type, State = "queued", Error, CommitRequestId, PrefabName, OriginalPrefabName, UpgradePlacementMode, UpgradePlacementSide;
-        public Entity Prefab, Target, OriginalPrefab, ParentRoad;
+        public Entity Prefab, Target, OriginalPrefab, ParentRoad, AttachmentPrefab;
         public float3 Position, OriginalPosition;
         public quaternion Rotation, OriginalRotation;
         public float RotationDegrees, UpgradePlacementOffset;
@@ -46,7 +46,9 @@ namespace CityWeaver
         public int ExpectedResultCount = 1;
         public bool CommitRequested, ApplyDispatched, CancelRequested;
         public bool RoadStopPlacement;
-        public string RoadStopTransportType;
+        public bool ExtractorOwnerPlacement;
+        public bool ExtractorAreaOnOwner;
+        public string RoadStopTransportType, AttachmentPrefabName;
         public DateTime Created = DateTime.UtcNow, Expires = DateTime.UtcNow.AddMinutes(5);
         public bool Terminal => State == "completed" || State == "failed" || State == "cancelled" || State == "expired" || State == "outcome_unknown";
         public string EntityId(Entity e) => e == Entity.Null ? null : Session + ":" + e.Index + ":" + e.Version;
@@ -62,6 +64,9 @@ namespace CityWeaver
             ["rotation_degrees"] = RotationDegrees, ["cost"] = Cost, ["max_cost"] = MaxCost,
             ["errors"] = Errors.DeepClone(), ["warnings"] = Warnings.DeepClone(), ["error"] = Error,
             ["preview_entity_count"] = PreviewEntities.Count, ["expected_building_count"] = ExpectedResultCount,
+            ["specialized_industry_owner"] = ExtractorOwnerPlacement,
+            ["extractor_area_on_owner"] = ExtractorAreaOnOwner,
+            ["attachment_building_prefab"] = AttachmentPrefabName,
             ["placements"] = Placements.Count == 0 ? null : new JArray(Placements.Select((p, i) => new JObject {
                 ["index"] = i, ["building_prefab"] = p.PrefabName, ["road_edge_id"] = EntityId(p.ParentRoad),
                 ["position"] = Point(p.Position), ["rotation_degrees"] = p.RotationDegrees, ["road_side"] = p.Side,
@@ -116,10 +121,32 @@ namespace CityWeaver
 
         private static bool PrefabLocked(EntityManager em, Entity prefab) => em.HasComponent<Locked>(prefab) && em.IsComponentEnabled<Locked>(prefab);
 
+        private static bool ExtractorOwnerHasDirectArea(EntityManager em, Entity prefab)
+        {
+            if (!em.HasBuffer<Game.Prefabs.SubArea>(prefab)) return false;
+            var areas = em.GetBuffer<Game.Prefabs.SubArea>(prefab, true);
+            for (int i = 0; i < areas.Length; i++)
+                if (em.Exists(areas[i].m_Prefab) && em.HasComponent<ExtractorAreaData>(areas[i].m_Prefab)) return true;
+            return false;
+        }
+
+        private static bool ExtractorOwnerPrefab(EntityManager em, Entity prefab)
+        {
+            // Inland industries declare the extractor area on the placeholder.
+            // Waterborne industries declare it on a compatible upgrade instead.
+            if (!em.HasComponent<PlaceholderBuildingData>(prefab)) return false;
+            if (ExtractorOwnerHasDirectArea(em, prefab)) return true;
+            if (!em.HasBuffer<BuildingUpgradeElement>(prefab)) return false;
+            var upgrades = em.GetBuffer<BuildingUpgradeElement>(prefab, true);
+            for (int i = 0; i < upgrades.Length; i++)
+                if (em.Exists(upgrades[i].m_Upgrade) && ExtractorOwnerHasDirectArea(em, upgrades[i].m_Upgrade)) return true;
+            return false;
+        }
+
         private JObject ListBuildingPrefabs(JObject args, World world)
         {
             var search = ((string)args["search"] ?? "").Trim(); var kind = ((string)args["kind"] ?? "building").ToLowerInvariant();
-            if (kind != "building" && kind != "upgrade" && kind != "all") throw new QueryException("INVALID_ARGUMENT", "kind must be building, upgrade, or all.");
+            if (kind != "building" && kind != "upgrade" && kind != "all" && kind != "specialized_industry") throw new QueryException("INVALID_ARGUMENT", "kind must be building, upgrade, specialized_industry, or all.");
             int offset = ComponentInspector.Int(args, "offset", 0, 0, 100000), limit = ComponentInspector.Int(args, "limit", 50, 1, 100);
             bool unlockedOnly = (bool?)args["unlocked_only"] ?? true;
             var em = world.EntityManager; var prefabs = world.GetExistingSystemManaged<PrefabSystem>(); var rows = new List<JObject>();
@@ -130,6 +157,7 @@ namespace CityWeaver
                     bool upgrade = em.HasComponent<Game.Prefabs.ServiceUpgradeData>(entity);
                     bool building = !upgrade && em.HasComponent<BuildingData>(entity) && em.HasComponent<PlaceableObjectData>(entity);
                     if ((!building && !upgrade) || (kind == "building" && !building) || (kind == "upgrade" && !upgrade)) continue;
+                    if (kind == "specialized_industry" && (!building || !ExtractorOwnerPrefab(em, entity))) continue;
                     if (!prefabs.TryGetPrefab<PrefabBase>(entity, out var prefab) || (!string.IsNullOrEmpty(search) && prefab.name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0)) continue;
                     bool locked = PrefabLocked(em, entity); if (unlockedOnly && locked) continue;
                     var row = new JObject { ["name"] = prefab.name, ["kind"] = upgrade ? "upgrade" : "building", ["locked"] = locked };
@@ -146,6 +174,43 @@ namespace CityWeaver
                         row["max_placement_distance_m"] = data.m_MaxPlacementDistance; row["max_placement_offset_cells"] = data.m_MaxPlacementOffset;
                         row["compatible_building_count"] = em.HasBuffer<ServiceUpgradeBuilding>(entity) ? em.GetBuffer<ServiceUpgradeBuilding>(entity, true).Length : 0; }
                     if (em.HasComponent<ObjectGeometryData>(entity)) { var geometry = em.GetComponentData<ObjectGeometryData>(entity); row["size_m"] = new JObject { ["x"] = geometry.m_Size.x, ["y"] = geometry.m_Size.y, ["z"] = geometry.m_Size.z }; }
+                    if (building)
+                    {
+                        bool extractorOwner = ExtractorOwnerPrefab(em, entity);
+                        row["specialized_industry_owner"] = extractorOwner;
+                        if (extractorOwner)
+                        {
+                            var placeholder = em.GetComponentData<PlaceholderBuildingData>(entity);
+                            row["specialized_industry_entry_kind"] = placeholder.m_Type.ToString();
+                            var extractorAreas = new JArray(); var seen = new HashSet<Entity>();
+                            if (em.HasBuffer<Game.Prefabs.SubArea>(entity))
+                            {
+                                var areas = em.GetBuffer<Game.Prefabs.SubArea>(entity, true);
+                                for (int i = 0; i < areas.Length; i++)
+                                    if (seen.Add(areas[i].m_Prefab) && em.HasComponent<ExtractorAreaData>(areas[i].m_Prefab))
+                                        extractorAreas.Add(BuildingAreaPrefabRow(world, areas[i].m_Prefab));
+                            }
+                            row["extractor_area_prefabs"] = extractorAreas;
+                            row["extractor_area_on_owner"] = extractorAreas.Count > 0;
+                            var areaUpgrades = new JArray();
+                            if (em.HasBuffer<BuildingUpgradeElement>(entity))
+                            {
+                                var upgrades = em.GetBuffer<BuildingUpgradeElement>(entity, true);
+                                for (int i = 0; i < upgrades.Length; i++)
+                                {
+                                    var upgradeEntity = upgrades[i].m_Upgrade;
+                                    if (!em.Exists(upgradeEntity) || !ExtractorOwnerHasDirectArea(em, upgradeEntity) || !prefabs.TryGetPrefab<PrefabBase>(upgradeEntity, out var upgradePrefab)) continue;
+                                    var upgradeAreas = new JArray(); var upgradeSeen = new HashSet<Entity>();
+                                    var subAreas = em.GetBuffer<Game.Prefabs.SubArea>(upgradeEntity, true);
+                                    for (int j = 0; j < subAreas.Length; j++)
+                                        if (upgradeSeen.Add(subAreas[j].m_Prefab) && em.HasComponent<ExtractorAreaData>(subAreas[j].m_Prefab))
+                                            upgradeAreas.Add(BuildingAreaPrefabRow(world, subAreas[j].m_Prefab));
+                                    areaUpgrades.Add(new JObject { ["upgrade_prefab"] = upgradePrefab.name, ["area_prefabs"] = upgradeAreas });
+                                }
+                            }
+                            row["extractor_area_upgrades"] = areaUpgrades;
+                        }
+                    }
                     rows.Add(row);
                 }
             rows.Sort((a, b) => string.CompareOrdinal((string)a["name"], (string)b["name"]));
@@ -275,7 +340,12 @@ namespace CityWeaver
                     catch (QueryException) { }
                 }
             }
-            return new JObject { ["mode"] = upgradeData.m_MaxPlacementDistance != 0f ? "owner_side_and_road_side" : "owner_side", ["owner_position"] = PointJson(transform.m_Position),
+            bool floating = em.HasComponent<PlaceableObjectData>(upgradePrefab) &&
+                (em.GetComponentData<PlaceableObjectData>(upgradePrefab).m_Flags & Game.Objects.PlacementFlags.Floating) != 0 &&
+                upgradeData.m_MaxPlacementDistance > 0;
+            return new JObject { ["mode"] = upgradeData.m_MaxPlacementDistance != 0f ? "owner_side_and_road_side" : "owner_side",
+                ["floating_supported"] = floating, ["floating_planner"] = floating ? "plan_special_building_site" : null,
+                ["owner_position"] = PointJson(transform.m_Position),
                 ["owner_forward"] = new JObject { ["x"] = forward3.x, ["z"] = forward3.z }, ["owner_lot_cells"] = new JObject { ["width"] = owner.m_LotSize.x, ["depth"] = owner.m_LotSize.y },
                 ["upgrade_lot_cells"] = new JObject { ["width"] = module.m_LotSize.x, ["depth"] = module.m_LotSize.y }, ["placement_range"] = range,
                 ["owner_side_snap"] = new JObject { ["max_placement_offset_cells"] = upgradeData.m_MaxPlacementOffset, ["effective_max_placement_offset_cells"] = maxOffset,
@@ -705,12 +775,45 @@ namespace CityWeaver
         private JObject PlanSpecialBuildingSite(JObject args, World world)
         {
             var em = world.EntityManager;
-            var prefab = ResolveBuildingPrefab((string)args["building_prefab"], world, false);
+            var ownerId = (string)args["owner_building_id"];
+            var owner = Entity.Null;
+            if (ownerId != null) owner = TopLevelBuilding(new JObject { ["building_id"] = ownerId }, world);
+            var prefab = ResolveBuildingPrefab((string)args["building_prefab"], world, owner != Entity.Null);
             if (PrefabLocked(em, prefab)) throw new QueryException("BUILDING_LOCKED", "This building prefab is locked.");
             var flags = em.GetComponentData<PlaceableObjectData>(prefab).m_Flags;
             string mode = ((string)args["mode"] ?? "auto").ToLowerInvariant();
             if (mode == "auto") mode = (flags & Game.Objects.PlacementFlags.RoadEdge) != 0 ? "road_edge" : (flags & Game.Objects.PlacementFlags.Shoreline) != 0 ? "shoreline" : (flags & Game.Objects.PlacementFlags.Floating) != 0 ? "floating" : (flags & Game.Objects.PlacementFlags.RoadNode) != 0 ? "road_node" : "";
             if (!new[] { "shoreline", "floating", "road_edge", "road_node" }.Contains(mode)) throw new QueryException("SPECIAL_PLACEMENT_UNSUPPORTED", "Prefab has no supported shoreline, floating, road-edge, or road-node placement mode.");
+            float2 upgradeRangeForward = default; float upgradeRangeWidth = 0, upgradeRangeLength = 0, upgradeRangeRoundness = 0;
+            bool upgradeRangeCircular = false; BuildingData upgradeBuilding = default; float3 ownerPosition = default; quaternion ownerRotation = quaternion.identity;
+            if (owner != Entity.Null)
+            {
+                if (mode != "floating" || (flags & Game.Objects.PlacementFlags.Floating) == 0)
+                    throw new QueryException("SPECIAL_UPGRADE_MODE_UNSUPPORTED", "This upgrade planner supports only floating upgrades.");
+                var ownerPrefab = em.GetComponentData<PrefabRef>(owner).m_Prefab;
+                bool compatibleOwner = false;
+                if (em.HasBuffer<ServiceUpgradeBuilding>(prefab))
+                {
+                    var compatibleBuildings = em.GetBuffer<ServiceUpgradeBuilding>(prefab, true);
+                    for (int i = 0; i < compatibleBuildings.Length; i++)
+                    {
+                        if (compatibleBuildings[i].m_Building != ownerPrefab) continue;
+                        compatibleOwner = true;
+                        break;
+                    }
+                }
+                if (!em.HasComponent<BuildingData>(ownerPrefab) || !em.HasComponent<BuildingData>(prefab) || !em.HasComponent<Game.Prefabs.ServiceUpgradeData>(prefab) || !compatibleOwner)
+                    throw new QueryException("INCOMPATIBLE_BUILDING_UPGRADE", "Use a floating upgrade returned by list_building_upgrades for this permanent owner.");
+                var upgradeData = em.GetComponentData<Game.Prefabs.ServiceUpgradeData>(prefab);
+                if (upgradeData.m_MaxPlacementDistance <= 0)
+                    throw new QueryException("UPGRADE_FLOATING_UNSUPPORTED", "This upgrade has no native long-distance placement range.");
+                upgradeBuilding = em.GetComponentData<BuildingData>(prefab);
+                var transform = em.GetComponentData<Game.Objects.Transform>(owner);
+                ownerPosition = transform.m_Position; ownerRotation = transform.m_Rotation;
+                BuildingUtils.CalculateUpgradeRangeValues(ownerRotation, em.GetComponentData<BuildingData>(ownerPrefab), upgradeBuilding, upgradeData,
+                    out var forward, out upgradeRangeWidth, out upgradeRangeLength, out upgradeRangeRoundness, out upgradeRangeCircular);
+                upgradeRangeForward = forward.xz;
+            }
             if (!(args["near"] is JObject near)) throw new QueryException("INVALID_ARGUMENT", "near must contain x and z.");
             var origin = new float2(BuildingNumber(near, "x", 0, -7168, 7168), BuildingNumber(near, "z", 0, -7168, 7168));
             float radius = BuildingNumber(args, "search_radius_m", 500, 16, 3000);
@@ -762,7 +865,8 @@ namespace CityWeaver
             {
                 var waterSystem = world.GetExistingSystemManaged<WaterSystem>(); var surface = waterSystem.GetSurfaceData(out var deps); deps.Complete();
                 if (!surface.isCreated) throw new QueryException("WATER_UNAVAILABLE", "Water surface data is unavailable.");
-                bool requiresRoad = em.HasComponent<BuildingData>(prefab) && (em.GetComponentData<BuildingData>(prefab).m_Flags & Game.Prefabs.BuildingFlags.RequireRoad) != 0;
+                bool requiresRoad = ExtractorOwnerPrefab(em, prefab) ||
+                    (em.HasComponent<BuildingData>(prefab) && (em.GetComponentData<BuildingData>(prefab).m_Flags & Game.Prefabs.BuildingFlags.RequireRoad) != 0);
                 if (mode == "shoreline" && requiresRoad)
                 {
                     using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<Road>(), ComponentType.ReadOnly<Edge>(), ComponentType.ReadOnly<Curve>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
@@ -807,6 +911,23 @@ namespace CityWeaver
                         }
                         else p.y = waterHeight;
                         float angle = gradient > .001f ? math.degrees(math.atan2(dx, dz)) : 0;
+                        if (owner != Entity.Null)
+                        {
+                            var ownerForward = math.forward(ownerRotation);
+                            angle = math.degrees(math.atan2(ownerForward.x, ownerForward.z));
+                            var candidateRotation = quaternion.RotateY(math.radians(angle));
+                            if (!UpgradeFootprintInsideRange(ownerPosition, upgradeRangeForward, upgradeRangeWidth, upgradeRangeLength,
+                                upgradeRangeRoundness, upgradeRangeCircular, upgradeBuilding, p, candidateRotation)) continue;
+                            float3[] corners = {
+                                p + math.mul(candidateRotation, new float3(prefabHalf.x, 0, prefabHalf.y)),
+                                p + math.mul(candidateRotation, new float3(prefabHalf.x, 0, -prefabHalf.y)),
+                                p + math.mul(candidateRotation, new float3(-prefabHalf.x, 0, prefabHalf.y)),
+                                p + math.mul(candidateRotation, new float3(-prefabHalf.x, 0, -prefabHalf.y))
+                            };
+                            if (corners.Any(c => WaterUtils.SampleDepth(ref surface, c) < minDepth)) continue;
+                            var ownerLot = em.GetComponentData<BuildingData>(em.GetComponentData<PrefabRef>(owner).m_Prefab).m_LotSize;
+                            if (math.distance(p.xz, ownerPosition.xz) < math.length(new float2(ownerLot.x, ownerLot.y)) * 4f + math.length(prefabHalf) + 8f) continue;
+                        }
                         if (mode == "shoreline") { angle += 180; if (angle > 180) angle -= 360; }
                         candidates.Add(Tuple.Create(distance + (mode == "shoreline" ? math.abs(depth) * 10 + shorelineGap * 20 : 0), new JObject { ["position"] = new JObject { ["x"] = p.x, ["y"] = p.y, ["z"] = p.z },
                             ["rotation_degrees"] = angle, ["snap_target_id"] = null, ["snap_target_kind"] = mode, ["water_depth_m"] = depth,
@@ -815,9 +936,9 @@ namespace CityWeaver
                 }
             }
             var selected = candidates.OrderBy(x => x.Item1).Take(count).Select((x, i) => { x.Item2["index"] = i; return x.Item2; }).ToList();
-            return new JObject { ["building_prefab"] = (string)args["building_prefab"], ["placement_mode"] = mode, ["candidate_count"] = selected.Count,
+            return new JObject { ["building_prefab"] = (string)args["building_prefab"], ["owner_building_id"] = ownerId, ["placement_mode"] = mode, ["candidate_count"] = selected.Count,
                 ["total_candidate_count"] = candidates.Count, ["candidates"] = new JArray(selected),
-                ["note"] = "Candidates use live network, terrain and water data. Road-edge candidates reserve the prefab footprint from endpoints; road-required shoreline candidates verify both road frontage and water at the outer edge. Native preview remains authoritative." };
+                ["note"] = owner != Entity.Null ? "Floating upgrade candidates are inside the native owner range and have water under every lot corner; native preview must still validate subnet snapping and collisions." : "Candidates use live network, terrain and water data. Road-edge candidates reserve the prefab footprint from endpoints; road-required shoreline candidates verify both road frontage and water at the outer edge. Native preview remains authoritative." };
         }
 
         private BuildingOperation PreviewBuildingBatchPlacement(JObject args, World world)
@@ -829,6 +950,7 @@ namespace CityWeaver
             var tool = BuildingTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
             var em = world.EntityManager; string prefabName = (string)args["building_prefab"]; var prefab = ResolveBuildingPrefab(prefabName, world, false);
             if (PrefabLocked(em, prefab)) throw new QueryException("BUILDING_LOCKED", "The selected building prefab is locked.");
+            if (ExtractorOwnerPrefab(em, prefab)) throw new QueryException("SPECIALIZED_INDUSTRY_REQUIRES_SINGLE_PREVIEW", "Place specialized-industry entrances one at a time so their native production attachment is previewed and verified.");
             var placementFlags = em.GetComponentData<PlaceableObjectData>(prefab).m_Flags;
             if ((placementFlags & Game.Objects.PlacementFlags.RoadSide) == 0 || (placementFlags & Game.Objects.PlacementFlags.OnGround) == 0) throw new QueryException("BUILDING_REQUIRES_SPECIAL_PLACEMENT", "Batch placement supports RoadSide + OnGround buildings.");
             if (!(args["placements"] is JArray input) || input.Count < 1 || input.Count > 32) throw new QueryException("INVALID_ARGUMENT", "placements must contain 1..32 planned buildings.");
@@ -902,10 +1024,38 @@ namespace CityWeaver
                     var host = em.GetComponentData<BuildingData>(op.OriginalPrefab);
                     var module = em.GetComponentData<BuildingData>(op.Prefab);
                     var placementMode = ((string)args["placement_mode"] ?? "owner_side").ToLowerInvariant();
-                    if (placementMode != "owner_side" && placementMode != "road_side")
-                        throw new QueryException("INVALID_ARGUMENT", "placement_mode must be owner_side or road_side.");
+                    if (placementMode != "owner_side" && placementMode != "road_side" && placementMode != "floating")
+                        throw new QueryException("INVALID_ARGUMENT", "placement_mode must be owner_side, road_side, or floating.");
                     op.UpgradePlacementMode = placementMode;
-                    if (placementMode == "road_side")
+                    if (placementMode == "floating")
+                    {
+                        if ((em.GetComponentData<PlaceableObjectData>(op.Prefab).m_Flags & Game.Objects.PlacementFlags.Floating) == 0 || upgradeData.m_MaxPlacementDistance <= 0)
+                            throw new QueryException("UPGRADE_FLOATING_UNSUPPORTED", "This upgrade cannot be placed in open water within a native owner range.");
+                        if (!(args["position"] is JObject floatingPosition) || args["rotation_degrees"] == null || args["road_edge_id"] != null || args["snap_target_id"] != null ||
+                            math.abs(BuildingNumber(args, "placement_offset_m", 0, -512, 512)) > .001f)
+                            throw new QueryException("INVALID_ARGUMENT", "floating upgrade placement requires the exact position and rotation from plan_special_building_site with owner_building_id, without a road snap target.");
+                        op.Position = new float3(BuildingNumber(floatingPosition, "x", 0, -7168, 7168),
+                            BuildingNumber(floatingPosition, "y", 0, -1024, 4096), BuildingNumber(floatingPosition, "z", 0, -7168, 7168));
+                        op.RotationDegrees = BuildingNumber(args, "rotation_degrees", 0, -360, 360);
+                        op.Rotation = quaternion.RotateY(math.radians(op.RotationDegrees));
+                        var terrain = world.GetExistingSystemManaged<TerrainSystem>().GetHeightData(true);
+                        var water = world.GetExistingSystemManaged<WaterSystem>().GetSurfaceData(out var waterDeps); waterDeps.Complete();
+                        if (!terrain.isCreated || !water.isCreated) throw new QueryException("WATER_UNAVAILABLE", "Terrain or water surface data is not ready.");
+                        bool hasWater; float waterHeight = WaterUtils.SampleHeight(ref water, ref terrain, op.Position, out hasWater);
+                        if (!hasWater || math.abs(op.Position.y - waterHeight) > 1f || WaterUtils.SampleDepth(ref water, op.Position) < 1f)
+                            throw new QueryException("UPGRADE_WATER_UNAVAILABLE", "Use a current floating candidate with a matching water-surface height.");
+                        BuildingUtils.CalculateUpgradeRangeValues(op.OriginalRotation, host, module, upgradeData,
+                            out var rangeForward, out var width, out var length, out var roundness, out var circular);
+                        if (!UpgradeFootprintInsideRange(op.OriginalPosition, rangeForward.xz, width, length, roundness, circular, module, op.Position, op.Rotation))
+                            throw new QueryException("UPGRADE_OUTSIDE_NATIVE_RANGE", "All four upgrade lot corners must remain inside the owner's native placement range.");
+                        var half = PrefabHalfExtents(em, op.Prefab);
+                        foreach (var local in new[] { new float3(half.x, 0, half.y), new float3(half.x, 0, -half.y),
+                            new float3(-half.x, 0, half.y), new float3(-half.x, 0, -half.y) })
+                            if (WaterUtils.SampleDepth(ref water, op.Position + math.mul(op.Rotation, local)) < 1f)
+                                throw new QueryException("UPGRADE_WATER_UNAVAILABLE", "The floating upgrade lot must be over water at all four corners.");
+                        op.UpgradePlacementSide = "water"; op.UpgradePlacementOffset = 0;
+                    }
+                    else if (placementMode == "road_side")
                     {
                         if (upgradeData.m_MaxPlacementDistance == 0f)
                             throw new QueryException("UPGRADE_ROADSIDE_UNSUPPORTED", "This upgrade has no native roadside placement range; use owner_side.");
@@ -978,6 +1128,12 @@ namespace CityWeaver
             }
             else { op.Prefab = op.OriginalPrefab; op.PrefabName = op.OriginalPrefabName; }
             if (op.Prefab != Entity.Null && PrefabLocked(em, op.Prefab)) throw new QueryException("BUILDING_LOCKED", "The selected building or upgrade prefab is locked.");
+            if (type == "place" && ExtractorOwnerPrefab(em, op.Prefab))
+            {
+                op.ExtractorOwnerPlacement = true;
+                op.ExtractorAreaOnOwner = ExtractorOwnerHasDirectArea(em, op.Prefab);
+                op.ExpectedResultCount = 2;
+            }
             if (needsPosition)
             {
                 if (!(args["position"] is JObject position)) throw new QueryException("INVALID_ARGUMENT", "position must contain x and z.");

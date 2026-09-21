@@ -1,6 +1,6 @@
 interface:
-  display_name: "城市天际线 II · CityWeaverMCP"
-  short_description: "查询实时城市，规划并操作道路、建筑、交通、经济、地形与灾害"
-  default_prompt: "使用 $cities-skylines2 检查当前城市连接和可用功能，并按我的目标查询或操作城市。"
+  display_name: "CityWeaverMCP · Cities: Skylines II"
+  short_description: "Inspect, plan, and build a live city through MCP"
+  default_prompt: "Use $cities-skylines2 to check the live city, then plan or act within my requested scope."
 policy:
   allow_implicit_invocation: true

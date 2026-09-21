@@ -240,6 +240,9 @@ const mutationAnnotations = {
   preview_waterway_delete: { ...annotations, readOnlyHint: false },
   apply_waterway_operation: { ...annotations, readOnlyHint: false, destructiveHint: true },
   cancel_waterway_preview: { ...annotations, readOnlyHint: false },
+  preview_pier_pathway: { ...annotations, readOnlyHint: false },
+  apply_pier_pathway_operation: { ...annotations, readOnlyHint: false, destructiveHint: true },
+  cancel_pier_pathway_preview: { ...annotations, readOnlyHint: false },
   preview_transport_track: { ...annotations, readOnlyHint: false },
   preview_transport_track_delete: { ...annotations, readOnlyHint: false },
   apply_transport_track_operation: { ...annotations, readOnlyHint: false, destructiveHint: true },
@@ -748,8 +751,8 @@ const definitions = [
     operation_id: operationId, request_id: requestId
   }],
   ['cancel_terrain_preview', 'Cancel an uncommitted terrain plan. A dispatched terrain brush cannot be cancelled because the native height operation is immediate.', { operation_id: operationId }],
-  ['list_building_prefabs', 'List exact placeable building and service-upgrade prefab names with lock state, construction cost, lot size, physical size and placement flags.', {
-    search: z.string().max(100).default(''), kind: z.enum(['building', 'upgrade', 'all']).default('building'), unlocked_only: z.boolean().default(true),
+  ['list_building_prefabs', 'List exact placeable building and service-upgrade prefab names with lock state, construction cost, lot size, physical size and placement flags. kind=specialized_industry returns declared extractor owners, including owners whose native extractor area is declared by a compatible upgrade.', {
+    search: z.string().max(100).default(''), kind: z.enum(['building', 'upgrade', 'specialized_industry', 'all']).default('building'), unlocked_only: z.boolean().default(true),
     offset: z.number().int().min(0).max(100000).default(0), limit: z.number().int().min(1).max(100).default(50)
   }],
   ['list_building_upgrades', 'List compatible upgrades and installed modules for one permanent building. Owner-side upgrades include the native highlighted placement range, validation outline, four snap segments, legal snapped points and matching placement_offset_m values.', {
@@ -777,8 +780,9 @@ const definitions = [
     auto_level_foundations: z.boolean().default(true), max_terrain_relief_m: z.number().finite().min(.25).max(32).default(8),
     reserve_upgrade_prefabs: z.array(z.string().min(1).max(200)).max(16).default([])
   }],
-  ['plan_special_building_site', 'Plan candidates for shoreline, floating, road-edge or road-node building prefabs from live water, terrain and network data. Auto mode selects the prefab placement flag. Native preview remains authoritative.', {
+  ['plan_special_building_site', 'Plan candidates for shoreline, floating, road-edge or road-node building prefabs from live water, terrain and network data. Supply owner_building_id to plan a compatible floating upgrade inside its native placement range. Native preview remains authoritative.', {
     building_prefab: z.string().min(1).max(200), near: buildingPoint, mode: z.enum(['auto','shoreline','floating','road_edge','road_node']).default('auto'),
+    owner_building_id: entityId.optional(),
     search_radius_m: z.number().finite().min(16).max(3000).default(500), candidate_count: z.number().int().min(1).max(32).default(8), minimum_water_depth_m: z.number().finite().min(.05).max(100).default(1)
   }],
   ['preview_building_placement', 'Create a native temporary preview for placing one unlocked building at an exact world position and rotation. The city must be paused. Poll until preview_ready before committing.', {
@@ -799,8 +803,8 @@ const definitions = [
   ['preview_building_replacement', 'Preview an atomic removal of an existing building and placement of another building prefab at the same transform.', {
     request_id: requestId, building_id: entityId, building_prefab: z.string().min(1).max(200)
   }],
-  ['preview_building_upgrade', 'Preview a service upgrade through the native pipeline. owner_side uses a host edge and lateral offset. road_side accepts an exact candidate from list_building_upgrades, keeps ownership on the host, and permits a road between host and module when the native range allows it.', {
-    request_id: requestId, building_id: entityId, upgrade_prefab: z.string().min(1).max(200), placement_mode: z.enum(['owner_side','road_side']).default('owner_side'), placement_side: z.enum(['back','right','left','front']).default('back'), placement_offset_m: z.number().finite().min(-512).max(512).default(0), position: plannedBuildingPoint.optional(), rotation_degrees: z.number().finite().min(-360).max(360).optional(), road_edge_id: entityId.optional()
+  ['preview_building_upgrade', 'Preview a service upgrade through the native pipeline. owner_side uses a host edge, road_side uses an exact road candidate, and floating uses a water-surface candidate from plan_special_building_site with owner_building_id. Native collisions and subnet snapping remain authoritative.', {
+    request_id: requestId, building_id: entityId, upgrade_prefab: z.string().min(1).max(200), placement_mode: z.enum(['owner_side','road_side','floating']).default('owner_side'), placement_side: z.enum(['back','right','left','front']).default('back'), placement_offset_m: z.number().finite().min(-512).max(512).default(0), position: plannedBuildingPoint.optional(), rotation_degrees: z.number().finite().min(-360).max(360).optional(), road_edge_id: entityId.optional()
   }],
   ['preview_building_rebuild', 'Preview repairing a destroyed building through the native repair path.', { request_id: requestId, building_id: entityId }],
   ['preview_building_demolition', 'Preview demolition of a building and its game-managed dependants.', { request_id: requestId, building_id: entityId }],
@@ -919,6 +923,12 @@ const definitions = [
   ['get_waterway_operation', 'Read the original waterway operation. Only completed confirms permanent changes.', { operation_id: operationId }],
   ['apply_waterway_operation', 'Commit a ready waterway preview with a cost ceiling; recheck live water depth before applying.', { request_id: requestId, operation_id: operationId, max_cost: z.number().int().min(0).max(10000000) }],
   ['cancel_waterway_preview', 'Cancel a temporary waterway preview without constructing it.', { operation_id: operationId }],
+  ['list_pier_pathway_prefabs', 'List elevated water-side Pathway prefabs used to extend a pier control point. These are not ship waterways.', { search: z.string().max(100).default(''), unlocked_only: z.boolean().default(true) }],
+  ['list_pier_pathways', 'Read permanent pier pathways and their exact control/terminal node IDs near a location.', { near: z.object({ x: z.number().finite().min(-7168).max(7168), z: z.number().finite().min(-7168).max(7168) }).strict().optional(), radius_m: z.number().finite().min(16).max(3000).default(1000) }],
+  ['preview_pier_pathway', 'Extend one straight pier Pathway segment from a permanent control or free terminal node. The new end inherits the start height; native preview checks collisions, clearance and cost. This does not create a ship Waterway.', { request_id: requestId, pathway_prefab: z.string().min(1).max(200), start_node_id: entityId, end: z.object({ x: z.number().finite().min(-7168).max(7168), z: z.number().finite().min(-7168).max(7168) }).strict().optional(), end_node_id: entityId.optional() }],
+  ['get_pier_pathway_operation', 'Read the original native pier-pathway preview, cost, errors and permanent result IDs.', { operation_id: operationId }],
+  ['apply_pier_pathway_operation', 'Commit a preview-ready pier pathway with a cost ceiling; permanent topology must then be read back.', { operation_id: operationId, request_id: requestId, max_cost: z.number().int().min(0).max(10000000) }],
+  ['cancel_pier_pathway_preview', 'Cancel an uncommitted pier-pathway preview.', { operation_id: operationId }],
   ['list_transport_track_prefabs', 'List exact unlocked train, subway and tram TrackPrefab names with speed, width, slope, edge-length, elevation and construction limits.', { search: z.string().max(100).default(''), track_type: z.string().max(50).default(''), unlocked_only: z.boolean().default(true) }],
   ['list_transport_tracks', 'List permanent train, subway and tram track edges with prefab, type, endpoints and node IDs.', { track_type: z.string().max(50).default('') }],
   ['get_transport_track', 'Read one permanent transport track edge including its cubic curve, elevation and owner.', { track_edge_id: entityId }],

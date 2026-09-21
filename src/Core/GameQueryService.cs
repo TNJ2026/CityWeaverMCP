@@ -243,6 +243,12 @@ namespace CityWeaver
                 case "get_waterway_operation": return Wrap(GetWaterwayOperation(args));
                 case "apply_waterway_operation": return Wrap(ApplyWaterwayOperation(args, world));
                 case "cancel_waterway_preview": return Wrap(CancelWaterwayOperation(args));
+                case "list_pier_pathway_prefabs": return Wrap(ListPierPathwayPrefabs(args, world));
+                case "list_pier_pathways": return Wrap(ListPierPathways(args, world));
+                case "preview_pier_pathway": return Wrap(PreviewPierPathway(args, world));
+                case "get_pier_pathway_operation": return Wrap(GetPierPathwayOperation(args));
+                case "apply_pier_pathway_operation": return Wrap(ApplyPierPathwayOperation(args));
+                case "cancel_pier_pathway_preview": return Wrap(CancelPierPathwayPreview(args));
                 case "list_transport_track_prefabs": return Wrap(ListTransportTrackPrefabs(args, world));
                 case "list_transport_tracks": return Wrap(ListTransportTracks(args, world));
                 case "get_transport_track": return Wrap(GetTransportTrack(args, world));
@@ -495,9 +501,17 @@ namespace CityWeaver
             ["entity_id_semantics"] = "Opaque session:index:version. Invalid after loading another city or restarting. Never invent IDs.",
                 ["limitations"] = new JArray("Transactional construction and economy tools use explicit preview/apply workflows. Direct settings and progression mutations require a paused city. No historical data.", "Generic fields use original game names/units; do not infer meanings from names alone", "NativeArray, NativeList, NativeReference and NativeValue have typed readers; native queues/maps/sets use available enumerators; BlobAssetReference supports raw allocation bytes; other layouts report unavailable", "Private stored fields and CPU CellMap grids are available; GPU-only textures and arbitrary unbounded pointers have no reader", "Large buffers and nested values are explicitly bounded/truncated")
             };
-            // Every tool implemented by this game bridge is declared once, in order, in the
-            // tools array above. Do not append extra names here: the MCP service merges its own
-            // Node-side orchestration tools separately (see workflow_orchestration).
+            result["pier_pathway_operations"] = new JObject {
+                ["modes"] = new JArray("extend_straight"), ["requires_paused_city"] = true,
+                ["max_segment_length_m"] = 512, ["preview_ttl_seconds"] = 300,
+                ["workflow"] = "list_pier_pathway_prefabs + list_pier_pathways -> preview_pier_pathway -> get_pier_pathway_operation(preview_ready) -> apply_pier_pathway_operation -> get_pier_pathway_operation(completed)",
+                ["validation"] = "Anchored to a permanent pier Pathway control node, then native NetCourse preview, cost check and permanent Pathway prefab readback.",
+                ["limitations"] = "Pier Pathway is not a ship Waterway. This first version extends one straight segment and does not create fishing routes or watercraft connections."
+            };
+            // Node-side orchestration tools are listed separately in workflow_orchestration.
+            foreach (var name in new[] { "list_pier_pathway_prefabs", "list_pier_pathways", "preview_pier_pathway",
+                "get_pier_pathway_operation", "apply_pier_pathway_operation", "cancel_pier_pathway_preview" })
+                ((JArray)result["tools"]).Add(name);
             return result;
         }
 

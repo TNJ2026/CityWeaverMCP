@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Areas;
 using Game.Common;
+using Game.Notifications;
 using Game.Prefabs;
 using Game.Tools;
 using Newtonsoft.Json.Linq;
@@ -133,7 +134,25 @@ namespace CityWeaver
             var operation = m_Operation; operation.Errors.Clear(); operation.Warnings.Clear(); operation.Cost = 0; m_Candidates.Clear();
             void ReadMessages(EntityQuery query, JArray destination, string fallback)
             {
-                using (var entities = query.ToEntityArray(Allocator.Temp)) foreach (var entity in entities) if (!destination.Any(token => (string)token == fallback)) destination.Add(fallback);
+                using (var entities = query.ToEntityArray(Allocator.Temp)) foreach (var entity in entities)
+                {
+                    var messages = new List<string>();
+                    if (EntityManager.HasBuffer<IconElement>(entity))
+                    {
+                        var icons = EntityManager.GetBuffer<IconElement>(entity, true);
+                        foreach (var iconElement in icons)
+                        {
+                            var icon = iconElement.m_Icon;
+                            if (!EntityManager.Exists(icon) || !EntityManager.HasComponent<PrefabRef>(icon)) continue;
+                            var prefab = EntityManager.GetComponentData<PrefabRef>(icon).m_Prefab;
+                            if (EntityManager.Exists(prefab) && EntityManager.HasComponent<ToolErrorData>(prefab))
+                                messages.Add(fallback + ":" + EntityManager.GetComponentData<ToolErrorData>(prefab).m_Error);
+                        }
+                    }
+                    if (messages.Count == 0) messages.Add(fallback);
+                    foreach (var message in messages)
+                        if (!destination.Any(token => (string)token == message)) destination.Add(message);
+                }
             }
             ReadMessages(m_ErrorQuery, operation.Errors, "GAME_VALIDATION_ERROR"); ReadMessages(m_WarningQuery, operation.Warnings, "GAME_VALIDATION_WARNING");
             using (var entities = m_AreaTempQuery.ToEntityArray(Allocator.Temp)) foreach (var entity in entities)

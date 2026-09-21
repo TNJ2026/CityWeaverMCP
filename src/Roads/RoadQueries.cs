@@ -60,6 +60,9 @@ namespace CityWeaver
         public bool RuleUsesLeftSide;
         public string State = "queued", Error, CommitRequestId;
         public Entity Prefab, StartNode, EndNode;
+        public Entity PierOwner, PierOwnerPrefab;
+        public float3 PierOwnerPosition;
+        public quaternion PierOwnerRotation;
         public Entity TargetEdge;
         public List<Entity> TargetEdges = new List<Entity>();
         public List<Entity> TargetNodes = new List<Entity>();
@@ -74,6 +77,7 @@ namespace CityWeaver
         public bool CommitRequested, CancelRequested, ApplyDispatched;
         public DateTime Created = DateTime.UtcNow, Expires = DateTime.UtcNow.AddMinutes(5);
         public JArray Errors = new JArray();
+        public JArray ValidationEntities = new JArray();
         public List<Entity> CreatedEdges = new List<Entity>();
         // Existing road edges that the game split because this operation joined them mid-edge.
         // They are kept as part of the operation but are not part of the requested road, so they
@@ -154,6 +158,7 @@ namespace CityWeaver
             ["segments"] = new JArray(Segments.Select((segment, index) => segment.Json(this, index))),
             ["cost"] = Cost, ["max_cost"] = MaxCost,
             ["errors"] = Errors.DeepClone(), ["error"] = Error,
+            ["validation_entities"] = ValidationEntities.DeepClone(),
             ["expires_at_utc"] = Expires.ToString("O"), ["commit_dispatched"] = ApplyDispatched,
             ["created_road_ids"] = new JArray(CreatedEdges.Select(EntityId)),
             ["intersection_prefab"] = CurveMode == "intersection_prefab" ? PrefabName : null,

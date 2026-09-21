@@ -1,5 +1,11 @@
 # 航道 MCP 接口
 
+## 渔港码头控制点（Pathway，不是航道）
+
+渔港主体可能自带高于水面的 `Narrow Boatway` Pathway 码头。其 `LocalConnect` 控制点需要先延长码头，才能尝试放置要求连接的附属建筑；`preview_waterway` 只建设船舶航道，不能接入该 Pathway。先在当前城市调用 `list_pier_pathway_prefabs` 和 `list_pier_pathways`，取得精确 prefab 名称及永久控制节点 ID。暂停城市后，以控制节点作为 `start_node_id`，传 `end`（世界 x/z）或另一永久 `end_node_id`，调用 `preview_pier_pathway`；等待 `get_pier_pathway_operation` 返回 `preview_ready`，核对碰撞、净空、错误与费用，再用独立提交 `request_id` 和费用上限调用 `apply_pier_pathway_operation`。只有 `completed` 且 `list_pier_pathways` 回读到永久边和节点连接，才算码头延长完成。取消未提交预览使用 `cancel_pier_pathway_preview`。首版仅支持单段直线；仍须实机验证附属建筑是否可吸附，不能把码头连接等同于渔业设施已经投产。
+
+2026-09-21 渔港实机诊断：一段从永久 `Fishing Pier` 控制节点向水面延伸约 49 米的预览返回原生 `OverlapExisting`，没有提交，也没有新增永久码头。仅补建筑 owner 临时升级定义和新路径 `OwnerDefinition` 后，同几何实机预览仍被拒。对照原生 NetTool 发现，它还会把 owner 已有的附属边作为原对象加入预览，以免旧码头与新码头互判为重叠；源码已补齐这一环节并通过暂存构建，**尚未重新加载游戏验证**。遇到该错误应回读原操作和永久边，不能忽略碰撞强制提交。
+
 是否可用于当前游戏，以运行中的 `get_query_capabilities` 为准。2026-09-20，在游戏1.6.2f1、CityWeaver 1.23.1、奥本山存档中，已完成标准货运港口、同型普通航道接入和货运航线施工，并读到首艘货船。此验证不覆盖所有港口资产、异宽航道接头或实际装卸吞吐。MCP 134项测试及官方后处理构建已通过。
 
 ## 工具与流程

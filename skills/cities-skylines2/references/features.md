@@ -17,6 +17,7 @@
 | 行政区 | 边界创建、重画、删除、命名、政策、点定位和服务覆盖；`set_district_name`、`set_district_policy`、`set_service_districts` | `docs/guides/areas/DISTRICT-GUIDE.md` |
 | 公交线路 | `list_transport_line_prefabs`、`list_transport_lines`；创建、站序、线路与站名、颜色、班表、票价、车辆数、编号、均匀发车、请求车辆与返场、删除 | `docs/guides/transport/TRANSPORT-GUIDE.md` |
 | 公交设施和轨道 | `list_transport_facility_prefabs`、`list_transport_facilities`、`list_transport_facility_upgrades`、`preview_transport_facility_upgrade`、`list_transport_track_prefabs`、`preview_transport_track`；设施建筑事务、升级范围/道路侧候选及轨道连接和拆除 | `docs/guides/transport/TRANSPORT-INFRASTRUCTURE-GUIDE.md` |
+| 航道与渔港码头 | `list_waterways`、`preview_waterway` 管船舶航道；`list_pier_pathway_prefabs`、`list_pier_pathways`、`preview_pier_pathway` 管渔港控制点的高架 Pathway 延长，两类网络不可混用 | `docs/guides/transport/WATERWAY-GUIDE.md` |
 | 铁路站区规划与验收 | 联合选址、真实曲线接轨、永久道路绑定、水电、线路及实际发车分层验证 | `docs/guides/transport/RAIL-STATION-CHECKLIST.md` |
 | 电水污水与管网 | `list_utility_facility_prefabs`、`list_utility_facilities`、`list_utility_connection_points`、`find_compatible_utility_targets`、`connect_utility_facility`、`build_utility_backbone`、`list_utility_networks`；按真实设施端口和连接层完成电力、供水、污水、通信、独立管网、资源管道查询和建设 | `docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md` |
 | 公共服务 | `list_city_service_prefabs`、`list_city_service_facilities`、`analyze_service_coverage`、`analyze_education_demand`、`analyze_attraction_impact`、`deploy_service_cluster`；医疗、消防、警察、教育、垃圾、殡葬、维护、公园、邮政、停车、福利、研究、应急，支持选址与建筑事务 | `docs/guides/city/CITY-SERVICE-GUIDE.md` |
@@ -46,7 +47,7 @@
 - “给建筑安装可移动升级”：先从升级列表读取 `placement_geometry`；主体侧使用返回吸附点，隔路候选使用 `road_side_candidates` 原样进入对应 preview，不自行猜位置或道路 ID。
 - “建一个住宅街区”：只有用户明确授权施工后，才从通过的预检进入带预算上限的道路提交和永久回读，再检查实际分区格并逐独立事务划区。让模拟自然生成建筑，或仅在用户要求直接放置时使用建筑事务。
 - “建诊所/电站/车站”：优先对应领域 prefab 与容量发现，普通沿街候选走一般选址；岸线、水面、轨道边等采用特殊选址并保留吸附目标与高度。升级模块不能作为独立建筑。
-- “扩展填埋场/专门产业”：先找到 owner 建筑并调用 `list_building_areas`，只使用其返回的精确区域 prefab；自然资源、污染、道路和货运条件先评估，再走独立区域 preview/apply 事务。行政区和分区工具不能替代建筑附属区域。
+- “扩展填埋场/专门产业”：新建专门产业先用 `list_building_prefabs(kind="specialized_industry")` 发现声明有采集区域的主建筑候选，原生预览并回读永久道路接入和 `SubArea` 后，再调用 `list_building_areas`；只使用其返回的精确区域 prefab。零成本、`Placeholder` 名称或大量预览临时实体都不是可运营证明。自然资源、污染、道路和货运条件先评估，再走独立区域 preview/apply 事务。行政区和分区工具不能替代建筑附属区域。
 - “降低税率/调整贷款”：先读取实际范围和原值，再走经济事务。贷款 `amount` 是目标总额，不是增量。
 - “撤销刚才的道路”：查询原会话操作并尝试 `preview_road_undo`；不是所有道路操作都可逆，尤其拆分既有边的建设不能假定支持自动恢复。
 - “触发灾害”：先发现 prefab 家族。火灾/倒塌需要真实目标；天气接受位置或目标；洪水/海啸是全局水位事件。应用后需要模拟推进才能观察原生事件；停止和清理状态都不是物理复原。

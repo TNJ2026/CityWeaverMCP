@@ -35,7 +35,7 @@ test('renders a 2x3 grid with surface and underground infrastructure', () => {
   assert.match(result.svg, /#fb7185/);
   assert.match(result.svg, /class="planned building service exact-hollow-footprint"/);
   assert.match(result.svg, /<title>Fixture School<\/title>/);
-  assert.doesNotMatch(result.svg, /class="building-type-label"[^>]*>Fixture School<\/text>/);
+  assert.match(result.svg, /class="building-type-label"[^>]*>Fixture School<\/text>/);
   assert.match(result.svg, /公共设施/);
   assert.equal(result.snapshot_session_id, 'fixture-session');
 });
@@ -88,6 +88,24 @@ test('renders non-zoned buildings as exact-scale hollow footprints', () => {
   assert.doesNotMatch(result.svg, /stroke-dasharray="5 3"/);
   assert.match(result.svg, /class="building-type-label"[^>]*font-size="[\d.]+"[^>]*>诊所<\/text>/);
   assert.ok(result.svg.indexOf('building-label-layer') > result.svg.indexOf('class="building-footprint-geometry"'));
+});
+
+test('falls back to readable English labels without exposing prefab prefixes or hiding Chinese labels', () => {
+  const bounds = { min_x: 0, min_z: 0, max_x: 100, max_z: 100 };
+  const result = renderCityPlan({ bounds, roads: [], buildings: [], tracks: [], utilities: [] }, {
+    buildings: [
+      { id: 'english-clinic', label: 'Planned Medical Clinic (upgrade reserve)', kind: 'service', position: { x: 30, z: 30 }, size_m: { x: 20, z: 20 } },
+      { id: 'english-school', prefab: 'NA_ElementarySchool01', kind: 'service', position: { x: 70, z: 30 }, size_m: { x: 20, z: 20 } },
+      { id: 'chinese-clinic', label: '规划诊所 (clinic)', kind: 'service', position: { x: 30, z: 70 }, size_m: { x: 20, z: 20 } },
+      { id: 'mixed-prefix-clinic', label: '规划 Clinic', kind: 'service', position: { x: 70, z: 70 }, size_m: { x: 20, z: 20 } },
+    ],
+  }, { bounds, width: 1000, height: 1000, view: 'surface' });
+
+  assert.match(result.svg, /class="building-type-label"[^>]*>Medical Clinic<\/text>/);
+  assert.match(result.svg, /class="building-type-label"[^>]*>Elementary School<\/text>/);
+  assert.match(result.svg, /class="building-type-label"[^>]*>诊所<\/text>/);
+  assert.match(result.svg, /class="building-type-label"[^>]*>Clinic<\/text>/);
+  assert.doesNotMatch(result.svg, /class="building-type-label"[^>]*>NA_ElementarySchool01<\/text>/);
 });
 
 test('renders a proposed building removal as a muted solid footprint', () => {

@@ -1,4 +1,4 @@
-// Diagnostic CLI: uses exactly the same MCP handshake/tools as Codex.
+// Diagnostic CLI: uses the same MCP handshake and tools as any compatible Agent client.
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { fileURLToPath } from 'node:url';

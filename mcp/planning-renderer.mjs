@@ -15,10 +15,20 @@ const ELEVATION_COLORS = ['#dbe8c5', '#c8d8a4', '#d8c58c', '#bd9b6a', '#92745b',
 const escapeXml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[char]);
 const finite = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const classToken = value => String(value ?? 'unknown').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'unknown';
-const chineseBuildingName = value => {
+const visibleBuildingName = value => {
   const withoutNotes = String(value ?? '').replace(/（[^）]*）|\([^)]*\)/g, '');
   const chineseOnly = (withoutNotes.match(/[\u3400-\u9fff]+/g) ?? []).join('');
-  return chineseOnly.replace(/^(?:已建|规划|预留)+/, '');
+  const chineseLabel = chineseOnly.replace(/^(?:已建|规划|预留)+/, '');
+  if (chineseLabel) return chineseLabel;
+  return withoutNotes
+    .replace(/^(?:已建|规划|预留)+\s*/, '')
+    .replace(/^(?:planned|existing|reserved|built)\s*(?:[|:—-]\s*)?/i, '')
+    .replace(/^(?:NA|EU)[_-]/i, '')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\d+$/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 };
 
 export function expandCityPlan(plan) {
@@ -161,7 +171,7 @@ function renderBuildingLabel(item, project) {
   const zonedKinds = new Set(['residential', 'commercial', 'industrial', 'office']);
   if (zonedKinds.has(String(item.kind ?? '').toLowerCase())) return '';
   const source = item.name ?? item.label ?? item.prefab_name ?? item.prefab;
-  const visibleLabel = chineseBuildingName(source);
+  const visibleLabel = visibleBuildingName(source);
   if (!visibleLabel) return '';
   const center = project(item.position); const scale = center.scale;
   const width = Math.max(.01, finite(item.size_m?.x, 8)) * scale;

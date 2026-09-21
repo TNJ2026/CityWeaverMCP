@@ -139,7 +139,7 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   t.after(() => client.close());
   await client.connect(transport);
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 374);
+  assert.equal(tools.length, 380);
   const cacheInfo = await client.callTool({ name: 'inspect_planning_cache', arguments: {} });
   assert.equal(cacheInfo.isError, false);
   assert.equal(cacheInfo.structuredContent.data.records.entries, 0);
@@ -221,6 +221,12 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   for (const name of ['list_building_areas', 'preview_building_area', 'get_building_area_operation', 'apply_building_area_operation', 'cancel_building_area_preview']) {
     assert(tools.some(tool => tool.name === name), `${name} is registered`);
   }
+  assert.deepEqual(tools.find(tool => tool.name === 'list_building_prefabs').inputSchema.properties.kind.enum,
+    ['building', 'upgrade', 'specialized_industry', 'all']);
+  assert.ok(tools.find(tool => tool.name === 'plan_special_building_site').inputSchema.properties.owner_building_id,
+    'floating upgrade planning must retain its permanent owner');
+  assert.deepEqual(tools.find(tool => tool.name === 'preview_building_upgrade').inputSchema.properties.placement_mode.enum,
+    ['owner_side', 'road_side', 'floating']);
   for (const name of ['connect_utility_facility', 'list_utility_connection_points', 'find_compatible_utility_targets']) {
     assert(tools.some(tool => tool.name === name), `${name} is registered`);
   }
@@ -252,6 +258,7 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   assert.equal(stopSchema.properties.edge_parameter.maximum, .95);
   assert.deepEqual(tools.find(tool => tool.name === 'list_road_stop_prefabs').inputSchema.properties.transport_type.enum, ['all', 'Bus', 'Tram']);
   for (const name of ['preview_waterway', 'preview_waterway_delete', 'apply_waterway_operation', 'cancel_waterway_preview']) mutations.add(name);
+  for (const name of ['preview_pier_pathway', 'apply_pier_pathway_operation', 'cancel_pier_pathway_preview']) mutations.add(name);
   assert(tools.every(tool => tool.annotations.readOnlyHint === !mutations.has(tool.name)));
   assert.equal(tools.find(tool => tool.name === 'build_road').annotations.destructiveHint, true);
   assert.equal(tools.find(tool => tool.name === 'get_road_operation').annotations.readOnlyHint, true);
@@ -401,6 +408,19 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   assert.equal(calls, beforeBadWater, 'Invalid waterway requests must not reach game');
   const waterCommit = { request_id: 'waterway-commit-001', operation_id: 'a'.repeat(32), max_cost: 2000 };
   assert.deepEqual((await client.callTool({ name: 'apply_waterway_operation', arguments: waterCommit })).structuredContent.data.args, waterCommit);
+  const pierNames = ['list_pier_pathway_prefabs', 'list_pier_pathways', 'preview_pier_pathway', 'get_pier_pathway_operation', 'apply_pier_pathway_operation', 'cancel_pier_pathway_preview'];
+  for (const name of pierNames) assert(tools.some(tool => tool.name === name), name);
+  const pier = { request_id: 'pier-test-001', pathway_prefab: 'Narrow Boatway', start_node_id: edgeIds[0], end: { x: 100, z: -60 } };
+  assert.deepEqual((await client.callTool({ name: 'preview_pier_pathway', arguments: pier })).structuredContent.data.args, pier);
+  const beforeBadPier = calls;
+  for (const invalid of [
+    { ...pier, end: { x: 100, z: -60, y: 10 } },
+    { ...pier, pathway_prefab: '' },
+    { ...pier, start_node_id: 'not-an-entity' }
+  ]) assert.equal((await client.callTool({ name: 'preview_pier_pathway', arguments: invalid })).isError, true);
+  assert.equal(calls, beforeBadPier, 'Invalid pier requests must not reach game');
+  const pierCommit = { request_id: 'pier-commit-001', operation_id: 'b'.repeat(32), max_cost: 5000 };
+  assert.deepEqual((await client.callTool({ name: 'apply_pier_pathway_operation', arguments: pierCommit })).structuredContent.data.args, pierCommit);
   const curvedTrack = { request_id: 'curved-track-001', track_prefab: 'Double Train Track', points: [{ x: 0, z: 0 }, { x: 150, z: 150 }], curves: [{ mode: 'cubic', control_1: { x: 83, z: 0 }, control_2: { x: 150, z: 67 } }], min_radius_m: 140 };
   assert.deepEqual((await client.callTool({ name: 'preview_transport_track', arguments: curvedTrack })).structuredContent.data.args, curvedTrack);
   for (const invalid of [ { ...curvedTrack, min_radius_m: -1 }, { ...curvedTrack, curves: [{ mode: 'cubic', control_1: { x: 1, z: 1 } }] }, { ...curvedTrack, curves: [{ mode: 'circle' }] } ])

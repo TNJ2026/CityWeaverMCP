@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Colossal.Mathematics;
 using Game.Common;
 using Game.Net;
+using Game.Notifications;
 using Game.Prefabs;
 using Game.Tools;
 using Newtonsoft.Json.Linq;
@@ -42,6 +43,7 @@ namespace CityWeaver
         private bool IsIntersectionRoundabout => m_Operation.OperationType == "intersection_roundabout";
         private bool IsIntersectionRules => m_Operation.OperationType == "intersection_rules";
         private bool IsWaterway => m_Operation.TransactionKind == "waterway";
+        private bool IsPierPathway => m_Operation.TransactionKind == "pier_pathway";
         private bool IsTransportTrack => m_Operation.TransactionKind == "transport_track";
         private bool IsUtilityNetwork => m_Operation.TransactionKind == "utility_network";
         private bool IsUtilityPrefab(Entity prefab) => EntityManager.Exists(prefab) &&
@@ -330,12 +332,31 @@ namespace CityWeaver
                     if (EntityManager.HasComponent<Edge>(e) && (IsTransportTrack
                         ? EntityManager.HasComponent<TrackData>(EntityManager.GetComponentData<PrefabRef>(e).m_Prefab)
                         : IsWaterway ? EntityManager.HasComponent<Game.Net.Waterway>(e) && EntityManager.HasComponent<WaterwayData>(EntityManager.GetComponentData<PrefabRef>(e).m_Prefab)
+                        : IsPierPathway ? EntityManager.HasComponent<PathwayData>(EntityManager.GetComponentData<PrefabRef>(e).m_Prefab) && EntityManager.HasBuffer<Game.Net.SubLane>(e)
                         : IsUtilityNetwork ? IsUtilityPrefab(EntityManager.GetComponentData<PrefabRef>(e).m_Prefab)
                         : EntityManager.HasComponent<Road>(e))) completed.Add(e);
                 }
                 if (pending > 0 && m_Ticks < 120) return;
                 op.CreatedEdges = completed;
                 if (completed.Count == 0 || pending > 0 || completed.Count != m_Candidates.Count) { Fail("APPLY_OUTCOME_UNKNOWN"); return; }
+                if (IsPierPathway)
+                {
+                    bool ownedAndAttached = EntityManager.Exists(op.PierOwner) && !EntityManager.HasComponent<Deleted>(op.PierOwner) &&
+                        EntityManager.HasBuffer<Game.Net.SubNet>(op.PierOwner);
+                    if (ownedAndAttached)
+                    {
+                        var subnets = EntityManager.GetBuffer<Game.Net.SubNet>(op.PierOwner, true);
+                        foreach (var edge in completed)
+                        {
+                            if (!EntityManager.HasComponent<Owner>(edge) || EntityManager.GetComponentData<Owner>(edge).m_Owner != op.PierOwner)
+                            { ownedAndAttached = false; break; }
+                            bool listed = false;
+                            foreach (var subnet in subnets) if (subnet.m_SubNet == edge) { listed = true; break; }
+                            if (!listed) { ownedAndAttached = false; break; }
+                        }
+                    }
+                    if (!ownedAndAttached) { if (m_Ticks < 120) return; Fail("APPLY_OUTCOME_UNKNOWN"); return; }
+                }
                 if (IsIntersectionPrefab && !StampTopologyValid(completed))
                 { if (m_Ticks < 120) return; Fail("APPLY_OUTCOME_UNKNOWN"); return; }
                 if (op.ZoningAligned && op.PlannerStrategy != null)
@@ -369,11 +390,25 @@ namespace CityWeaver
             {
                 foreach (var target in op.TargetEdges)
                     if (!EntityManager.Exists(target) || EntityManager.HasComponent<Deleted>(target) || EntityManager.HasComponent<Temp>(target) || !EntityManager.HasComponent<Edge>(target) ||
-                        (!IsTransportTrack && !IsWaterway && !IsUtilityNetwork && !EntityManager.HasComponent<Road>(target)) ||
+                        (!IsTransportTrack && !IsWaterway && !IsPierPathway && !IsUtilityNetwork && !EntityManager.HasComponent<Road>(target)) ||
                         (IsTransportTrack && (!EntityManager.HasComponent<PrefabRef>(target) || !EntityManager.HasComponent<TrackData>(EntityManager.GetComponentData<PrefabRef>(target).m_Prefab)))) return false;
                     else if (IsWaterway && (!EntityManager.HasComponent<Game.Net.Waterway>(target) || !EntityManager.HasComponent<PrefabRef>(target) || !EntityManager.HasComponent<WaterwayData>(EntityManager.GetComponentData<PrefabRef>(target).m_Prefab))) return false;
                     else if (IsUtilityNetwork && (!EntityManager.HasComponent<PrefabRef>(target) || !IsUtilityPrefab(EntityManager.GetComponentData<PrefabRef>(target).m_Prefab))) return false;
                 return op.TargetEdges.Count > 0;
+            }
+            if (IsPierPathway)
+            {
+                if (!EntityManager.Exists(op.PierOwner) || EntityManager.HasComponent<Deleted>(op.PierOwner) ||
+                    EntityManager.HasComponent<Temp>(op.PierOwner) || !EntityManager.HasComponent<Game.Buildings.Building>(op.PierOwner) ||
+                    !EntityManager.HasComponent<Game.Objects.Transform>(op.PierOwner) || !EntityManager.HasComponent<PrefabRef>(op.PierOwner) ||
+                    EntityManager.GetComponentData<PrefabRef>(op.PierOwner).m_Prefab != op.PierOwnerPrefab) return false;
+                var transform = EntityManager.GetComponentData<Game.Objects.Transform>(op.PierOwner);
+                if (math.distance(transform.m_Position, op.PierOwnerPosition) > 0.01f ||
+                    math.distance(transform.m_Rotation.value, op.PierOwnerRotation.value) > 0.01f) return false;
+                foreach (var segment in op.Segments)
+                    foreach (var node in new[] { segment.StartTarget, segment.EndTarget })
+                        if (node != Entity.Null && (!EntityManager.HasComponent<Owner>(node) ||
+                            EntityManager.GetComponentData<Owner>(node).m_Owner != op.PierOwner)) return false;
             }
             foreach (var segment in op.Segments)
             {
@@ -384,7 +419,7 @@ namespace CityWeaver
                     if (!EntityManager.Exists(endpoint.Item1) || EntityManager.HasComponent<Deleted>(endpoint.Item1) || EntityManager.HasComponent<Temp>(endpoint.Item1)) return false;
                     float3 actual;
                     if (endpoint.Item3 > 0 && endpoint.Item3 < 1 && EntityManager.HasComponent<Edge>(endpoint.Item1) && EntityManager.HasComponent<Curve>(endpoint.Item1) &&
-                        (EntityManager.HasComponent<Road>(endpoint.Item1) || IsWaterway && EntityManager.HasComponent<Game.Net.Waterway>(endpoint.Item1) || IsTransportTrack && EntityManager.HasComponent<PrefabRef>(endpoint.Item1) && EntityManager.HasComponent<TrackData>(EntityManager.GetComponentData<PrefabRef>(endpoint.Item1).m_Prefab) || IsUtilityNetwork && EntityManager.HasComponent<PrefabRef>(endpoint.Item1) && IsUtilityPrefab(EntityManager.GetComponentData<PrefabRef>(endpoint.Item1).m_Prefab)))
+                        (EntityManager.HasComponent<Road>(endpoint.Item1) || IsWaterway && EntityManager.HasComponent<Game.Net.Waterway>(endpoint.Item1) || IsPierPathway && EntityManager.HasComponent<PrefabRef>(endpoint.Item1) && EntityManager.HasComponent<PathwayData>(EntityManager.GetComponentData<PrefabRef>(endpoint.Item1).m_Prefab) || IsTransportTrack && EntityManager.HasComponent<PrefabRef>(endpoint.Item1) && EntityManager.HasComponent<TrackData>(EntityManager.GetComponentData<PrefabRef>(endpoint.Item1).m_Prefab) || IsUtilityNetwork && EntityManager.HasComponent<PrefabRef>(endpoint.Item1) && IsUtilityPrefab(EntityManager.GetComponentData<PrefabRef>(endpoint.Item1).m_Prefab)))
                         actual = MathUtils.Position(EntityManager.GetComponentData<Curve>(endpoint.Item1).m_Bezier, endpoint.Item3);
                     else if (EntityManager.HasComponent<Node>(endpoint.Item1)) actual = EntityManager.GetComponentData<Node>(endpoint.Item1).m_Position;
                     else return false;
@@ -466,10 +501,48 @@ namespace CityWeaver
         }
         private bool ReadPreview(out string signature)
         {
-            var op = m_Operation; op.Errors.Clear(); op.Cost = 0; m_Candidates.Clear(); m_SplitRemnants.Clear();
+            var op = m_Operation; op.Errors.Clear(); op.ValidationEntities.Clear(); op.Cost = 0; m_Candidates.Clear(); m_SplitRemnants.Clear();
             var targetPreviews = new HashSet<Entity>(); int generatedPreviewCount = 0;
-            if (!m_ErrorQuery.IsEmptyIgnoreFilter) op.Errors.Add("GAME_VALIDATION_ERROR");
-            if (!m_WarningQuery.IsEmptyIgnoreFilter) op.Errors.Add("GAME_VALIDATION_WARNING");
+            var errorMessages = new HashSet<string>();
+            void ReadMessages(EntityQuery query, string fallback)
+            {
+                using (var entities = query.ToEntityArray(Allocator.Temp)) foreach (var entity in entities)
+                {
+                    // Preserve the entity carrying the native error before failed previews are cleared.
+                    // This is not necessarily the other participant in a collision.
+                    if (op.ValidationEntities.Count < 64)
+                    {
+                        var detail = new JObject { ["entity_id"] = op.EntityId(entity), ["severity"] = fallback };
+                        if (EntityManager.HasComponent<Temp>(entity)) detail["original_entity_id"] = op.EntityId(EntityManager.GetComponentData<Temp>(entity).m_Original);
+                        if (EntityManager.HasComponent<Owner>(entity)) detail["owner_entity_id"] = op.EntityId(EntityManager.GetComponentData<Owner>(entity).m_Owner);
+                        if (EntityManager.HasComponent<PrefabRef>(entity)) detail["prefab_entity_id"] = op.EntityId(EntityManager.GetComponentData<PrefabRef>(entity).m_Prefab);
+                        if (EntityManager.HasComponent<Game.Objects.Transform>(entity))
+                        {
+                            var position = EntityManager.GetComponentData<Game.Objects.Transform>(entity).m_Position;
+                            detail["position"] = new JObject { ["x"] = position.x, ["y"] = position.y, ["z"] = position.z };
+                        }
+                        op.ValidationEntities.Add(detail);
+                    }
+                    bool decoded = false;
+                    if (EntityManager.HasBuffer<IconElement>(entity))
+                    {
+                        var icons = EntityManager.GetBuffer<IconElement>(entity, true);
+                        foreach (var iconElement in icons)
+                        {
+                            var icon = iconElement.m_Icon;
+                            if (!EntityManager.Exists(icon) || !EntityManager.HasComponent<PrefabRef>(icon)) continue;
+                            var prefab = EntityManager.GetComponentData<PrefabRef>(icon).m_Prefab;
+                            if (!EntityManager.Exists(prefab) || !EntityManager.HasComponent<ToolErrorData>(prefab)) continue;
+                            var message = fallback + ":" + EntityManager.GetComponentData<ToolErrorData>(prefab).m_Error;
+                            if (errorMessages.Add(message)) op.Errors.Add(message);
+                            decoded = true;
+                        }
+                    }
+                    if (!decoded && errorMessages.Add(fallback)) op.Errors.Add(fallback);
+                }
+            }
+            ReadMessages(m_ErrorQuery, "GAME_VALIDATION_ERROR");
+            ReadMessages(m_WarningQuery, "GAME_VALIDATION_WARNING");
             using (var all = m_TempQuery.ToEntityArray(Allocator.Temp))
             {
                 foreach (var e in all)
@@ -479,11 +552,14 @@ namespace CityWeaver
                     if (op.OperationType != "create" && (op.TargetEdges.Contains(temp.m_Original) || op.TargetNodes.Contains(temp.m_Original)) &&
                         (IsDemolish ? (temp.m_Flags & TempFlags.Delete) != 0 : (temp.m_Flags & TempFlags.Delete) == 0)) targetPreviews.Add(temp.m_Original);
                     if ((temp.m_Flags & TempFlags.Cancel) == 0) op.Cost += temp.m_Cost;
-                    if (temp.m_Original != Entity.Null && EntityManager.HasComponent<Game.Buildings.Building>(temp.m_Original) && (temp.m_Flags & (TempFlags.Delete | TempFlags.Replace)) != 0)
+                    bool expectedPierOwner = IsPierPathway && IsExpectedPierBuilding(e, temp);
+                    if (temp.m_Original != Entity.Null && EntityManager.HasComponent<Game.Buildings.Building>(temp.m_Original) &&
+                        (temp.m_Flags & (TempFlags.Delete | TempFlags.Replace)) != 0 && !expectedPierOwner)
                         op.Errors.Add("WOULD_REMOVE_BUILDING");
                     if (IsIntersectionPrefab && temp.m_Original != Entity.Null && EntityManager.HasComponent<Road>(temp.m_Original) && (temp.m_Flags & (TempFlags.Delete | TempFlags.Replace)) != 0)
                         op.Errors.Add("WOULD_REMOVE_EXISTING_ROAD");
-                    if (EntityManager.HasComponent<Game.Buildings.Building>(e)) op.Errors.Add("UNEXPECTED_BUILDING_PREVIEW");
+                    if (EntityManager.HasComponent<Game.Buildings.Building>(e) && !expectedPierOwner)
+                        op.Errors.Add("UNEXPECTED_BUILDING_PREVIEW");
                 }
             }
             using (var roads = m_RoadQuery.ToEntityArray(Allocator.Temp))
@@ -492,9 +568,11 @@ namespace CityWeaver
                 {
                     var temp = EntityManager.GetComponentData<Temp>(e);
                     var generatedPrefab = EntityManager.GetComponentData<PrefabRef>(e).m_Prefab;
-                    if (IsTransportTrack || IsWaterway)
+                    if (IsTransportTrack || IsWaterway || IsPierPathway)
                     {
-                        if (IsWaterway ? !EntityManager.HasComponent<WaterwayData>(generatedPrefab) : !EntityManager.HasComponent<TrackData>(generatedPrefab)) continue;
+                        if (IsWaterway ? !EntityManager.HasComponent<WaterwayData>(generatedPrefab) :
+                            IsPierPathway ? !EntityManager.HasComponent<PathwayData>(generatedPrefab) :
+                            !EntityManager.HasComponent<TrackData>(generatedPrefab)) continue;
                         if (IsDemolish)
                         {
                             if (op.TargetEdges.Contains(temp.m_Original) && (temp.m_Flags & TempFlags.Delete) != 0) m_Candidates.Add(e);
@@ -504,7 +582,7 @@ namespace CityWeaver
                             if (generatedPrefab != op.Prefab)
                             {
                                 if (IsWaterway && IsWaterwaySplitRemnant(e, generatedPrefab)) m_SplitRemnants.Add(e);
-                                else op.Errors.Add(IsWaterway ? "UNEXPECTED_WATERWAY_PREVIEW" : "UNEXPECTED_TRACK_PREVIEW");
+                                else op.Errors.Add(IsWaterway ? "UNEXPECTED_WATERWAY_PREVIEW" : IsPierPathway ? "UNEXPECTED_PIER_PATHWAY_PREVIEW" : "UNEXPECTED_TRACK_PREVIEW");
                             }
                             else m_Candidates.Add(e);
                         }
@@ -700,6 +778,12 @@ namespace CityWeaver
                 }
                 return;
             }
+            if (IsPierPathway)
+            {
+                CreatePierOwnerDefinition(op.PierOwner, Entity.Null);
+                if (EntityManager.HasComponent<Game.Objects.Attachment>(op.PierOwner))
+                    CreatePierOwnerDefinition(EntityManager.GetComponentData<Game.Objects.Attachment>(op.PierOwner).m_Attached, op.PierOwner);
+            }
             for (int i = 0; i < op.Segments.Count; i++)
             {
                 var segment = op.Segments[i]; var curve = segment.Curve;
@@ -710,12 +794,89 @@ namespace CityWeaver
                         (elevation >= 8 ? CoursePosFlags.ForceElevatedNode | CoursePosFlags.ForceElevatedEdge : 0) };
                 var definition = EntityManager.CreateEntity(); m_Definitions.Add(definition);
                 EntityManager.AddComponentData(definition, new CreationDefinition { m_Prefab = segment.Prefab != Entity.Null ? segment.Prefab : op.Prefab, m_Flags = CreationFlags.SubElevation, m_RandomSeed = 1 + ((op.Id.GetHashCode() + i) & 0x3fffffff) });
+                if (IsPierPathway)
+                    EntityManager.AddComponentData(definition, new OwnerDefinition {
+                        m_Prefab = op.PierOwnerPrefab, m_Position = op.PierOwnerPosition, m_Rotation = op.PierOwnerRotation });
                 EntityManager.AddComponentData(definition, new NetCourse { m_Curve = curve,
                     m_StartPosition = Point(segment.Start, segment.StartTarget, segment.StartSplit, segment.StartElevation, true),
                     m_EndPosition = Point(segment.End, segment.EndTarget, segment.EndSplit, segment.EndElevation, false),
                     m_Length = MathUtils.Length(curve), m_Elevation = new float2(0), m_FixedIndex = -1 });
                 EntityManager.AddComponent<Updated>(definition);
             }
+        }
+        private bool IsExpectedPierBuilding(Entity preview, Temp temp)
+        {
+            var original = temp.m_Original;
+            var owner = m_Operation.PierOwner;
+            bool expected = original == owner;
+            if (!expected && EntityManager.HasComponent<Game.Objects.Attachment>(owner))
+                expected = original == EntityManager.GetComponentData<Game.Objects.Attachment>(owner).m_Attached;
+            if (!expected || !EntityManager.Exists(original) ||
+                (temp.m_Flags & TempFlags.Delete) != 0 ||
+                !EntityManager.HasComponent<Game.Buildings.Building>(preview) ||
+                !EntityManager.HasComponent<PrefabRef>(preview) || !EntityManager.HasComponent<PrefabRef>(original) ||
+                EntityManager.GetComponentData<PrefabRef>(preview).m_Prefab != EntityManager.GetComponentData<PrefabRef>(original).m_Prefab ||
+                !EntityManager.HasComponent<Game.Objects.Transform>(preview) || !EntityManager.HasComponent<Game.Objects.Transform>(original)) return false;
+            var a = EntityManager.GetComponentData<Game.Objects.Transform>(preview);
+            var b = EntityManager.GetComponentData<Game.Objects.Transform>(original);
+            return math.distance(a.m_Position, b.m_Position) < 0.01f && math.distance(a.m_Rotation.value, b.m_Rotation.value) < 0.01f;
+        }
+        private void CreatePierOwnerDefinition(Entity original, Entity attachedParent)
+        {
+                var prefab = EntityManager.GetComponentData<PrefabRef>(original).m_Prefab;
+                var ownerTransform = EntityManager.GetComponentData<Game.Objects.Transform>(original);
+                var ownerDefinition = EntityManager.CreateEntity(); m_Definitions.Add(ownerDefinition);
+                var creation = new CreationDefinition {
+                    m_Original = original,
+                    m_Owner = EntityManager.HasComponent<Owner>(original) ? EntityManager.GetComponentData<Owner>(original).m_Owner : Entity.Null,
+                    m_Flags = CreationFlags.Upgrade | CreationFlags.Parent };
+                if (attachedParent != Entity.Null) { creation.m_Attached = EntityManager.GetComponentData<PrefabRef>(attachedParent).m_Prefab; creation.m_Flags |= CreationFlags.Attach; }
+                EntityManager.AddComponentData(ownerDefinition, creation);
+                var local = ownerTransform;
+                if (creation.m_Owner != Entity.Null && EntityManager.HasComponent<Game.Objects.Transform>(creation.m_Owner))
+                    local = Game.Objects.ObjectUtils.WorldToLocal(Game.Objects.ObjectUtils.InverseTransform(EntityManager.GetComponentData<Game.Objects.Transform>(creation.m_Owner)), ownerTransform);
+                EntityManager.AddComponentData(ownerDefinition, new ObjectDefinition {
+                    m_Position = ownerTransform.m_Position, m_Rotation = ownerTransform.m_Rotation,
+                    m_LocalPosition = local.m_Position, m_LocalRotation = local.m_Rotation, m_ParentMesh = -1 });
+                EntityManager.AddComponent<Updated>(ownerDefinition);
+                if (EntityManager.HasBuffer<Game.Net.SubNet>(original))
+                {
+                    var ownerSubnets = EntityManager.GetBuffer<Game.Net.SubNet>(original, true);
+                    foreach (var subnet in ownerSubnets)
+                    {
+                        var subnetEntity = subnet.m_SubNet;
+                        if (!EntityManager.Exists(subnetEntity) || !EntityManager.HasComponent<Edge>(subnetEntity) ||
+                            !EntityManager.HasComponent<Curve>(subnetEntity)) continue;
+                        var edge = EntityManager.GetComponentData<Edge>(subnetEntity);
+                        var curve = EntityManager.GetComponentData<Curve>(subnetEntity).m_Bezier;
+                        var copy = EntityManager.CreateEntity(); m_Definitions.Add(copy);
+                        EntityManager.AddComponentData(copy, new CreationDefinition { m_Original = subnetEntity });
+                        EntityManager.AddComponentData(copy, new OwnerDefinition {
+                            m_Prefab = prefab, m_Position = ownerTransform.m_Position, m_Rotation = ownerTransform.m_Rotation });
+                        EntityManager.AddComponentData(copy, new NetCourse {
+                            m_Curve = curve, m_Length = MathUtils.Length(curve), m_FixedIndex = -1,
+                            m_StartPosition = new CoursePos { m_Entity = edge.m_Start, m_Position = curve.a,
+                                m_Rotation = NetUtils.GetNodeRotation(MathUtils.StartTangent(curve)), m_CourseDelta = 0 },
+                            m_EndPosition = new CoursePos { m_Entity = edge.m_End, m_Position = curve.d,
+                                m_Rotation = NetUtils.GetNodeRotation(MathUtils.EndTangent(curve)), m_CourseDelta = 1 }
+                        });
+                        EntityManager.AddComponent<Updated>(copy);
+                    }
+                }
+
+                if (EntityManager.HasBuffer<Game.Areas.SubArea>(original))
+                    foreach (var sub in EntityManager.GetBuffer<Game.Areas.SubArea>(original, true))
+                    {
+                        var area = sub.m_Area;
+                        if (!EntityManager.Exists(area) || !EntityManager.HasBuffer<Game.Areas.Node>(area)) continue;
+                        var copy = EntityManager.CreateEntity(); m_Definitions.Add(copy);
+                        EntityManager.AddComponentData(copy, new CreationDefinition { m_Original = area });
+                        EntityManager.AddComponentData(copy, new OwnerDefinition { m_Prefab = prefab, m_Position = ownerTransform.m_Position, m_Rotation = ownerTransform.m_Rotation });
+                        EntityManager.AddBuffer<Game.Areas.Node>(copy).CopyFrom(EntityManager.GetBuffer<Game.Areas.Node>(area, true).AsNativeArray());
+                        if (EntityManager.HasBuffer<LocalNodeCache>(area))
+                            EntityManager.AddBuffer<LocalNodeCache>(copy).CopyFrom(EntityManager.GetBuffer<LocalNodeCache>(area, true).AsNativeArray());
+                        EntityManager.AddComponent<Updated>(copy);
+                    }
         }
         private void DestroyDefinition()
         {

@@ -33,4 +33,4 @@
 - **当前 MCP 版本以 `mcp/package.json` 的 `version` 字段为唯一来源**；工具总数以运行时 `tools/list` 为准。文档不重复固化这两个数字，避免随版本推进过期。
 - `validation/VALIDATION.md` 是按版本倒序的实机验证档案，其中的版本号与工具总数是**当时的事实快照**，不回填修改。
 
-MCP 服务开发、运行和协议说明位于 [`mcp`](../mcp/README.md)，Codex 的技能入口与按需文档路由位于 [`skills/cities-skylines2`](../skills/cities-skylines2/SKILL.md)。详细内容以本目录为单一维护来源。
+MCP 服务开发、运行和协议说明位于 [`mcp`](../mcp/README.md)；供支持技能的 Agent 使用的技能入口与按需文档路由位于 [`skills/cities-skylines2`](../skills/cities-skylines2/SKILL.md)。详细内容以本目录为单一维护来源。
