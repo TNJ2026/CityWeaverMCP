@@ -14,6 +14,10 @@
 
 基础游戏包含 9 类专门产业区。放置专门产业主建筑后才会启用它允许的采集区域工具；采集区域是主建筑的附属 `SubArea`，不是普通工业 zoning，也不是行政区。精确主建筑与 `area_prefab` 必须从当前城市发现。
 
+主建筑发现使用 `list_building_prefabs(kind="specialized_industry")`，列出带 `PlaceholderBuildingData`、且入口自身或其兼容升级 prefab 的原生 `SubArea` 声明了 `ExtractorAreaData` 的入口。游戏的 ObjectTool 根据占位物关联的 Zone prefab 选择后续采集设施；`ExtractorFacilityData` 通常在这些后续建筑上，不能反过来用作入口筛选。返回的 `specialized_industry_owner=true`、`specialized_industry_entry_kind`、`extractor_area_on_owner`、`extractor_area_prefabs` 和 `extractor_area_upgrades` 是**入口候选及其原生声明**，不是已投产证明。若 `extractor_area_on_owner=false`，不能对入口直接创建采集区，应先建设声明该区域的兼容升级，再对永久升级建筑读取 `list_building_areas`。零建造费用或预览产生许多临时实体都不足以判断它可用。此类主建筑的放置预览会额外要求原生临时建筑接入真实道路、没有警告且不拆除既有对象；提交后还要回读永久建筑、附属生产建筑及道路边。直接带区域的入口还须回读附属区域缓冲区。任一条件失败或结果未知时停止，不换 `request_id` 重试。
+
+施工预览还必须返回 `attachment_building_prefab`，并在临时实体中确认该附属生产建筑已生成；提交后永久结果须同时包含占位入口和附属建筑。只有占位入口、采集区和道路绑定而缺少附属建筑时，判为**未完成产业施工**，不能继续扩大采集区或报告投产。2026-09-21 的旧模组施工曾留下这种不完整占位物；升级模组不会自动修复旧存档，须先逐处核查并走经过原生预览的修复流程。
+
 | 专门产业 | 必需自然资源 | 资源物理规则 | 建设要点 |
 | --- | --- | --- | --- |
 | Livestock Farming | 无 | 不依赖资源图层 | 主建筑需接道路；区域仍要有足够连续土地供内部采集路径和扩建。 |
@@ -30,7 +34,7 @@
 
 ### 通用物理规则
 
-1. **先主建筑，后区域**：先永久放置并回读 owner 主建筑，再调用 `list_building_areas` 读取它真实允许的 `area_prefab`；不能先画无 owner 的资源区。
+1. **先主建筑，后区域**：先从 `list_building_prefabs(kind="specialized_industry")` 发现候选，完成原生预览、提交并回读 owner 主建筑。若区域在入口上，直接调用 `list_building_areas`；若区域只在升级上，先预览、建设并回读对应升级，再从永久升级实体读取允许的 `area_prefab`。不能先画无 owner 的资源区。
 2. **资源覆盖优先**：需要资源的产业按实时资源图层和浓度决定边界。区域总面积不是产量代理，未覆盖资源的部分不能按有效采集面积计算。
 3. **道路只服务主建筑物流**：内部采集车辆不在普通道路上行驶，但员工、服务车辆和成品/原料外运仍从主建筑道路入口出发。入口避免紧贴路口，并接入能承受货车的集散路。
 4. **地形与边界**：边界必须是简单多边形并位于允许建设范围内；陡坡、水体、其他建筑、owner 连接和原生路径生成能力均由 preview 最终判定。
@@ -42,8 +46,11 @@
 当当前城市加载 Bridges & Ports 时，还可能发现 Fishing Industry 和 Offshore Oil Industry。两者都以主建筑为 owner，再通过升级菜单建设附属设施和网络：
 
 - Fishing 可包含内陆鱼场，或由 fishing pier、fishing area、offshore farm 和鱼类仓储组成的开放水域系统。开放水域方案必须有符合 prefab 要求的岸线/水深、连续 Boatway/Route，以及主建筑和仓储的道路物流。
+- 开放水域入口可能不直接带采集区；先检查 `extractor_area_upgrades`，按当前城市返回的精确升级名称建设可扩区的附属建筑，不能把水面入口当作陆地采集区 owner。岸线候选须绑定真实普通道路并经过原生预览；只有永久升级的区域能力与水上路径均验收后，才逐步扩到原生允许的最大有效边界。
+- 若水上升级采用 `Floating` 且声明了远距离放置范围，不要直接套用贴主体的 `owner_side`：主体已有的码头和 Boatway 可能占据贴边候选。先回读原生 `placement_geometry.floating_supported`、水面及现有子航道，使用 `plan_special_building_site` 传入 `owner_building_id`、精确升级名称和 `mode=floating`，再将候选原样交给 `preview_building_upgrade(placement_mode=floating)`。此工具只筛掉越界或四角无水的候选；原生预览仍可能因子航道、净空或专用吸附失败而拒绝，失败时停工回读，不提交。
 - Offshore Oil 由主建筑、pier、pipeline、storage tank、offshore rig 和 oil tanker line 组成。钻井平台处于水上不等于已经联网；输油管、油轮路径、存储和主建筑外运道路分别验证。
 - 这些海洋产业的管线、Boatway 和 Route 是专用网络，不能用视觉接近代替连接；桥梁、岸线、航道和水深共同决定可用路径。
+- 渔港的可延长码头控制点可能属于高架 `PathwayData`（如游戏实时返回的 `Narrow Boatway`），并非 `Game.Net.Waterway` 航道。连接型附属建筑若要求码头先延伸，应先按 `WATERWAY-GUIDE.md` 的码头 Pathway 流程延长、提交和回读，再预览附属建筑；不得用航道工具直接代替码头。
 - DLC 资产及内部名称可能随版本变化，必须通过当前城市 prefab、升级和 owner 的 SubArea/SubBuilding 声明发现，不能把官网展示名称直接作为 MCP 参数。
 
 上述海洋产业结构来自[官方 Bridges & Ports 页面](https://www.paradoxinteractive.com/games/cities-skylines-ii/add-ons/cities-skylines-ii-bridges-and-ports)及[官方港口开发日志](https://www.paradoxinteractive.com/games/cities-skylines-ii/news/bridges-and-ports-dev-diary-ports)。

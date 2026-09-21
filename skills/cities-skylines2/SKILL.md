@@ -1,11 +1,17 @@
 ---
 name: cities-skylines2
-description: 通过 CityWeaverMCP 查询和操作《都市：天际线 II》的实时城市。用于从零建城、接手城市、制定发展策略、城市诊断，以及道路建筑、交通、公共服务、经济人口、地图环境和灾害控制。适用于 cities-skylines2 MCP；不用于其他城市游戏或仅修改模组源码的任务。
+description: "Use CityWeaverMCP to inspect, plan, and build live Cities: Skylines II cities. 通过 CityWeaverMCP 查询、规划和建设实时城市。Use for city diagnosis and in-game operations; not for other games or source-only mod edits."
 ---
 
 # Cities: Skylines II 城市操作
 
 使用 CityWeaverMCP 完成用户的城市目标。运行中的 `get_query_capabilities`、MCP `tools/list` 和工具 schema 是能力、参数及限制的权威来源；项目文档解释工作流和已知边界，不以历史版本数字替代实时发现。
+
+## English-language Agent route
+
+For English-language planning or construction, read [the English planning and construction guide](references/planning-construction.en.md) before using write tools. It covers the essential authorization, discovery, preview/apply, road-grid, building, utility, and acceptance rules without requiring an English OS or game UI. The detailed project guides remain in Chinese; read the relevant guide when you can, and treat the live MCP tool schemas and game responses as authoritative. If a required specialized rule is unclear, stop before the write rather than inventing parameters or translating prefab IDs. For a read-only question, inspect live capabilities and use only the relevant domain guide.
+
+The repository is not necessarily at the local path shown below. Locate the project by `mcp/server.mjs` and `mcp/package.json`; never assume a user's workspace path. Exact prefab, zone, component, and entity identifiers are data returned by the current city and must not be translated.
 
 ## 定位项目与文档
 
@@ -95,6 +101,8 @@ description: 通过 CityWeaverMCP 查询和操作《都市：天际线 II》的�
 - 网格工具只是批量表达与施工入口，不会取消原生 preview、费用、碰撞、净空、永久对象回读和失败停止要求。
 
 ## 关键领域边界
+
+- 渔港码头延长、Fishing Pier 升级项或码头预览重叠排查：先读 [渔港码头延长](references/pier-extension.md)。发现永久水侧端点，以 Pathway 原生预览/提交延伸，完成后核验共享节点及附着建筑；不要与航道或捕鱼线路混用。
 
 - 新增普通建筑、市政服务、交通设施或公用设施优先使用 `plan_building_workflow` / `execute_building_plan`；已授权的一组建筑可用 `deploy_building_plans`。移动、升级、拆除及专用网络仍使用领域工具。可升级建筑用 `reserve_upgrade_prefabs` 预留组合占地；不需要覆盖代理时将 `consider_service_coverage` 设为 `false`，但不能跳过原生放置预览。
 - 安装可移动升级前先调用对应升级列表读取 `placement_geometry`。主体侧安装使用返回的吸附段和 `placement_offset_m`；原生范围允许隔路放置时，只使用 `road_side_candidates` 返回的精确道路、位置与朝向进入 `placement_mode=road_side`。候选与范围检查都不能替代原生 preview。

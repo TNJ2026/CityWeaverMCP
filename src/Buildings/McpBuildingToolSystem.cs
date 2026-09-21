@@ -58,7 +58,7 @@ namespace CityWeaver
             var op = m_Operation; ++m_Ticks;
             if (!op.ApplyDispatched && (op.CancelRequested || DateTime.UtcNow >= op.Expires)) { op.State = op.CancelRequested ? "cancelled" : "expired"; Finish(); return; }
             if (op.Type == "batch_place") { TickBatch(); return; }
-            if (m_Phase == 0) { if (m_Ticks < 3) return; if (!TargetValid()) { Fail("TARGET_CHANGED"); return; } GenerateDefinitions(); op.State = "generating_preview"; applyMode = ApplyMode.None; m_Phase = 1; m_Ticks = 0; return; }
+            if (m_Phase == 0) { if (m_Ticks < 3) return; if (!TargetValid()) { Fail("TARGET_CHANGED"); return; } GenerateDefinitions(); if (op.ExtractorOwnerPlacement && op.AttachmentPrefab == Entity.Null) { Fail("NO_EXTRACTOR_ATTACHMENT_PREFAB"); return; } op.State = "generating_preview"; applyMode = ApplyMode.None; m_Phase = 1; m_Ticks = 0; return; }
             if (m_Phase == 1) { DestroyDefinitions(); applyMode = ApplyMode.None; m_Phase = 2; m_Ticks = 0; return; }
             if (m_Phase == 2)
             {
@@ -165,6 +165,58 @@ namespace CityWeaver
             EntityManager.AddComponentData(e, new ObjectDefinition { m_Position = position, m_LocalPosition = localPosition, m_Rotation = rotation, m_LocalRotation = localRotation, m_ParentMesh = -1, m_Probability = 100, m_PrefabSubIndex = -1, m_Scale = new float3(1), m_Intensity = 1 });
             EntityManager.AddComponent<Updated>(e);
         }
+        private NativeReference<AttachmentData> SelectExtractorAttachment(BuildingOperation op)
+        {
+            if (!op.ExtractorOwnerPlacement) return default;
+            op.AttachmentPrefab = Entity.Null;
+            op.AttachmentPrefabName = null;
+            var placeholder = EntityManager.GetComponentData<PlaceholderBuildingData>(op.Prefab);
+            if (!EntityManager.Exists(placeholder.m_ZonePrefab) || !EntityManager.HasComponent<ZoneData>(placeholder.m_ZonePrefab)) return default;
+            var zone = EntityManager.GetComponentData<ZoneData>(placeholder.m_ZonePrefab);
+            var lot = EntityManager.GetComponentData<BuildingData>(op.Prefab);
+            var access = new bool2((lot.m_Flags & Game.Prefabs.BuildingFlags.LeftAccess) != 0, (lot.m_Flags & Game.Prefabs.BuildingFlags.RightAccess) != 0);
+            float bestScore = 0f;
+            BuildingData bestBuilding = default;
+            // Match ObjectToolSystem.FindAttachmentBuildingJob: only level-one buildings
+            // in the placeholder's zone spawn group can replace its visual shell.
+            using (var query = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<BuildingData>(),
+                ComponentType.ReadOnly<SpawnableBuildingData>(), ComponentType.ReadOnly<BuildingSpawnGroupData>(),
+                ComponentType.ReadOnly<PrefabData>()))
+            {
+                query.SetSharedComponentFilter(new BuildingSpawnGroupData(zone.m_ZoneType));
+                using (var entities = query.ToEntityArray(Allocator.Temp))
+                {
+                    var random = new Unity.Mathematics.Random((uint)op.Id.GetHashCode() | 1u);
+                    foreach (var candidate in entities)
+                    {
+                        if (EntityManager.GetComponentData<SpawnableBuildingData>(candidate).m_Level != 1) continue;
+                        var building = EntityManager.GetComponentData<BuildingData>(candidate);
+                        var size = building.m_LotSize;
+                        if (!math.all(size <= lot.m_LotSize)) continue;
+                        var candidateAccess = new bool2((building.m_Flags & Game.Prefabs.BuildingFlags.LeftAccess) != 0,
+                            (building.m_Flags & Game.Prefabs.BuildingFlags.RightAccess) != 0);
+                        var remainder = math.select(lot.m_LotSize - size, 0, size == lot.m_LotSize - 1);
+                        float score = size.x * size.y * random.NextFloat(1f, 1.05f);
+                        score += remainder.x * size.y * random.NextFloat(.95f, 1f);
+                        score += lot.m_LotSize.x * remainder.y * random.NextFloat(.55f, .6f);
+                        score /= lot.m_LotSize.x * lot.m_LotSize.y;
+                        score *= math.csum(math.select(.01f, .5f, access == candidateAccess));
+                        if (score <= bestScore) continue;
+                        bestScore = score;
+                        bestBuilding = building;
+                        op.AttachmentPrefab = candidate;
+                    }
+                }
+            }
+            if (op.AttachmentPrefab == Entity.Null) return default;
+            op.AttachmentPrefabName = m_PrefabSystem.GetPrefab<PrefabBase>(op.AttachmentPrefab)?.name;
+            var attachment = new NativeReference<AttachmentData>(Allocator.TempJob);
+            attachment.Value = new AttachmentData {
+                m_Entity = op.AttachmentPrefab,
+                m_Offset = new float3(0f, 0f, (lot.m_LotSize.y - bestBuilding.m_LotSize.y) * 4f)
+            };
+            return attachment;
+        }
         private void GenerateDefinitions()
         {
             var op = m_Operation; m_Definitions.Clear();
@@ -186,7 +238,10 @@ namespace CityWeaver
                 Entity owner = op.Type == "upgrade" || op.Type == "rebuild" ? op.Target : Entity.Null;
                 Entity original = op.Type == "move" ? op.Target : Entity.Null;
                 var config = World.GetExistingSystemManaged<Game.City.CityConfigurationSystem>();
-                CreateDefinitions(prefab, Entity.Null, Entity.Null, owner, original, Entity.Null, config.defaultTheme, m_ControlPoints, default(NativeReference<AttachmentData>), false, config.leftHandTraffic, false, false, 100, 0, .5f, 0, 0, RandomSeed.Next(), Snap.All, Game.Tools.AgeMask.Sapling, false, default, default);
+                var attachment = SelectExtractorAttachment(op);
+                if (op.ExtractorOwnerPlacement && !attachment.IsCreated) return;
+                var handle = CreateDefinitions(prefab, Entity.Null, Entity.Null, owner, original, Entity.Null, config.defaultTheme, m_ControlPoints, attachment, false, config.leftHandTraffic, false, false, 100, 0, .5f, 0, 0, RandomSeed.Next(), Snap.All, Game.Tools.AgeMask.Sapling, false, default, default);
+                if (attachment.IsCreated) attachment.Dispose(handle);
             }
             else if (op.Type == "demolish" || op.Type == "remove_upgrade") AddDefinition(op.OriginalPrefab, op.Target, Entity.Null, CreationFlags.Delete, op.OriginalPosition, op.OriginalRotation);
             else if (op.Type == "replace")
@@ -229,6 +284,29 @@ namespace CityWeaver
                     if (t.m_Original != Entity.Null && (t.m_Flags & TempFlags.Delete) != 0) { op.Errors.Add("ROAD_STOP_WOULD_DELETE_EXISTING_OBJECT"); break; }
                 }
             }
+            if (op.ExtractorOwnerPlacement)
+            {
+                if (op.Warnings.Count > 0) op.Errors.Add("EXTRACTOR_OWNER_HAS_NATIVE_WARNINGS");
+                var owner = m_Candidates.FirstOrDefault(e => EntityManager.HasComponent<PrefabRef>(e) &&
+                    EntityManager.GetComponentData<PrefabRef>(e).m_Prefab == op.Prefab &&
+                    EntityManager.HasComponent<Building>(e));
+                if (owner == Entity.Null) op.Errors.Add("EXTRACTOR_OWNER_NOT_GENERATED");
+                var facility = m_Candidates.FirstOrDefault(e => EntityManager.HasComponent<PrefabRef>(e) &&
+                    EntityManager.GetComponentData<PrefabRef>(e).m_Prefab == op.AttachmentPrefab &&
+                    EntityManager.HasComponent<Building>(e));
+                if (facility == Entity.Null) op.Errors.Add("EXTRACTOR_ATTACHMENT_NOT_GENERATED");
+                if ((op.ExtractorAreaOnOwner && (owner == Entity.Null || !ExtractorOwnerRoadConnected(owner))) ||
+                    (!op.ExtractorAreaOnOwner && (op.ParentRoad == Entity.Null ||
+                        (owner == Entity.Null || !ExtractorOwnerRoadConnected(owner)) &&
+                        (facility == Entity.Null || !ExtractorOwnerRoadConnected(facility)))))
+                    op.Errors.Add("EXTRACTOR_OWNER_NOT_ROAD_CONNECTED");
+                using (var all = m_TempQuery.ToEntityArray(Allocator.Temp)) foreach (var e in all)
+                {
+                    var temp = EntityManager.GetComponentData<Temp>(e);
+                    if (temp.m_Original != Entity.Null && (temp.m_Flags & TempFlags.Delete) != 0)
+                    { op.Errors.Add("EXTRACTOR_OWNER_WOULD_DELETE_EXISTING_OBJECT"); break; }
+                }
+            }
             signature = op.Cost + ":" + string.Join(",", m_Candidates.Select(e => e.Index + ":" + e.Version)) + ":" + op.Errors + ":" + op.Warnings;
             return m_Candidates.Count > 0;
         }
@@ -245,7 +323,30 @@ namespace CityWeaver
             if (op.RoadStopPlacement) op.ResultEntities.RemoveAll(e => !EntityManager.HasComponent<Game.Routes.TransportStop>(e) || !EntityManager.HasBuffer<Game.Routes.ConnectedRoute>(e) || !StopAttachedToRoad(e, op.ParentRoad) ||
                 !GameQueryService.RoadStopNetworkCompatible(EntityManager, op.Prefab, op.ParentRoad) ||
                 (op.RoadStopTransportType == "Tram" && !EntityManager.HasComponent<Game.Routes.TramStop>(e)));
+            if (op.ExtractorOwnerPlacement)
+            {
+                op.ResultEntities.RemoveAll(e => !EntityManager.HasComponent<Building>(e) ||
+                    (op.ExtractorAreaOnOwner && (!EntityManager.HasBuffer<Game.Areas.SubArea>(e) || !ExtractorOwnerRoadConnected(e))));
+                if (op.ResultEntities.Count == 0) return false;
+                foreach (var e in m_Candidates)
+                    if (EntityManager.Exists(e) && !EntityManager.HasComponent<Deleted>(e) &&
+                        !EntityManager.HasComponent<Temp>(e) && EntityManager.HasComponent<PrefabRef>(e) &&
+                        EntityManager.GetComponentData<PrefabRef>(e).m_Prefab == op.AttachmentPrefab &&
+                        EntityManager.HasComponent<Building>(e) && EntityManager.HasComponent<Game.Objects.Attached>(e) &&
+                        EntityManager.GetComponentData<Game.Objects.Attached>(e).m_Parent == op.ResultEntities[0])
+                    { op.ResultEntities.Add(e); break; }
+                if (op.ResultEntities.Count < 2) return false;
+                if (!op.ExtractorAreaOnOwner && !ExtractorOwnerRoadConnected(op.ResultEntities[0]) &&
+                    !ExtractorOwnerRoadConnected(op.ResultEntities[1])) return false;
+            }
             return op.ResultEntities.Count >= op.ExpectedResultCount && (op.Type != "replace" || !EntityManager.Exists(op.Target) || EntityManager.HasComponent<Deleted>(op.Target));
+        }
+        private bool ExtractorOwnerRoadConnected(Entity building)
+        {
+            if (!EntityManager.HasComponent<Building>(building)) return false;
+            var road = EntityManager.GetComponentData<Building>(building).m_RoadEdge;
+            return road != Entity.Null && EntityManager.Exists(road) && EntityManager.HasComponent<Road>(road) &&
+                !EntityManager.HasComponent<Deleted>(road);
         }
         private bool StopAttachedToRoad(Entity e, Entity road)
         {
