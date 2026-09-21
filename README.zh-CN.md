@@ -25,9 +25,9 @@ CityWeaver 是《都市：天际线 II》的代码模组与本地 MCP 桥接项�
 
 ## 快速开始
 
-玩家安装分为两部分：从 Paradox Mods 获取游戏模组，从本仓库获取独立的本地 MCP 服务。模组**目前尚未上架 Paradox Mods**；上架前，可先按下文[基于本项目开发](#基于本项目开发)的步骤构建游戏模组。上架后，凡 Agent 的工具能完成的 MCP 配置与检查，都可交给本地 Agent：
+玩家安装分为两部分：从 [Paradox Mods 的 CityWeaver 页面](https://mods.paradoxplaza.com/mods/159998/Windows)获取游戏模组，从本仓库获取独立的本地 MCP 服务。凡 Agent 的工具能完成的 MCP 配置与检查，都可交给本地 Agent：
 
-1. 在游戏的 Paradox Mods 界面订阅并启用 **CityWeaver**，如有提示则重启游戏，并加载可玩的城市。如果 Agent 能操作游戏界面，也可请它协助；否则由你完成这一部分。已发布模组仅安装游戏内桥接，不包含 MCP 服务或 AI 客户端，也**不需要**代码模组工具链或 .NET SDK。
+1. 通过 Paradox Mods [安装游戏模组](#安装游戏模组)，然后加载可玩的城市。如果 Agent 能操作游戏界面，也可请它协助；否则由你完成这一部分。已发布模组仅安装游戏内桥接，不包含 MCP 服务或 AI 客户端，也**不需要**代码模组工具链或 .NET SDK。
 2. 在有本机命令权限的 Agent 客户端中，发送下方的 [MCP 配置提示词](#提示词样例)。提供现有仓库路径，或请 Agent 获取 [CityWeaverMCP 仓库](https://github.com/TNJ2026/CityWeaverMCP)。让 Agent 检查或安装 Node.js 20 或以上版本、安装 MCP 依赖、定位 `mcp/server.mjs`，并配置名为 `cities-skylines2` 的本地 STDIO MCP 服务（命令为 `node`，唯一参数为脚本的**绝对路径**）。若 Agent 无法修改客户端设置或完成安装，应给出你仍需操作的准确步骤。手动配置时，在仓库根目录运行：
 
    ```powershell
@@ -45,6 +45,14 @@ CityWeaver 是《都市：天际线 II》的代码模组与本地 MCP 桥接项�
 3. 向 Agent 发送下方的[连接提示词](#提示词样例)。让它在必要时重连或重启 MCP 客户端、发现实时工具、调用 `get_game_status`，并报告城市会话是否就绪。连接失败时发送[排障提示词](#提示词样例)；Agent 也可从仓库根目录执行 `node .\mcp\query.mjs get_game_status`，区分客户端配置问题与游戏桥接问题。只有 Agent 无法自行完成的操作才需要你接手。
 
 模组会自动生成并发现本地连接凭据。不要提交或分享 `bridge.json` 及其中的令牌。故障排查和更多命令见 [MCP 指南](mcp/README.md)。
+
+### 安装游戏模组
+
+1. 启动《都市：天际线 II》，从主菜单打开 **Paradox Mods**，搜索 **CityWeaver**（模组 ID：**159998**）；也可在浏览器打开 [CityWeaver 模组页面](https://mods.paradoxplaza.com/mods/159998/Windows)。
+2. 将模组加入播放集（playset），并启用该播放集。等待游戏完成模组下载与安装；如有提示则重启游戏。如果是在网页上添加的模组，请在游戏中确认播放集已同步。
+3. 加载可玩的城市，确认游戏设置中出现 CityWeaver，然后继续按上方[快速开始](#快速开始)配置 MCP 服务并做只读连接检查。
+
+不要同时启用本地构建的 CityWeaver 与 Paradox Mods 下载的版本。发布的模组不包含独立 MCP 服务；玩家安装模组不需要代码模组工具链或 .NET SDK。
 
 ## 提示词样例
 
@@ -117,4 +125,4 @@ CityWeaver 是《都市：天际线 II》的代码模组与本地 MCP 桥接项�
 
 构建后启动或重启游戏，确认设置菜单出现 CityWeaver。加载城市后使用上面的只读连接提示词。运行 MCP 自动化测试前先执行 `npm --prefix .\mcp ci`，再运行 `npm --prefix .\mcp test`；实机检查见 [MCP 测试与诊断](mcp/README.md)。当前覆盖范围和已知实机验证缺口见[验证记录](docs/validation/VALIDATION.md)。
 
-模组尚未发布到 Paradox Mods。准备发布时遵循[发布指南](docs/workflows/publishing.md)，并为独立 MCP 服务提供下载地址。
+游戏模组已在 [Paradox Mods](https://mods.paradoxplaza.com/mods/159998/Windows) 发布（ID 159998）。独立 MCP 服务可从本仓库获取；后续更新模组时请遵循[发布指南](docs/workflows/publishing.md)。
