@@ -2,21 +2,33 @@
 
 简体中文 | [English](README.md)
 
-Agent 可选用 [cities-skylines2 技能](skills/cities-skylines2/SKILL.md)进行功能路由并遵循核心操作约束；完整指南与城市工作流见[文档目录](docs/README.md)。技能可另行安装到个人技能目录，并通过 `$cities-skylines2` 显式调用。仅安装技能不能代替游戏模组和 MCP 服务。
+CityWeaver 是《都市：天际线 II》的代码模组与本地 MCP 桥接项目，可查询、规划并建设实时城市。游戏模组在游戏内运行；独立的 Node.js STDIO MCP 服务负责连接 Agent。模组本身不调用大模型 API。
 
-《都市：天际线 II》CityWeaver 代码模组与 MCP 城市自动化桥接项目。
+可选的 [cities-skylines2 技能](skills/cities-skylines2/SKILL.md)提供工具路由和操作约束。可将其安装到个人技能目录，并通过 `$cities-skylines2` 显式调用；但技能不能代替模组或 MCP 服务。完整工作流见[文档目录](docs/README.md)和 [MCP 指南](mcp/README.md)。可用工具清单以已连接服务运行时的 `tools/list` 为准，而不是 README 中的固定列表。
 
-已扩展 MCP 查询与道路操作桥接，使用方式、数据口径及测试命令见 [MCP 开发说明](mcp/README.md)。
-0.2.0 增加组件发现、29 类实体查询、通用字段和缓冲区读取，详见 [扩展查询指南](mcp/QUERY-GUIDE.md)。
-0.3.2 增加私有字段、原生容器、系统状态和环境栅格查询，详见 [深层查询指南](docs/guides/inspection/DEEP-QUERY-GUIDE.md)。15 个环境图层和 30 个私有原生字段已通过实际游戏验证；其余覆盖边界见 [验证记录](docs/validation/VALIDATION.md)。
-MCP 工具清单以运行时 `tools/list` 为准。规划工具可基于当前已购区域、水域、坡度和既有设施生成 SVG/交互规划图，并把只读方案、道路原生预检和永久施工分开，见 [城市规划图指南](docs/guides/planning/PLANNING-MAP-GUIDE.md)。建筑附属区域现可列出、创建、重画和删除垃圾填埋场储存区、专门产业采集区及其他 prefab 允许的区域，详见 [建筑附属区域指南](docs/guides/buildings/BUILDING-AREA-GUIDE.md)。新增统一建筑工作流，可对普通建筑、市政服务、交通设施和公用设施执行精确 prefab 发现、候选回退、原生预览、影响分析、提交及实体回读；支持单栋“先规划后执行”和最多 32 栋的一次性部署，见 [建筑指南](docs/guides/buildings/BUILDING-GUIDE.md)。灾害接口支持原生预设发现、应急能力、预览/触发、移动、强度与持续时间调节、停止、影响追踪和灾后标记清理，见 [灾害指南](docs/guides/disasters/DISASTER-GUIDE.md)。城市名称、配置、全市政策、资金、城市修正值和统计历史见 [城市管理指南](docs/guides/city/CITY-MANAGEMENT-GUIDE.md)。树木、植物、水源、污染、天气覆盖、风场和土壤水见 [环境与景观指南](docs/guides/areas/ENVIRONMENT-LANDSCAPE-GUIDE.md)。地图格、地图边界、气候、资源、可建设面积、扩张购买以及与行政区/分区/地形的整合见 [地图和区域指南](docs/guides/areas/MAP-AREA-GUIDE.md)。车辆、行人、市民行程、道路流量、停车、目标、速度、重寻路与车辆清理见 [交通与出行控制指南](docs/guides/roads/TRAFFIC-MOBILITY-GUIDE.md)。道路接口覆盖直线与贝塞尔路线、平行道路、环路、自动接入既有道路的分级街区网格、地形/建筑避障、地面/高架/隧道/坡道、四匝道分离式立交、道路升级/拆除/反向、道路分区格生成、原生停车道路变体、道路装饰、路口与入口规则、道路名/限速/公交专用车道策略、车道和交通读取，以及会话内安全撤销，见 [铺路指南](docs/guides/roads/ROAD-GUIDE.md)。土地分区支持逐格读取、左右侧与深度筛选、批量划区、替换和清除，见 [分区指南](docs/guides/areas/ZONING-GUIDE.md)。行政区支持创建、重画边界、删除、命名、政策与市政服务覆盖范围，见 [行政区指南](docs/guides/areas/DISTRICT-GUIDE.md)。公共交通支持线路创建、站序替换、命名、颜色、班表、票价、车辆数、编号、均匀发车、车辆请求、运营车辆返场、状态读取和删除，见 [公共交通线路指南](docs/guides/transport/TRANSPORT-GUIDE.md)；车站、车辆段、机场、港口支持命名、启停、政策、升级和完整建筑事务，火车/地铁/电车轨道支持建设和拆除，见 [公共交通基础设施指南](docs/guides/transport/TRANSPORT-INFRASTRUCTURE-GUIDE.md)。电力、供水、污水、资源管道以及公共设施的查询、选址、放置、移动、升级和拆除见 [公共设施与管网指南](docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md)。医疗、消防、警察、教育、垃圾、殡葬、维护、公园、邮政、停车、福利、研究和应急设施的查询与完整建筑事务见 [城市公共服务设施指南](docs/guides/city/CITY-SERVICE-GUIDE.md)。城市收支、税率、服务预算、服务费与贷款见 [城市经济管理指南](docs/guides/economy/ECONOMY-GUIDE.md)。人口、住房、就业、教育与分区需求见 [城市发展与需求指南](docs/guides/city/DEVELOPMENT-GUIDE.md)。XP、里程碑、发展树和原生解锁操作见 [城市进度与解锁指南](docs/guides/city/PROGRESSION-GUIDE.md)。市民、家庭、企业和资源物流见 [人口与资源经济指南](docs/guides/economy/POPULATION-ECONOMY-GUIDE.md)。完整文档索引见 [文档目录](docs/README.md)。
+## 主要功能
+
+| 分类 | 主要能力 | 指南 |
+| --- | --- | --- |
+| 实时城市查询 | 连接与会话状态、城市概览、实体查询、组件结构和详细数据读取 | [深层查询](docs/guides/inspection/DEEP-QUERY-GUIDE.md) |
+| 规划与施工图 | 勘察已购土地、地形、水域和既有设施；渲染交互规划图，并区分规划、原生预览和永久施工 | [规划图](docs/guides/planning/PLANNING-MAP-GUIDE.md) |
+| 道路与街区网格 | 预览和建设道路、路口、环路及连通网格；检查车道、交通、停车和道路分区格 | [道路](docs/guides/roads/ROAD-GUIDE.md) |
+| 建筑与升级 | 实时发现 prefab、选址、预览、提交、回读永久实体，并管理支持的建筑附属区域 | [建筑](docs/guides/buildings/BUILDING-GUIDE.md) |
+| 地图、行政区与分区 | 检查地图格和可建设土地；创建行政区，按道路侧分区格划区和验收 | [地图与区域](docs/guides/areas/MAP-AREA-GUIDE.md) · [分区](docs/guides/areas/ZONING-GUIDE.md) |
+| 公共设施与管网 | 查询和连接供电、供水、污水等受支持的设施和网络 | [公共设施与管网](docs/guides/transport/UTILITY-INFRASTRUCTURE-GUIDE.md) |
+| 公共服务 | 为教育、医疗、应急、垃圾、殡葬、公园、邮政等受支持设施选址和管理 | [城市公共服务](docs/guides/city/CITY-SERVICE-GUIDE.md) |
+| 公共交通 | 规划和管理线路、站点、车辆段、车站及受支持的铁路、地铁、电车与航道设施 | [线路](docs/guides/transport/TRANSPORT-GUIDE.md) · [基础设施](docs/guides/transport/TRANSPORT-INFRASTRUCTURE-GUIDE.md) |
+| 城市管理 | 读取需求、人口、就业、预算、政策、进度和经济数据，并执行受支持的管理操作 | [城市发展](docs/guides/city/DEVELOPMENT-GUIDE.md) · [经济](docs/guides/economy/ECONOMY-GUIDE.md) |
+| 环境与灾害 | 勘察地形、资源、风、污染、天气和水域；查询和管理受支持的灾害工作流 | [环境](docs/guides/areas/ENVIRONMENT-LANDSCAPE-GUIDE.md) · [灾害](docs/guides/disasters/DISASTER-GUIDE.md) |
+
+部分工具只读，另一些会修改城市并花费游戏内资金。可用性取决于已加载的游戏、解锁状态和运行时能力。施工须执行原生预览并回读永久结果；具体限制和实机验证状态见各指南。
 
 ## 快速开始
 
-CityWeaver 由游戏内代码模组和独立运行的本地 Node.js MCP 服务组成。仅安装游戏模组不会自动安装 MCP 服务；模组本身也不调用大模型 API。当前尚未发布到 Paradox Mods，可先按以下步骤从源码使用。
+CityWeaver 目前尚未发布到 Paradox Mods。若从源码使用：
 
-1. 安装《都市：天际线 II》官方代码模组工具链、.NET SDK 8 和 Node.js 20 或以上。保存并退出游戏，在仓库根目录运行 `./build.ps1 -Configuration Release`，将模组构建并部署到游戏用户目录。仅需暂存构建时使用 `./build.ps1 -Stage`；它**不会**部署到游戏。
-2. 在仓库根目录的 PowerShell 中安装 MCP 服务依赖，并将服务注册到 Codex：
+1. 安装《都市：天际线 II》官方代码模组工具链、.NET SDK 8 和 Node.js 20 或以上。保存城市并退出游戏，然后在仓库根目录运行 `./build.ps1 -Configuration Release`。该命令构建游戏模组并部署到游戏用户目录。`./build.ps1 -Stage` 只暂存构建产物，**不会**安装模组。
+2. 在仓库根目录的 PowerShell 中安装 MCP 服务依赖，并注册到 Codex：
 
    ```powershell
    $mcpServer = Join-Path (Get-Location).Path 'mcp\server.mjs'
@@ -24,118 +36,62 @@ CityWeaver 由游戏内代码模组和独立运行的本地 Node.js MCP 服务�
    codex mcp add cities-skylines2 -- node $mcpServer
    ```
 
-   如果使用其他支持 MCP 的客户端，请将其 STDIO 服务命令配置为 `node`，参数为 `mcp/server.mjs` 的**绝对路径**。客户端不会从 Paradox Mods 自动获取此服务。
-3. 启动游戏并加载可玩的城市。在 Codex 中查询“使用 cities-skylines2 MCP 检查游戏连接和当前城市状态；只读，不修改城市”。若客户端看不到新工具，重启 MCP 连接或客户端。也可在仓库根目录运行 `node .\mcp\query.mjs get_game_status` 检查本地桥接。
+   使用其他支持 MCP 的客户端时，将 STDIO 服务命令设为 `node`，参数设为 `mcp/server.mjs` 的**绝对路径**。仅安装游戏模组不会自动安装此服务。
+3. 启动游戏并加载可玩的城市，让 Agent 只读检查 CityWeaver 连接和游戏状态。如果看不到新工具，重启 MCP 连接或客户端。也可以在仓库根目录运行 `node .\mcp\query.mjs get_game_status` 检查本地桥接。
 
-本地连接凭据由模组自动生成和发现，不要把 `bridge.json` 或其中令牌提交到仓库、发到聊天中。详细安装、故障排查及命令见 [MCP 使用说明](mcp/README.md)。
+模组会自动生成并发现本地连接凭据。不要提交或分享 `bridge.json` 及其中的令牌。故障排查和更多命令见 [MCP 指南](mcp/README.md)。
 
 ## 提示词样例
 
-将以下文字发给已连接 MCP 的 Agent；需要明确调用技能时，可在开头加上“使用 `$cities-skylines2` 技能”。所有坐标、道路、分区和建筑 prefab 应从当前城市发现，不要让 Agent 猜测名称。
+将以下文字发给已连接 MCP 的 Agent。如果安装了可选技能，可在开头添加“使用 `$cities-skylines2` 技能”。坐标、道路、分区名称和建筑 prefab 应从当前城市实时发现，不要猜测。
 
-**连接与只读查询**
+**连接与只读状态**
 
 > 使用 CityWeaver MCP 检查游戏连接、城市会话、地图主题、人口、资金和模拟速度。只读，不修改城市。
 
 **城市诊断**
 
-> 分析当前城市的住宅、就业和商业需求，以及财政、医疗容量和最拥堵的道路。给出数据依据和修复优先级；先不要施工。
+> 分析当前住宅、就业和商业需求，以及财政、医疗容量和最拥堵的道路。给出数据依据和修复优先级；先不要施工。
 
 **规划图与网格预览**
 
-> 仅在已购买区域内规划一个 2×3 的低密度住宅网格。先检查地形、水域、既有道路、连接点和预算，生成施工图并执行原生预览；不要提交施工，也不要购买地图格。
+> 仅在已购买区域内规划一个 2×3 的低密度住宅网格。检查地形、水域、既有道路、连接点和预算；生成施工图并执行原生预览。不要提交施工或购买地图格。
 
 **公共服务选址**
 
-> 根据当前人口、实时可用 prefab 和道路网络，为一座诊所寻找能连接道路的地点。检查完整占地和升级预留、费用、碰撞及服务覆盖；只给候选和预览，等我确认后再建造。
+> 根据当前人口、实时 prefab 和道路网络，为一座诊所寻找能连接道路的地点。检查完整占地和升级预留、费用、碰撞及服务覆盖。只展示候选和预览，等我确认后再建造。
 
 **分阶段施工**
 
-> 按已确认的施工图，在已购买区域分阶段建设道路和服务设施。每项修改都先原生预览，等待预览就绪并检查费用、碰撞和错误；通过后提交，等待完成，再回读永久对象。遇到 failed、expired 或 outcome_unknown 立即停工核查，不要换 request_id 盲目重试；不要加钱或购买地图格。每阶段报告实际费用和剩余资金。
+> 按已确认的施工图，在已购买区域分阶段建设道路和服务设施。每项修改都先执行原生预览，等待预览就绪，并检查费用、碰撞和错误；通过后提交，等待完成，再回读永久对象。遇到 failed、expired 或 outcome_unknown，立即停工并查询原操作，不要换 request_id 盲目重试。不要加钱或购买地图格。每阶段报告实际费用和剩余资金。
 
-**公交规划**
+**只规划公交**
 
-> 读取现有道路、居民和就业位置，只规划公交站及往返线路，不建设轨道交通。先检查站点道路连接、线路可达性和预算，再给出预览和运营验收方法；暂不提交。
+> 读取现有道路、住宅和就业位置，只规划公交站及往返线路，不建设轨道交通。先检查站点道路连接、线路可达性和预算，再展示预览及运营验收方法；暂不提交。
 
-“预览就绪”“已提交”和“已完成”不等于长期城市效果达成；人口、幸福度、污染和交通需在模拟运行后再次对比验证。详见[规划图指南](docs/guides/planning/PLANNING-MAP-GUIDE.md)与[调用、事务与诊断](docs/workflows/operations.md)。
+预览就绪、请求已提交或操作已完成，都不能证明城市的长期效果已经达成。人口、幸福度、污染和交通须在模拟运行后再次对比验证。详见[规划图指南](docs/guides/planning/PLANNING-MAP-GUIDE.md)和[调用、事务与诊断](docs/workflows/operations.md)。
 
-## 当前功能
+## 项目组成
 
-- `src/Core`：模组入口、设置、启动系统、本地桥接和基础查询服务。
-- `src/Inspection`：通用实体查询、组件结构、系统状态和深层数据读取。
-- `src/Buildings`、`src/Roads`、`src/Areas`：建筑、道路、行政区、分区和地图操作。
-- `src/Environment`、`src/Transport`、`src/Services`：地形环境、公共交通、公共服务和公用设施。
-- `src/City`、`src/Economy`、`src/Population`、`src/Progression`、`src/Disasters`：城市管理、经济人口、进度和灾害。
-- `src/Planning`：规划图快照、当前镜头范围与游戏画面捕获、施工自动聚焦。
-- [`src/README.md`](src/README.md)：完整源码目录职责说明。
-- `mcp/`：Node.js STDIO MCP 服务、诊断工具和自动测试。
-- [`tools/`](tools/README.md)：空间勘察、批量街区部署、启动器辅助、规则库和测试工具。
-- `CityWeaver.csproj`：保留官方引用、源码生成器和后处理构建流程。
-- `Properties/`：Paradox Mods 发布元数据和 IDE 发布配置；发布流程见 [发布指南](docs/workflows/publishing.md)。
+- `src/`：游戏端模组源码，涵盖查询、道路、建筑、分区、地图、交通、公用设施、公共服务、经济、人口、灾害和规划。见[源码目录](src/README.md)。
+- `mcp/`：本地 Node.js STDIO MCP 服务、诊断工具和测试。见 [MCP 指南](mcp/README.md)。
+- `tools/`：规划、空间勘察、网格部署、规则和测试工具。见[工具说明](tools/README.md)。
+- `docs/`：详细工作流和功能指南，从[文档目录](docs/README.md)开始。
+- `CityWeaver.csproj` 和 `build.ps1`：官方构建、后处理和部署流程。
+- `Properties/`：Paradox Mods 发布元数据；见[发布指南](docs/workflows/publishing.md)。
 
-## 本机环境（2026-09-20 检查）
+规划工具可根据已购土地、水域、坡度和既有基础设施生成 SVG 或交互施工图。规划输出、原生预览与永久施工是三个不同阶段。MCP 服务还覆盖 prefab 发现、道路网格、分区、公共服务、公用设施、交通和多种只读城市诊断。具体要求与验收状态见各指南；构建或接口测试通过不等于实机放置已验证。
 
-| 项目 | 检查结果 |
-| --- | --- |
-| 游戏路径 | `E:\SteamLibrary\steamapps\common\Cities Skylines II` |
-| 游戏版本（`Player.log` 实测） | `1.6.2f1 (767.21d1) [6300.26419]` |
-| 游戏所用 Unity 引擎 | `2022.3.71f1 (c9bf13b0b844)` |
-| 构建工具链契约 `CSII_UNITYVERSION` | `2022.3.62f2`（见下方说明） |
-| .NET SDK | `8.0.425` |
-| 模组目标框架 / C# | `net48` / `9.0`，由官方 Mod.props 决定 |
-| 工具链 Unity / Entities | `2022.3.62f2` / `1.3.10` |
-| 官方后处理器运行时 | `.NET 6`（本机私有解压 `6.0.36`） |
-
-**工具链版本与引擎版本不是同一个量。** `CSII_UNITYVERSION` 是官方工程读取的用户级注册表配置，本机固定为 `2022.3.62f2`，决定 Mod.props 里的引用程序集路径；它不随游戏更新自动改变，值为旧版不一定代表配置损坏。判断实际运行版本要看 `Player.log` 的 `Game version` 与 `Initialize engine version`，或 `Cities2.exe` 的文件版本。两者不一致时以 `Player.log` 为准；只有官方工具链报错时才去核对该变量。
-
-官方工程读取用户级 `CSII_*` 环境变量，当前已正确指向 E 盘游戏；无需修改共享 Mod.props。
-
-本机系统缺少 .NET 6。已将微软 .NET Runtime 6.0.36 x64 解压到 `.tools/dotnet`，并按微软发布元数据的 SHA-512 校验。
-下载来源和哈希保存在 `.tools/runtime-source.json`。`.tools` 为本机工具目录，不纳入版本控制。
-`build.ps1` 仅在构建期间设置进程内 DOTNET_ROOT / DOTNET_ROOT_X64，完成后恢复。
-在其他电脑上需要先安装游戏官方工具链、.NET SDK，以及后处理器所需的 .NET 6 运行时；本机私有运行时不会随源码传递。
-
-2026-09-20 构建实测：在普通权限环境中，`.tools/dotnet` 的私有运行时可用，`-Stage` 与部署构建均成功（后处理 + Windows/macOS/Linux 三平台 Burst）。官方后处理器直接读取用户级注册表里的 `CSII_UNITYVERSION`，仅有进程环境变量和 MSBuild 参数不够，因此脚本会提前诊断并在启动构建前给出明确报错，见[调用、事务与诊断](docs/workflows/operations.md)。
-
-## 构建
-
-在本目录运行：
+## 构建与验证
 
 ```powershell
-.\build.ps1
-# 或
 .\build.ps1 -Configuration Release
-# 游戏运行时，只生成暂存产物
+# 游戏运行时只构建到 artifacts/staged，不部署：
 .\build.ps1 -Stage
 ```
 
-构建会自动运行官方 Mod Post Processor，然后部署到：
+普通构建会运行官方 Mod Post Processor，并部署到 `%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Mods\CityWeaver`。官方部署会替换该模组目录，所以源码应保留在其他位置。游戏运行时可能锁定 DLL；部署前先保存并退出游戏。
 
-```text
-%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Mods\CityWeaver
-```
+构建后启动或重启游戏，确认设置菜单出现 CityWeaver。加载城市后使用上面的只读连接提示词。自动化 MCP 测试运行 `npm --prefix .\mcp test`；实机检查见 [MCP 测试与诊断](mcp/README.md)。当前覆盖范围和已知实机验证缺口见[验证记录](docs/validation/VALIDATION.md)。
 
-官方部署目标会替换该模组部署目录，因此请将源码保留在本项目中。
-
-## 游戏内验收
-
-1. 构建后启动或重启游戏，查看设置菜单中是否出现 CityWeaver。
-2. 保持“启用测试消息”开启，点击“写入测试日志”。
-3. 新建测试城市或加载测试存档，开始模拟。
-4. 检查用户数据目录下的 `Logs`，应能找到加载消息、`settings button works` 和 `StarterSystem received its first simulation update`。
-5. 关闭测试消息开关，再点击按钮应不产生测试消息；重启后检查开关是否保存。
-
-基础版本已通过游戏内加载、设置按钮和模拟回调验证。设置持久化尚未专项验证。
-MCP 版本已通过暂存构建与官方后处理（0 警告、0 错误），以及 8 项通信/MCP 自动测试。
-MCP 版本已通过主菜单及暂停城市中的真实查询、建筑分页和实体详情联调，具体记录见 `docs/validation/VALIDATION.md`。尚未发布到 Paradox Mods。
-0.2.0 已在真实城市中验证通用查询：目录发现 1229 种类型，878 种有实例的类型成功抽样（部分嵌套原生数据明确标记不支持），349 种无实例，Deleted/Temp 按设计排除。详细数据口径和验证边界见 MCP 文档。
-1.23.1 于 2026-09-20 完成暂存与部署构建（官方后处理 + 三平台 Burst，0 错误），并通过 134 项 MCP 自动测试。本期新增交叉路口菜单预设、路边公交/电车站台和航道，并为道路升级加入自行车道。其中**航道**已有实机记录（奥本山存档：标准货运港口、同型航道接入、首船，见 `docs/guides/transport/WATERWAY-GUIDE.md`）；**路口预设与路边站台仍只有编译与接口测试覆盖，尚未实机验收**（见 `docs/guides/roads/ROAD-GUIDE.md` 与 `docs/guides/transport/TRANSPORT-INFRASTRUCTURE-GUIDE.md`）。构建与接口测试通过不等于游戏内验收。
-
-## 参考
-
-- [官方代码模组开发说明](https://www.paradoxinteractive.com/games/cities-skylines-ii/modding/dev-diary-3-code-modding)
-- [官方工具链 Wiki](https://cs2.paradoxwikis.com/Modding_Toolchain)
-- [社区入门指南](https://github.com/ps1ke/Cities-Skylines-2-Modding-Guide/blob/origin/gh-pages/README.md)
-- [社区 API 索引](https://ps1ke.github.io/Cities-Skylines-2-Modding-Guide/)
-
-社区示例仅作参考，接口以本机游戏程序集和实际构建结果为准。
+模组尚未发布到 Paradox Mods。准备发布时遵循[发布指南](docs/workflows/publishing.md)，并为独立 MCP 服务提供下载地址。
