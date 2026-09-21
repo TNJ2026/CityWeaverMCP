@@ -25,9 +25,9 @@ Some tools are read-only, while others change the city and spend in-game funds. 
 
 ## Quick start
 
-The player setup uses the game mod from Paradox Mods and the separate local MCP server from this repository. The mod is **not yet listed on Paradox Mods**; until it is available, build the game mod using [Develop from this repository](#develop-from-this-repository) below. Once it is listed, let a local Agent handle the MCP setup and checks wherever its tools allow:
+The player setup uses [CityWeaver on Paradox Mods](https://mods.paradoxplaza.com/mods/159998/Windows) and the separate local MCP server from this repository. Let a local Agent handle the MCP setup and checks wherever its tools allow:
 
-1. Subscribe to and enable **CityWeaver** in the game's Paradox Mods interface, restart the game if prompted, and load a playable city. If your Agent can control the game UI, you may ask it to help; otherwise do this part yourself. The published mod installs only the in-game bridge, not the MCP server or AI client, and does **not** require the code-modding toolchain or .NET SDK.
+1. [Install the game mod](#install-the-game-mod) through Paradox Mods, then load a playable city. If your Agent can control the game UI, you may ask it to help; otherwise do this part yourself. The published mod installs only the in-game bridge, not the MCP server or AI client, and does **not** require the code-modding toolchain or .NET SDK.
 2. In an Agent client with local command access, send the [MCP setup prompt](#example-prompts). Give it the path to an existing checkout or ask it to obtain the [CityWeaverMCP repository](https://github.com/TNJ2026/CityWeaverMCP). Have the Agent check or install Node.js 20+, install MCP dependencies, resolve `mcp/server.mjs`, and configure a local STDIO MCP server named `cities-skylines2` (command `node`, sole argument: the script's **absolute path**). If the Agent cannot change the client's settings or complete an installation, it should give you the exact remaining steps. For manual setup, run from the repository root:
 
    ```powershell
@@ -45,6 +45,14 @@ The player setup uses the game mod from Paradox Mods and the separate local MCP 
 3. Send the Agent the [connection prompt](#example-prompts). Have it reconnect or restart its MCP client if needed, discover the live tools, call `get_game_status`, and report whether the city session is ready. If connection fails, send the [troubleshooting prompt](#example-prompts); the Agent can also run `node .\mcp\query.mjs get_game_status` from the repository root to distinguish client configuration from the game bridge. The Agent should ask you only for actions it cannot perform itself.
 
 The mod creates and discovers a local connection credential automatically. Do not commit or share `bridge.json` or its token. See the [MCP guide](mcp/README.md) for troubleshooting and further commands.
+
+### Install the game mod
+
+1. Start Cities: Skylines II. From the main menu, open **Paradox Mods** and find **CityWeaver** (mod ID **159998**). You can also open the [CityWeaver mod page](https://mods.paradoxplaza.com/mods/159998/Windows) in a browser.
+2. Add the mod to a playset and make that playset active. Wait for the game's mod download and installation to finish; restart the game if prompted. If you added the mod on the website, check that the playset has synced in-game.
+3. Load a playable city and confirm that CityWeaver appears in the game's settings. Then continue with the [MCP server setup](#quick-start) and read-only connection check above.
+
+Do not enable a locally built CityWeaver copy alongside the Paradox Mods copy. The published mod does not include the separate MCP server, and players do not need the code-modding toolchain or .NET SDK to install it.
 
 ## Example prompts
 
@@ -117,4 +125,4 @@ The normal build runs the official Mod Post Processor and deploys to `%USERPROFI
 
 After building, launch or restart the game and check that CityWeaver appears in the settings menu. Load a city and use the read-only connection prompt above. For automated MCP tests, run `npm --prefix .\mcp ci` first, then `npm --prefix .\mcp test`; for live checks, see [MCP testing and diagnostics](mcp/README.md). Current coverage and known in-game validation gaps are recorded in [validation notes](docs/validation/VALIDATION.md).
 
-The mod is not published on Paradox Mods yet. Follow the [publishing guide](docs/workflows/publishing.md) when preparing a release, and provide a separate download location for the MCP service.
+The game mod is [published on Paradox Mods](https://mods.paradoxplaza.com/mods/159998/Windows) (ID 159998). The separate MCP server is available from this repository; see the [publishing guide](docs/workflows/publishing.md) for future mod updates.
