@@ -1,6 +1,6 @@
 # CityWeaver
 
-[简体中文](README.zh-CN.md) | English
+English | [简体中文](README.zh-CN.md)
 
 CityWeaver is a Cities: Skylines II code mod and local MCP bridge for inspecting, planning, and building in a live city. The game mod runs inside the game; a separate Node.js STDIO MCP server connects your agent to it. The mod does not call a model API on its own.
 
