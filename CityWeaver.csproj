@@ -4,9 +4,9 @@
 		<AssemblyName>CityWeaver</AssemblyName>
 		<RootNamespace>CityWeaver</RootNamespace>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<Version>1.24.3</Version>
-		<AssemblyVersion>1.24.3.0</AssemblyVersion>
-		<FileVersion>1.24.3.0</FileVersion>
+		<Version>1.24.4</Version>
+		<AssemblyVersion>1.24.4.0</AssemblyVersion>
+		<FileVersion>1.24.4.0</FileVersion>
 		<Configurations>Debug;Release</Configurations>
 	
 		<!--The file where mod information which is required for publishing mod on PDX mods are stored-->
