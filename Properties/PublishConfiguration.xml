@@ -24,7 +24,7 @@ The bridge listens only on 127.0.0.1 and generates a fresh authentication token 
 	<!--Link to the forum post where the mod can be discussed-->
 	<ForumLink Value="" />
 	<!--Version of the mod-->
-	<ModVersion Value="1.24.3" />
+	<ModVersion Value="1.24.4" />
 	<!--Recommended version of the base game to use the mod-->
 	<GameVersion Value="1.6.2*" />
 	<!--Dependency for the mod, can be set multiple times-->
@@ -32,7 +32,7 @@ The bridge listens only on 127.0.0.1 and generates a fresh authentication token 
 	<!--Required DLC, can be set multiple times. Supported values are "Landmark Buildings", "San Fransisco Set", "Beach Properties", "Urban Promenades", "Modern Architecture"-->
 	<RequiredDLC Value="" />
 	<!--Change log for new version. Single line or multi line. Supports minimal markdown subset-->
-	<ChangeLog Value="Version 1.24.3 adds native Fishing Pier Pathway discovery and extension with preview, collision reporting, and permanent topology checks; improves specialized-industry site planning and building-area validation; and refines planning-map rendering and MCP tests. Requires the separate CityWeaverMCP server. Fishing WorkRoute creation is not yet supported by MCP. Tested with Cities: Skylines II 1.6.2f1 on Windows." />
+	<ChangeLog Value="Version 1.24.4 adds Fishing Line work-route discovery, preview, creation and deletion through MCP. Expired previews now report expired immediately and cannot be committed; capability discovery lists all work-route tools. Route previews are conservative preflights: verify boat dispatch and pathing after construction. Tested with Cities: Skylines II 1.6.2f1 on Windows. The separate MCP server is still required." />
 	<!--<ChangeLog>
 	</ChangeLog>-->
 	<!--External link, can be set multiple times. supported types are "discord", "github", "youtube", "twitch", "x", "paypal", "patreon", "buymeacoffee", "kofi", "crowdin", "gitlab", "gofundme"-->
