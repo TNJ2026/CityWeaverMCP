@@ -139,7 +139,10 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   t.after(() => client.close());
   await client.connect(transport);
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 380);
+  assert.equal(tools.length, 387);
+  for (const name of ['list_work_routes', 'get_work_route', 'preview_work_route', 'get_work_route_operation', 'apply_work_route_operation', 'cancel_work_route_preview', 'delete_work_route']) {
+    assert(tools.some(tool => tool.name === name), `${name} is registered`);
+  }
   const cacheInfo = await client.callTool({ name: 'inspect_planning_cache', arguments: {} });
   assert.equal(cacheInfo.isError, false);
   assert.equal(cacheInfo.structuredContent.data.records.entries, 0);
@@ -259,6 +262,7 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   assert.deepEqual(tools.find(tool => tool.name === 'list_road_stop_prefabs').inputSchema.properties.transport_type.enum, ['all', 'Bus', 'Tram']);
   for (const name of ['preview_waterway', 'preview_waterway_delete', 'apply_waterway_operation', 'cancel_waterway_preview']) mutations.add(name);
   for (const name of ['preview_pier_pathway', 'apply_pier_pathway_operation', 'cancel_pier_pathway_preview']) mutations.add(name);
+  for (const name of ['preview_work_route', 'apply_work_route_operation', 'cancel_work_route_preview', 'delete_work_route']) mutations.add(name);
   assert(tools.every(tool => tool.annotations.readOnlyHint === !mutations.has(tool.name)));
   assert.equal(tools.find(tool => tool.name === 'build_road').annotations.destructiveHint, true);
   assert.equal(tools.find(tool => tool.name === 'get_road_operation').annotations.readOnlyHint, true);
@@ -274,6 +278,14 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   ]) assert.equal((await client.callTool(request)).isError, true);
   assert.equal(calls, beforeBadWorkflow, 'Invalid high-level building workflow arguments must not reach the game.');
   const buildingId = 'a'.repeat(32) + ':10:1';
+  const workRoute = { request_id: 'work-route-preview-001', owner_building_id: buildingId, waypoints: [{ x: 100, z: 100 }, { x: 200, z: 200 }] };
+  assert.deepEqual((await client.callTool({ name: 'preview_work_route', arguments: workRoute })).structuredContent.data.args,
+    { ...workRoute, route_prefab: 'Fishing Line' });
+  const beforeBadWorkRoutes = calls;
+  for (const waypoints of [[{ x: 20000, z: 20000 }, { x: 20032, z: 20000 }], [{ x: 100, z: 100 }, { x: 200, y: 5000, z: 200 }]]) {
+    assert.equal((await client.callTool({ name: 'preview_work_route', arguments: { ...workRoute, request_id: 'work-route-invalid-001', waypoints } })).isError, true);
+  }
+  assert.equal(calls, beforeBadWorkRoutes, 'Out-of-bounds work route requests must not reach the game');
   const roadStop = { request_id: 'stop-preview-001', stop_prefab: 'Fixture Bus Shelter', road_edge_id: buildingId, edge_parameter: .6, road_side: 'right' };
   assert.deepEqual((await client.callTool({ name: 'preview_road_stop_placement', arguments: roadStop })).structuredContent.data.args, roadStop);
   const beforeBadStops = calls;
