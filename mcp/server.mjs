@@ -247,6 +247,13 @@ const mutationAnnotations = {
   preview_transport_track_delete: { ...annotations, readOnlyHint: false },
   apply_transport_track_operation: { ...annotations, readOnlyHint: false, destructiveHint: true },
   cancel_transport_track_preview: { ...annotations, readOnlyHint: false },
+  list_work_routes: { ...annotations, readOnlyHint: true },
+  get_work_route: { ...annotations, readOnlyHint: true },
+  preview_work_route: { ...annotations, readOnlyHint: false },
+  get_work_route_operation: { ...annotations, readOnlyHint: true },
+  apply_work_route_operation: { ...annotations, readOnlyHint: false, destructiveHint: true },
+  cancel_work_route_preview: { ...annotations, readOnlyHint: false },
+  delete_work_route: { ...annotations, readOnlyHint: false, destructiveHint: true },
   preview_utility_facility_placement: { ...annotations, readOnlyHint: false },
   preview_utility_facility_move: { ...annotations, readOnlyHint: false },
   preview_utility_facility_delete: { ...annotations, readOnlyHint: false },
@@ -937,6 +944,13 @@ const definitions = [
   ['get_transport_track_operation', 'Read native track preview state, cost, validation errors and permanent track edge IDs.', { operation_id: operationId }],
   ['apply_transport_track_operation', 'Commit one preview-ready track creation or demolition operation. Requires a paused city and sufficient max_cost.', { operation_id: operationId, request_id: requestId, max_cost: z.number().int().min(0).max(1000000000) }],
   ['cancel_transport_track_preview', 'Cancel and clean up an uncommitted transport-track preview.', { operation_id: operationId }],
+  ['list_work_routes', 'List permanent work routes (Fishing Line, etc.) with owner, waypoint count, segment count and completion state.', { owner_building_id: entityId.optional() }],
+  ['get_work_route', 'Read one work route with ordered waypoints and positions.', { route_id: entityId }],
+  ['preview_work_route', 'Conservative work-route preflight (not a native temporary route): checks owner, unlocked prefab, compatible work boat, map bounds, water and straight legs before preview_ready. Native path connectivity remains unverified until the route runs.', { request_id: requestId, owner_building_id: entityId, route_prefab: z.string().min(1).max(200).default('Fishing Line'), waypoints: z.array(z.object({ x: z.number().finite().min(-7168).max(7168), y: z.number().finite().min(-1024).max(4096).optional(), z: z.number().finite().min(-7168).max(7168) })).min(2).max(64) }],
+  ['get_work_route_operation', 'Read work route preview state and errors.', { operation_id: operationId }],
+  ['apply_work_route_operation', 'Commit a preview_ready work route; permanent route entity is created as a ServiceUpgrade-owned Route.', { operation_id: operationId, request_id: requestId }],
+  ['cancel_work_route_preview', 'Cancel an uncommitted work route preview.', { operation_id: operationId }],
+  ['delete_work_route', 'Delete only a permanent WorkRoute (for example Fishing Line), never passenger/cargo transport lines. Detaches route registrations and marks it Deleted for native cleanup. Requires a paused city.', { route_id: entityId }],
   ['list_utility_facility_prefabs', 'List exact unlocked power plants, transformers, batteries, water pumps, sewage facilities, water towers and telecom facilities with placement and size data.', {
     search: z.string().max(100).default(''), kind: z.enum(['all','power_plant','transformer','battery','water_pump','sewage','water_tower','telecom']).default('all'), unlocked_only: z.boolean().default(true), offset: z.number().int().min(0).max(10000).default(0), limit: z.number().int().min(1).max(100).default(50)
   }],
@@ -1357,7 +1371,6 @@ for (const [name, description, inputSchema] of definitions) {
   });
 }
 await server.connect(new StdioServerTransport());
-
 
 
 

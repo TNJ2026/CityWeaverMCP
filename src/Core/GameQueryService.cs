@@ -40,7 +40,7 @@ namespace CityWeaver
 
         public GameQueryService()
         {
-            m_Preload = (purpose, mode) => { ResetRoadOperations(); ResetTerrainOperations(); ResetBuildingOperations(); ResetBuildingAreaOperations(); ResetZoningOperations(); ResetDistrictOperations(); ResetTransportOperations(); ResetEconomyOperations(); ResetMapTileOperations(); ResetDisasterOperations(); m_Loaded = false; m_Session = Guid.NewGuid().ToString("N"); m_Snapshots.Clear(); };
+            m_Preload = (purpose, mode) => { ResetRoadOperations(); ResetTerrainOperations(); ResetBuildingOperations(); ResetBuildingAreaOperations(); ResetZoningOperations(); ResetDistrictOperations(); ResetTransportOperations(); ResetWorkRouteOperations(); ResetEconomyOperations(); ResetMapTileOperations(); ResetDisasterOperations(); m_Loaded = false; m_Session = Guid.NewGuid().ToString("N"); m_Snapshots.Clear(); };
             m_LoadComplete = (purpose, mode) => { m_Loaded = mode == GameMode.Game; };
             GameManager.instance.onGamePreload += m_Preload;
             GameManager.instance.onGameLoadingComplete += m_LoadComplete;
@@ -257,6 +257,13 @@ namespace CityWeaver
                 case "get_transport_track_operation": return Wrap(GetTransportTrackOperation(args));
                 case "apply_transport_track_operation": return Wrap(ApplyTransportTrackOperation(args));
                 case "cancel_transport_track_preview": return Wrap(CancelTransportTrackOperation(args));
+                case "list_work_routes": return Wrap(ListWorkRoutes(args, world));
+                case "get_work_route": return Wrap(GetWorkRoute(args, world));
+                case "preview_work_route": return Wrap(PreviewWorkRoute(args, world));
+                case "get_work_route_operation": return Wrap(GetWorkRouteOperation(args, world));
+                case "apply_work_route_operation": return Wrap(ApplyWorkRouteOperation(args, world));
+                case "cancel_work_route_preview": return Wrap(CancelWorkRouteOperation(args));
+                case "delete_work_route": return Wrap(DeleteWorkRoute(args, world));
                 case "list_utility_facility_prefabs": return Wrap(ListUtilityFacilityPrefabs(args, world));
                 case "list_utility_facilities": return Wrap(ListUtilityFacilities(args, world));
                 case "get_utility_facility": return Wrap(GetUtilityFacility(args, world));
@@ -512,6 +519,15 @@ namespace CityWeaver
             foreach (var name in new[] { "list_pier_pathway_prefabs", "list_pier_pathways", "preview_pier_pathway",
                 "get_pier_pathway_operation", "apply_pier_pathway_operation", "cancel_pier_pathway_preview" })
                 ((JArray)result["tools"]).Add(name);
+            result["work_route_operations"] = new JObject {
+                ["modes"] = new JArray("create", "delete"), ["requires_paused_city"] = true,
+                ["preview_ttl_seconds"] = 300,
+                ["workflow"] = "list_work_routes -> preview_work_route -> get_work_route_operation(preview_ready) -> apply_work_route_operation -> get_work_route_operation(completed)",
+                ["validation"] = "Conservative water, owner and vehicle preflight; verify native path and dispatched vehicles after simulation resumes."
+            };
+            foreach (var name in new[] { "list_work_routes", "get_work_route", "preview_work_route",
+                "get_work_route_operation", "apply_work_route_operation", "cancel_work_route_preview", "delete_work_route" })
+                ((JArray)result["tools"]).Add(name);
             return result;
         }
 
@@ -695,7 +711,6 @@ namespace CityWeaver
         }
     }
 }
-
 
 
 
