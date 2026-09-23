@@ -20,3 +20,12 @@ mcp/building-prefab-audit.json
 mcp/component-audit.json
 mcp/expanded-capabilities.json
 mcp/.road_inventory.json
+
+# Local-only mod publishing metadata, profiles, and promotional images
+/Properties/PublishConfiguration.xml
+/Properties/PublishProfiles/
+/Properties/*.png
+/Properties/*.jpg
+/Properties/*.jpeg
+/Properties/*.webp
+/scs.png
