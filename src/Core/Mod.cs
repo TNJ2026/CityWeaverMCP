@@ -29,7 +29,8 @@ namespace CityWeaver
 
             AssetDatabase.global.LoadSettings(nameof(CityWeaver), m_Setting, new Setting(this));
             updateSystem.UpdateAt<StarterSystem>(SystemUpdatePhase.GameSimulation);
-            updateSystem.UpdateBefore<McpCameraFocusSystem, CameraUpdateSystem>(SystemUpdatePhase.Rendering);
+            // Relative ordering only runs when both systems use the same phase.
+            updateSystem.UpdateBefore<McpCameraFocusSystem, CameraUpdateSystem>(SystemUpdatePhase.PreCulling);
             updateSystem.UpdateBefore<McpRoadToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpTerrainToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpBuildingToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);

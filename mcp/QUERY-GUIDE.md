@@ -24,6 +24,26 @@
 
 上述分类提供查找入口，不保证每个城市都存在相应对象，也不保证目录中每个组件都已逐一在真实游戏中验证。
 
+## 按建筑名称搜索
+
+使用 `find_buildings_by_name` 在当前城市中按建筑显示标签（含自定义名称）或门牌地址搜索，无需先分页读取全部建筑：
+
+```json
+{"name":"医院","match":"contains","building_type":"all","limit":50}
+```
+
+精确查门牌地址：
+
+```json
+{"name":"362 水仙街","match":"exact"}
+```
+
+地址统一为 `门牌号 街名`，街名使用当前游戏语言。门牌号由游戏原生 `BuildingUtils.GetAddress` 计算，包含道路方向、曲线距离、环岛和单双号规则；不是通过坐标估算。按 `水仙街` 包含匹配可查该街沿线建筑，自定义建筑名也不影响地址匹配。
+
+`match` 支持 `contains`（默认）和 `exact`；`case_sensitive` 默认 `false`。`building_type` 支持 `all`、`residential`、`commercial`、`industrial`、`office`，公共服务建筑可使用 `all`。`name` 去除首尾空白后须为 1–200 字符；`limit` 为 1–100。
+
+结果包含 `entity_id`、`name`、`position`、`prefab_name`、`categories` 和建筑状态，与 `query_buildings` 的行字段一致；另外返回 `address`、`street_name`、`street_number`、`street_id`，地址不可用时为 null。`name` 仍保留建筑标签，地址单独返回。同名建筑分别返回，同一建筑同时命中名称和地址也只返回一次，按名称和实体编号排序。`total_matches` 是限制前的匹配总数，`returned_count` 是实际返回数，`truncated` 表示是否省略了结果；结果过多时细化关键词或建筑分类。查询排除临时和已删除实体，保留废弃、待拆和被毁建筑。不搜索租户企业名或预制体目录。
+
 ## 示例：市民与家庭
 
 ```json

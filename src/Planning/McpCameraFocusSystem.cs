@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace CityWeaver
 {
-    // Runs in the rendering phase, so camera motion continues while simulation is paused.
+    // Runs in PreCulling before the native camera update, including while paused.
     public partial class McpCameraFocusSystem : GameSystemBase
     {
         private CameraController m_Controller;
@@ -22,6 +22,7 @@ namespace CityWeaver
         private float3 m_LastAppliedPivot;
 
         public bool active => m_Active;
+        public string status { get; private set; } = "idle";
 
         protected override void OnCreate()
         {
@@ -43,6 +44,7 @@ namespace CityWeaver
             m_Duration = math.max(.05f, duration);
             m_Elapsed = 0;
             m_Active = true;
+            status = "scheduled";
             m_HasAppliedFrame = false;
             Enabled = true;
             return true;
@@ -60,6 +62,7 @@ namespace CityWeaver
         private void CancelForUserInput()
         {
             m_Active = false;
+            status = "cancelled_by_user";
             Enabled = false;
             Mod.log.Info("Automatic construction camera focus cancelled because the user changed the view.");
         }
@@ -68,6 +71,7 @@ namespace CityWeaver
         {
             if (!m_Active || m_Controller == null || !m_Controller.controllerEnabled)
             {
+                if (m_Active) status = "camera_unavailable";
                 m_Active = false;
                 Enabled = false;
                 return;
@@ -78,6 +82,7 @@ namespace CityWeaver
                 return;
             }
             m_Elapsed += UnityEngine.Time.unscaledDeltaTime;
+            status = "moving";
             var linear = math.saturate(m_Elapsed / m_Duration);
             var eased = linear * linear * (3f - 2f * linear);
             m_Controller.pivot = math.lerp(m_StartPivot, m_TargetPivot, eased);
@@ -90,6 +95,7 @@ namespace CityWeaver
             m_Controller.angle = m_TargetAngle;
             m_Controller.zoom = m_TargetZoom;
             m_Active = false;
+            status = "completed";
             Enabled = false;
         }
     }
