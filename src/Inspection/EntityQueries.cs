@@ -145,6 +145,68 @@ namespace CityWeaver
             return new JObject { ["snapshot_id"] = snapshot.Id, ["membership_captured_at_utc"] = snapshot.Created.ToString("O"), ["row_values"] = "live_at_query_time", ["total"] = snapshot.Entities.Length,
                 ["offset"] = offset, ["next_offset"] = end < snapshot.Entities.Length ? new JValue(end) : JValue.CreateNull(), ["skipped_deleted"] = skipped, ["items"] = items };
         }
+        private JObject FindBuildingsByName(JObject args, World world, EntityManager em)
+        {
+            var wanted = ((string)args["name"] ?? "").Trim();
+            if (wanted.Length == 0 || wanted.Length > 200) throw new QueryException("INVALID_ARGUMENT", "name must contain 1..200 non-whitespace characters after trimming.");
+            var mode = ((string)args["match"] ?? "contains").Trim().ToLowerInvariant();
+            if (mode != "exact" && mode != "contains") throw new QueryException("INVALID_ARGUMENT", "match must be exact or contains.");
+            var type = (string)args["building_type"] ?? "all";
+            var caseSensitive = (bool?)args["case_sensitive"] ?? false;
+            var limit = Integer(args, "limit", 50, 1, 100);
+            var comparison = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+            var names = world.GetExistingSystemManaged<NameSystem>();
+            var matches = new List<KeyValuePair<Entity, JObject>>();
+            using (var query = BuildingQuery(em, type))
+            using (var entities = query.ToEntityArray(Allocator.Temp))
+            {
+                foreach (var building in entities)
+                {
+                    string name = null;
+                    try { name = names?.GetRenderedLabelName(building); } catch { }
+                    string address = null;
+                    string streetName = null;
+                    var street = Entity.Null;
+                    int? streetNumber = null;
+                    try
+                    {
+                        // Use the game's address calculation, including aggregate direction,
+                        // curved-road distances, roundabouts and odd/even numbering.
+                        if (BuildingUtils.GetAddress(em, building, out var road, out var number) &&
+                            road != Entity.Null && em.Exists(road) && !em.HasComponent<Deleted>(road) && !em.HasComponent<Temp>(road))
+                        {
+                            streetName = names?.GetRenderedLabelName(road);
+                            if (!string.IsNullOrEmpty(streetName))
+                            {
+                                street = road;
+                                streetNumber = number;
+                                address = number.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + streetName;
+                            }
+                        }
+                    }
+                    catch { /* A missing address must not hide a searchable building label. */ }
+                    bool Matches(string value) => !string.IsNullOrEmpty(value) &&
+                        (mode == "exact" ? string.Equals(value, wanted, comparison) : value.IndexOf(wanted, comparison) >= 0);
+                    if (Matches(name) || Matches(address))
+                        matches.Add(new KeyValuePair<Entity, JObject>(building, new JObject {
+                            ["name"] = name, ["address"] = address, ["street_name"] = streetName,
+                            ["street_number"] = streetNumber.HasValue ? new JValue(streetNumber.Value) : JValue.CreateNull(),
+                            ["street_id"] = street == Entity.Null ? null : EntityId(street)
+                        }));
+                }
+            }
+            var items = new JArray();
+            foreach (var match in matches.OrderBy(x => (string)x.Value["name"], StringComparer.Ordinal).ThenBy(x => x.Key.Index).ThenBy(x => x.Key.Version).Take(limit))
+            {
+                var row = EntityRow(match.Key, world, em);
+                foreach (var property in match.Value.Properties()) row[property.Name] = property.Value.DeepClone();
+                items.Add(row);
+            }
+            return new JObject {
+                ["query"] = wanted, ["match"] = mode, ["case_sensitive"] = caseSensitive, ["building_type"] = type,
+                ["total_matches"] = matches.Count, ["returned_count"] = items.Count, ["truncated"] = matches.Count > items.Count, ["items"] = items
+            };
+        }
         private JObject FindRoadsByName(JObject args, World world, EntityManager em)
         {
             var wanted = ((string)args["name"] ?? "").Trim();
@@ -162,8 +224,21 @@ namespace CityWeaver
             {
                 foreach (var road in entities)
                 {
+                    // Map labels belong to the street aggregate, not its individual road edges.
+                    var nameTarget = road;
+                    if (em.HasComponent<Aggregated>(road))
+                    {
+                        var aggregate = em.GetComponentData<Aggregated>(road).m_Aggregate;
+                        if (aggregate != Entity.Null && em.Exists(aggregate) &&
+                            !em.HasComponent<Deleted>(aggregate) && !em.HasComponent<Temp>(aggregate))
+                            nameTarget = aggregate;
+                    }
                     string roadName = null;
-                    try { roadName = names?.GetRenderedLabelName(road); } catch { }
+                    try { roadName = names?.GetRenderedLabelName(nameTarget); } catch { }
+                    if (string.IsNullOrEmpty(roadName) && nameTarget != road)
+                    {
+                        try { roadName = names?.GetRenderedLabelName(road); } catch { }
+                    }
                     if (string.IsNullOrEmpty(roadName)) continue;
                     var matched = mode == "exact" ? string.Equals(roadName, wanted, comparison) : roadName.IndexOf(wanted, comparison) >= 0;
                     if (!matched) continue;

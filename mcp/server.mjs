@@ -514,7 +514,7 @@ const definitions = [
   ['list_road_prefabs', 'List actual road prefab names, widths, speed limits, one-way direction and lock states. Use exact names for road previews. Supports straight, quadratic and cubic roads 16..256 metres, including elevation and tunnels within prefab limits; locked roads cannot be built.', {
     search: z.string().max(100).default(''), offset: z.number().int().min(0).max(10000).default(0), limit: z.number().int().min(1).max(100).default(50)
   }],
-  ['find_roads_by_name', 'Find permanent road entities by their rendered in-game name. Supports exact or contains matching and returns road IDs, prefab, endpoints and length for follow-up road operations. Names fall back to the localized road type when no custom street name is assigned.', {
+  ['find_roads_by_name', 'Find permanent road entities by their rendered in-game street name, resolved from the owning street aggregate (including generated and custom names). Supports exact or contains matching and returns road IDs, prefab, endpoints and length for follow-up road operations. Falls back to the road edge label when no valid street aggregate name is available.', {
     name: z.string().min(1).max(200), match: z.enum(['exact', 'contains']).default('contains'), case_sensitive: z.boolean().default(false), limit: z.number().int().min(1).max(100).default(50)
   }],
   ['inspect_road_lanes', 'Inspect every live sub-lane of 1..64 permanent road edges. Returns car lanes, total parking-lane records, usable non-virtual parking lanes, lane IDs, speed limits, direction flags, public-transport-only state, parking rules, flow samples and active bottlenecks. Lane IDs can be passed to preview_road_policies for lane-specific changes.', {
@@ -1173,6 +1173,10 @@ const definitions = [
   }],
   ['get_game_status', 'Check game bridge connection, city loading state, pause state, city name, and session metadata. Works in the main menu. An unavailable game is explicitly reported.', {}],
   ['get_city_summary', 'Read current city population, happiness, health, money and building counts by category. Counts are building instances, not households/housing units; mixed-use categories may overlap.', {}],
+  ['find_buildings_by_name', 'Find permanent building instances by rendered label name (including custom names) or native street address, using exact or contains matching. Address format is NUMBER STREET, for example 362 水仙街; the street name uses the current game language. Returns entity_id, name, position, prefab_name, categories, state flags, address, street_name, street_number and street_id. Address fields are null when unavailable. Duplicate names return separate buildings, with each building returned once even if both its name and address match. total_matches counts all matches before limit; truncated indicates omitted results. Does not search tenant company names or prefab catalog names.', {
+    name: z.string().trim().min(1).max(200), match: z.enum(['exact', 'contains']).default('contains'), case_sensitive: z.boolean().default(false),
+    building_type: z.enum(['all', 'residential', 'commercial', 'industrial', 'office']).default('all'), limit: z.number().int().min(1).max(100).default(50)
+  }],
   ['query_buildings', 'List building instances by category with names, positions, prefab names and state flags. First call uses offset 0 without snapshot_id. Follow next_offset with the same snapshot_id and building_type within 60 seconds. Membership is frozen; fields are live per page.', {
     building_type: z.enum(['all', 'residential', 'commercial', 'industrial', 'office']).default('all'),
     limit: z.number().int().min(1).max(100).default(20),

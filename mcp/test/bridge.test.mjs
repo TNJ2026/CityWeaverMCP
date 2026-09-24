@@ -139,7 +139,7 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   t.after(() => client.close());
   await client.connect(transport);
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 387);
+  assert.equal(tools.length, 388);
   for (const name of ['list_work_routes', 'get_work_route', 'preview_work_route', 'get_work_route_operation', 'apply_work_route_operation', 'cancel_work_route_preview', 'delete_work_route']) {
     assert(tools.some(tool => tool.name === name), `${name} is registered`);
   }
@@ -328,6 +328,26 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   assert.equal(result.isError, false);
   assert.equal(result.structuredContent.data.args.limit, 10);
   assert.equal(result.structuredContent.data.args.offset, 0);
+  const buildingSearchTool = tools.find(tool => tool.name === 'find_buildings_by_name');
+  assert.equal(buildingSearchTool.annotations.readOnlyHint, true);
+  const buildingSearch = await client.callTool({ name: 'find_buildings_by_name', arguments: { name: '  中央医院  ' } });
+  assert.equal(buildingSearch.isError, false);
+  assert.deepEqual(buildingSearch.structuredContent.data.args,
+    { name: '中央医院', match: 'contains', case_sensitive: false, building_type: 'all', limit: 50 });
+  const exactBuildingSearch = { name: 'Central Hospital', match: 'exact', case_sensitive: true, building_type: 'commercial', limit: 100 };
+  assert.deepEqual((await client.callTool({ name: 'find_buildings_by_name', arguments: exactBuildingSearch })).structuredContent.data.args, exactBuildingSearch);
+  for (const addressSearch of [{ name: '362 水仙街', match: 'exact' }, { name: '水仙街', match: 'contains' }]) {
+    const addressResult = await client.callTool({ name: 'find_buildings_by_name', arguments: addressSearch });
+    assert.equal(addressResult.isError, false);
+    assert.deepEqual(addressResult.structuredContent.data.args,
+      { ...addressSearch, case_sensitive: false, building_type: 'all', limit: 50 });
+  }
+  const beforeInvalidBuildingSearch = calls;
+  for (const args of [{}, { name: '' }, { name: '   ' }, { name: 'x'.repeat(201) },
+    { name: '医院', match: 'regex' }, { name: '医院', building_type: 'hospital' },
+    { name: '医院', case_sensitive: 'false' }, { name: '医院', limit: 0 }, { name: '医院', limit: 101 }])
+    assert.equal((await client.callTool({ name: 'find_buildings_by_name', arguments: args })).isError, true);
+  assert.equal(calls, beforeInvalidBuildingSearch, 'Invalid building searches must not reach the game.');
   const beforeInvalidQuery = calls;
   const invalid = await client.callTool({ name: 'query_buildings', arguments: { limit: 101 } });
   assert.equal(invalid.isError, true);

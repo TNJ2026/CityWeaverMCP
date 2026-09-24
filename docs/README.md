@@ -1,5 +1,7 @@
 # 文档目录
 
+先看[架构与功能实现](ARCHITECTURE.md)，了解游戏内模组、独立 MCP Server、规划工作流和原生施工之间的关系。
+
 ## 使用指南
 
 - `guides/buildings`：建筑放置与建筑附属区域。

@@ -297,6 +297,7 @@ namespace CityWeaver
             var transform = camera.transform;
             return new JObject {
                 ["camera_name"] = camera.name,
+                ["focus_status"] = world.GetExistingSystemManaged<McpCameraFocusSystem>()?.status ?? "idle",
                 ["position"] = VectorJson(transform.position), ["rotation_euler_degrees"] = VectorJson(transform.rotation.eulerAngles),
                 ["forward"] = VectorJson(transform.forward), ["up"] = VectorJson(transform.up), ["right"] = VectorJson(transform.right),
                 ["projection"] = new JObject {
