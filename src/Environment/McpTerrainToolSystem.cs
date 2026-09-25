@@ -232,19 +232,32 @@ namespace CityWeaver
                 float t = math.clamp(op.BrushSize / 5000f, 0, 1); strength *= math.lerp(0.4f, 1f, EaseUtils.OutSine(t));
             }
             if (op.Mode == "lower") strength = -strength;
-            var target = op.Points[op.Points.Count - 1]; target.y = op.TargetHeight;
-            var startSlope = op.Points[0]; startSlope.y = op.StartHeight;
+            var globalTarget = op.Points[op.Points.Count - 1]; globalTarget.y = op.TargetHeight;
+            var globalStart = op.Points[0]; globalStart.y = op.StartHeight;
+            var cumulativeLengths = new float[op.Points.Count];
+            for (int i = 1; i < op.Points.Count; i++)
+                cumulativeLengths[i] = cumulativeLengths[i - 1] + math.distance(op.Points[i - 1].xz, op.Points[i].xz);
+            var totalLength = cumulativeLengths[cumulativeLengths.Length - 1];
             for (int pass = 0; pass < op.Passes; pass++)
+                if (op.Points.Count == 1) Create(op.Points[0], op.Points[0], 0, 1);
+                else for (int i = 1; i < op.Points.Count; i++)
+                {
+                    var startT = totalLength > 0.001f ? cumulativeLengths[i - 1] / totalLength : (i - 1f) / (op.Points.Count - 1f);
+                    var endT = totalLength > 0.001f ? cumulativeLengths[i] / totalLength : i / (op.Points.Count - 1f);
+                    Create(op.Points[i - 1], op.Points[i], startT, endT);
+                }
+            void Create(float3 a, float3 b, float startT, float endT)
             {
-                if (op.Points.Count == 1) Create(op.Points[0], op.Points[0]);
-                else for (int i = 1; i < op.Points.Count; i++) Create(op.Points[i - 1], op.Points[i]);
-            }
-            void Create(float3 a, float3 b)
-            {
+                var segmentStart = globalStart; var segmentTarget = globalTarget;
+                if (op.Mode == "slope")
+                {
+                    segmentStart = a; segmentStart.y = math.lerp(op.StartHeight, op.TargetHeight, startT);
+                    segmentTarget = b; segmentTarget.y = math.lerp(op.StartHeight, op.TargetHeight, endT);
+                }
                 var entity = EntityManager.CreateEntity(); m_Definitions.Add(entity);
                 EntityManager.AddComponentData(entity, new CreationDefinition { m_Prefab = brush });
                 EntityManager.AddComponentData(entity, new BrushDefinition { m_Tool = m_TerrainPrefab, m_Line = new Line3.Segment(a, b), m_Angle = 0,
-                    m_Size = op.BrushSize, m_Strength = strength, m_Time = 0.05f, m_Target = target, m_Start = startSlope });
+                    m_Size = op.BrushSize, m_Strength = strength, m_Time = 0.05f, m_Target = segmentTarget, m_Start = segmentStart });
                 EntityManager.AddComponent<Updated>(entity);
             }
         }

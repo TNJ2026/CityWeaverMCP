@@ -35,6 +35,9 @@ namespace CityWeaver
         public string PlannerStrategy;
         public float PlannerGridSize;
         public int PlannerObstacleCount;
+        public int PlannerBuildingObstacleCount;
+        public int PlannerRoadObstacleCount;
+        public int PlannerWaterBlockedCellCount;
         public string UndoOf;
         public string TransactionKind;
         public float MinimumWaterDepth;
@@ -107,6 +110,9 @@ namespace CityWeaver
             ["planner_strategy"] = PlannerStrategy,
             ["planner_grid_size_m"] = PlannerStrategy != null ? new JValue(PlannerGridSize) : null,
             ["planner_obstacle_count"] = PlannerStrategy != null ? new JValue(PlannerObstacleCount) : null,
+            ["planner_building_obstacle_count"] = PlannerStrategy != null ? new JValue(PlannerBuildingObstacleCount) : null,
+            ["planner_road_obstacle_count"] = PlannerStrategy != null ? new JValue(PlannerRoadObstacleCount) : null,
+            ["planner_water_blocked_cell_count"] = PlannerStrategy != null ? new JValue(PlannerWaterBlockedCellCount) : null,
             ["undo_of_operation_id"] = UndoOf,
             ["transaction_kind"] = TransactionKind,
             ["direct_change_count"] = DirectChanges.Count,
@@ -998,6 +1004,8 @@ namespace CityWeaver
             if (RoadOperation.IsLocked(em, prefabEntity)) throw new QueryException("ROAD_LOCKED", "This road is not unlocked.");
             var heights = world.GetExistingSystemManaged<TerrainSystem>().GetHeightData(true);
             if (!heights.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain CPU heights are not ready.");
+            var water = world.GetExistingSystemManaged<WaterSystem>().GetSurfaceData(out var waterDeps); waterDeps.Complete();
+            if (!water.isCreated) throw new QueryException("WATER_UNAVAILABLE", "Water surface data is not ready.");
             var start = RoadPoint(args, "start", world, heights); var end = RoadPoint(args, "end", world, heights);
             bool IsZoningGrid(float2 p) => math.all(math.abs(p / gridSize - math.round(p / gridSize)) < 0.01f);
             void AlignEndpoint(RoadEndpoint endpoint, string field)
@@ -1020,8 +1028,9 @@ namespace CityWeaver
             if (zoningAlignment) { min = math.floor(min / gridSize) * gridSize; max = math.ceil(max / gridSize) * gridSize; }
             int columns = (int)math.ceil((max.x - min.x) / gridSize) + 1, rows = (int)math.ceil((max.y - min.y) / gridSize) + 1;
             if ((long)columns * rows > 16000) throw new QueryException("ROUTE_SEARCH_TOO_LARGE", "Increase grid_size_m or reduce max_detour_m for this route.");
-            var obstacles = new List<Tuple<float2, float>>();
-            var obstacleIndex = new PlanningSpatialIndex<Tuple<float2, float>>();
+            var obstacles = new List<Tuple<float2, float, bool>>();
+            var obstacleIndex = new PlanningSpatialIndex<Tuple<float2, float, bool>>();
+            int buildingObstacleCount = 0, roadObstacleCount = 0;
             using (var query = em.CreateEntityQuery(ComponentType.ReadOnly<Game.Buildings.Building>(), ComponentType.ReadOnly<Game.Objects.Transform>(), ComponentType.ReadOnly<PrefabRef>()))
             using (var entities = query.ToEntityArray(Allocator.Temp))
             {
@@ -1035,9 +1044,35 @@ namespace CityWeaver
                         var bounds = em.GetComponentData<ObjectGeometryData>(prefab).m_Bounds;
                         radius = math.length((bounds.max - bounds.min).xz) * 0.5f + roadClearance;
                     }
-                    var obstacle = Tuple.Create(transform.m_Position.xz, radius);
+                    var obstacle = Tuple.Create(transform.m_Position.xz, radius, false);
                     obstacles.Add(obstacle);
                     obstacleIndex.Add(obstacle.Item1 - radius, obstacle.Item1 + radius, obstacle);
+                    buildingObstacleCount++;
+                }
+            }
+            using (var query = em.CreateEntityQuery(ComponentType.ReadOnly<Edge>(), ComponentType.ReadOnly<Road>(), ComponentType.ReadOnly<Curve>(), ComponentType.ReadOnly<PrefabRef>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
+            using (var entities = query.ToEntityArray(Allocator.Temp))
+            {
+                foreach (var entity in entities)
+                {
+                    if (entity == start.Target || entity == end.Target) continue;
+                    var curve = em.GetComponentData<Curve>(entity).m_Bezier;
+                    var prefab = em.GetComponentData<PrefabRef>(entity).m_Prefab;
+                    var existingHalfWidth = em.HasComponent<NetGeometryData>(prefab) ? em.GetComponentData<NetGeometryData>(prefab).m_DefaultWidth * 0.5f : 4f;
+                    var radius = existingHalfWidth + geometry.m_DefaultWidth * 0.5f + 4f;
+                    var curveMin = math.min(math.min(curve.a.xz, curve.b.xz), math.min(curve.c.xz, curve.d.xz));
+                    var curveMax = math.max(math.max(curve.a.xz, curve.b.xz), math.max(curve.c.xz, curve.d.xz));
+                    if (math.any(curveMax < min - radius) || math.any(curveMin > max + radius)) continue;
+                    var samples = math.max(1, (int)math.ceil(MathUtils.Length(curve) / math.max(8f, gridSize * 0.5f)));
+                    bool indexed = false;
+                    for (int sample = 0; sample <= samples; sample++)
+                    {
+                        var point = MathUtils.Position(curve, sample / (float)samples).xz;
+                        if (math.any(point < min - radius) || math.any(point > max + radius)) continue;
+                        var obstacle = Tuple.Create(point, radius, true);
+                        obstacles.Add(obstacle); obstacleIndex.Add(point - radius, point + radius, obstacle); indexed = true;
+                    }
+                    if (indexed) roadObstacleCount++;
                 }
             }
             int Index(int x, int y) => x + y * columns;
@@ -1048,40 +1083,86 @@ namespace CityWeaver
             }
             bool Blocked(float2 p)
             {
-                foreach (var obstacle in obstacleIndex.Query(p, p)) if (math.distancesq(p, obstacle.Item1) < obstacle.Item2 * obstacle.Item2) return true;
+                var endpointExemption = math.max(gridSize * 1.5f, roadClearance * 2f);
+                foreach (var obstacle in obstacleIndex.Query(p, p))
+                {
+                    if (obstacle.Item3 && (math.distance(p, start.Position.xz) <= endpointExemption || math.distance(p, end.Position.xz) <= endpointExemption)) continue;
+                    if (math.distancesq(p, obstacle.Item1) < obstacle.Item2 * obstacle.Item2) return true;
+                }
                 return false;
             }
-            var total = columns * rows; var terrainHeights = Enumerable.Repeat(float.NaN, total).ToArray();
+            bool WaterAt(float2 p) => WaterUtils.SampleDepth(ref water, new float3(p.x, 0, p.y)) > 0.01f;
+            if (WaterAt(start.Position.xz) || WaterAt(end.Position.xz))
+                throw new QueryException("ROUTE_ENDPOINT_IN_WATER", "Automatic ground-road endpoints must be on dry land.");
+            var total = columns * rows; var terrainHeights = Enumerable.Repeat(float.NaN, total).ToArray(); var waterCells = new sbyte[total]; int waterBlockedCellCount = 0;
             float Height(int index)
             {
                 if (!float.IsNaN(terrainHeights[index])) return terrainHeights[index];
                 var p = GridPoint(index); var sample = new float3(p.x, 0, p.y); terrainHeights[index] = TerrainUtils.SampleHeight(ref heights, sample); return terrainHeights[index];
             }
+            bool Wet(int index)
+            {
+                if (waterCells[index] != 0) return waterCells[index] > 0;
+                var wet = WaterAt(GridPoint(index)); waterCells[index] = wet ? (sbyte)1 : (sbyte)-1; if (wet) waterBlockedCellCount++; return wet;
+            }
             var startCell = Cell(start.Position.xz); var endCell = Cell(end.Position.xz);
-            var scores = Enumerable.Repeat(float.PositiveInfinity, total).ToArray(); var previous = Enumerable.Repeat(-1, total).ToArray(); var closed = new bool[total];
-            var open = new SortedSet<Tuple<float, int, int>>(); int serial = 0; scores[startCell] = 0; open.Add(Tuple.Create(directDistance, serial++, startCell));
             var directions = zoningAlignment
                 ? new[] { new int2(0,-1), new int2(-1,0), new int2(1,0), new int2(0,1) }
                 : new[] { new int2(-1,-1), new int2(0,-1), new int2(1,-1), new int2(-1,0), new int2(1,0), new int2(-1,1), new int2(0,1), new int2(1,1) };
+            // Native road validation is stricter than the prefab's advertised steepness near
+            // connected segment joints. Keep enough headroom that a terrain-valid search step
+            // does not become a SteepSlope error after the native network tool blends the grade.
+            var slopeSafety = strategy == "gentle" ? 0.7f : strategy == "balanced" ? 0.8f : 0.9f;
+            var slopeWeight = strategy == "gentle" ? 12f : strategy == "balanced" ? 4f : 1f;
+            var turnWeight = strategy == "gentle" ? 1.25f : strategy == "balanced" ? 0.6f : 0.2f;
+            int State(int cell, int heading) => cell * directions.Length + heading;
+            int StateCell(int state) => state / directions.Length;
+            var stateCount = total * directions.Length;
+            var scores = Enumerable.Repeat(float.PositiveInfinity, stateCount).ToArray(); var previous = Enumerable.Repeat(-1, stateCount).ToArray(); var closed = new bool[stateCount];
+            var open = new SortedSet<Tuple<float, int, int>>(); int serial = 0;
+            void TryStart(int heading)
+            {
+                var delta = directions[heading]; var sx = startCell % columns; var sy = startCell / columns;
+                var nx = sx + delta.x; var ny = sy + delta.y; if (nx < 0 || ny < 0 || nx >= columns || ny >= rows) return;
+                var next = Index(nx, ny); var b = next == endCell ? end.Position.xz : GridPoint(next); if (next != endCell && (Blocked(b) || Wet(next))) return;
+                var distance = math.distance(start.Position.xz, b); if (distance < 0.01f) return;
+                var nextHeight = next == endCell ? end.Position.y : Height(next);
+                var slope = math.abs(nextHeight - start.Position.y) / distance;
+                if (slope > slopeLimit * slopeSafety) return;
+                var state = State(next, heading); var score = distance * (1f + slope * slopeWeight);
+                scores[state] = score; open.Add(Tuple.Create(score + math.distance(b, end.Position.xz), serial++, state));
+            }
+            if (startCell != endCell) for (int heading = 0; heading < directions.Length; heading++) TryStart(heading);
+            int goalState = -1;
             while (open.Count > 0)
             {
-                var item = open.Min; open.Remove(item); var current = item.Item3; if (closed[current]) continue; closed[current] = true; if (current == endCell) break;
-                var cx = current % columns; var cy = current / columns; var a = GridPoint(current); var ah = Height(current);
-                foreach (var delta in directions)
+                var item = open.Min; open.Remove(item); var currentState = item.Item3; if (closed[currentState]) continue; closed[currentState] = true;
+                var current = StateCell(currentState); if (current == endCell) { goalState = currentState; break; }
+                var currentHeading = currentState % directions.Length; var cx = current % columns; var cy = current / columns; var a = GridPoint(current); var ah = Height(current);
+                for (int nextHeading = 0; nextHeading < directions.Length; nextHeading++)
                 {
+                    var delta = directions[nextHeading];
                     var nx = cx + delta.x; var ny = cy + delta.y; if (nx < 0 || ny < 0 || nx >= columns || ny >= rows) continue;
-                    var next = Index(nx, ny); if (closed[next]) continue; var b = GridPoint(next);
-                    if (next != endCell && next != startCell && Blocked(b)) continue;
-                    var distance = math.distance(a, b); var slope = math.abs(Height(next) - ah) / distance; if (slope > slopeLimit * 0.95f) continue;
-                    var slopeWeight = strategy == "gentle" ? 12f : strategy == "balanced" ? 4f : 1f;
-                    var score = scores[current] + distance * (1f + slope * slopeWeight);
-                    if (score >= scores[next]) continue;
-                    scores[next] = score; previous[next] = current;
-                    open.Add(Tuple.Create(score + math.distance(b, end.Position.xz), serial++, next));
+                    var next = Index(nx, ny); var nextState = State(next, nextHeading); if (closed[nextState]) continue;
+                    var b = next == endCell ? end.Position.xz : GridPoint(next);
+                    if (next == startCell) continue;
+                    if (next != endCell && next != startCell && (Blocked(b) || Wet(next))) continue;
+                    var previousDirection = math.normalize((float2)directions[currentHeading]); var nextDirection = math.normalizesafe(b - a);
+                    var directionDot = math.dot(previousDirection, nextDirection); if (directionDot < -0.01f) continue;
+                    var distance = math.distance(a, b); if (distance < 0.01f) continue;
+                    var nextHeight = next == endCell ? end.Position.y : Height(next);
+                    var slope = math.abs(nextHeight - ah) / distance; if (slope > slopeLimit * slopeSafety) continue;
+                    var turnPenalty = gridSize * turnWeight * (1f - directionDot);
+                    var score = scores[currentState] + distance * (1f + slope * slopeWeight) + turnPenalty;
+                    if (score >= scores[nextState]) continue;
+                    scores[nextState] = score; previous[nextState] = currentState;
+                    open.Add(Tuple.Create(score + math.distance(b, end.Position.xz), serial++, nextState));
                 }
             }
-            if (startCell != endCell && previous[endCell] < 0) throw new QueryException("NO_AUTOROUTE", "No route within the requested detour corridor satisfies terrain slope and building clearance.");
-            var cells = new List<int>(); for (int at = endCell; at >= 0; at = at == startCell ? -1 : previous[at]) { cells.Add(at); if (at != startCell && previous[at] < 0) break; }
+            if (startCell != endCell && goalState < 0) throw new QueryException("NO_AUTOROUTE", "No route within the requested detour corridor satisfies terrain slope and building/road clearance.");
+            var cells = new List<int>();
+            if (startCell == endCell) cells.Add(startCell);
+            else { for (int at = goalState; at >= 0; at = previous[at]) cells.Add(StateCell(at)); cells.Add(startCell); }
             cells.Reverse(); var raw = new List<float3> { start.Position };
             for (int i = 1; i + 1 < cells.Count; i++) { var p = GridPoint(cells[i]); raw.Add(new float3(p.x, Height(cells[i]), p.y)); }
             raw.Add(end.Position);
@@ -1089,30 +1170,165 @@ namespace CityWeaver
             {
                 var length = math.distance(a.xz, b.xz); if (length > 248) return false; var samples = math.max(2, (int)math.ceil(length / (gridSize * 0.5f)));
                 if (zoningAlignment && math.abs(a.x - b.x) > 0.01f && math.abs(a.z - b.z) > 0.01f) return false;
-                var previousPoint = a;
+                // The native road segment is a straight grade between its endpoint heights.
+                // Intermediate terrain bumps are cut/filled by the road tool, so validating
+                // terrain-to-terrain slope here can reject a safe road after A* already found
+                // a traversable corridor. Keep dense water/obstacle sampling, but validate the
+                // grade the road will actually have.
+                if (math.abs(b.y - a.y) / math.max(0.01f, length) > slopeLimit * slopeSafety) return false;
                 for (int i = 1; i <= samples; i++)
                 {
-                    var t = i / (float)samples; var xz = math.lerp(a.xz, b.xz, t); if (i < samples && Blocked(xz)) return false;
-                    var point = new float3(xz.x, i == samples ? b.y : TerrainUtils.SampleHeight(ref heights, new float3(xz.x, 0, xz.y)), xz.y);
-                    if (math.abs(point.y - previousPoint.y) / math.max(0.01f, math.distance(point.xz, previousPoint.xz)) > slopeLimit * 0.95f) return false;
-                    previousPoint = point;
+                    var t = i / (float)samples; var xz = math.lerp(a.xz, b.xz, t); if (i < samples && (Blocked(xz) || WaterAt(xz))) return false;
                 }
                 return true;
             }
-            var route = new List<float3> { raw[0] }; int anchor = 0;
-            while (anchor < raw.Count - 1)
+            // Preserve A* heading changes instead of greedily cutting across several turns. A
+            // long shortcut can be valid by itself yet leave the next raw step pointing back
+            // more than 90 degrees. Collapsing only consecutive steps with the same heading
+            // retains the search's turn guarantee while still producing long native segments.
+            var route = new List<float3> { raw[0] };
+            for (int i = 1; i < raw.Count; i++)
             {
-                int next = anchor + 1; for (int candidate = anchor + 2; candidate < raw.Count && ClearLine(raw[anchor], raw[candidate]); candidate++) next = candidate;
-                route.Add(raw[next]); anchor = next;
+                var atEnd = i + 1 == raw.Count;
+                var currentDirection = math.normalizesafe(raw[i].xz - raw[i - 1].xz);
+                var nextDirection = atEnd ? currentDirection : math.normalizesafe(raw[i + 1].xz - raw[i].xz);
+                var headingChanges = !atEnd && math.dot(currentDirection, nextDirection) < 0.999f;
+                if (math.distance(route[route.Count - 1].xz, raw[i].xz) > 248f)
+                {
+                    var split = raw[i - 1];
+                    if (math.distance(route[route.Count - 1].xz, split.xz) >= 16f) route.Add(split);
+                }
+                if ((atEnd || headingChanges) && math.distance(route[route.Count - 1].xz, raw[i].xz) >= 0.01f) route.Add(raw[i]);
+            }
+            for (int i = 0; i + 1 < route.Count; i++)
+                if (!ClearLine(route[i], route[i + 1]))
+                    throw new QueryException("NO_AUTOROUTE", "No heading-preserving simplified route satisfies terrain, water and obstacle clearance.");
+            for (int i = 1; i + 1 < route.Count; i++)
+            {
+                var incoming = math.normalizesafe(route[i].xz - route[i - 1].xz);
+                var outgoing = math.normalizesafe(route[i + 1].xz - route[i].xz);
+                if (math.dot(incoming, outgoing) < -0.01f)
+                    throw new QueryException("NO_AUTOROUTE", "No route without a greater-than-90-degree reversal satisfies the endpoint geometry.");
+            }
+            // A one-cell transition between two long opposing diagonals is valid as a
+            // straight polyline, but rounding both of its ends produces a road bend whose
+            // radius is smaller than the native road footprint.  Collapse that three-leg
+            // switchback into one broad chord before fitting the cubic chain.  The chord
+            // still has to pass the same grade, water and obstacle checks.
+            for (int i = 1; i + 2 < route.Count;)
+            {
+                var incoming = math.normalizesafe(route[i].xz - route[i - 1].xz);
+                var middle = math.normalizesafe(route[i + 1].xz - route[i].xz);
+                var outgoing = math.normalizesafe(route[i + 2].xz - route[i + 1].xz);
+                var shortTransition = math.distance(route[i].xz, route[i + 1].xz) <= gridSize * 1.5f;
+                var bendsAtBothEnds = math.dot(incoming, middle) < 0.999f && math.dot(middle, outgoing) < 0.999f;
+                if (shortTransition && bendsAtBothEnds && ClearLine(route[i - 1], route[i + 2]))
+                {
+                    route.RemoveRange(i, 2);
+                    i = math.max(1, i - 1);
+                }
+                else i++;
             }
             if (route.Count > 33) throw new QueryException("ROUTE_TOO_COMPLEX", "The planned route needs more than 32 road segments; increase grid size or reduce the route distance.");
             for (int i = 0; i + 1 < route.Count; i++) if (math.distance(route[i].xz, route[i + 1].xz) < 16) throw new QueryException("ROUTE_SEGMENT_TOO_SHORT", "The planned route contains a segment shorter than 16 metres; adjust endpoints or grid size.");
+            // Keep the A* waypoints, but replace the hard polyline joints with a cubic
+            // chain whose adjacent curves share the same tangent direction.  This avoids
+            // adding two extra road segments per corner (and exceeding the 32-segment
+            // transaction limit on long mountain routes).
+            float3 RouteTangent(int index)
+            {
+                var before = index == 0 ? route[index] : route[index - 1];
+                var after = index + 1 == route.Count ? route[index] : route[index + 1];
+                var delta = after - before;
+                var horizontal = math.length(delta.xz);
+                if (horizontal < 0.01f)
+                {
+                    var fallback = index + 1 < route.Count ? route[index + 1] - route[index] : route[index] - route[index - 1];
+                    horizontal = math.max(0.01f, math.length(fallback.xz));
+                    return fallback / horizontal;
+                }
+                return delta / horizontal;
+            }
+            Bezier4x3 SmoothRouteCurve(int index, float handleScale)
+            {
+                var a = route[index]; var d = route[index + 1];
+                var span = math.distance(a.xz, d.xz);
+                var beforeSpan = index > 0 ? math.distance(route[index - 1].xz, a.xz) : span;
+                var afterSpan = index + 2 < route.Count ? math.distance(d.xz, route[index + 2].xz) : span;
+                var startHandle = math.min(span, beforeSpan) * handleScale;
+                var endHandle = math.min(span, afterSpan) * handleScale;
+                // Smooth only the plan-view heading.  A hairpin's central 3D secant can
+                // have very little horizontal run and therefore an invalid vertical
+                // tangent even when both adjacent road grades are safe.  Give each
+                // control point the segment's own linear grade, proportional to its
+                // horizontal handle length, so curvature cannot invent a slope spike.
+                var startTangent = RouteTangent(index); startTangent.y = 0;
+                var endTangent = RouteTangent(index + 1); endTangent.y = 0;
+                var b = a + startTangent * startHandle;
+                var c = d - endTangent * endHandle;
+                b.y = math.lerp(a.y, d.y, startHandle / math.max(0.01f, span));
+                c.y = math.lerp(d.y, a.y, endHandle / math.max(0.01f, span));
+                return new Bezier4x3(a, b, c, d);
+            }
+            bool CurveCorridorClear(Bezier4x3 curve)
+            {
+                var samples = math.max(16, (int)math.ceil(MathUtils.Length(curve) / math.max(4f, gridSize * 0.25f)));
+                var minimumRadius = math.max(8f, geometry.m_DefaultWidth * 0.75f);
+                float2 previousPoint = curve.a.xz; float2 previousStep = default; var hasPreviousStep = false;
+                for (int sample = 1; sample < samples; sample++)
+                {
+                    var point = MathUtils.Position(curve, sample / (float)samples).xz;
+                    if (Blocked(point) || WaterAt(point)) return false;
+                    var step = point - previousPoint; var stepLength = math.length(step);
+                    if (hasPreviousStep && stepLength > 0.01f)
+                    {
+                        var previousLength = math.length(previousStep);
+                        if (previousLength > 0.01f)
+                        {
+                            var angle = math.acos(math.clamp(math.dot(previousStep / previousLength, step / stepLength), -1f, 1f));
+                            if (angle > 0.001f && math.min(previousLength, stepLength) / angle < minimumRadius) return false;
+                        }
+                    }
+                    previousPoint = point; previousStep = step; hasPreviousStep = true;
+                }
+                return true;
+            }
+            var plannedCurves = new List<Bezier4x3>();
+            if (zoningAlignment)
+            {
+                for (int i = 0; i + 1 < route.Count; i++) plannedCurves.Add(NetUtils.StraightCurve(route[i], route[i + 1]));
+            }
+            else
+            {
+                // Prefer broad bends, then progressively tighten them when a broad curve
+                // would leave the verified A* corridor.  Even the tightest candidate keeps
+                // a shared tangent at every joint, so it never reintroduces a right angle.
+                var handleScales = new[] { 1f / 3f, 0.28f, 0.22f, 0.16f, 0.10f };
+                QueryException curveError = null;
+                foreach (var handleScale in handleScales)
+                {
+                    plannedCurves.Clear(); curveError = null; var clear = true;
+                    for (int i = 0; i + 1 < route.Count; i++)
+                    {
+                        var curve = SmoothRouteCurve(i, handleScale);
+                        try { ValidateRoadCurve(curve, 0, 0, prefabEntity, em); }
+                        catch (QueryException error) { curveError = error; clear = false; break; }
+                        if (!CurveCorridorClear(curve)) { clear = false; break; }
+                        plannedCurves.Add(curve);
+                    }
+                    if (clear) break;
+                }
+                if (plannedCurves.Count != route.Count - 1)
+                    throw curveError ?? new QueryException("NO_AUTOROUTE_CURVE", "A smooth route could not stay within the terrain, water and obstacle corridor.");
+            }
             var operation = new RoadOperation { Session = m_Session, RequestId = key, Fingerprint = fingerprint, OperationType = "create", Prefab = prefabEntity, PrefabName = name,
-                CurveMode = "autoroute", PlannerStrategy = strategy, PlannerGridSize = gridSize, PlannerObstacleCount = obstacles.Count, ZoningAligned = zoningAlignment,
+                CurveMode = zoningAlignment ? "autoroute" : "autoroute_curved", PlannerStrategy = strategy, PlannerGridSize = gridSize, PlannerObstacleCount = buildingObstacleCount + roadObstacleCount,
+                PlannerBuildingObstacleCount = buildingObstacleCount, PlannerRoadObstacleCount = roadObstacleCount, PlannerWaterBlockedCellCount = waterBlockedCellCount,
+                ZoningAligned = zoningAlignment,
                 ZoningValidation = zoningAlignment ? "planned" : null };
             for (int i = 0; i + 1 < route.Count; i++)
             {
-                var curve = NetUtils.StraightCurve(route[i], route[i + 1]); ValidateRoadCurve(curve, 0, 0, prefabEntity, em);
+                var curve = plannedCurves[i]; ValidateRoadCurve(curve, 0, 0, prefabEntity, em);
                 operation.Segments.Add(new RoadSegmentPlan { Start = route[i], End = route[i + 1], StartTarget = i == 0 ? start.Target : Entity.Null,
                     EndTarget = i + 1 == route.Count - 1 ? end.Target : Entity.Null, StartSplit = i == 0 ? start.Split : 0, EndSplit = i + 1 == route.Count - 1 ? end.Split : 0,
                     StartElevation = i == 0 ? start.Elevation : 0, EndElevation = i + 1 == route.Count - 1 ? end.Elevation : 0, Curve = curve });
