@@ -17,8 +17,9 @@
 9. `preview_road_batch_upgrade` 或 `preview_road_batch_demolition` 输入 1–64 个不重复的 `edge_ids`，把整批变更作为一个预览和一次提交；批量替换还需 `road_prefab`。原生网络管线可能合并相邻兼容路段，提交后必须使用 `created_road_ids` 返回的新实体 ID。
 10. `preview_road_zoning` 输入 1–64 个 `edge_ids`，并设置 `left_enabled` 和/或 `right_enabled`。省略的一侧保持原状；左右以每条边的 `start_node_id → end_node_id` 方向为准。
 11. `preview_intersection_control` 输入 1–64 个至少连接三条道路的 `node_ids`。`mode` 可为 `traffic_lights`、`all_way_stop`、`uncontrolled` 或 `automatic`；最后一种清除显式覆盖，恢复游戏自动选择。
+   `inspect_intersection_controls` 可读取实时信号组、当前相位、计时器、固定配时方案和节点上实际生成的交通标牌。`set_traffic_signal_program` 在已有信号灯节点上设置固定相位序列：每个相位指定原生 `signal_group` 与 1–255 个绿色放行 `duration_steps`，每步等于 16 个模拟帧；每相位之后自动插入 4 步原生风格的黄灯、全红和预备过渡。`offset_steps` 可协调相邻路口形成固定偏移。修改和清除方案时城市必须暂停。方案仅在当前已加载城市会话有效，重载城市会恢复原生自适应控制；可用 `clear_traffic_signal_program` 提前恢复。
 12. `preview_intersection_roundabout` 输入一个至少连接三条道路的 `node_id` 和 `enabled`。启用时由游戏原生网络系统把该节点转换为环岛、计算半径与环岛车道，并清除信号灯/全向停车覆盖；相连道路必须支持原生环岛。
-13. `preview_road_features` 输入 1–64 个 `edge_ids`。可独立设置左右宽人行道、左右 `none/grass/trees` 绿化、宽中央隔离带及中央 `none/grass/trees` 绿化；省略项保持原状，不被道路预制件支持的组合会直接拒绝。
+13. `preview_road_features` 输入 1–64 个 `edge_ids`。`tram_tracks=true/false` 使用游戏原生道路升级在道路两侧同时添加/移除一对双向有轨电车轨道；不支持该升级的道路会返回 `ROAD_FEATURE_UNSUPPORTED`。完成时不仅核对 `PrimaryTrack` 升级标志，还必须回读永久道路的 `TramTrack` 组件与实时 Tram `TrackLane`。同一接口还可独立设置左右宽人行道、左右自行车道、左右单向公共交通车道、左右 `none/grass/trees` 绿化、宽中央隔离带及中央 `none/grass/trees` 绿化。`left_public_transport_lane` / `right_public_transport_lane` 使用原生 `PrimaryLane` 侧向升级；两侧同时为 `true` 会形成方向相反的两条单向公共交通车道，而不是把普通机动车道仅标记为公交专用。还可用 `left_tree_prefab`、`right_tree_prefab`、`median_tree_prefab` 指定 `list_landscape_prefabs(kind: "tree")` 返回的精确树种。指定树种且省略对应装饰时会自动启用 `trees`；若显式传入 `grass` 或 `none` 则拒绝。省略项保持原状，不被道路预制件支持的组合会直接拒绝。提交完成后的 `road_tree_replacement_count` 是实际匹配并更新的道路附属树数量。
 14. `preview_road_ring` 输入道路预制件、圆心、12–160 米半径和 `auto/clockwise/counterclockwise` 方向，以四段三次贝塞尔道路生成闭合圆环。`auto` 按城市左右行交通选择单向道路方向。它是独立环形道路；现有路口转原生环岛仍使用 `preview_intersection_roundabout`。
 15. `preview_road_autoroute` 输入道路预制件和起终点，可规划 16–2048 米地面路线。规划器读取地形、实时水深和道路最大坡度，按道路宽度留出建筑物及永久道路净空，以“格子 + 进入航向”为状态的 A* 在 `max_detour_m` 走廊中搜索；有水深的格点会被阻断，代价同时考虑坡度和转弯，并按策略预留坡度安全余量。搜索和简化阶段都禁止超过 90° 的折返，再简化为不超过 248 米的原生路段。`strategy` 可选 `shortest`、`balanced` 或 `gentle`；`gentle` 使用最大的坡度与转弯惩罚。起终点附近保留接入既有网络的豁免区，其他既有道路会参与避障。`zoning_alignment=false` 时，简化后的各段会转换为共享切线方向的三次贝塞尔曲线，并从宽到窄逐级尝试控制柄；每次均重新采样坡度、长度、水域和障碍净空，因此无需增加路段数量即可消除折线直角。`zoning_alignment` 默认为 `true`：新端点吸附到 `grid_size_m`（该值必须是 8 米分区网格的整数倍），只走水平/垂直方向并保持 90° 转弯；已有网络接入点也必须对齐 `grid_size_m`。提交前会再次检查规划几何；永久应用后等待游戏生成原生分区格，只有块方向、全局 8 米格网相位和缓冲区尺寸验证通过才返回 `completed`，并在操作中返回 `zoning_validation=verified`、建筑/道路障碍数、水域阻断格数及单元格统计。游戏预览仍负责碰撞、拆迁与费用。
 16. `inspect_road_zoning` 输入 1–64 个永久道路 `edge_ids`，读取每条道路实际拥有的 `Game.Zones.SubBlock → Block → Cell`。返回分区块方向、尺寸、8 米单元格网相位，以及可用临街格和 `Blocked/Shared/Occupied/Redundant` 数量。`orderly_geometry=true` 表示分区块均为正交方向、所有格子共享同一全局 8 米格网相位且缓冲区尺寸正确；具体建筑预制件能否落位仍由游戏决定。
@@ -62,6 +63,8 @@
 运行模拟后用 `inspect_road_lanes` 核验左右配置、`dedicated_bicycle_lane_count` 以及 `usable_parking_lane_count`。`bicycle_allowed_lane_count` 包含允许骑行的混行道路；专用车道统计仅包含允许 Bicycle 且不含 Road/Pedestrian/Parking 寻路方式的子车道。子车道记录可能因节点拆分而重复，不等同于道路横断面车道数；整条骑行路线连通仍需另外验证。
 
 示例：`{"request_id":"trunk-bike-001","edge_ids":["当前永久道路ID"],"left_bicycle_lane":true,"right_bicycle_lane":true,"left_decoration":"none","right_decoration":"none"}`。本功能编译及接口测试不替代当前存档的原生放置与骑行连通验收。
+
+有轨电车道路升级示例：`{"request_id":"sterling-tram-track-001","edge_ids":["当前永久道路ID"],"tram_tracks":true}`。按批次提交后使用 `inspect_road_lanes` 验证 `tram_tracks=true`、`tram_track_component=true` 且 `tram_track_lane_count>0`；随后才可在该道路上放置有轨电车站点。
 
 - 使用 `preview_road_ring` 建设多节点圆环后，应读取各环上节点的实际控制状态。若游戏自动加上信号灯并造成环流互锁，可对对应节点使用 `preview_intersection_control` 设置 `uncontrolled`；原生单节点环岛则优先使用 `preview_intersection_roundabout`。
 - 环上接入口的斑马线可能阻断持续车流。确认行人流量确实造成问题后，可用 `preview_intersection_rules` 对具体入口关闭 `crosswalk_enabled`，同时规划替代步行过街路径，而不是全城统一禁用。

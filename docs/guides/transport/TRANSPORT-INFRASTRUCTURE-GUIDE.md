@@ -10,6 +10,8 @@
 
 有轨电车沿用同一套选址、预览、提交、查询和取消接口。选择带有永久电车轨道车道的道路；兼容检查读取实时 `SubLane`、`TrackLane` 和 `TrackLaneData.m_TrackTypes`，所以也支持通过道路升级添加的轨道。无电车轨道时报 `TRAM_TRACK_REQUIRED`；提交前及永久回读再次检查，永久对象还必须具有 `Game.Routes.TramStop`。这里不负责铺轨，不接受纯独立轨道边，也不保证所选道路侧能上下客；具体方向、站台净空和接驳由原生预览及后续线路寻路验证。
 
+现有道路可先调用 `preview_road_features(edge_ids, tram_tracks=true)`，轮询 `get_road_operation` 到 `preview_ready` 后用 `build_road` 提交。完成结果必须再由 `inspect_road_lanes` 确认 `tram_tracks=true`、`tram_track_component=true` 且 `tram_track_lane_count>0`，才能进入道路电车站点工作流。`tram_tracks=false` 使用同一原生升级管线移除道路电车轨道；调用方应先检查并迁移依赖这些轨道的站点和线路。
+
 1. 查询目录和永久道路，选定精确 `stop_prefab` 与 `road_edge_id`。
 2. `plan_road_stop_site` 接收这两个字段、`edge_parameter`（道路曲线参数，0.05–0.95，默认0.5）和 `road_side`（相对道路曲线起终方向的 `left` 或 `right`）。候选位置读取道路当前的 `EdgeGeometry`、`NetCompositionData` 和 `NetCompositionArea`，按游戏原生尺寸规则吸附到指定侧人行道的可建区域；不使用道路预制件的半宽作为位置，不选择中央分隔带。没有足够宽的可建人行道时返回 `ROAD_STOP_NO_BUILDABLE_SIDEWALK`。候选临路位置不是原生通过证明。
 3. 暂停后，以完全相同的四个字段及稳定 `request_id` 调用 `preview_road_stop_placement`。接口重新计算候选，避免传入任意坐标配错误道路 ID。

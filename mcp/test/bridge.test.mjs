@@ -139,7 +139,17 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   t.after(() => client.close());
   await client.connect(transport);
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 388);
+  assert.equal(tools.length, 392);
+  const planningTool = tools.find(tool => tool.name === 'render_city_plan');
+  assert.equal(planningTool._meta?.ui?.resourceUri, 'ui://cityweaver/planning/v1.html');
+  const { resources } = await client.listResources();
+  assert(resources.some(resource => resource.uri === 'ui://cityweaver/planning/v1.html'), 'planning MCP App resource is registered');
+  const planningApp = await client.readResource({ uri: 'ui://cityweaver/planning/v1.html' });
+  assert.equal(planningApp.contents[0].mimeType, 'text/html;profile=mcp-app');
+  assert.match(planningApp.contents[0].text, /ui\/initialize/);
+  for (const name of ['inspect_intersection_controls', 'set_traffic_signal_program', 'clear_traffic_signal_program']) {
+    assert(tools.some(tool => tool.name === name), `${name} is registered`);
+  }
   for (const name of ['list_work_routes', 'get_work_route', 'preview_work_route', 'get_work_route_operation', 'apply_work_route_operation', 'cancel_work_route_preview', 'delete_work_route']) {
     assert(tools.some(tool => tool.name === name), `${name} is registered`);
   }
@@ -163,6 +173,9 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   } });
   assert.equal(renderedPlan.isError, false);
   assert(!renderedPlan.content.some(item => item.type === 'resource'));
+  assert.equal(renderedPlan._meta.cityweaver_planning_app.tool_name, 'render_city_plan');
+  assert.equal(renderedPlan._meta.cityweaver_planning_app.map.encoding, 'gzip+base64');
+  assert.ok(renderedPlan._meta.cityweaver_planning_app.map.data.length > 100);
   assert.match(renderedPlan.structuredContent.data.plan_ref, /^plan-[a-f0-9]{64}$/);
   assert.match(await readFile(renderedPlan.structuredContent.data.artifact_path, 'utf8'), /<html/);
   assert.match(renderedPlan.structuredContent.data.plan_id, /^cplan-[a-f0-9]{16}$/);
@@ -238,6 +251,7 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   assert.ok(householdProfile.inputSchema.properties.salary_last_day, 'legacy salary input remains available as a compatibility alias');
   assert.equal(tools.find(tool => tool.name === 'plan_building_workflow').annotations.destructiveHint, false);
   const mutations = new Set(['set_simulation_speed', 'preview_disaster', 'apply_disaster_operation', 'cancel_disaster_preview', 'update_disaster', 'stop_disaster', 'clear_disaster_effects', 'set_city_name', 'set_city_money', 'set_city_configuration', 'set_city_policy', 'set_transport_line_schedule', 'set_transport_line_ticket_price', 'set_transport_line_vehicle_count', 'set_transport_line_number', 'set_transport_line_unbunching', 'set_transport_stop_name', 'set_transport_facility_name', 'set_transport_facility_active', 'set_transport_facility_policy', 'preview_transport_facility_upgrade', 'preview_transport_facility_upgrade_removal', 'request_transport_line_vehicle', 'cancel_transport_line_vehicle_requests', 'release_transport_line_vehicle', 'preview_map_tile_purchase', 'apply_map_tile_purchase', 'cancel_map_tile_purchase', 'unlock_all_map_tiles', 'place_landscape_objects', 'plant_landscape_pattern', 'move_landscape_object', 'set_tree_state', 'remove_landscape_objects', 'clear_landscape_area', 'create_water_source', 'update_water_source', 'delete_water_source', 'set_pollution_area', 'set_weather_override', 'set_wind', 'set_unlimited_demand', 'set_citizen_attributes', 'set_household_money', 'set_company_profitability', 'set_resource_amount', 'create_citizen', 'set_citizen_name', 'set_citizen_profile', 'set_citizen_household', 'set_citizen_workplace', 'set_citizen_school', 'set_citizen_location', 'set_citizen_health_problem', 'delete_citizen', 'create_household', 'set_household_name', 'set_household_profile', 'set_household_housing', 'set_household_need', 'delete_household', 'create_company', 'set_company_name', 'set_company_financials', 'set_company_workforce', 'set_company_property', 'set_company_trade_cost', 'delete_company', 'request_vehicle_reroute', 'set_vehicle_target', 'set_vehicle_behavior', 'remove_vehicle', 'request_traveler_reroute', 'set_traveler_target', 'set_traveler_speed', 'request_citizen_trip', 'cancel_citizen_trips', 'manage_traffic', 'set_experience_points', 'set_development_points', 'purchase_development_node', 'unlock_prefab', 'unlock_all_progression', 'preview_road', 'preview_road_route', 'preview_road_ring', 'preview_road_grid', 'preview_road_parallel', 'preview_road_interchange', 'preview_intersection_prefab', 'preview_road_autoroute', 'preview_road_reverse', 'preview_road_batch_reverse', 'preview_road_upgrade', 'preview_road_demolition', 'preview_road_batch_upgrade', 'preview_road_batch_demolition', 'preview_road_elevation', 'preview_road_zoning', 'preview_road_features', 'preview_road_parking', 'preview_intersection_control', 'preview_intersection_roundabout', 'preview_intersection_rules', 'preview_road_policies', 'preview_road_undo', 'build_road', 'cancel_road_preview', 'preview_terrain', 'apply_terrain', 'cancel_terrain_preview', 'preview_building_placement', 'preview_special_building_placement', 'preview_building_batch_placement', 'preview_building_move', 'preview_building_replacement', 'preview_building_upgrade', 'preview_building_rebuild', 'preview_building_demolition', 'preview_building_upgrade_removal', 'apply_building_operation', 'cancel_building_preview', 'set_building_name', 'set_building_active', 'set_building_policy', 'preview_zoning', 'apply_zoning', 'cancel_zoning_preview', 'preview_district_create', 'preview_district_boundary', 'preview_district_delete', 'apply_district_operation', 'cancel_district_preview', 'set_district_name', 'set_district_policy', 'set_service_districts', 'preview_transport_line', 'preview_transport_line_stops', 'preview_transport_line_delete', 'apply_transport_line_operation', 'cancel_transport_line_preview', 'set_transport_line_name', 'set_transport_line_active', 'set_transport_line_color', 'set_transport_line_policy', 'preview_transport_facility_placement', 'preview_transport_facility_move', 'preview_transport_facility_delete', 'apply_transport_facility_operation', 'cancel_transport_facility_preview', 'preview_transport_track', 'preview_transport_track_delete', 'apply_transport_track_operation', 'cancel_transport_track_preview', 'preview_utility_facility_placement', 'preview_utility_facility_move', 'preview_utility_facility_delete', 'apply_utility_facility_operation', 'cancel_utility_facility_preview', 'preview_utility_network', 'preview_utility_network_upgrade', 'preview_utility_network_delete', 'apply_utility_operation', 'cancel_utility_preview', 'preview_city_service_placement', 'preview_city_service_move', 'preview_city_service_upgrade', 'preview_city_service_upgrade_removal', 'preview_city_service_delete', 'apply_city_service_operation', 'cancel_city_service_preview', 'preview_tax_change', 'preview_service_budget', 'preview_service_fee', 'preview_loan_change', 'apply_economy_operation', 'cancel_economy_preview']);
+  mutations.add('preview_roundabout_placement');
   mutations.add('deploy_grid_district');
   mutations.add('prepare_grid_native_preview');
   mutations.add('advance_grid_construction');
@@ -263,6 +277,7 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   for (const name of ['preview_waterway', 'preview_waterway_delete', 'apply_waterway_operation', 'cancel_waterway_preview']) mutations.add(name);
   for (const name of ['preview_pier_pathway', 'apply_pier_pathway_operation', 'cancel_pier_pathway_preview']) mutations.add(name);
   for (const name of ['preview_work_route', 'apply_work_route_operation', 'cancel_work_route_preview', 'delete_work_route']) mutations.add(name);
+  for (const name of ['set_traffic_signal_program', 'clear_traffic_signal_program']) mutations.add(name);
   assert(tools.every(tool => tool.annotations.readOnlyHint === !mutations.has(tool.name)));
   assert.equal(tools.find(tool => tool.name === 'build_road').annotations.destructiveHint, true);
   assert.equal(tools.find(tool => tool.name === 'get_road_operation').annotations.readOnlyHint, true);
@@ -401,16 +416,40 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   assert.deepEqual((await client.callTool({ name: 'preview_road_zoning', arguments: zoning })).structuredContent.data.args, zoning);
   const features = { request_id: 'fixture-features-001', edge_ids: ['a'.repeat(32) + ':1:1'], left_decoration: 'trees', right_wide_sidewalk: true, median_decoration: 'grass' };
   assert.deepEqual((await client.callTool({ name: 'preview_road_features', arguments: features })).structuredContent.data.args, features);
+  const treeSpecies = { request_id: 'fixture-tree-species-001', edge_ids: edgeIds, left_tree_prefab: 'CoconutPalmTree01', right_tree_prefab: 'CoconutPalmTree01' };
+  assert.deepEqual((await client.callTool({ name: 'preview_road_features', arguments: treeSpecies })).structuredContent.data.args, treeSpecies);
+  const invalidTreeSpecies = await client.callTool({ name: 'preview_road_features', arguments: { ...treeSpecies, median_tree_prefab: '' } });
+  assert.equal(invalidTreeSpecies.isError, true);
   const bicycleFeatures = { request_id: 'fixture-bicycle-001', edge_ids: edgeIds, left_bicycle_lane: true, right_bicycle_lane: false, left_decoration: 'none' };
   assert.deepEqual((await client.callTool({ name: 'preview_road_features', arguments: bicycleFeatures })).structuredContent.data.args, bicycleFeatures);
   const bothBicycleSides = { request_id: 'fixture-bicycle-002', edge_ids: edgeIds, left_bicycle_lane: true, right_bicycle_lane: true };
   assert.deepEqual((await client.callTool({ name: 'preview_road_features', arguments: bothBicycleSides })).structuredContent.data.args, bothBicycleSides);
+  const publicTransportSides = { request_id: 'fixture-public-transport-001', edge_ids: edgeIds, left_public_transport_lane: true, right_public_transport_lane: true };
+  assert.deepEqual((await client.callTool({ name: 'preview_road_features', arguments: publicTransportSides })).structuredContent.data.args, publicTransportSides);
+  const invalidPublicTransport = await client.callTool({ name: 'preview_road_features', arguments: { ...publicTransportSides, right_public_transport_lane: 'true' } });
+  assert.equal(invalidPublicTransport.isError, true);
+  const tramTracks = { request_id: 'fixture-tram-tracks-001', edge_ids: edgeIds, tram_tracks: true };
+  assert.deepEqual((await client.callTool({ name: 'preview_road_features', arguments: tramTracks })).structuredContent.data.args, tramTracks);
+  const removeTramTracks = { request_id: 'fixture-tram-tracks-002', edge_ids: edgeIds, tram_tracks: false };
+  assert.deepEqual((await client.callTool({ name: 'preview_road_features', arguments: removeTramTracks })).structuredContent.data.args, removeTramTracks);
+  const invalidTramTracks = await client.callTool({ name: 'preview_road_features', arguments: { ...tramTracks, tram_tracks: 'true' } });
+  assert.equal(invalidTramTracks.isError, true);
   const invalidBicycle = await client.callTool({ name: 'preview_road_features', arguments: { ...bothBicycleSides, left_bicycle_lane: 'true' } });
   assert.equal(invalidBicycle.isError, true);
   const intersection = { request_id: 'intersection-001', node_ids: edgeIds, mode: 'traffic_lights' };
   assert.deepEqual((await client.callTool({ name: 'preview_intersection_control', arguments: intersection })).structuredContent.data.args, intersection);
+  const inspectedControls = { node_ids: edgeIds };
+  assert.deepEqual((await client.callTool({ name: 'inspect_intersection_controls', arguments: inspectedControls })).structuredContent.data.args, inspectedControls);
+  const signalProgram = { node_id: edgeIds[0], phases: [{ signal_group: 1, duration_steps: 8 }, { signal_group: 2, duration_steps: 6 }], offset_steps: 3 };
+  assert.deepEqual((await client.callTool({ name: 'set_traffic_signal_program', arguments: signalProgram })).structuredContent.data.args, signalProgram);
+  const clearSignalProgram = { node_id: edgeIds[0] };
+  assert.deepEqual((await client.callTool({ name: 'clear_traffic_signal_program', arguments: clearSignalProgram })).structuredContent.data.args, clearSignalProgram);
   const roundabout = { request_id: 'fixture-roundabout-001', node_id: 'a'.repeat(32) + ':4:1', enabled: true };
   assert.deepEqual((await client.callTool({ name: 'preview_intersection_roundabout', arguments: roundabout })).structuredContent.data.args, roundabout);
+  const roundaboutPlacement = { request_id: 'fixture-large-roundabout-001', node_id: 'a'.repeat(32) + ':4:1', roundabout_prefab: 'Large Roundabout' };
+  assert.deepEqual((await client.callTool({ name: 'preview_roundabout_placement', arguments: roundaboutPlacement })).structuredContent.data.args, roundaboutPlacement);
+  const culDeSacPlacement = { request_id: 'fixture-large-culdesac-001', node_id: 'a'.repeat(32) + ':5:1', roundabout_prefab: 'Large Cul-de-Sac' };
+  assert.deepEqual((await client.callTool({ name: 'preview_roundabout_placement', arguments: culDeSacPlacement })).structuredContent.data.args, culDeSacPlacement);
   const rules = { request_id: 'rules-test-001', edge_id: edgeIds[0], node_id: edgeIds[1], left_turn: 'forbid', crosswalk_enabled: false };
   assert.deepEqual((await client.callTool({ name: 'preview_intersection_rules', arguments: rules })).structuredContent.data.args, rules);
   const commit = { operation_id: 'a'.repeat(32), request_id: 'commit-test-001', max_cost: 5000 };

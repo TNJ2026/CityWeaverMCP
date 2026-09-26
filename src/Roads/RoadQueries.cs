@@ -20,6 +20,8 @@ namespace CityWeaver
         public static bool IsLocked(EntityManager em, Entity prefab) => em.HasComponent<Locked>(prefab) && em.IsComponentEnabled<Locked>(prefab);
         public string Id = Guid.NewGuid().ToString("N"), Session, RequestId, Fingerprint, PrefabName;
         public string OperationType = "create", OriginalPrefabName;
+        public bool? TramTracksRequested;
+        public string LeftTreePrefabName, RightTreePrefabName, MedianTreePrefabName;
         public string ControlMode;
         public bool? RoundaboutEnabled;
         public float3 RingCenter;
@@ -63,6 +65,8 @@ namespace CityWeaver
         public bool RuleUsesLeftSide;
         public string State = "queued", Error, CommitRequestId;
         public Entity Prefab, StartNode, EndNode;
+        public Entity LeftTreePrefab, RightTreePrefab, MedianTreePrefab;
+        public int RoadTreeReplacementCount;
         public Entity PierOwner, PierOwnerPrefab;
         public float3 PierOwnerPosition;
         public quaternion PierOwnerRotation;
@@ -92,6 +96,13 @@ namespace CityWeaver
         public JObject Json() => new JObject {
             ["operation_id"] = Id, ["session_id"] = Session, ["request_id"] = RequestId, ["state"] = State,
             ["operation_type"] = OperationType, ["target_edge_id"] = EntityId(TargetEdge), ["original_road_prefab"] = OriginalPrefabName,
+            ["tram_tracks_requested"] = TramTracksRequested.HasValue ? new JValue(TramTracksRequested.Value) : null,
+            ["left_tree_prefab"] = LeftTreePrefabName,
+            ["right_tree_prefab"] = RightTreePrefabName,
+            ["median_tree_prefab"] = MedianTreePrefabName,
+            ["road_tree_replacement_count"] = OperationType == "road_features" &&
+                (LeftTreePrefab != Entity.Null || RightTreePrefab != Entity.Null || MedianTreePrefab != Entity.Null)
+                ? new JValue(RoadTreeReplacementCount) : null,
             ["control_mode"] = ControlMode,
             ["roundabout_enabled"] = RoundaboutEnabled,
             ["ring_center"] = RingRadius > 0 ? Point(RingCenter) : null,
@@ -221,6 +232,13 @@ namespace CityWeaver
             ["right_wide_sidewalk"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_Right & CompositionFlags.Side.WideSidewalk) != 0) : null,
             ["left_bicycle_lane"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_Left & CompositionFlags.Side.SecondaryLane) != 0) : null,
             ["right_bicycle_lane"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_Right & CompositionFlags.Side.SecondaryLane) != 0) : null,
+            ["left_public_transport_lane"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_Left & CompositionFlags.Side.PrimaryLane) != 0) : null,
+            ["right_public_transport_lane"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_Right & CompositionFlags.Side.PrimaryLane) != 0) : null,
+            ["left_tram_track"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_Left & CompositionFlags.Side.PrimaryTrack) != 0) : null,
+            ["right_tram_track"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_Right & CompositionFlags.Side.PrimaryTrack) != 0) : null,
+            ["tram_tracks"] = HasUpgradeFlags ? new JValue(
+                (UpgradeFlags.m_Left & CompositionFlags.Side.PrimaryTrack) != 0 &&
+                (UpgradeFlags.m_Right & CompositionFlags.Side.PrimaryTrack) != 0) : null,
             ["left_decoration"] = HasUpgradeFlags ? Decoration(UpgradeFlags.m_Left) : null,
             ["right_decoration"] = HasUpgradeFlags ? Decoration(UpgradeFlags.m_Right) : null,
             ["wide_median"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_General & CompositionFlags.General.WideMedian) != 0) : null,
@@ -399,6 +417,7 @@ namespace CityWeaver
                     ["zoning_enabled"] = (road.m_Flags & Game.Prefabs.RoadFlags.EnableZoning) != 0,
                     ["uses_highway_rules"] = (road.m_Flags & Game.Prefabs.RoadFlags.UseHighwayRules) != 0,
                     ["supports_bicycle_lanes"] = em.HasComponent<NetData>(e) && (em.GetComponentData<NetData>(e).m_SideFlagMask & CompositionFlags.Side.SecondaryLane) != 0,
+                    ["supports_public_transport_lanes"] = em.HasComponent<NetData>(e) && (em.GetComponentData<NetData>(e).m_SideFlagMask & CompositionFlags.Side.PrimaryLane) != 0,
                     ["locked"] = RoadOperation.IsLocked(em, e), ["modes"] = new JArray("straight", "quadratic", "cubic", "elevated", "tunnel", "polyline"), ["max_length_m"] = 256 };
                 row.Merge(RoadPrefabTraits(prefab.name, e, em)); rows.Add(row);
             }
@@ -1092,6 +1111,16 @@ namespace CityWeaver
                 return false;
             }
             bool WaterAt(float2 p) => WaterUtils.SampleDepth(ref water, new float3(p.x, 0, p.y)) > 0.01f;
+            bool SegmentCorridorClear(float2 a, float2 b)
+            {
+                var samples = math.max(2, (int)math.ceil(math.distance(a, b) / 4f));
+                for (int i = 1; i < samples; i++)
+                {
+                    var point = math.lerp(a, b, i / (float)samples);
+                    if (Blocked(point) || WaterAt(point)) return false;
+                }
+                return true;
+            }
             if (WaterAt(start.Position.xz) || WaterAt(end.Position.xz))
                 throw new QueryException("ROUTE_ENDPOINT_IN_WATER", "Automatic ground-road endpoints must be on dry land.");
             var total = columns * rows; var terrainHeights = Enumerable.Repeat(float.NaN, total).ToArray(); var waterCells = new sbyte[total]; int waterBlockedCellCount = 0;
@@ -1106,6 +1135,19 @@ namespace CityWeaver
                 var wet = WaterAt(GridPoint(index)); waterCells[index] = wet ? (sbyte)1 : (sbyte)-1; if (wet) waterBlockedCellCount++; return wet;
             }
             var startCell = Cell(start.Position.xz); var endCell = Cell(end.Position.xz);
+            // A cell can be expanded with several incoming headings; cache the shared
+            // corridor check, including the actual (possibly off-grid) endpoints.
+            var edgeClearance = new Dictionary<long, bool>();
+            bool EdgeClear(int from, int to, float2 a, float2 b)
+            {
+                var key = (long)math.min(from, to) * total + math.max(from, to);
+                if (!edgeClearance.TryGetValue(key, out var clear))
+                {
+                    clear = SegmentCorridorClear(a, b);
+                    edgeClearance.Add(key, clear);
+                }
+                return clear;
+            }
             var directions = zoningAlignment
                 ? new[] { new int2(0,-1), new int2(-1,0), new int2(1,0), new int2(0,1) }
                 : new[] { new int2(-1,-1), new int2(0,-1), new int2(1,-1), new int2(-1,0), new int2(1,0), new int2(-1,1), new int2(0,1), new int2(1,1) };
@@ -1129,6 +1171,7 @@ namespace CityWeaver
                 var nextHeight = next == endCell ? end.Position.y : Height(next);
                 var slope = math.abs(nextHeight - start.Position.y) / distance;
                 if (slope > slopeLimit * slopeSafety) return;
+                if (!EdgeClear(startCell, next, start.Position.xz, b)) return;
                 var state = State(next, heading); var score = distance * (1f + slope * slopeWeight);
                 scores[state] = score; open.Add(Tuple.Create(score + math.distance(b, end.Position.xz), serial++, state));
             }
@@ -1152,6 +1195,7 @@ namespace CityWeaver
                     var distance = math.distance(a, b); if (distance < 0.01f) continue;
                     var nextHeight = next == endCell ? end.Position.y : Height(next);
                     var slope = math.abs(nextHeight - ah) / distance; if (slope > slopeLimit * slopeSafety) continue;
+                    if (!EdgeClear(current, next, a, b)) continue;
                     var turnPenalty = gridSize * turnWeight * (1f - directionDot);
                     var score = scores[currentState] + distance * (1f + slope * slopeWeight) + turnPenalty;
                     if (score >= scores[nextState]) continue;
@@ -1168,7 +1212,7 @@ namespace CityWeaver
             raw.Add(end.Position);
             bool ClearLine(float3 a, float3 b)
             {
-                var length = math.distance(a.xz, b.xz); if (length > 248) return false; var samples = math.max(2, (int)math.ceil(length / (gridSize * 0.5f)));
+                var length = math.distance(a.xz, b.xz); if (length > 248) return false;
                 if (zoningAlignment && math.abs(a.x - b.x) > 0.01f && math.abs(a.z - b.z) > 0.01f) return false;
                 // The native road segment is a straight grade between its endpoint heights.
                 // Intermediate terrain bumps are cut/filled by the road tool, so validating
@@ -1176,11 +1220,7 @@ namespace CityWeaver
                 // a traversable corridor. Keep dense water/obstacle sampling, but validate the
                 // grade the road will actually have.
                 if (math.abs(b.y - a.y) / math.max(0.01f, length) > slopeLimit * slopeSafety) return false;
-                for (int i = 1; i <= samples; i++)
-                {
-                    var t = i / (float)samples; var xz = math.lerp(a.xz, b.xz, t); if (i < samples && (Blocked(xz) || WaterAt(xz))) return false;
-                }
-                return true;
+                return SegmentCorridorClear(a.xz, b.xz);
             }
             // Preserve A* heading changes instead of greedily cutting across several turns. A
             // long shortcut can be valid by itself yet leave the next raw step pointing back
@@ -1200,6 +1240,22 @@ namespace CityWeaver
                 }
                 if ((atEnd || headingChanges) && math.distance(route[route.Count - 1].xz, raw[i].xz) >= 0.01f) route.Add(raw[i]);
             }
+            // Off-grid endpoints can leave a short first or last leg. Remove only
+            // its adjacent waypoint, and only when the replacement chord is safe
+            // and preserves the turn at its remaining neighbour.
+            bool CanRemoveWaypoint(int index)
+            {
+                var a = route[index - 1]; var b = route[index + 1];
+                if (math.distance(a.xz, b.xz) < 16f || !ClearLine(a, b)) return false;
+                var chord = math.normalizesafe(b.xz - a.xz);
+                if (index > 1 && math.dot(math.normalizesafe(a.xz - route[index - 2].xz), chord) < -0.01f) return false;
+                if (index + 2 < route.Count && math.dot(chord, math.normalizesafe(route[index + 2].xz - b.xz)) < -0.01f) return false;
+                return true;
+            }
+            while (route.Count > 2 && math.distance(route[0].xz, route[1].xz) < 16f && CanRemoveWaypoint(1))
+                route.RemoveAt(1);
+            while (route.Count > 2 && math.distance(route[route.Count - 2].xz, route[route.Count - 1].xz) < 16f && CanRemoveWaypoint(route.Count - 2))
+                route.RemoveAt(route.Count - 2);
             for (int i = 0; i + 1 < route.Count; i++)
                 if (!ClearLine(route[i], route[i + 1]))
                     throw new QueryException("NO_AUTOROUTE", "No heading-preserving simplified route satisfies terrain, water and obstacle clearance.");
@@ -1509,17 +1565,22 @@ namespace CityWeaver
             var fingerprint = new JObject { ["operation_type"] = "road_features", ["edge_ids"] = args["edge_ids"]?.DeepClone(),
                 ["left_wide_sidewalk"] = args["left_wide_sidewalk"]?.DeepClone(), ["right_wide_sidewalk"] = args["right_wide_sidewalk"]?.DeepClone(),
                 ["left_bicycle_lane"] = args["left_bicycle_lane"]?.DeepClone(), ["right_bicycle_lane"] = args["right_bicycle_lane"]?.DeepClone(),
+                ["left_public_transport_lane"] = args["left_public_transport_lane"]?.DeepClone(), ["right_public_transport_lane"] = args["right_public_transport_lane"]?.DeepClone(),
+                ["tram_tracks"] = args["tram_tracks"]?.DeepClone(),
                 ["left_decoration"] = args["left_decoration"]?.DeepClone(), ["right_decoration"] = args["right_decoration"]?.DeepClone(),
-                ["wide_median"] = args["wide_median"]?.DeepClone(), ["median_decoration"] = args["median_decoration"]?.DeepClone() }.ToString(Formatting.None);
+                ["wide_median"] = args["wide_median"]?.DeepClone(), ["median_decoration"] = args["median_decoration"]?.DeepClone(),
+                ["left_tree_prefab"] = args["left_tree_prefab"]?.DeepClone(), ["right_tree_prefab"] = args["right_tree_prefab"]?.DeepClone(),
+                ["median_tree_prefab"] = args["median_tree_prefab"]?.DeepClone() }.ToString(Formatting.None);
             if (m_RoadRequestIds.TryGetValue(key, out var oldId))
             {
                 var old = m_RoadOperations[oldId];
                 if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another road operation.");
                 return old.Json();
             }
-            string[] fields = { "left_wide_sidewalk", "right_wide_sidewalk", "left_bicycle_lane", "right_bicycle_lane", "left_decoration", "right_decoration", "wide_median", "median_decoration" };
+            string[] fields = { "left_wide_sidewalk", "right_wide_sidewalk", "left_bicycle_lane", "right_bicycle_lane", "left_public_transport_lane", "right_public_transport_lane", "tram_tracks", "left_decoration", "right_decoration", "wide_median", "median_decoration",
+                "left_tree_prefab", "right_tree_prefab", "median_tree_prefab" };
             if (fields.All(field => args[field] == null)) throw new QueryException("INVALID_ARGUMENT", "Set at least one road feature.");
-            foreach (var field in new[] { "left_bicycle_lane", "right_bicycle_lane" })
+            foreach (var field in new[] { "left_bicycle_lane", "right_bicycle_lane", "left_public_transport_lane", "right_public_transport_lane", "tram_tracks" })
                 if (args[field] != null && args[field].Type != JTokenType.Boolean)
                     throw new QueryException("INVALID_ARGUMENT", field + " must be a boolean.");
             string ReadDecoration(string field)
@@ -1533,10 +1594,33 @@ namespace CityWeaver
             var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); var em = world.EntityManager;
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before changing road features.");
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
+            string ReadTreePrefabName(string field, ref string decoration)
+            {
+                var name = ((string)args[field] ?? "").Trim();
+                if (name.Length == 0) return null;
+                if (decoration != null && decoration != "trees") throw new QueryException("INVALID_ARGUMENT", field + " requires the corresponding decoration to be trees or omitted.");
+                decoration = "trees";
+                return name;
+            }
+            var leftTreeName = ReadTreePrefabName("left_tree_prefab", ref leftDecoration);
+            var rightTreeName = ReadTreePrefabName("right_tree_prefab", ref rightDecoration);
+            var medianTreeName = ReadTreePrefabName("median_tree_prefab", ref medianDecoration);
+            Entity ResolveRoadTreePrefab(string name)
+            {
+                if (name == null) return Entity.Null;
+                var prefab = ResolveLandscapePrefab(name, world);
+                if (!em.HasComponent<TreeData>(prefab)) throw new QueryException("ROAD_TREE_PREFAB_REQUIRED", name + " is not a tree prefab.");
+                if (RoadOperation.IsLocked(em, prefab)) throw new QueryException("ROAD_TREE_PREFAB_LOCKED", name + " is locked.");
+                return prefab;
+            }
+            var leftTreePrefab = ResolveRoadTreePrefab(leftTreeName); var rightTreePrefab = ResolveRoadTreePrefab(rightTreeName); var medianTreePrefab = ResolveRoadTreePrefab(medianTreeName);
             var edgeIds = args["edge_ids"] as JArray;
             if (edgeIds == null || edgeIds.Count < 1 || edgeIds.Count > 64) throw new QueryException("INVALID_ARGUMENT", "edge_ids must contain 1..64 road edge IDs.");
             var prefabs = world.GetExistingSystemManaged<PrefabSystem>(); var unique = new HashSet<Entity>();
-            var operation = new RoadOperation { Session = m_Session, RequestId = key, Fingerprint = fingerprint, OperationType = "road_features", CurveMode = "existing" };
+            var operation = new RoadOperation { Session = m_Session, RequestId = key, Fingerprint = fingerprint, OperationType = "road_features", CurveMode = "existing",
+                TramTracksRequested = args["tram_tracks"] == null ? (bool?)null : (bool)args["tram_tracks"],
+                LeftTreePrefabName = leftTreeName, RightTreePrefabName = rightTreeName, MedianTreePrefabName = medianTreeName,
+                LeftTreePrefab = leftTreePrefab, RightTreePrefab = rightTreePrefab, MedianTreePrefab = medianTreePrefab };
             bool changed = false;
             foreach (var token in edgeIds)
             {
@@ -1548,14 +1632,16 @@ namespace CityWeaver
                 if (!prefabs.TryGetPrefab<PrefabBase>(originalPrefab, out var originalBase)) throw new QueryException("PREFAB_UNAVAILABLE", "A road's prefab is unavailable.");
                 var netData = em.GetComponentData<NetData>(originalPrefab);
                 var requestedGeneral = (args["wide_median"] != null ? CompositionFlags.General.WideMedian : 0) |
-                    (args["median_decoration"] != null ? CompositionFlags.General.PrimaryMiddleBeautification | CompositionFlags.General.SecondaryMiddleBeautification : 0);
+                    (medianDecoration != null ? CompositionFlags.General.PrimaryMiddleBeautification | CompositionFlags.General.SecondaryMiddleBeautification : 0);
                 var requestedSide = (args["left_wide_sidewalk"] != null || args["right_wide_sidewalk"] != null ? CompositionFlags.Side.WideSidewalk : 0) |
                     (args["left_bicycle_lane"] != null || args["right_bicycle_lane"] != null ? CompositionFlags.Side.SecondaryLane : 0) |
-                    (args["left_decoration"] != null || args["right_decoration"] != null ? CompositionFlags.Side.PrimaryBeautification | CompositionFlags.Side.SecondaryBeautification : 0);
+                    (args["left_public_transport_lane"] != null || args["right_public_transport_lane"] != null ? CompositionFlags.Side.PrimaryLane : 0) |
+                    (args["tram_tracks"] != null ? CompositionFlags.Side.PrimaryTrack : 0) |
+                    (leftDecoration != null || rightDecoration != null ? CompositionFlags.Side.PrimaryBeautification | CompositionFlags.Side.SecondaryBeautification : 0);
                 if ((netData.m_GeneralFlagMask & requestedGeneral) != requestedGeneral || (netData.m_SideFlagMask & requestedSide) != requestedSide)
                     throw new QueryException("ROAD_FEATURE_UNSUPPORTED", originalBase.name + " does not support every requested feature.");
                 var flags = em.HasComponent<Upgraded>(target) ? em.GetComponentData<Upgraded>(target).m_Flags : default(CompositionFlags); var before = flags;
-                void SetSide(ref CompositionFlags.Side side, JToken wide, string decoration, JToken bicycle)
+                void SetSide(ref CompositionFlags.Side side, JToken wide, string decoration, JToken bicycle, JToken publicTransport)
                 {
                     if (bicycle != null)
                     {
@@ -1568,6 +1654,13 @@ namespace CityWeaver
                         }
                         else side &= ~CompositionFlags.Side.SecondaryLane;
                     }
+                    if (publicTransport != null)
+                    {
+                        // Native Oneway Public Transport Lane maps to PrimaryLane on one side.
+                        // Setting both sides produces two opposing one-way public-transport lanes.
+                        if ((bool)publicTransport) side |= CompositionFlags.Side.PrimaryLane;
+                        else side &= ~CompositionFlags.Side.PrimaryLane;
+                    }
                     if (wide != null) { if ((bool)wide) side |= CompositionFlags.Side.WideSidewalk; else side &= ~CompositionFlags.Side.WideSidewalk; }
                     if (decoration != null)
                     {
@@ -1576,8 +1669,23 @@ namespace CityWeaver
                         else if (decoration == "trees") side |= CompositionFlags.Side.SecondaryBeautification;
                     }
                 }
-                SetSide(ref flags.m_Left, args["left_wide_sidewalk"], leftDecoration, args["left_bicycle_lane"]);
-                SetSide(ref flags.m_Right, args["right_wide_sidewalk"], rightDecoration, args["right_bicycle_lane"]);
+                SetSide(ref flags.m_Left, args["left_wide_sidewalk"], leftDecoration, args["left_bicycle_lane"], args["left_public_transport_lane"]);
+                SetSide(ref flags.m_Right, args["right_wide_sidewalk"], rightDecoration, args["right_bicycle_lane"], args["right_public_transport_lane"]);
+                if (args["tram_tracks"] != null)
+                {
+                    // The stock Tram Tracks road upgrade uses PrimaryTrack on both sides:
+                    // right is the forward track and left is the opposite-direction track.
+                    if ((bool)args["tram_tracks"])
+                    {
+                        flags.m_Left |= CompositionFlags.Side.PrimaryTrack;
+                        flags.m_Right |= CompositionFlags.Side.PrimaryTrack;
+                    }
+                    else
+                    {
+                        flags.m_Left &= ~CompositionFlags.Side.PrimaryTrack;
+                        flags.m_Right &= ~CompositionFlags.Side.PrimaryTrack;
+                    }
+                }
                 if (args["wide_median"] != null) { if ((bool)args["wide_median"]) flags.m_General |= CompositionFlags.General.WideMedian; else flags.m_General &= ~CompositionFlags.General.WideMedian; }
                 if (medianDecoration != null)
                 {
@@ -1593,6 +1701,7 @@ namespace CityWeaver
                     HasUpgradeFlags = true, UpgradeFlags = flags, Start = curve.a, End = curve.d, StartTarget = edge.m_Start, EndTarget = edge.m_End,
                     StartElevation = elevation.x, EndElevation = elevation.y, Curve = curve });
             }
+            changed |= leftTreePrefab != Entity.Null || rightTreePrefab != Entity.Null || medianTreePrefab != Entity.Null;
             if (!changed) throw new QueryException("NO_CHANGE", "All selected roads already have the requested features.");
             var first = operation.Segments[0]; var last = operation.Segments[operation.Segments.Count - 1];
             operation.TargetEdge = operation.TargetEdges[0]; operation.Prefab = first.OriginalPrefab; operation.PrefabName = first.OriginalPrefabName; operation.OriginalPrefabName = first.OriginalPrefabName;
@@ -1704,6 +1813,95 @@ namespace CityWeaver
             tool.Begin(operation); m_RoadOperations.Add(operation.Id, operation); m_RoadRequestIds.Add(key, operation.Id);
             return operation.Json();
         }
+        private JObject PreviewRoundaboutPlacement(JObject args, World world)
+        {
+            var key = RequestKey(args);
+            var prefabName = ((string)args["roundabout_prefab"] ?? "").Trim();
+            var fingerprint = new JObject
+            {
+                ["type"] = "place",
+                ["roundabout_prefab"] = prefabName,
+                ["node_id"] = args["node_id"]?.DeepClone()
+            }.ToString(Formatting.None);
+            if (m_BuildingRequestIds.TryGetValue(key, out var oldId))
+            {
+                var old = m_BuildingOperations[oldId];
+                if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another placement operation.");
+                return old.Json();
+            }
+            if (m_BuildingOperations.Count >= 4096) throw new QueryException("BUILDING_OPERATION_LIMIT", "This city session has reached 4096 object operations; reload the city to reset the journal.");
+            if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before placing a roundabout asset.");
+            var tool = BuildingTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>();
+            if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
+
+            var em = world.EntityManager; var prefabs = world.GetExistingSystemManaged<PrefabSystem>();
+            var node = ParseEntity((string)args["node_id"], em);
+            if (!em.HasComponent<Node>(node) || !em.HasComponent<ConnectedEdge>(node) || em.HasComponent<Deleted>(node) || em.HasComponent<Temp>(node))
+                throw new QueryException("INVALID_ROAD_NODE", "node_id must identify an existing permanent road node.");
+            var connected = em.GetBuffer<ConnectedEdge>(node, true); int roadCount = 0;
+            for (int i = 0; i < connected.Length; i++)
+                if (em.HasComponent<Road>(connected[i].m_Edge) && !em.HasComponent<Deleted>(connected[i].m_Edge)) roadCount++;
+            bool culDeSac = prefabName == "Large Cul-de-Sac";
+            if (culDeSac)
+            {
+                if (roadCount != 1) throw new QueryException("NOT_A_ROAD_END", "A cul-de-sac asset requires a road-end node with exactly one connected road edge.");
+            }
+            else if (roadCount < 3) throw new QueryException("NOT_AN_INTERSECTION", "A roundabout asset requires an intersection with at least three connected road edges.");
+
+            Entity prefab = Entity.Null;
+            using (var query = em.CreateEntityQuery(ComponentType.ReadOnly<PrefabData>(), ComponentType.ReadOnly<PlaceableObjectData>(), ComponentType.ReadOnly<NetObjectData>()))
+            using (var entities = query.ToEntityArray(Allocator.Temp))
+                foreach (var candidate in entities)
+                {
+                    var placeable = em.GetComponentData<PlaceableObjectData>(candidate);
+                    var placement = placeable.m_Flags;
+                    if ((placement & Game.Objects.PlacementFlags.RoadNode) == 0) continue;
+                    if (!prefabs.TryGetPrefab<PrefabBase>(candidate, out var prefabBase)) continue;
+                    bool match = prefabBase.name == prefabName;
+                    // Roads-menu captions are localized and do not necessarily equal the
+                    // internal prefab name. Resolve the stock base Large Roundabout by its
+                    // stable catalog slot and physical/cost signature used by the menu.
+                    if (!match && prefabName == "Large Roundabout" && em.HasComponent<UIObjectData>(candidate) && em.HasComponent<ObjectGeometryData>(candidate))
+                    {
+                        var ui = em.GetComponentData<UIObjectData>(candidate);
+                        var geometry = em.GetComponentData<ObjectGeometryData>(candidate);
+                        match = ui.m_Priority == 201 && placeable.m_ConstructionCost == 1000 &&
+                            math.abs(geometry.m_Size.x - 22f) < .01f && math.abs(geometry.m_Size.z - 22f) < .01f;
+                    }
+                    // Detailer's Patch #2 exposes cul-de-sacs in a separate localized
+                    // Roads-menu category. The stock asphalt Large Cul-de-Sac is the
+                    // priority-7, 1000-cost, ~21.91 m RoadNode object in that catalog.
+                    if (!match && prefabName == "Large Cul-de-Sac" && em.HasComponent<UIObjectData>(candidate) && em.HasComponent<ObjectGeometryData>(candidate))
+                    {
+                        var ui = em.GetComponentData<UIObjectData>(candidate);
+                        var geometry = em.GetComponentData<ObjectGeometryData>(candidate);
+                        match = ui.m_Priority == 7 && placeable.m_ConstructionCost == 1000 &&
+                            math.abs(geometry.m_Size.x - 21.9085f) < .02f && math.abs(geometry.m_Size.z - 21.9085f) < .02f;
+                    }
+                    if (match) { prefab = candidate; break; }
+                }
+            if (prefab == Entity.Null) throw new QueryException("UNKNOWN_ROAD_NODE_PREFAB", "Use an exact supported Roads-menu node asset name such as Large Roundabout or Large Cul-de-Sac.");
+            if (PrefabLocked(em, prefab)) throw new QueryException("ROAD_NODE_PREFAB_LOCKED", "This Roads-menu node asset is locked.");
+
+            var position = em.GetComponentData<Node>(node).m_Position;
+            var operation = new BuildingOperation
+            {
+                Session = m_Session,
+                RequestId = key,
+                Fingerprint = fingerprint,
+                Type = "place",
+                Prefab = prefab,
+                PrefabName = prefabName,
+                ParentRoad = node,
+                Position = position,
+                Rotation = quaternion.identity,
+                RotationDegrees = 0
+            };
+            m_BuildingOperations.Add(operation.Id, operation); m_BuildingRequestIds.Add(key, operation.Id);
+            tool.Begin(operation);
+            return operation.Json();
+        }
+
         private JObject PreviewIntersectionRules(JObject args, World world)
         {
             var key = RequestKey(args);

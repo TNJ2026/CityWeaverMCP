@@ -4,6 +4,7 @@ using Colossal.Mathematics;
 using Game.Common;
 using Game.Net;
 using Game.Notifications;
+using Game.Objects;
 using Game.Prefabs;
 using Game.Tools;
 using Newtonsoft.Json.Linq;
@@ -252,12 +253,14 @@ namespace CityWeaver
                         var mask = IsRoadFeatures ? CompositionFlags.optionMask : new CompositionFlags(~(CompositionFlags.General)0u, ~(CompositionFlags.Side)0u, ~(CompositionFlags.Side)0u);
                         if (IsRoadFeatures)
                         {
-                            // Bicycle lanes are directional flags, outside the native decoration option mask.
-                            var bicycleMask = CompositionFlags.Side.SecondaryLane | CompositionFlags.Side.ForbidSecondary | CompositionFlags.Side.ParkingSpaces;
-                            mask.m_Left |= bicycleMask;
-                            mask.m_Right |= bicycleMask;
+                            // Side lane upgrades are directional flags, outside the native decoration option mask.
+                            var sideLaneMask = CompositionFlags.Side.PrimaryTrack | CompositionFlags.Side.PrimaryLane | CompositionFlags.Side.SecondaryLane |
+                                CompositionFlags.Side.ForbidSecondary | CompositionFlags.Side.ParkingSpaces;
+                            mask.m_Left |= sideLaneMask;
+                            mask.m_Right |= sideLaneMask;
                         }
-                        if (EntityManager.Exists(target) && !EntityManager.HasComponent<Deleted>(target) && !EntityManager.HasComponent<Temp>(target) && (actual & mask) == (segment.UpgradeFlags & mask))
+                        if (EntityManager.Exists(target) && !EntityManager.HasComponent<Deleted>(target) && !EntityManager.HasComponent<Temp>(target) &&
+                            (actual & mask) == (segment.UpgradeFlags & mask) && (!IsRoadFeatures || !op.TramTracksRequested.HasValue || TramStateMatches(target, op.TramTracksRequested.Value)))
                             completedTargets.Add(target);
                         else if (EntityManager.Exists(target) && !EntityManager.HasComponent<Deleted>(target)) pendingTarget = true;
                     }
@@ -266,9 +269,17 @@ namespace CityWeaver
                         if (!EntityManager.Exists(candidate) || EntityManager.HasComponent<Deleted>(candidate) || EntityManager.HasComponent<Temp>(candidate) ||
                             !EntityManager.HasComponent<Edge>(candidate) || !EntityManager.HasComponent<Road>(candidate) || !EntityManager.HasComponent<Upgraded>(candidate)) continue;
                         var actual = EntityManager.GetComponentData<Upgraded>(candidate).m_Flags;
-                        if (op.Segments.Exists(s => s.UpgradeFlags == actual) && !completedTargets.Contains(candidate)) completedTargets.Add(candidate);
+                        if (op.Segments.Exists(s => s.UpgradeFlags == actual) && (!IsRoadFeatures || !op.TramTracksRequested.HasValue || TramStateMatches(candidate, op.TramTracksRequested.Value)) && !completedTargets.Contains(candidate)) completedTargets.Add(candidate);
                     }
-                    if (!pendingTarget && completedTargets.Count > 0) { op.CreatedEdges = completedTargets; op.State = "completed";
+                    if (!pendingTarget && completedTargets.Count > 0)
+                    {
+                        if (IsRoadFeatures && HasRequestedTreePrefabs(op))
+                        {
+                            var replaced = ReplaceRoadTreePrefabs(op, completedTargets);
+                            if (replaced == 0 && m_Ticks < 60) return;
+                            op.RoadTreeReplacementCount = replaced;
+                        }
+                        op.CreatedEdges = completedTargets; op.State = "completed";
                         Mod.log.Info((IsRoadFeatures ? "Road features" : "Road zoning") + " completed: " + op.Id + " edges=" + completedTargets.Count); Finish(); return; }
                     if (m_Ticks < 120) return;
                     Fail("APPLY_OUTCOME_UNKNOWN"); return;
@@ -374,6 +385,87 @@ namespace CityWeaver
                 Mod.log.Info("Road completed: " + op.Id + " permanent_edges=" + completed.Count);
                 Finish();
             }
+        }
+        private bool HasLiveTramLane(Entity road)
+        {
+            if (!EntityManager.Exists(road) || !EntityManager.HasBuffer<Game.Net.SubLane>(road)) return false;
+            var lanes = EntityManager.GetBuffer<Game.Net.SubLane>(road, true);
+            for (int i = 0; i < lanes.Length; i++)
+            {
+                var lane = lanes[i].m_SubLane;
+                if (!EntityManager.Exists(lane) || EntityManager.HasComponent<Deleted>(lane) || EntityManager.HasComponent<Temp>(lane) ||
+                    !EntityManager.HasComponent<Game.Net.TrackLane>(lane) || !EntityManager.HasComponent<PrefabRef>(lane)) continue;
+                var lanePrefab = EntityManager.GetComponentData<PrefabRef>(lane).m_Prefab;
+                if (EntityManager.HasComponent<TrackLaneData>(lanePrefab) &&
+                    (EntityManager.GetComponentData<TrackLaneData>(lanePrefab).m_TrackTypes & TrackTypes.Tram) != 0) return true;
+            }
+            return false;
+        }
+        private bool TramStateMatches(Entity road, bool expected)
+        {
+            var hasComponent = EntityManager.Exists(road) && EntityManager.HasComponent<TramTrack>(road);
+            var hasLane = HasLiveTramLane(road);
+            return expected ? hasComponent && hasLane : !hasComponent && !hasLane;
+        }
+
+        private static bool HasRequestedTreePrefabs(RoadOperation op) => op.LeftTreePrefab != Entity.Null || op.RightTreePrefab != Entity.Null || op.MedianTreePrefab != Entity.Null;
+
+        private int ReplaceRoadTreePrefabs(RoadOperation op, List<Entity> edges)
+        {
+            int replaced = 0;
+            foreach (var edge in edges)
+            {
+                if (!EntityManager.Exists(edge) || !EntityManager.HasComponent<Curve>(edge) || !EntityManager.HasBuffer<Game.Objects.SubObject>(edge)) continue;
+                var objects = EntityManager.GetBuffer<Game.Objects.SubObject>(edge, true);
+                var curve = EntityManager.GetComponentData<Curve>(edge).m_Bezier;
+                for (int i = 0; i < objects.Length; i++)
+                {
+                    var tree = objects[i].m_SubObject;
+                    if (!EntityManager.Exists(tree) || EntityManager.HasComponent<Deleted>(tree) || !EntityManager.HasComponent<Game.Objects.Tree>(tree) ||
+                        !EntityManager.HasComponent<Game.Objects.Transform>(tree) || !EntityManager.HasComponent<PrefabRef>(tree)) continue;
+                    var position = EntityManager.GetComponentData<Game.Objects.Transform>(tree).m_Position;
+                    var lateral = SignedLateralDistance(curve, position);
+                    Entity requested = Entity.Null;
+                    // Center decoration objects stay near the stored centerline. A small dead zone
+                    // prevents side-only requests from recoloring median vegetation.
+                    if (math.abs(lateral) <= 3.5f) requested = op.MedianTreePrefab;
+                    else if (lateral > 0.75f) requested = op.LeftTreePrefab;
+                    else if (lateral < -0.75f) requested = op.RightTreePrefab;
+                    if (requested == Entity.Null) continue;
+                    if (EntityManager.GetComponentData<PrefabRef>(tree).m_Prefab != requested)
+                    {
+                        EntityManager.SetComponentData(tree, new PrefabRef(requested));
+                        if (!EntityManager.HasComponent<Updated>(tree)) EntityManager.AddComponent<Updated>(tree);
+                    }
+                    replaced++;
+                }
+            }
+            return replaced;
+        }
+
+        private static float SignedLateralDistance(Bezier4x3 curve, float3 position)
+        {
+            float bestDistance = float.MaxValue, bestSigned = 0;
+            float3 previous = curve.a;
+            const int samples = 32;
+            for (int i = 1; i <= samples; i++)
+            {
+                float t = i / (float)samples;
+                float3 current = MathUtils.Position(curve, t);
+                float2 start = previous.xz, delta = current.xz - start;
+                float lengthSq = math.lengthsq(delta);
+                float u = lengthSq > 0.0001f ? math.saturate(math.dot(position.xz - start, delta) / lengthSq) : 0;
+                float2 nearest = start + delta * u, offset = position.xz - nearest;
+                float distance = math.lengthsq(offset);
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    var tangent = math.normalizesafe(delta, new float2(1, 0));
+                    bestSigned = math.dot(offset, new float2(-tangent.y, tangent.x));
+                }
+                previous = current;
+            }
+            return bestSigned;
         }
         private bool EndpointsValid()
         {

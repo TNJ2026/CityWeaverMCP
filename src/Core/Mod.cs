@@ -32,6 +32,7 @@ namespace CityWeaver
             // Relative ordering only runs when both systems use the same phase.
             updateSystem.UpdateBefore<McpCameraFocusSystem, CameraUpdateSystem>(SystemUpdatePhase.PreCulling);
             updateSystem.UpdateBefore<McpRoadToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
+            updateSystem.UpdateAfter<McpTrafficSignalProgramSystem, Game.Simulation.TrafficLightSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateBefore<McpTerrainToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpBuildingToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpBuildingAreaToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);

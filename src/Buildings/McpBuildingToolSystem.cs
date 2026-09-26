@@ -217,6 +217,7 @@ namespace CityWeaver
             };
             return attachment;
         }
+
         private void GenerateDefinitions()
         {
             var op = m_Operation; m_Definitions.Clear();
@@ -229,8 +230,10 @@ namespace CityWeaver
             }
             else if (op.Type == "place" || op.Type == "move" || op.Type == "upgrade" || op.Type == "rebuild")
             {
-                // Preserve the native roadside snap parent independently from upgrade ownership.
-                // This lets a road-side upgrade remain owned by its host while snapping across a road.
+                // m_OriginalEntity is the building's roadside parent. Embedded subnet courses
+                // perform their own width-aware merge/split during native network validation;
+                // replacing this with a waterway node/edge loses Building.m_RoadEdge and does not
+                // reproduce the game's placement tool.
                 var snapParent = op.Type == "place" || op.Type == "move" ||
                     (op.Type == "upgrade" && op.UpgradePlacementMode == "road_side") ? op.ParentRoad : Entity.Null;
                 m_ControlPoints.Clear(); var point = new ControlPoint { m_Position = op.Position, m_HitPosition = op.Position, m_Rotation = op.Rotation, m_OriginalEntity = snapParent, m_ElementIndex = new int2(-1) }; m_ControlPoints.Add(point);

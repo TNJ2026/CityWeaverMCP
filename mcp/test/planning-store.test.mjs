@@ -28,6 +28,8 @@ test('HTML content is unchanged on disk; paged reads do not expand nested data',
   const artifact = await store.artifact(html);
   assert.equal(await readFile(artifact.artifact_path, 'utf8'), html);
   assert.equal(artifact.byte_size, Buffer.byteLength(html));
+  assert.equal((await store.getArtifact(artifact.sha256)).text, html);
+  await assert.rejects(store.getArtifact('../secret'), { code: 'INVALID_ARTIFACT' });
   assert.equal((await readToolMedia({ structuredContent: { data: artifact } })).toString('utf8'), html);
   await assert.rejects(readToolMedia({ structuredContent: { data: { ...artifact, sha256: 'wrong' } } }), /integrity/);
   const ref = await store.put('evidence', { plan: { roads: [{ id: 'a', points: Array(100).fill({ x: 1 }) }] } });

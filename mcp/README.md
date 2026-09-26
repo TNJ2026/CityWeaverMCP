@@ -25,9 +25,10 @@ Agent 客户端 → 本地 Node.js MCP 服务（STDIO）→ 经过令牌认证�
 
 ## 高层编排与近期接口
 
+- 规划 MCP App：支持 MCP Apps 的客户端会把 `render_city_plan`、`propose_city_plan`、网格预览和施工进度结果显示为内嵌卡片，提供规划图平移、缩放、全屏和受控的“继续施工流程”消息。卡片只发起后续对话，不会自行提交施工；不支持 MCP Apps 的客户端仍收到原有 JSON 摘要和自包含 HTML/SVG 文件。见[城市规划图指南](../docs/guides/planning/PLANNING-MAP-GUIDE.md)。
 - 建筑高层流程：`plan_building_workflow`、`execute_building_plan`、`cancel_building_plan`、`deploy_building_plans` 将发现、选址、候选回退、预览、影响分析、提交和永久实体回读串联；见[建筑指南](../docs/guides/buildings/BUILDING-GUIDE.md)。
 - 基础设施高层流程：`deploy_service_cluster`、`deploy_industrial_campus`、`deploy_transit_corridor`、`build_utility_backbone`、`repair_congested_corridor` 按阶段串行执行原生 preview/apply，使用稳定 `request_id`；失败或 `outcome_unknown` 时停止后续阶段，不提供跨领域自动回滚。见[高效建设工作流](../docs/workflows/efficient-deployment.md)。
-- 交叉路口预设：`list_intersection_prefabs` / `preview_intersection_prefab` 通过游戏原生 stamp 管线放置整座预设并回读连接节点；道路侧公交/电车站台：`list_road_stop_prefabs`、`plan_road_stop_site`、`preview_road_stop_placement` 与对应 get/apply/cancel 操作；航道：`list_waterway_prefabs`、`list_waterways`、`get_waterway`、`preview_waterway`、`preview_waterway_delete` 与对应 get/apply/cancel 操作。`preview_road_features` 支持左右自行车道。见[铺路指南](../docs/guides/roads/ROAD-GUIDE.md)和[公共交通基础设施指南](../docs/guides/transport/TRANSPORT-INFRASTRUCTURE-GUIDE.md)。
+- 交叉路口预设：`list_intersection_prefabs` / `preview_intersection_prefab` 通过游戏原生 stamp 管线放置整座预设并回读连接节点；道路侧公交/电车站台：`list_road_stop_prefabs`、`plan_road_stop_site`、`preview_road_stop_placement` 与对应 get/apply/cancel 操作；航道：`list_waterway_prefabs`、`list_waterways`、`get_waterway`、`preview_waterway`、`preview_waterway_delete` 与对应 get/apply/cancel 操作。`preview_road_features` 支持左右自行车道、单向公共交通车道及 `tram_tracks` 双向道路电车轨道升级。见[铺路指南](../docs/guides/roads/ROAD-GUIDE.md)和[公共交通基础设施指南](../docs/guides/transport/TRANSPORT-INFRASTRUCTURE-GUIDE.md)。
 - 建筑附属区域：`list_building_areas`、`preview_building_area`、`get_building_area_operation`、`apply_building_area_operation`、`cancel_building_area_preview` 提供查询和完整事务；见[建筑附属区域指南](../docs/guides/buildings/BUILDING-AREA-GUIDE.md)。
 
 交叉路口预设、道路侧站台和航道尚未完成实机验收。编译与接口测试通过，不等于原生放置验收通过。
@@ -143,4 +144,3 @@ node audit-components.mjs # 遍历目录，每种组件抽取一个现存对象�
 
 - [Codex MCP 配置示例](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
 - [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/v1.x)
-

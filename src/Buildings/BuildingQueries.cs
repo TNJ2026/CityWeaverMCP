@@ -323,21 +323,47 @@ namespace CityWeaver
             if (upgradeData.m_MaxPlacementDistance != 0f)
             {
                 float radius = math.min(3000, math.max(rangeWidth, rangeLength) * .75f + 64f);
-                var sites = FindBuildingSites(upgradePrefab, PrefabHalfExtents(em, upgradePrefab), transform.m_Position.xz, radius, "either", 128, world, out roadRejected);
                 var formatter = new BuildingOperation { Session = m_Session };
-                foreach (var site in sites)
+                bool canBeOnRoad = (module.m_Flags & Game.Prefabs.BuildingFlags.CanBeOnRoad) != 0;
+                bool subnetSnap = canBeOnRoad && em.HasBuffer<Game.Prefabs.SubNet>(upgradePrefab);
+                if (subnetSnap)
                 {
-                    if (site.Collision || roadCandidates.Count >= 32) continue;
-                    try
+                    // Harbor modules are not conventional roadside lots. Their pivot is on the
+                    // quay and one embedded subnet endpoint must fall within the combined widths
+                    // of a live waterway and the module's Pier Seaway. Scan the whole eligible
+                    // quay continuously and rank by that geometric fit; generic off-road site
+                    // collision filtering otherwise discards the exact native placement.
+                    var matched = FindSubnetRoadCandidates(upgradePrefab, transform.m_Position.xz, radius,
+                        transform.m_Position, rangeForward2, rangeWidth, rangeLength, rangeRoundness,
+                        rangeCircular, module, world, out roadRejected);
+                    foreach (var candidate in matched.Take(32))
                     {
-                        var curve = em.GetComponentData<Curve>(site.Edge).m_Bezier; MathUtils.Distance(curve.xz, site.RoadPosition.xz, out float t);
-                        var plan = RoadsidePlacement(upgradePrefab, site.Edge, t, site.Side == "left" ? 1 : -1, true, 8, world);
-                        if (!UpgradeFootprintInsideRange(transform.m_Position, rangeForward2, rangeWidth, rangeLength, rangeRoundness, rangeCircular, module, plan.Position, plan.Rotation)) continue;
+                        var plan = candidate.Plan;
                         roadCandidates.Add(new JObject { ["position"] = PointJson(plan.Position), ["rotation_degrees"] = plan.RotationDegrees,
-                            ["road_edge_id"] = formatter.EntityId(site.Edge), ["road_side"] = plan.Side, ["road_prefab"] = plan.RoadPrefab,
-                            ["terrain_relief_m"] = plan.TerrainMax - plan.TerrainMin, ["foundation_leveling_required"] = plan.FoundationLevelingRequired });
+                            ["road_edge_id"] = formatter.EntityId(plan.ParentRoad), ["road_side"] = plan.Side, ["road_prefab"] = plan.RoadPrefab,
+                            ["terrain_relief_m"] = plan.TerrainMax - plan.TerrainMin, ["foundation_leveling_required"] = plan.FoundationLevelingRequired,
+                            ["subnet_snap_target_id"] = formatter.EntityId(candidate.WaterwayEdge), ["subnet_snap_distance_m"] = candidate.SnapDistance,
+                            ["subnet_snap_threshold_m"] = candidate.SnapThreshold, ["subnet_snap_edge_parameter"] = candidate.WaterwayT });
                     }
-                    catch (QueryException) { }
+                }
+                else
+                {
+                    var sites = FindBuildingSites(upgradePrefab, PrefabHalfExtents(em, upgradePrefab), transform.m_Position.xz, radius, "either", 128, world, out roadRejected);
+                    foreach (var site in sites)
+                    {
+                        if (site.Collision || roadCandidates.Count >= 32) continue;
+                        try
+                        {
+                            var curve = em.GetComponentData<Curve>(site.Edge).m_Bezier; MathUtils.Distance(curve.xz, site.RoadPosition.xz, out float t);
+                            float sideSign = site.Side == "left" ? 1 : -1;
+                            var plan = RoadsidePlacement(upgradePrefab, site.Edge, t, canBeOnRoad ? -sideSign : sideSign, true, 8, world);
+                            if (!UpgradeFootprintInsideRange(transform.m_Position, rangeForward2, rangeWidth, rangeLength, rangeRoundness, rangeCircular, module, plan.Position, plan.Rotation)) continue;
+                            roadCandidates.Add(new JObject { ["position"] = PointJson(plan.Position), ["rotation_degrees"] = plan.RotationDegrees,
+                                ["road_edge_id"] = formatter.EntityId(site.Edge), ["road_side"] = plan.Side, ["road_prefab"] = plan.RoadPrefab,
+                                ["terrain_relief_m"] = plan.TerrainMax - plan.TerrainMin, ["foundation_leveling_required"] = plan.FoundationLevelingRequired });
+                        }
+                        catch (QueryException) { }
+                    }
                 }
             }
             bool floating = em.HasComponent<PlaceableObjectData>(upgradePrefab) &&
@@ -519,6 +545,125 @@ namespace CityWeaver
         }
 
         private sealed class RoadSite { public Entity Edge; public float3 RoadPosition, Position; public float2 Tangent; public float RotationDegrees, Distance, Score, RoadSurfaceHeight, TerrainHeightAtRoad, HeightGap, TerrainRelief; public bool Collision; public string Side, RoadPrefab; }
+        private sealed class WaterwaySnapEdge { public Entity Edge; public Bezier4x3 Curve; public float Width; }
+        private sealed class SubnetRoadCandidate
+        {
+            public BuildingPlacementPlan Plan;
+            public Entity WaterwayEdge;
+            public float SnapDistance, SnapThreshold, WaterwayT, OwnerDistance;
+        }
+
+        private static List<WaterwaySnapEdge> PermanentWaterwayEdges(EntityManager em)
+        {
+            var result = new List<WaterwaySnapEdge>();
+            using (var query = em.CreateEntityQuery(ComponentType.ReadOnly<Game.Net.Waterway>(), ComponentType.ReadOnly<Edge>(),
+                ComponentType.ReadOnly<Curve>(), ComponentType.ReadOnly<PrefabRef>(), ComponentType.Exclude<Owner>(),
+                ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
+            using (var edges = query.ToEntityArray(Allocator.Temp)) foreach (var edge in edges)
+            {
+                var prefab = em.GetComponentData<PrefabRef>(edge).m_Prefab;
+                if (!em.Exists(prefab) || !em.HasComponent<WaterwayData>(prefab)) continue;
+                float width = em.HasComponent<NetGeometryData>(prefab) ? em.GetComponentData<NetGeometryData>(prefab).m_DefaultWidth : 32f;
+                result.Add(new WaterwaySnapEdge { Edge = edge, Curve = em.GetComponentData<Curve>(edge).m_Bezier, Width = math.max(1, width) });
+            }
+            return result;
+        }
+
+        private static bool TryFindSubnetWaterwaySnap(Entity prefab, float3 position, quaternion rotation,
+            EntityManager em, List<WaterwaySnapEdge> waterways, out Entity bestEdge, out float bestDistance,
+            out float bestThreshold, out float bestT)
+        {
+            bestEdge = Entity.Null; bestDistance = float.MaxValue; bestThreshold = 0; bestT = 0;
+            if (!em.HasBuffer<Game.Prefabs.SubNet>(prefab)) return false;
+            var subnets = em.GetBuffer<Game.Prefabs.SubNet>(prefab, true);
+            for (int i = 0; i < subnets.Length; i++)
+            {
+                var subnet = subnets[i];
+                float subnetWidth = em.Exists(subnet.m_Prefab) && em.HasComponent<NetGeometryData>(subnet.m_Prefab)
+                    ? em.GetComponentData<NetGeometryData>(subnet.m_Prefab).m_DefaultWidth : 16f;
+                for (int endpointIndex = 0; endpointIndex < 2; endpointIndex++)
+                {
+                    if (endpointIndex == 0 && !subnet.m_Snapping.x || endpointIndex == 1 && !subnet.m_Snapping.y) continue;
+                    var local = endpointIndex == 0 ? subnet.m_Curve.a : subnet.m_Curve.d;
+                    var endpoint = position + math.mul(rotation, local);
+                    foreach (var waterway in waterways)
+                    {
+                        float distance = MathUtils.Distance(waterway.Curve.xz, endpoint.xz, out float t);
+                        // Native net merging works from lane envelopes, not centreline distance.
+                        // The allowance therefore follows both network widths instead of a fixed
+                        // node radius (the narrow seaway/crane case is over 100 m centre-to-centre).
+                        float threshold = math.max(16f, (math.max(1, subnetWidth) + waterway.Width) * .5f + 8f);
+                        if (distance <= threshold && distance < bestDistance)
+                        {
+                            bestEdge = waterway.Edge; bestDistance = distance; bestThreshold = threshold; bestT = t;
+                        }
+                    }
+                }
+            }
+            return bestEdge != Entity.Null;
+        }
+
+        private List<SubnetRoadCandidate> FindSubnetRoadCandidates(Entity prefab, float2 near, float radius,
+            float3 rangeCenter, float2 rangeForward, float rangeWidth, float rangeLength, float rangeRoundness,
+            bool rangeCircular, BuildingData module, World world, out JObject rejected)
+        {
+            var em = world.EntityManager; var waterways = PermanentWaterwayEdges(em); var candidates = new List<SubnetRoadCandidate>();
+            int nonZoning = 0, outOfRange = 0, noWaterwaySnap = 0, invalidRoad = 0;
+            float halfWidth = PrefabHalfExtents(em, prefab).x;
+            using (var query = em.CreateEntityQuery(ComponentType.ReadOnly<Road>(), ComponentType.ReadOnly<Edge>(),
+                ComponentType.ReadOnly<Curve>(), ComponentType.ReadOnly<PrefabRef>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
+            using (var edges = query.ToEntityArray(Allocator.Temp)) foreach (var edge in edges)
+            {
+                var curveData = em.GetComponentData<Curve>(edge); var curve = curveData.m_Bezier;
+                MathUtils.Distance(curve.xz, near, out float closestT);
+                if (math.distance(MathUtils.Position(curve, closestT).xz, near) > radius) continue;
+                var roadPrefab = em.GetComponentData<PrefabRef>(edge).m_Prefab;
+                if (!em.HasComponent<RoadData>(roadPrefab) || (em.GetComponentData<RoadData>(roadPrefab).m_Flags & Game.Prefabs.RoadFlags.EnableZoning) == 0)
+                { nonZoning++; continue; }
+                // Large harbor modules also create stops and subnets beyond their visible lot.
+                // Keep a conservative junction setback before asking the native tool to validate.
+                float margin = math.min(.45f, math.max(32f, halfWidth + 8f) / math.max(1f, curveData.m_Length));
+                int samples = math.clamp((int)math.ceil(curveData.m_Length / 4f), 2, 256);
+                var sampleTs = new List<float> { math.clamp(closestT, margin, 1 - margin) };
+                for (int sample = 0; sample <= samples; sample++) sampleTs.Add(math.lerp(margin, 1 - margin, (float)sample / samples));
+                foreach (float t in sampleTs.Distinct()) foreach (float sign in new[] { 1f, -1f })
+                {
+                    BuildingPlacementPlan plan;
+                    try { plan = RoadsidePlacement(prefab, edge, t, sign, true, 8, world); }
+                    catch (QueryException) { invalidRoad++; continue; }
+                    if (!UpgradeFootprintInsideRange(rangeCenter, rangeForward, rangeWidth, rangeLength, rangeRoundness, rangeCircular, module, plan.Position, plan.Rotation))
+                    { outOfRange++; continue; }
+                    if (!TryFindSubnetWaterwaySnap(prefab, plan.Position, plan.Rotation, em, waterways,
+                        out var snapEdge, out float snapDistance, out float snapThreshold, out float waterwayT))
+                    { noWaterwaySnap++; continue; }
+                    candidates.Add(new SubnetRoadCandidate { Plan = plan, WaterwayEdge = snapEdge, SnapDistance = snapDistance,
+                        SnapThreshold = snapThreshold, WaterwayT = waterwayT, OwnerDistance = math.distance(plan.Position.xz, near) });
+                }
+            }
+            var ordered = candidates.OrderBy(x => x.SnapDistance).ThenBy(x => x.OwnerDistance)
+                .ThenBy(x => x.Plan.ParentRoad.Index).ToList();
+            // Native validation is the only reliable test for the crane's large hidden ship-stop
+            // and seaway children. Do not spend the entire 32-candidate response on four-metre
+            // samples around the same berth: expose the best candidate from each spatially
+            // distinct stretch first, then append the dense alternatives for callers that request
+            // more than the diversified set.
+            float diversitySpacing = math.max(32f, halfWidth * 2f + 8f);
+            var diversified = new List<SubnetRoadCandidate>();
+            foreach (var candidate in ordered)
+            {
+                if (diversified.All(existing => math.distance(existing.Plan.Position.xz, candidate.Plan.Position.xz) >= diversitySpacing))
+                    diversified.Add(candidate);
+            }
+            var diversifiedSet = new HashSet<SubnetRoadCandidate>(diversified);
+            diversified.AddRange(ordered.Where(candidate => !diversifiedSet.Contains(candidate)));
+            rejected = new JObject { ["non_zoning_or_highway_edges"] = nonZoning, ["invalid_road_samples"] = invalidRoad,
+                ["outside_upgrade_range_samples"] = outOfRange, ["without_waterway_subnet_snap_samples"] = noWaterwaySnap,
+                ["waterway_edge_count"] = waterways.Count, ["sampling_step_m"] = 4,
+                ["candidate_diversity_spacing_m"] = diversitySpacing,
+                ["spatially_distinct_candidate_count"] = diversifiedSet.Count,
+                ["note"] = "SubNetSnap candidates are spatially diversified before dense fallbacks; native preview remains authoritative." };
+            return diversified;
+        }
 
         private static float2 RotateAxis(quaternion rotation, float3 axis) => math.normalizesafe(math.mul(rotation, axis).xz, axis.xz);
         private static bool FootprintsOverlap(float2 aCenter, quaternion aRotation, float2 aHalf, float2 bCenter, quaternion bRotation, float2 bHalf, float clearance = .25f)
@@ -556,18 +701,25 @@ namespace CityWeaver
             float horizontal = math.length(derivative.xz); if (horizontal < .01f || math.abs(derivative.y) / horizontal > .15f) throw new QueryException("ROAD_TOO_STEEP", "Building entrances require a road slope at or below 15 percent.");
             float2 tangent = derivative.xz / horizontal, normal = new float2(-tangent.y, tangent.x);
             float2 half = PrefabHalfExtents(em, prefab);
+            bool canBeOnRoad = em.HasComponent<BuildingData>(prefab) &&
+                (em.GetComponentData<BuildingData>(prefab).m_Flags & Game.Prefabs.BuildingFlags.CanBeOnRoad) != 0;
             float roadHalfWidth = 8, roadSurface = road.y;
             if (em.HasComponent<Composition>(edge)) { var composition = em.GetComponentData<Composition>(edge).m_Edge; if (em.HasComponent<NetCompositionData>(composition)) { var net = em.GetComponentData<NetCompositionData>(composition); roadHalfWidth = math.max(1, net.m_Width * .5f); roadSurface += net.m_SurfaceHeight.max; } }
             var terrain = world.GetExistingSystemManaged<TerrainSystem>().GetHeightData(true); if (!terrain.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain height data is not ready.");
             var atRoad = road; float roadTerrain = TerrainUtils.SampleHeight(ref terrain, atRoad); if (math.abs(roadSurface - roadTerrain) > 2f) throw new QueryException("ROAD_TERRAIN_HEIGHT_MISMATCH", "The road surface must remain within 2 metres of terrain for a building entrance.");
-            float entranceDistance = roadHalfWidth + half.y + .25f; float2 center = road.xz + normal * sign * entranceDistance;
+            // Harbor cranes and passenger terminals declare CanBeOnRoad: their pivot belongs on
+            // the quay centreline and their SubNet extends toward the water. Treating them like a
+            // conventional roadside lot offsets the pivot by the full footprint depth and can turn
+            // the embedded Pier Seaway onto dry land.
+            float entranceDistance = canBeOnRoad ? 0f : roadHalfWidth + half.y + .25f;
+            float2 center = road.xz + normal * sign * entranceDistance;
             float2 facingRoad = -normal * sign; float angle = math.degrees(math.atan2(facingRoad.x, facingRoad.y)); var rotation = quaternion.RotateY(math.radians(angle));
             bool shoreline = em.HasComponent<PlaceableObjectData>(prefab) &&
                 (em.GetComponentData<PlaceableObjectData>(prefab).m_Flags & Game.Objects.PlacementFlags.Shoreline) != 0;
             var surface = world.GetExistingSystemManaged<WaterSystem>().GetSurfaceData(out var waterDeps); waterDeps.Complete();
             if (shoreline && !surface.isCreated) throw new QueryException("WATER_UNAVAILABLE", "Shoreline foundations require live water samples.");
-            float min = float.MaxValue, max = float.MinValue;
-            for (int ix = -1; ix <= 1; ix++) for (int iz = -1; iz <= 1; iz++)
+            float min = canBeOnRoad ? roadSurface : float.MaxValue, max = canBeOnRoad ? roadSurface : float.MinValue;
+            if (!canBeOnRoad) for (int ix = -1; ix <= 1; ix++) for (int iz = -1; iz <= 1; iz++)
             {
                 float2 sample = center + tangent * (half.x * ix) + normal * (half.y * iz); var p = new float3(sample.x, 0, sample.y);
                 // A shoreline building intentionally spans deep water. Seabed relief
@@ -1067,8 +1219,19 @@ namespace CityWeaver
                         var curve = em.GetComponentData<Curve>(edge).m_Bezier; MathUtils.Distance(curve.xz, requested, out float t); var road = MathUtils.Position(curve, t);
                         float u = 1 - t; var derivative = 3 * (curve.b - curve.a) * u * u + 6 * (curve.c - curve.b) * u * t + 3 * (curve.d - curve.c) * t * t;
                         var tangent = math.normalizesafe(derivative.xz, new float2(1, 0)); var normal = new float2(-tangent.y, tangent.x);
-                        float sign = math.dot(requested - road.xz, normal) >= 0 ? 1 : -1; var plan = RoadsidePlacement(op.Prefab, edge, t, sign, true, 8, world);
-                        float requestedRotation = BuildingNumber(args, "rotation_degrees", plan.RotationDegrees, -360, 360);
+                        float requestedRotation = BuildingNumber(args, "rotation_degrees", 0, -360, 360);
+                        bool canBeOnRoad = (module.m_Flags & Game.Prefabs.BuildingFlags.CanBeOnRoad) != 0;
+                        float sign = math.dot(requested - road.xz, normal) >= 0 ? 1 : -1;
+                        var plan = RoadsidePlacement(op.Prefab, edge, t, sign, true, 8, world);
+                        // An on-road pivot has no lateral displacement from which to recover the
+                        // selected waterfront orientation. Resolve the two native candidates by
+                        // the exact rotation returned by list_building_upgrades.
+                        if (canBeOnRoad && math.distance(requested, road.xz) <= 1f)
+                        {
+                            var opposite = RoadsidePlacement(op.Prefab, edge, t, -sign, true, 8, world);
+                            if (AngleDifference(requestedRotation, opposite.RotationDegrees) < AngleDifference(requestedRotation, plan.RotationDegrees))
+                                plan = opposite;
+                        }
                         if (math.distance(requested, plan.Position.xz) > 1f) throw new QueryException("BUILDING_ENTRANCE_MISALIGNED", "Use a road_side candidate returned for this upgrade; its entrance must remain within 1 metre of the computed road frontage.");
                         if (AngleDifference(requestedRotation, plan.RotationDegrees) > 2f) throw new QueryException("BUILDING_ENTRANCE_WRONG_DIRECTION", "The roadside upgrade must face its selected road within 2 degrees.");
                         op.ParentRoad = edge; op.Position = plan.Position; op.Rotation = plan.Rotation; op.RotationDegrees = plan.RotationDegrees;

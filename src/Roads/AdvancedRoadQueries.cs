@@ -100,7 +100,7 @@ namespace CityWeaver
             {
                 var edge = ParseEntity((string)token, em);
                 if (!IsPermanentRoad(em, edge)) throw new QueryException("INVALID_ROAD_EDGE", "Every edge_id must identify an existing permanent road edge.");
-                var lanes = new JArray(); int carCount = 0, parkingCount = 0, usableParkingCount = 0, publicOnly = 0, bottlenecks = 0, bicycleCount = 0, dedicatedBicycleCount = 0;
+                var lanes = new JArray(); int carCount = 0, parkingCount = 0, usableParkingCount = 0, publicOnly = 0, bottlenecks = 0, bicycleCount = 0, dedicatedBicycleCount = 0, tramTrackLaneCount = 0;
                 if (em.HasBuffer<NetSubLane>(edge))
                 {
                     var buffer = em.GetBuffer<NetSubLane>(edge, true);
@@ -109,6 +109,17 @@ namespace CityWeaver
                         var lane = buffer[i].m_SubLane;
                         if (!em.Exists(lane) || em.HasComponent<Deleted>(lane)) continue;
                         var row = new JObject { ["lane_id"] = EntityId(lane), ["buffer_index"] = i, ["path_methods"] = buffer[i].m_PathMethods.ToString() };
+                        if (em.HasComponent<Game.Net.TrackLane>(lane) && em.HasComponent<PrefabRef>(lane))
+                        {
+                            var lanePrefab = em.GetComponentData<PrefabRef>(lane).m_Prefab;
+                            if (em.HasComponent<TrackLaneData>(lanePrefab))
+                            {
+                                var trackTypes = em.GetComponentData<TrackLaneData>(lanePrefab).m_TrackTypes;
+                                row["track_types"] = trackTypes.ToString();
+                                row["tram_track"] = (trackTypes & TrackTypes.Tram) != 0;
+                                if ((trackTypes & TrackTypes.Tram) != 0) tramTrackLaneCount++;
+                            }
+                        }
                         var methods = buffer[i].m_PathMethods;
                         var bicycleAllowed = (methods & Game.Pathfind.PathMethod.Bicycle) != 0;
                         if (em.HasComponent<NetCarLane>(lane) && (em.GetComponentData<NetCarLane>(lane).m_Flags & (CarLaneFlags.ForbidBicycles | CarLaneFlags.Forbidden)) != 0) bicycleAllowed = false;
@@ -153,6 +164,12 @@ namespace CityWeaver
                 result.Add(new JObject { ["edge_id"] = EntityId(edge), ["prefab_entity_id"] = EntityId(prefab), ["car_lane_count"] = carCount,
                     ["left_bicycle_lane"] = (upgrades.m_Left & CompositionFlags.Side.SecondaryLane) != 0,
                     ["right_bicycle_lane"] = (upgrades.m_Right & CompositionFlags.Side.SecondaryLane) != 0,
+                    ["left_public_transport_lane"] = (upgrades.m_Left & CompositionFlags.Side.PrimaryLane) != 0,
+                    ["right_public_transport_lane"] = (upgrades.m_Right & CompositionFlags.Side.PrimaryLane) != 0,
+                    ["left_tram_track"] = (upgrades.m_Left & CompositionFlags.Side.PrimaryTrack) != 0,
+                    ["right_tram_track"] = (upgrades.m_Right & CompositionFlags.Side.PrimaryTrack) != 0,
+                    ["tram_tracks"] = (upgrades.m_Left & CompositionFlags.Side.PrimaryTrack) != 0 && (upgrades.m_Right & CompositionFlags.Side.PrimaryTrack) != 0,
+                    ["tram_track_component"] = em.HasComponent<TramTrack>(edge), ["tram_track_lane_count"] = tramTrackLaneCount,
                     ["bicycle_allowed_lane_count"] = bicycleCount, ["dedicated_bicycle_lane_count"] = dedicatedBicycleCount,
                     ["parking_lane_count"] = parkingCount, ["usable_parking_lane_count"] = usableParkingCount,
                     ["public_transport_only_lane_count"] = publicOnly, ["bottleneck_lane_count"] = bottlenecks, ["lanes"] = lanes });

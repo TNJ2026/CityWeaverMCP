@@ -40,7 +40,7 @@ namespace CityWeaver
 
         public GameQueryService()
         {
-            m_Preload = (purpose, mode) => { ResetRoadOperations(); ResetTerrainOperations(); ResetBuildingOperations(); ResetBuildingAreaOperations(); ResetZoningOperations(); ResetDistrictOperations(); ResetTransportOperations(); ResetWorkRouteOperations(); ResetEconomyOperations(); ResetMapTileOperations(); ResetDisasterOperations(); m_Loaded = false; m_Session = Guid.NewGuid().ToString("N"); m_Snapshots.Clear(); };
+            m_Preload = (purpose, mode) => { ResetRoadOperations(); ResetTrafficSignalPrograms(); ResetTerrainOperations(); ResetBuildingOperations(); ResetBuildingAreaOperations(); ResetZoningOperations(); ResetDistrictOperations(); ResetTransportOperations(); ResetWorkRouteOperations(); ResetEconomyOperations(); ResetMapTileOperations(); ResetDisasterOperations(); m_Loaded = false; m_Session = Guid.NewGuid().ToString("N"); m_Snapshots.Clear(); };
             m_LoadComplete = (purpose, mode) => { m_Loaded = mode == GameMode.Game; };
             GameManager.instance.onGamePreload += m_Preload;
             GameManager.instance.onGameLoadingComplete += m_LoadComplete;
@@ -93,7 +93,11 @@ namespace CityWeaver
                 case "preview_road_features": return Wrap(PreviewRoadFeatures(args, world));
                 case "preview_road_parking": return Wrap(PreviewRoadParking(args, world));
                 case "preview_intersection_control": return Wrap(PreviewIntersectionControl(args, world));
+                case "inspect_intersection_controls": return Wrap(InspectIntersectionControls(args, world));
+                case "set_traffic_signal_program": return Wrap(SetTrafficSignalProgram(args, world));
+                case "clear_traffic_signal_program": return Wrap(ClearTrafficSignalProgram(args, world));
                 case "preview_intersection_roundabout": return Wrap(PreviewIntersectionRoundabout(args, world));
+                case "preview_roundabout_placement": return Wrap(PreviewRoundaboutPlacement(args, world));
                 case "preview_intersection_rules": return Wrap(PreviewIntersectionRules(args, world));
                 case "preview_road_policies": return Wrap(PreviewRoadPolicies(args, world));
                 case "preview_road_undo": return Wrap(PreviewRoadUndo(args, world));
@@ -448,7 +452,7 @@ namespace CityWeaver
         {
             var ready = IsReady();
             var result = new JObject { ["connected"] = true, ["city_loaded"] = ready, ["loading"] = GameManager.instance.isGameLoading,
-                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.24.5", ["read_only"] = false };
+                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.24.6", ["read_only"] = false };
             result["paused"] = JValue.CreateNull();
             if (ready)
             {
@@ -495,9 +499,12 @@ namespace CityWeaver
                 ["elevation_m"] = "New points accept -50..50 metres relative to terrain, further limited by the road prefab. >=8 forces elevated; <=-12 requests tunnel.",
                 ["existing_road_workflow"] = "preview_road_upgrade, preview_road_demolition, preview_road_batch_upgrade, preview_road_batch_demolition, preview_road_zoning, preview_road_features, preview_road_parking, preview_road_policies, preview_intersection_control, preview_intersection_roundabout, or preview_intersection_rules -> get_road_operation(preview_ready) -> build_road -> get_road_operation(completed)",
                 ["batch_max_edges"] = 64, ["zoning_sides"] = "left/right relative to each edge start-to-end direction",
+                ["road_feature_upgrades"] = new JArray("tram_tracks", "left/right bicycle lanes", "left/right one-way public transport lanes", "wide sidewalks", "side/median decoration", "wide median"),
+                ["tram_track_validation"] = "tram_tracks uses native PrimaryTrack flags on both road sides and completes only after permanent TramTrack and live TrackLaneData(Tram) readback.",
                 ["zoning_inspection"] = "inspect_road_zoning reads each edge's native SubBlock, Block, ValidArea and Cell data and reports alignment plus blocked/shared/occupied/redundant cells.",
                 ["intersection_control_modes"] = new JArray("traffic_lights", "all_way_stop", "uncontrolled", "automatic"),
                 ["intersection_rules"] = new JArray("left_turn", "right_turn", "straight", "crosswalk_enabled"),
+                ["fixed_signal_programs"] = new JObject { ["scope"] = "current loaded-city session", ["green_phase_duration"] = "1..255 steps", ["step_definition"] = "16 simulation frames", ["safety_transition_steps_per_phase"] = 4, ["max_phases"] = 16, ["supports_offsets"] = true, ["native_signal_groups_only"] = true },
                 ["limitations"] = "Attached endpoints inherit existing height. Polyline route preview/build is one native apply operation. Reuse operation/request IDs after timeouts." },
             ["component_catalog"] = Inspector.Stats(),
             ["building_types"] = new JArray("all", "residential", "commercial", "industrial", "office"),
@@ -509,6 +516,8 @@ namespace CityWeaver
             ["entity_id_semantics"] = "Opaque session:index:version. Invalid after loading another city or restarting. Never invent IDs.",
                 ["limitations"] = new JArray("Transactional construction and economy tools use explicit preview/apply workflows. Direct settings and progression mutations require a paused city. No historical data.", "Generic fields use original game names/units; do not infer meanings from names alone", "NativeArray, NativeList, NativeReference and NativeValue have typed readers; native queues/maps/sets use available enumerators; BlobAssetReference supports raw allocation bytes; other layouts report unavailable", "Private stored fields and CPU CellMap grids are available; GPU-only textures and arbitrary unbounded pointers have no reader", "Large buffers and nested values are explicitly bounded/truncated")
             };
+            foreach (var name in new[] { "inspect_intersection_controls", "set_traffic_signal_program", "clear_traffic_signal_program", "preview_roundabout_placement" })
+                ((JArray)result["tools"]).Add(name);
             result["pier_pathway_operations"] = new JObject {
                 ["modes"] = new JArray("extend_straight"), ["requires_paused_city"] = true,
                 ["max_segment_length_m"] = 512, ["preview_ttl_seconds"] = 300,
@@ -712,13 +721,6 @@ namespace CityWeaver
         }
     }
 }
-
-
-
-
-
-
-
 
 
 

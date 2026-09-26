@@ -76,6 +76,16 @@ export class PlanningStore {
     await writeFile(artifact_path, text, { flag: 'w' });
     return { artifact_path, artifact_uri: pathToFileURL(artifact_path).href, byte_size, sha256, mime_type: extension === 'html' ? 'text/html' : 'image/svg+xml', access: 'local_host' };
   }
+  async getArtifact(sha256, extension = 'html') {
+    if (!/^[a-f0-9]{64}$/.test(sha256)) throw new BridgeError('INVALID_ARTIFACT', 'Invalid planning artifact digest.');
+    if (!['html', 'svg'].includes(extension)) throw new BridgeError('INVALID_ARTIFACT', 'Unsupported planning artifact type.');
+    const target = path.join(this.root, 'artifacts', `${sha256}.${extension}`);
+    let text;
+    try { text = await readFile(target, 'utf8'); }
+    catch (error) { if (error.code === 'ENOENT') throw new BridgeError('ARTIFACT_NOT_FOUND', 'Planning artifact was not found on this host.'); throw error; }
+    if (digest(text) !== sha256) throw new BridgeError('STORE_INTEGRITY_ERROR', 'Planning artifact hash mismatch.');
+    return { text, sha256, extension, byte_size: Buffer.byteLength(text) };
+  }
   async read(ref, fields = [], offset = 0, limit = 20) {
     let value = await this.get(ref);
     for (const field of fields) {
