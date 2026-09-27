@@ -25,8 +25,8 @@ namespace CityWeaver
 
     /// <summary>
     /// Applies optional, session-scoped fixed-time programs after the native adaptive
-    /// controller. One program step equals sixteen simulation frames, matching the
-    /// native traffic-light update cadence. Native lane groups and light objects remain
+    /// controller. One program step equals sixteen simulation frames.
+    /// Native lane groups and light objects remain
     /// authoritative; this system only selects which existing group is green.
     /// </summary>
     public sealed partial class McpTrafficSignalProgramSystem : GameSystemBase
@@ -102,6 +102,14 @@ namespace CityWeaver
                 trafficLights.m_Timer = 0;
                 EntityManager.SetComponentData(node, trafficLights);
 
+                // Native transition helpers consume the previous output (Green ->
+                // Yellow -> Red). Rebuild their baseline each frame so repeatedly
+                // applying Ending cannot consume the whole yellow interval early.
+                var greenBaseline = trafficLights;
+                greenBaseline.m_State = Game.Net.TrafficLightState.Ongoing;
+                greenBaseline.m_CurrentSignalGroup = selectedGroup;
+                greenBaseline.m_NextSignalGroup = 0;
+
                 if (EntityManager.HasBuffer<Game.Net.SubLane>(node))
                 {
                     var lanes = EntityManager.GetBuffer<Game.Net.SubLane>(node, true);
@@ -110,6 +118,7 @@ namespace CityWeaver
                         var lane = lanes[i].m_SubLane;
                         if (!EntityManager.Exists(lane) || !EntityManager.HasComponent<LaneSignal>(lane)) continue;
                         var signal = EntityManager.GetComponentData<LaneSignal>(lane);
+                        TrafficLightSystem.UpdateLaneSignal(greenBaseline, ref signal);
                         TrafficLightSystem.UpdateLaneSignal(trafficLights, ref signal);
                         EntityManager.SetComponentData(lane, signal);
                     }
@@ -122,6 +131,7 @@ namespace CityWeaver
                         var light = objects[i].m_SubObject;
                         if (!EntityManager.Exists(light) || !EntityManager.HasComponent<TrafficLight>(light)) continue;
                         var state = EntityManager.GetComponentData<TrafficLight>(light);
+                        TrafficLightSystem.UpdateTrafficLightState(greenBaseline, ref state);
                         TrafficLightSystem.UpdateTrafficLightState(trafficLights, ref state);
                         EntityManager.SetComponentData(light, state);
                     }

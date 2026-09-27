@@ -275,9 +275,13 @@ namespace CityWeaver
                     {
                         if (IsRoadFeatures && HasRequestedTreePrefabs(op))
                         {
-                            var replaced = ReplaceRoadTreePrefabs(op, completedTargets);
-                            if (replaced == 0 && m_Ticks < 60) return;
-                            op.RoadTreeReplacementCount = replaced;
+                            op.RoadTreeReplacementCount = ReplaceRoadTreePrefabs(op, completedTargets, out var treesVerified);
+                            if (!treesVerified)
+                            {
+                                if (m_Ticks < 60) return;
+                                op.CreatedEdges = completedTargets;
+                                Fail("ROAD_TREE_REPLACEMENT_INCOMPLETE"); return;
+                            }
                         }
                         op.CreatedEdges = completedTargets; op.State = "completed";
                         Mod.log.Info((IsRoadFeatures ? "Road features" : "Road zoning") + " completed: " + op.Id + " edges=" + completedTargets.Count); Finish(); return; }
@@ -410,36 +414,51 @@ namespace CityWeaver
 
         private static bool HasRequestedTreePrefabs(RoadOperation op) => op.LeftTreePrefab != Entity.Null || op.RightTreePrefab != Entity.Null || op.MedianTreePrefab != Entity.Null;
 
-        private int ReplaceRoadTreePrefabs(RoadOperation op, List<Entity> edges)
+        private int ReplaceRoadTreePrefabs(RoadOperation op, List<Entity> edges, out bool verified)
         {
             int replaced = 0;
+            verified = edges.Count > 0;
+            var changes = new Dictionary<Entity, Entity>();
             foreach (var edge in edges)
             {
-                if (!EntityManager.Exists(edge) || !EntityManager.HasComponent<Curve>(edge) || !EntityManager.HasBuffer<Game.Objects.SubObject>(edge)) continue;
+                if (!EntityManager.Exists(edge) || !EntityManager.HasComponent<Curve>(edge) || !EntityManager.HasBuffer<Game.Objects.SubObject>(edge))
+                { verified = false; continue; }
+                bool leftMatched = op.LeftTreePrefab == Entity.Null;
+                bool rightMatched = op.RightTreePrefab == Entity.Null;
+                bool medianMatched = op.MedianTreePrefab == Entity.Null;
                 var objects = EntityManager.GetBuffer<Game.Objects.SubObject>(edge, true);
                 var curve = EntityManager.GetComponentData<Curve>(edge).m_Bezier;
                 for (int i = 0; i < objects.Length; i++)
                 {
                     var tree = objects[i].m_SubObject;
-                    if (!EntityManager.Exists(tree) || EntityManager.HasComponent<Deleted>(tree) || !EntityManager.HasComponent<Game.Objects.Tree>(tree) ||
+                    if (!EntityManager.Exists(tree) || EntityManager.HasComponent<Deleted>(tree) || EntityManager.HasComponent<Temp>(tree) || !EntityManager.HasComponent<Game.Objects.Tree>(tree) ||
                         !EntityManager.HasComponent<Game.Objects.Transform>(tree) || !EntityManager.HasComponent<PrefabRef>(tree)) continue;
                     var position = EntityManager.GetComponentData<Game.Objects.Transform>(tree).m_Position;
                     var lateral = SignedLateralDistance(curve, position);
                     Entity requested = Entity.Null;
                     // Center decoration objects stay near the stored centerline. A small dead zone
                     // prevents side-only requests from recoloring median vegetation.
-                    if (math.abs(lateral) <= 3.5f) requested = op.MedianTreePrefab;
-                    else if (lateral > 0.75f) requested = op.LeftTreePrefab;
-                    else if (lateral < -0.75f) requested = op.RightTreePrefab;
+                    if (math.abs(lateral) <= 3.5f) { requested = op.MedianTreePrefab; medianMatched = true; }
+                    else if (lateral > 0.75f) { requested = op.LeftTreePrefab; leftMatched = true; }
+                    else if (lateral < -0.75f) { requested = op.RightTreePrefab; rightMatched = true; }
                     if (requested == Entity.Null) continue;
                     if (EntityManager.GetComponentData<PrefabRef>(tree).m_Prefab != requested)
                     {
-                        EntityManager.SetComponentData(tree, new PrefabRef(requested));
-                        if (!EntityManager.HasComponent<Updated>(tree)) EntityManager.AddComponent<Updated>(tree);
+                        changes[tree] = requested;
                     }
                     replaced++;
                 }
+                verified &= leftMatched && rightMatched && medianMatched;
             }
+            // Adding Updated is a structural change. All SubObject buffers must be
+            // finished before modifying any entity archetype, including other edges.
+            foreach (var change in changes)
+            {
+                EntityManager.SetComponentData(change.Key, new PrefabRef(change.Value));
+                if (!EntityManager.HasComponent<Updated>(change.Key)) EntityManager.AddComponent<Updated>(change.Key);
+            }
+            // Verify on a later tool tick, after native systems process Updated.
+            verified &= changes.Count == 0;
             return replaced;
         }
 
