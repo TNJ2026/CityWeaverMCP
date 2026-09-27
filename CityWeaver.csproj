@@ -22,6 +22,14 @@
 	<Import Project="$(ModToolPath)\Mod.props" />
 	<Import Project="$(ModToolPath)\Mod.targets" />
 
+	<!-- Prefer the installed game's assemblies over DLLs produced by repository-local
+	     regression projects. The SDK's CandidateAssemblyFiles default can otherwise
+	     bind a production mod build to artifacts/*-tests/bin/net8.0, which the Unity
+	     Burst postprocessor cannot consume. -->
+	<PropertyGroup>
+		<AssemblySearchPaths>{HintPathFromItem};$(ManagedPath);{TargetFrameworkDirectory};{RawFileName};{CandidateAssemblyFiles}</AssemblySearchPaths>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<Reference Include="Colossal.Mathematics"><Private>false</Private></Reference>
 		<Reference Include="Colossal.Collections"><Private>false</Private></Reference>
