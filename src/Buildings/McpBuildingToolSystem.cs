@@ -5,6 +5,7 @@ using Colossal.Mathematics;
 using Game.Buildings;
 using Game.Common;
 using Game.Net;
+using Game.Notifications;
 using Game.Prefabs;
 using Game.Simulation;
 using Game.Tools;
@@ -258,7 +259,7 @@ namespace CityWeaver
         }
         private bool ReadPreview(out string signature)
         {
-            var op = m_Operation; op.Errors.Clear(); op.Warnings.Clear(); op.Cost = 0; m_Candidates.Clear();
+            var op = m_Operation; op.Errors.Clear(); op.Warnings.Clear(); op.ValidationDetails.Clear(); op.Cost = 0; m_Candidates.Clear();
             void ReadMessages(EntityQuery query, JArray destination, string fallback)
             {
                 using (var messages = query.ToEntityArray(Allocator.Temp)) foreach (var message in messages)
@@ -266,6 +267,37 @@ namespace CityWeaver
                     string value = fallback;
                     if (EntityManager.HasComponent<PrefabRef>(message)) try { value = m_PrefabSystem.GetPrefab<PrefabBase>(EntityManager.GetComponentData<PrefabRef>(message).m_Prefab).name; } catch { }
                     if (!destination.Any(x => (string)x == value)) destination.Add(value);
+                    // Error is only a tag. Its actual reason lives on notification icon prefabs.
+                    // Copy the evidence now: failed previews are cleared before callers can inspect them.
+                    var codes = new JArray();
+                    if (EntityManager.HasBuffer<IconElement>(message))
+                        foreach (var element in EntityManager.GetBuffer<IconElement>(message, true))
+                        {
+                            var icon = element.m_Icon;
+                            if (!EntityManager.Exists(icon) || !EntityManager.HasComponent<PrefabRef>(icon)) continue;
+                            var iconPrefab = EntityManager.GetComponentData<PrefabRef>(icon).m_Prefab;
+                            if (!EntityManager.Exists(iconPrefab) || !EntityManager.HasComponent<ToolErrorData>(iconPrefab)) continue;
+                            string code = EntityManager.GetComponentData<ToolErrorData>(iconPrefab).m_Error.ToString();
+                            if (!codes.Any(x => (string)x == code)) codes.Add(code);
+                        }
+                    var detail = new JObject { ["entity_id"] = op.EntityId(message), ["prefab_name"] = value,
+                        ["severity"] = fallback, ["native_error_codes"] = codes,
+                        ["native_error_decoded"] = codes.Count != 0 };
+                    if (EntityManager.HasComponent<Temp>(message)) detail["original_entity_id"] = op.EntityId(EntityManager.GetComponentData<Temp>(message).m_Original);
+                    if (EntityManager.HasComponent<Owner>(message)) detail["owner_entity_id"] = op.EntityId(EntityManager.GetComponentData<Owner>(message).m_Owner);
+                    if (EntityManager.HasComponent<Game.Objects.Transform>(message))
+                    {
+                        var position = EntityManager.GetComponentData<Game.Objects.Transform>(message).m_Position;
+                        detail["position"] = new JObject { ["x"] = position.x, ["y"] = position.y, ["z"] = position.z };
+                    }
+                    if (EntityManager.HasComponent<Game.Objects.Attached>(message))
+                    {
+                        var parent = EntityManager.GetComponentData<Game.Objects.Attached>(message).m_Parent;
+                        detail["attached_parent_id"] = op.EntityId(parent);
+                        if (EntityManager.Exists(parent) && EntityManager.HasComponent<Temp>(parent))
+                            detail["attached_parent_original_id"] = op.EntityId(EntityManager.GetComponentData<Temp>(parent).m_Original);
+                    }
+                    op.ValidationDetails.Add(detail);
                 }
             }
             ReadMessages(m_ErrorQuery, op.Errors, "GAME_VALIDATION_ERROR"); ReadMessages(m_WarningQuery, op.Warnings, "GAME_VALIDATION_WARNING");

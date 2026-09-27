@@ -6,8 +6,11 @@
 
 - `guides/buildings`：建筑放置与建筑附属区域。
 - `guides/roads`：道路、路口、停车和交通出行。
+  - [爬山公路规划、施工与验收](guides/roads/MOUNTAIN-ROAD-GUIDE.md)
 - `guides/areas`：行政区、土地分区、地图、地形与环境景观。
 - `guides/transport`：公共交通线路、交通设施、轨道与公用管网。
+  - [有轨电车规划、施工与运营验收](guides/transport/TRAM-CONSTRUCTION-GUIDE.md)
+  - [港口建设与客货航线验收](guides/transport/HARBOR-CONSTRUCTION-GUIDE.md)
 - `guides/city`：城市管理、公共服务、发展需求和进度解锁。
 - `guides/economy`：城市财政、人口、企业与资源经济。
 - `guides/disasters`：灾害操作与灾后处理。
@@ -26,6 +29,7 @@
 ## 参考与验证
 
 - [游戏物理规则](reference/GAME-PHYSICS-RULES.md)
+- [建筑、道路与桥梁的内容来源](reference/PREFAB-SOURCE.md)
 - [实机验证记录](validation/VALIDATION.md)
 - [实测避坑笔记](validation/FIELD-NOTES.md)
 

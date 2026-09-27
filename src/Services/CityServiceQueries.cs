@@ -56,7 +56,7 @@ namespace CityWeaver
         private JObject CityServicePrefabRow(World world, Entity p)
         {
             var em = world.EntityManager; var ps = world.GetExistingSystemManaged<PrefabSystem>(); ps.TryGetPrefab<PrefabBase>(p, out var pf);
-            var row = new JObject { ["name"] = pf?.name, ["kind"] = CityServiceKind(em, p), ["locked"] = RoadOperation.IsLocked(em, p) };
+            var row = new JObject { ["name"] = pf?.name, ["kind"] = CityServiceKind(em, p), ["locked"] = RoadOperation.IsLocked(em, p), ["source"] = PrefabSource(world, p) };
             var place = em.GetComponentData<PlaceableObjectData>(p); row["construction_cost"] = place.m_ConstructionCost; row["placement_flags"] = place.m_Flags.ToString();
             row["placement_mode"] = (place.m_Flags & Game.Objects.PlacementFlags.RoadEdge) != 0 ? "road_edge" : (place.m_Flags & Game.Objects.PlacementFlags.Shoreline) != 0 ? "shoreline" : (place.m_Flags & Game.Objects.PlacementFlags.Floating) != 0 ? "floating" : (place.m_Flags & Game.Objects.PlacementFlags.RoadNode) != 0 ? "road_node" : "roadside";
             var b = em.GetComponentData<BuildingData>(p); row["lot_cells"] = new JObject { ["width"] = b.m_LotSize.x, ["depth"] = b.m_LotSize.y }; row["requires_road"] = (b.m_Flags & Game.Prefabs.BuildingFlags.RequireRoad) != 0;

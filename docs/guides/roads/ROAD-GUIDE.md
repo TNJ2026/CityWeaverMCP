@@ -1,5 +1,9 @@
 # MCP 铺路（能力引入 MCP 1.0.0）
 
+沿山坡爬升、盘山急弯、局部整坡与实车验收的完整流程，见 [爬山公路规划、施工与验收](MOUNTAIN-ROAD-GUIDE.md)。
+
+道路和桥梁目录的 DLC、模组、账号条件及资产包字段见 [内容来源说明](../../reference/PREFAB-SOURCE.md)。
+
 暂停城市时，可创建 16–256 米的单段道路或多段路线。支持直线、二次/三次贝塞尔曲线、地面、高架、隧道与连续坡道；端点可连接已有节点，也可通过 `edge_id + edge_position` 拆分既有路段形成路口。现有道路可单条或批量原地替换/拆除，还可控制各路段左右侧是否生成分区单元。
 
 单段长度的四个口径（引擎 256 m 上限 / 自动路线输出 248 m / 脚本等分安全线 240 m / 几何质量建议 200 m）角色不同、不可互相替代，见[游戏物理规则](../../reference/GAME-PHYSICS-RULES.md) §1.4。
@@ -8,11 +12,11 @@
 
 1. `list_road_prefabs` 找到准确道路预设名称和解锁状态。
 2. 使用查询接口读取道路/节点的实际位置，确定起终点世界坐标（米）。坐标不会自动吸附：要连接现有路网，明确提供端点 `node_id`，该节点须位于所给坐标 8 米内。
-3. `preview_road` 输入 `request_id`、`road_prefab` 和端点。单段可用 `start`/`end` 以及 `control` 或 `control_1`/`control_2`；多段用 `points`。新端点可给 `elevation_m`（-50..50），已有节点/边接入点的高度由实体决定。它切换到临时工具并生成可见预览，不永久铺路。必须处于默认选择工具、没有其他预览且城市暂停。
+3. `preview_road` 输入 `request_id`、`road_prefab` 和端点。单段可用 `start`/`end` 以及 `control` 或 `control_1`/`control_2`；多段用 `points`。新端点可给有限数值的 `elevation_m`（相对地形高度；普通道路按 `list_road_prefabs.elevation_range_m` 检查，桥梁交给原生预览判定，不能将该范围当作谷底净空硬上限），已有节点/边接入点的高度由实体决定。它切换到临时工具并生成可见预览，不永久铺路。必须处于默认选择工具、没有其他预览且城市暂停。
 4. 用返回的 `operation_id` 调用 `get_road_operation`。只有 `preview_ready` 才可提交；返回最终端点、长度、游戏实际预览费用、错误。
 5. 用户授权该路线后，`build_road` 传入 `operation_id`、稳定的 `request_id` 和 `max_cost`。提交后继续查询，直到 `completed`，获得实际道路实体 ID。
 6. 放弃方案时使用 `cancel_road_preview`。预览 5 分钟到期，切换工具也会取消。
-7. `preview_road_upgrade` 输入 `request_id`、`edge_id`、`road_prefab`，保留目标道路几何、端点和高程并替换类型；随后仍用 `build_road` 提交。
+7. `preview_road_upgrade` 输入 `request_id`、`edge_id`、`road_prefab`，保留目标道路几何、端点和高程并替换类型；随后仍用 `build_road` 提交。单条及批量替换在预览、提交前检查高程和地形数值有效性，普通道路另检查 prefab 范围及每段 257 个净空采样点（0.25 米地表偏差容差）。桥梁不以该范围拦截实际对地净空：原生 DrawBridge03 已实测允许约 183 米净空，尽管目录范围为 0–40 米。桥梁仍必须通过原生坡度、碰撞、净空与附属结构预览；此调整不跳过原生错误。
 8. `preview_road_demolition` 输入 `request_id`、`edge_id`，预览退款及原生删除结果；随后仍用 `build_road` 提交。
 9. `preview_road_batch_upgrade` 或 `preview_road_batch_demolition` 输入 1–64 个不重复的 `edge_ids`，把整批变更作为一个预览和一次提交；批量替换还需 `road_prefab`。原生网络管线可能合并相邻兼容路段，提交后必须使用 `created_road_ids` 返回的新实体 ID。
 10. `preview_road_zoning` 输入 1–64 个 `edge_ids`，并设置 `left_enabled` 和/或 `right_enabled`。省略的一侧保持原状；左右以每条边的 `start_node_id → end_node_id` 方向为准。
@@ -39,6 +43,16 @@
 铺路通过自定义 `ToolBaseSystem`、一次性 `CreationDefinition + NetCourse` 和游戏原生 ApplyTool 阶段运行。费用由 `ToolApplySystem` 扣除，道路、节点、车道等交由原生网络管线生成。提交时重新检查锁定状态、节点位置、预览稳定性、游戏错误/警告、资金及费用上限；不绕过开发者 ignoreErrors。
 
 既有道路的纵向移动是单独的原子 ECS 事务，因为游戏 1.6.0 的网络替换预览会把移动后的课程端点重新吸附到原节点高度。该事务仍通过 `Updated` 标记交给游戏网络系统重建派生几何与车道，并在返回 `completed` 前核对全部节点和曲线端点。
+
+## 开合桥跨航道
+
+先按航道实际宽度和水深建立原生预览，再设计桥面高程与分段。`DrawBridge03` 含中间桥墩，路段长度不等于桥墩净距；把航道放在跨中或路段接头处，都不能单独保证不碰撞。
+
+游戏 `CourseSplitSystem` 按网络兼容性及高度范围生成交叉，`SubObjectSystem.IsWaterwayCrossing` 根据节点的道路/航道邻接关系选择结构。空间上相交不等于已有交叉节点，不能手动删除桥墩或忽略 `OverlapExisting` 来替代原生连接。
+
+2026-09-27 马沙姆实测：水面约478.45米、桥面541.95米时，169米和197米两种分段都出现桥墩与110米宽 `Narrow Seaway` 碰撞；将中央三个控制点降低30米、两端保持引桥节点后，原生预览通过（22,348），随后取消，未永久建设主桥。该航道的运行时高度范围为水面上方40米，这与桥梁目录中的 `elevation_range_m` 是不同概念，也不是所有桥梁通航的统一高度上限。此实验修正了“模组缺少交叉生成逻辑”的初步判断。
+
+道路新建操作返回 `waterway_crossings`（共享节点、位置、相连道路与航道ID）。预览中的ID可能是临时对象；提交后必须重新读取原操作：`waterway_crossings_verified=true` 表示预览观察到的交叉已按永久节点位置及邻接关系验收，`null` 表示未观察到共享交叉，不能据此推断无法通航或已经满足净空。验收失败返回未知结果，不重复提交。`waterway_crossing_diagnostics` 只解释原生校验标记的航道及采样高度，不自动调高程、不改变原生碰撞判定。新回报与验收代码已通过构建和回归，仍待重启加载后实机验证；预览通过不代表船舶实际通行或开合动画已验证。
 
 ## 连接既有道路的节点优先级
 

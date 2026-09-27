@@ -354,6 +354,8 @@ namespace CityWeaver
                 if (pending > 0 && m_Ticks < 120) return;
                 op.CreatedEdges = completed;
                 if (completed.Count == 0 || pending > 0 || completed.Count != m_Candidates.Count) { Fail("APPLY_OUTCOME_UNKNOWN"); return; }
+                if (!VerifyWaterwayCrossings(completed))
+                { if (m_Ticks < 120) return; Fail("WATERWAY_CROSSING_READBACK_FAILED"); return; }
                 if (IsPierPathway)
                 {
                     bool ownedAndAttached = EntityManager.Exists(op.PierOwner) && !EntityManager.HasComponent<Deleted>(op.PierOwner) &&
@@ -744,8 +746,12 @@ namespace CityWeaver
             m_Candidates.Sort((a, b) => a.Index.CompareTo(b.Index));
             m_SplitRemnants.Sort((a, b) => a.Index.CompareTo(b.Index));
             op.SplitRemnantEdges = new List<Entity>(m_SplitRemnants);
+            op.WaterwayCrossings = ReadWaterwayCrossings(m_Candidates, false);
+            op.WaterwayCrossingsVerified = op.WaterwayCrossings.Count == 0 ? (bool?)null : false;
+            ReadWaterwayCrossingDiagnostics();
             signature = op.Cost + ":" + targetPreviews.Count + ":" + string.Join(",", m_Candidates.ConvertAll(e => e.Index + ":" + e.Version))
-                + ":" + string.Join(",", m_SplitRemnants.ConvertAll(e => e.Index + ":" + e.Version)) + ":" + op.Errors.ToString(Newtonsoft.Json.Formatting.None);
+                + ":" + string.Join(",", m_SplitRemnants.ConvertAll(e => e.Index + ":" + e.Version)) + ":" + op.Errors.ToString(Newtonsoft.Json.Formatting.None)
+                + ":" + op.WaterwayCrossings.ToString(Newtonsoft.Json.Formatting.None);
             // Adjacent changes can be coalesced and lose a one-to-one Temp/original mapping in the
             // native network preview. This tool starts from an empty Temp set, rejects all game
             // errors and building removals, and verifies every permanent target after Apply.

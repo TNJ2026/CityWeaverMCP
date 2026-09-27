@@ -1,5 +1,7 @@
 # 航道 MCP 接口
 
+港口主体、吊臂、客运楼与客货航线的完整流程，以及陡岸 InWater、泊位通道压缩和空路径的实测处理，见[港口建设与客货航线验收指南](HARBOR-CONSTRUCTION-GUIDE.md)。
+
 ## 渔港码头控制点（Pathway，不是航道）
 
 渔港主体可能自带高于水面的 `Narrow Boatway` Pathway 码头。其 `LocalConnect` 控制点需要先延长码头，才能尝试放置要求连接的附属建筑；`preview_waterway` 只建设船舶航道，不能接入该 Pathway。先在当前城市调用 `list_pier_pathway_prefabs` 和 `list_pier_pathways`，取得精确 prefab 名称及永久控制节点 ID。暂停城市后，以控制节点作为 `start_node_id`，传 `end`（世界 x/z）或另一永久 `end_node_id`，调用 `preview_pier_pathway`；等待 `get_pier_pathway_operation` 返回 `preview_ready`，核对碰撞、净空、错误与费用，再用独立提交 `request_id` 和费用上限调用 `apply_pier_pathway_operation`。只有 `completed` 且 `list_pier_pathways` 回读到永久边和节点连接，才算码头延长完成。取消未提交预览使用 `cancel_pier_pathway_preview`。首版仅支持单段直线；仍须实机验证附属建筑是否可吸附，不能把码头连接等同于渔业设施已经投产。
@@ -30,6 +32,8 @@
 不提交时调用 `cancel_waterway_preview`。拆除用 `preview_waterway_delete(waterway_edge_ids)`，最多64条；拒绝单独拆除具有 Owner 的设施内部航道。
 
 ## 几何与恢复边界
+
+开合桥跨航道应同时检查水面相对高度、原生交叉节点与桥墩碰撞；分段长度不等于桥墩净距。`waterway_crossings` / `waterway_crossings_verified` 的回读语义及高桥面碰撞实例见[道路指南：开合桥跨航道](../roads/ROAD-GUIDE.md#开合桥跨航道)。该结果属于道路操作；航道建成仍应通过本指南的永久航道回读确认。
 
 - 新端点高度来自实时水面，不接受 `elevation_m`。使用 `node_id` 精确连接航道节点，或 `edge_id` 在已有航道8米内分接；两者不能同时提供。
 - 端点验证拒绝普通道路或轨道。曲线长度遵守当前 prefab 限制，至少16米；不自动切割超长路线。

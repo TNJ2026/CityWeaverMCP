@@ -1,3 +1,4 @@
+import { planningContentDecision } from './planning-content-policy.mjs';
 import { withPrefabCatalog } from './prefab-catalog-service.mjs';
 import { randomBytes } from 'node:crypto';
 import { queryGame as liveQueryGame, BridgeError } from './bridge-client.mjs';
@@ -86,6 +87,8 @@ export function createBuildingWorkflow(queryGameImpl = liveQueryGame) {
     if (specialized.length > 1) throw new BridgeError('AMBIGUOUS_BUILDING_CATEGORY', `Prefab ${prefabName} appears in multiple specialized categories; set category explicitly.`);
     const match = specialized[0] || found.find(x => x.prefab);
     if (!match) throw new BridgeError('BUILDING_PREFAB_NOT_FOUND', `No unlocked exact prefab named ${prefabName} was found.`);
+    const content = planningContentDecision(match.prefab);
+    if (!content.allowed) throw new BridgeError('PREFAB_CONTENT_UNAVAILABLE', `Cannot plan ${prefabName}: ${content.reason}. Use a verified built-in or available DLC asset.`);
     return match;
   }
 

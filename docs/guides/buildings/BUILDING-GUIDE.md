@@ -118,6 +118,8 @@ Agent 使用高层流程时还应遵守以下边界：
 
 每个预览返回 `operation_id`。轮询 `get_building_operation` 到 `preview_ready`，确认 `cost` 和 `errors` 后调用 `apply_building_operation`，其中 `max_cost` 是本次允许的费用上限。提交后继续轮询，不能用新请求盲目重试。未提交预览可用 `cancel_building_preview` 清理。
 
+`validation_details` 保存最近一次原生校验的对象名称、错误码、位置和附着父对象，失败清理后仍可读取。`errors`/`warnings` 保留兼容的对象名称；名称不是拒绝原因。具体原因读取 `native_error_codes`，`native_error_decoded=false` 表示尚未取得原生通知，不能据名称猜测错误。临时实体 ID 只用于关联这份快照，不可作为永久对象操作。
+
 城市必须暂停并处于默认选择工具。请求 ID 在同一城市会话中幂等，预览五分钟后过期，实体 ID 在重新加载城市后失效。
 
 ## 真实验证

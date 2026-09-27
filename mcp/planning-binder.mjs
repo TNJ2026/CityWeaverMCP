@@ -1,3 +1,5 @@
+import { planningContentDecision } from './planning-content-policy.mjs';
+
 function exact(items, name) {
   return items.find(item => item.name === name) ?? null;
 }
@@ -47,6 +49,7 @@ export function bindGridProposal(proposalInput, catalogs = {}, preferences = {})
   const grid = proposal.plan?.grids?.[0];
   if (!grid) throw new Error('A grid proposal is required for prefab binding.');
   const roadPrefabs = catalogs.road_prefabs ?? [];
+  const contentChecks = roadPrefabs.map(item => ({ name: item.name, ...planningContentDecision(item) }));
   const zoneTypes = catalogs.zone_types ?? [];
   const districtKind = preferences.district_kind ?? grid.zone_kind ?? 'residential';
 
@@ -54,11 +57,12 @@ export function bindGridProposal(proposalInput, catalogs = {}, preferences = {})
   let roadBinding;
   if (preferences.road_prefab) {
     road = exact(roadPrefabs, preferences.road_prefab);
+    if (road && !planningContentDecision(road).allowed) road = null;
     roadBinding = road && !road.locked
       ? { status: 'bound', source: 'explicit', name: road.name, candidates: [road.name] }
       : { status: 'not_found', source: 'explicit', name: null, candidates: [] };
   } else {
-    const ranked = roadPrefabs.filter(item => !item.locked && item.zoning_enabled && !item.bridge_prefab)
+    const ranked = roadPrefabs.filter(item => planningContentDecision(item).allowed && item.zoning_enabled && !item.bridge_prefab)
       .map(item => ({ item, score: roadScore(item, districtKind, Number(grid.road_width_m ?? 8)) }))
       .sort((left, right) => left.score - right.score || left.item.name.localeCompare(right.item.name));
     road = ranked[0]?.item ?? null;
@@ -106,6 +110,7 @@ export function bindGridProposal(proposalInput, catalogs = {}, preferences = {})
     missing_bindings: [!road ? 'road_prefab' : null, !zone ? 'zone_type' : null].filter(Boolean),
     preview_draft: previewDraft,
     construction_ready: false,
+    content_policy: { mode: 'builtin_and_available_dlc', road_checks: contentChecks },
     notes: bindingsReady
       ? 'Exact live names are bound. The draft still requires native preview and explicit construction authorization.'
       : 'Binding is incomplete or ambiguous. Select an exact live candidate before native preview.',

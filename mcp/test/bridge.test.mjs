@@ -392,6 +392,13 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   const routePreview = await client.callTool({ name: 'preview_road_route', arguments: route });
   assert.equal(routePreview.isError, false);
   assert.deepEqual(routePreview.structuredContent.data.args, route);
+  // Heights above the former 50 m cap reach the game, which owns prefab limits.
+  for (const elevation of [146, 200, -50]) {
+    const elevated = { ...road, request_id: `height-single-${elevation}`, start: { x: 0, z: 0, elevation_m: elevation }, end: { x: 100, z: 0, elevation_m: elevation } };
+    assert.deepEqual((await client.callTool({ name: 'preview_road', arguments: elevated })).structuredContent.data.args, elevated);
+    const bridge = { ...route, request_id: `height-route-${elevation}`, points: [elevated.start, elevated.end] };
+    assert.deepEqual((await client.callTool({ name: 'preview_road_route', arguments: bridge })).structuredContent.data.args, bridge);
+  }
   const ring = { request_id: 'route-ring-001', road_prefab: 'Fixture Road', center: { x: 100, z: 200 }, radius_m: 30, direction: 'clockwise' };
   assert.deepEqual((await client.callTool({ name: 'preview_road_ring', arguments: ring })).structuredContent.data.args, ring);
   const grid = { request_id: 'route-grid-001', road_prefab: 'Fixture Road', horizontal_road_prefab: 'Fixture Horizontal', vertical_road_prefab: 'Fixture Vertical', perimeter_road_prefab: 'Fixture Perimeter', auto_connect: true, connection_sides: ['north', 'west'], connection_search_radius_m: 128, connection_road_prefab: 'Fixture Connector', minimum_connections: 1, maximum_connections: 2, origin: { x: 100, z: 200 }, columns: 2, rows: 2, block_width_m: 96, block_height_m: 80 };

@@ -85,6 +85,9 @@ namespace CityWeaver
         public DateTime Created = DateTime.UtcNow, Expires = DateTime.UtcNow.AddMinutes(5);
         public JArray Errors = new JArray();
         public JArray ValidationEntities = new JArray();
+        public JArray WaterwayCrossings = new JArray();
+        public JArray WaterwayCrossingDiagnostics = new JArray();
+        public bool? WaterwayCrossingsVerified;
         public List<Entity> CreatedEdges = new List<Entity>();
         // Existing road edges that the game split because this operation joined them mid-edge.
         // They are kept as part of the operation but are not part of the requested road, so they
@@ -176,6 +179,9 @@ namespace CityWeaver
             ["cost"] = Cost, ["max_cost"] = MaxCost,
             ["errors"] = Errors.DeepClone(), ["error"] = Error,
             ["validation_entities"] = ValidationEntities.DeepClone(),
+            ["waterway_crossings"] = WaterwayCrossings.DeepClone(),
+            ["waterway_crossing_diagnostics"] = WaterwayCrossingDiagnostics.DeepClone(),
+            ["waterway_crossings_verified"] = WaterwayCrossingsVerified,
             ["expires_at_utc"] = Expires.ToString("O"), ["commit_dispatched"] = ApplyDispatched,
             ["created_road_ids"] = new JArray(CreatedEdges.Select(EntityId)),
             ["intersection_prefab"] = CurveMode == "intersection_prefab" ? PrefabName : null,
@@ -409,9 +415,11 @@ namespace CityWeaver
                 if (prefab.name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0) continue;
                 var g = em.GetComponentData<NetGeometryData>(e);
                 var road = em.GetComponentData<RoadData>(e);
+                var elevationRange = em.GetComponentData<PlaceableNetData>(e).m_ElevationRange;
                 var forward = (road.m_Flags & Game.Prefabs.RoadFlags.DefaultIsForward) != 0;
                 var backward = (road.m_Flags & Game.Prefabs.RoadFlags.DefaultIsBackward) != 0;
                 var row = new JObject { ["name"] = prefab.name, ["prefab_entity_id"] = EntityId(e), ["width_m"] = g.m_DefaultWidth,
+                    ["elevation_range_m"] = new JObject { ["min"] = elevationRange.min, ["max"] = elevationRange.max },
                     ["speed_limit"] = road.m_SpeedLimit, ["one_way"] = forward != backward,
                     ["default_direction"] = forward != backward ? (forward ? "forward" : "backward") : "both",
                     ["zoning_enabled"] = (road.m_Flags & Game.Prefabs.RoadFlags.EnableZoning) != 0,
@@ -419,6 +427,7 @@ namespace CityWeaver
                     ["supports_bicycle_lanes"] = em.HasComponent<NetData>(e) && (em.GetComponentData<NetData>(e).m_SideFlagMask & CompositionFlags.Side.SecondaryLane) != 0,
                     ["supports_public_transport_lanes"] = em.HasComponent<NetData>(e) && (em.GetComponentData<NetData>(e).m_SideFlagMask & CompositionFlags.Side.PrimaryLane) != 0,
                     ["locked"] = RoadOperation.IsLocked(em, e), ["modes"] = new JArray("straight", "quadratic", "cubic", "elevated", "tunnel", "polyline"), ["max_length_m"] = 256 };
+                row["source"] = PrefabSource(world, e);
                 row.Merge(RoadPrefabTraits(prefab.name, e, em)); rows.Add(row);
             }
             rows = rows.OrderBy(r => (string)r["name"], StringComparer.Ordinal).ToList();
@@ -447,7 +456,7 @@ namespace CityWeaver
             }
             return (left + right) * 0.5f;
         }
-        private RoadEndpoint RoadPoint(JObject args, string key, World world, TerrainHeightData heights)
+        private RoadEndpoint RoadPoint(JObject args, string key, World world, TerrainHeightData heights, Entity prefabEntity)
         {
             if (!(args[key] is JObject point)) throw new QueryException("INVALID_ARGUMENT", key + " must contain x and z.");
             var position = new float3(ReadCoordinate(point, key, "x"), 0, ReadCoordinate(point, key, "z")); var target = Entity.Null; float split = 0;
@@ -477,19 +486,57 @@ namespace CityWeaver
                 if (split <= 0.001f) { target = edge.m_Start; split = 0; position = em.GetComponentData<Node>(target).m_Position; }
                 else if (split >= 0.999f) { target = edge.m_End; split = 0; position = em.GetComponentData<Node>(target).m_Position; }
             }
+            var range = em.GetComponentData<PlaceableNetData>(prefabEntity).m_ElevationRange;
+            var elevation = ReadRoadElevation(point, key, target != Entity.Null, range.min, range.max, em.HasComponent<BridgeData>(prefabEntity));
+            if (target == Entity.Null) position.y = TerrainUtils.SampleHeight(ref heights, position) + elevation;
+            if (!math.all(math.isfinite(position))) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain height is unavailable.");
+            return new RoadEndpoint { Position = position, Target = target, Split = split, Elevation = elevation };
+        }
+        private static float ReadRoadElevation(JObject point, string key, bool attached, float minimum, float maximum, bool bridge = false)
+        {
             float elevation = 0;
             if (point["elevation_m"] != null)
             {
                 if ((point["elevation_m"].Type != JTokenType.Float && point["elevation_m"].Type != JTokenType.Integer) ||
                     !float.TryParse(point["elevation_m"].ToString(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out elevation) ||
-                    !math.isfinite(elevation) || elevation < -50 || elevation > 50)
-                    throw new QueryException("INVALID_ARGUMENT", key + ".elevation_m must be a finite value from -50 to 50 metres.");
-                if (target != Entity.Null && math.abs(elevation) > 0.01f)
+                    !math.isfinite(elevation))
+                    throw new QueryException("INVALID_ARGUMENT", key + ".elevation_m must be a finite value within the selected road prefab elevation range.");
+                if (attached && math.abs(elevation) > 0.01f)
                     throw new QueryException("INVALID_ENDPOINT", "elevation_m is only supported for new route points; attached nodes and edges use their existing height.");
             }
-            if (target == Entity.Null) position.y = TerrainUtils.SampleHeight(ref heights, position) + elevation;
-            if (!math.all(math.isfinite(position))) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain height is unavailable.");
-            return new RoadEndpoint { Position = position, Target = target, Split = split, Elevation = elevation };
+            if (!attached && !bridge && (elevation < minimum || elevation > maximum))
+                throw new QueryException("INVALID_ELEVATION", "Road elevation is outside this prefab's supported range.");
+            return elevation;
+        }
+        private static void ValidateReplacementElevation(float2 inherited, float minimum, float maximum, Func<float, float> clearance, bool bridge = false)
+        {
+            if (!math.all(math.isfinite(inherited)) || !math.isfinite(minimum) || !math.isfinite(maximum) || minimum > maximum)
+                throw new QueryException("INVALID_ELEVATION", "Road elevation or target prefab range is invalid.");
+            // Native DrawBridge03 can span a valley with >180m clearance despite a 0..40
+            // placement range. That range is not a hard limit on bridge terrain clearance.
+            if (!bridge && (math.cmin(inherited) < minimum || math.cmax(inherited) > maximum))
+                throw new QueryException("INVALID_ELEVATION", "Existing road elevation exceeds the target prefab's supported range; change the approach or select another bridge.");
+            // Sample the interior too: both endpoints can be on land above a deep valley.
+            // Small terrain/road surface offsets are normal at ground-level joins.
+            const float surfaceTolerance = 0.25f;
+            for (int i = 0; i <= 256; i++)
+            {
+                var height = clearance(i / 256f);
+                if (!math.isfinite(height)) throw new QueryException("TERRAIN_UNAVAILABLE", "Road terrain clearance is unavailable.");
+                if (!bridge && (height < minimum - surfaceTolerance || height > maximum + surfaceTolerance))
+                    throw new QueryException("INVALID_ELEVATION", "Existing road terrain clearance exceeds the target prefab's supported range; change the approach or select another bridge.");
+            }
+        }
+        private static void ValidateRoadReplacementElevation(World world, Entity prefab, Bezier4x3 curve, float2 inherited)
+        {
+            var range = world.EntityManager.GetComponentData<PlaceableNetData>(prefab).m_ElevationRange;
+            var heights = world.GetExistingSystemManaged<TerrainSystem>().GetHeightData(true);
+            if (!heights.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain CPU heights are not ready.");
+            ValidateReplacementElevation(inherited, range.min, range.max, t =>
+            {
+                var position = MathUtils.Position(curve, t);
+                return position.y - TerrainUtils.SampleHeight(ref heights, position);
+            }, world.EntityManager.HasComponent<BridgeData>(prefab));
         }
         private static float3 CurveControl(JObject value, string key, float y)
         {
@@ -502,7 +549,7 @@ namespace CityWeaver
             if (distance < 16 || distance > 256) throw new QueryException("INVALID_ROAD_LENGTH", "Each road curve must be from 16 to 256 metres.");
             var geometry = em.GetComponentData<NetGeometryData>(prefabEntity);
             var placeable = em.GetComponentData<PlaceableNetData>(prefabEntity);
-            if (startElevation < placeable.m_ElevationRange.min || startElevation > placeable.m_ElevationRange.max || endElevation < placeable.m_ElevationRange.min || endElevation > placeable.m_ElevationRange.max)
+            if (!em.HasComponent<BridgeData>(prefabEntity) && (startElevation < placeable.m_ElevationRange.min || startElevation > placeable.m_ElevationRange.max || endElevation < placeable.m_ElevationRange.min || endElevation > placeable.m_ElevationRange.max))
                 throw new QueryException("INVALID_ELEVATION", "Road elevation is outside this prefab's supported range.");
             var slopeLimit = geometry.m_MaxSlopeSteepness;
             if (slopeLimit <= 0) slopeLimit = 0.08f;
@@ -535,7 +582,7 @@ namespace CityWeaver
             if (RoadOperation.IsLocked(em, prefabEntity)) throw new QueryException("ROAD_LOCKED", "This road is not unlocked.");
             var terrain = world.GetExistingSystemManaged<TerrainSystem>(); var heights = terrain.GetHeightData(true);
             if (!heights.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain CPU heights are not ready.");
-            var start = RoadPoint(args, "start", world, heights); var end = RoadPoint(args, "end", world, heights);
+            var start = RoadPoint(args, "start", world, heights, prefabEntity); var end = RoadPoint(args, "end", world, heights, prefabEntity);
             if (start.Target != Entity.Null && start.Target == end.Target && math.abs(start.Split - end.Split) < 0.001f) throw new QueryException("INVALID_ENDPOINT", "Both endpoints refer to the same network position.");
             string curveMode = "straight"; float3? control1 = null, control2 = null; Bezier4x3 curve;
             if (args["curve"] is JObject curveArgs)
@@ -588,7 +635,7 @@ namespace CityWeaver
             var heights = world.GetExistingSystemManaged<TerrainSystem>().GetHeightData(true);
             if (!heights.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain CPU heights are not ready.");
             var endpoints = new List<RoadEndpoint>();
-            for (int i = 0; i < points.Count; i++) endpoints.Add(RoadPoint(new JObject { ["point"] = points[i].DeepClone() }, "point", world, heights));
+            for (int i = 0; i < points.Count; i++) endpoints.Add(RoadPoint(new JObject { ["point"] = points[i].DeepClone() }, "point", world, heights, prefabEntity));
             var operation = new RoadOperation { Session = m_Session, RequestId = key, Fingerprint = fingerprint, Prefab = prefabEntity, PrefabName = name, CurveMode = "polyline" };
             for (int i = 0; i + 1 < endpoints.Count; i++)
             {
@@ -1025,7 +1072,7 @@ namespace CityWeaver
             if (!heights.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain CPU heights are not ready.");
             var water = world.GetExistingSystemManaged<WaterSystem>().GetSurfaceData(out var waterDeps); waterDeps.Complete();
             if (!water.isCreated) throw new QueryException("WATER_UNAVAILABLE", "Water surface data is not ready.");
-            var start = RoadPoint(args, "start", world, heights); var end = RoadPoint(args, "end", world, heights);
+            var start = RoadPoint(args, "start", world, heights, prefabEntity); var end = RoadPoint(args, "end", world, heights, prefabEntity);
             bool IsZoningGrid(float2 p) => math.all(math.abs(p / gridSize - math.round(p / gridSize)) < 0.01f);
             void AlignEndpoint(RoadEndpoint endpoint, string field)
             {
@@ -1259,13 +1306,17 @@ namespace CityWeaver
             for (int i = 0; i + 1 < route.Count; i++)
                 if (!ClearLine(route[i], route[i + 1]))
                     throw new QueryException("NO_AUTOROUTE", "No heading-preserving simplified route satisfies terrain, water and obstacle clearance.");
-            for (int i = 1; i + 1 < route.Count; i++)
+            void ValidateRouteTurns()
             {
-                var incoming = math.normalizesafe(route[i].xz - route[i - 1].xz);
-                var outgoing = math.normalizesafe(route[i + 1].xz - route[i].xz);
-                if (math.dot(incoming, outgoing) < -0.01f)
-                    throw new QueryException("NO_AUTOROUTE", "No route without a greater-than-90-degree reversal satisfies the endpoint geometry.");
+                for (int i = 1; i + 1 < route.Count; i++)
+                {
+                    var incoming = math.normalizesafe(route[i].xz - route[i - 1].xz);
+                    var outgoing = math.normalizesafe(route[i + 1].xz - route[i].xz);
+                    if (math.dot(incoming, outgoing) < -0.01f)
+                        throw new QueryException("NO_AUTOROUTE", "No route without a greater-than-90-degree reversal satisfies the endpoint geometry.");
+                }
             }
+            ValidateRouteTurns();
             // A one-cell transition between two long opposing diagonals is valid as a
             // straight polyline, but rounding both of its ends produces a road bend whose
             // radius is smaller than the native road footprint.  Collapse that three-leg
@@ -1278,13 +1329,17 @@ namespace CityWeaver
                 var outgoing = math.normalizesafe(route[i + 2].xz - route[i + 1].xz);
                 var shortTransition = math.distance(route[i].xz, route[i + 1].xz) <= gridSize * 1.5f;
                 var bendsAtBothEnds = math.dot(incoming, middle) < 0.999f && math.dot(middle, outgoing) < 0.999f;
-                if (shortTransition && bendsAtBothEnds && ClearLine(route[i - 1], route[i + 2]))
+                var chord = math.normalizesafe(route[i + 2].xz - route[i - 1].xz);
+                var preservesEntry = i == 1 || math.dot(math.normalizesafe(route[i - 1].xz - route[i - 2].xz), chord) >= -0.01f;
+                var preservesExit = i + 3 >= route.Count || math.dot(chord, math.normalizesafe(route[i + 3].xz - route[i + 2].xz)) >= -0.01f;
+                if (shortTransition && bendsAtBothEnds && preservesEntry && preservesExit && ClearLine(route[i - 1], route[i + 2]))
                 {
                     route.RemoveRange(i, 2);
                     i = math.max(1, i - 1);
                 }
                 else i++;
             }
+            ValidateRouteTurns();
             if (route.Count > 33) throw new QueryException("ROUTE_TOO_COMPLEX", "The planned route needs more than 32 road segments; increase grid size or reduce the route distance.");
             for (int i = 0; i + 1 < route.Count; i++) if (math.distance(route[i].xz, route[i + 1].xz) < 16) throw new QueryException("ROUTE_SEGMENT_TOO_SHORT", "The planned route contains a segment shorter than 16 metres; adjust endpoints or grid size.");
             // Keep the A* waypoints, but replace the hard polyline joints with a cubic
@@ -1330,22 +1385,14 @@ namespace CityWeaver
             {
                 var samples = math.max(16, (int)math.ceil(MathUtils.Length(curve) / math.max(4f, gridSize * 0.25f)));
                 var minimumRadius = math.max(8f, geometry.m_DefaultWidth * 0.75f);
-                float2 previousPoint = curve.a.xz; float2 previousStep = default; var hasPreviousStep = false;
-                for (int sample = 1; sample < samples; sample++)
+                // Evaluate derivative-based curvature at 257 parameters, including both
+                // endpoints. Chord angles miss tight bends next to short control handles.
+                if (TrackCurveGeometry.SampledMinimumRadius(curve.a.x, curve.a.z, curve.b.x, curve.b.z,
+                    curve.c.x, curve.c.z, curve.d.x, curve.d.z) < minimumRadius) return false;
+                for (int sample = 0; sample <= samples; sample++)
                 {
                     var point = MathUtils.Position(curve, sample / (float)samples).xz;
                     if (Blocked(point) || WaterAt(point)) return false;
-                    var step = point - previousPoint; var stepLength = math.length(step);
-                    if (hasPreviousStep && stepLength > 0.01f)
-                    {
-                        var previousLength = math.length(previousStep);
-                        if (previousLength > 0.01f)
-                        {
-                            var angle = math.acos(math.clamp(math.dot(previousStep / previousLength, step / stepLength), -1f, 1f));
-                            if (angle > 0.001f && math.min(previousLength, stepLength) / angle < minimumRadius) return false;
-                        }
-                    }
-                    previousPoint = point; previousStep = step; hasPreviousStep = true;
                 }
                 return true;
             }
@@ -2007,6 +2054,7 @@ namespace CityWeaver
                 if (kind == "upgrade" && targetPrefab == originalPrefab) throw new QueryException("NO_CHANGE", "At least one selected road already uses the requested prefab.");
                 var edge = em.GetComponentData<Edge>(edgeEntity); var curve = em.GetComponentData<Curve>(edgeEntity).m_Bezier;
                 var elevation = em.HasComponent<Elevation>(edgeEntity) ? em.GetComponentData<Elevation>(edgeEntity).m_Elevation : new float2(0);
+                if (kind == "upgrade") ValidateRoadReplacementElevation(world, targetPrefab, curve, elevation);
                 operation.TargetEdges.Add(edgeEntity);
                 operation.Segments.Add(new RoadSegmentPlan { TargetEdge = edgeEntity, OriginalPrefab = originalPrefab, OriginalPrefabName = originalBase.name,
                     Start = curve.a, End = curve.d, StartTarget = edge.m_Start, EndTarget = edge.m_End,
@@ -2037,6 +2085,10 @@ namespace CityWeaver
             }
             if (op.State != "preview_ready" || op.CancelRequested || DateTime.UtcNow >= op.Expires) throw new QueryException("ROAD_NOT_READY", "Wait for a valid unexpired preview before committing.");
             if (op.Cost > maxCost) throw new QueryException("COST_LIMIT", "Preview cost exceeds max_cost.");
+            if (op.OperationType == "upgrade" || op.OperationType == "batch_upgrade")
+                foreach (var segment in op.Segments)
+                    ValidateRoadReplacementElevation(World.DefaultGameObjectInjectionWorld, op.Prefab, segment.Curve,
+                        new float2(segment.StartElevation, segment.EndElevation));
             if (op.TransactionKind == "waterway" && op.OperationType == "create")
                 foreach (var segment in op.Segments) ValidateWaterwayCurve(segment.Curve, op.Prefab, World.DefaultGameObjectInjectionWorld, op.MinimumWaterDepth);
             op.CommitRequestId = key; op.MaxCost = maxCost; op.CommitRequested = true; op.State = "commit_queued";

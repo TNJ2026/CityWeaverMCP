@@ -295,8 +295,8 @@ test('multilayer planner adds access, service, utility and transit concepts with
 
 const bindingCatalogs = {
   road_prefabs: [
-    { name: 'Alley', width_m: 8, locked: false, zoning_enabled: true, bridge_prefab: false, structure_type: 'standard', one_way: false, includes_parking: false, uses_highway_rules: false },
-    { name: 'Gravel Road', width_m: 8, locked: false, zoning_enabled: true, bridge_prefab: false, structure_type: 'standard', one_way: false, includes_parking: false, uses_highway_rules: false },
+    { source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false }, name: 'Alley', width_m: 8, locked: false, zoning_enabled: true, bridge_prefab: false, structure_type: 'standard', one_way: false, includes_parking: false, uses_highway_rules: false },
+    { source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false }, name: 'Gravel Road', width_m: 8, locked: false, zoning_enabled: true, bridge_prefab: false, structure_type: 'standard', one_way: false, includes_parking: false, uses_highway_rules: false },
   ],
   zone_types: [
     { name: 'EU Residential Low', area_type: 'Residential', office: false, max_height: 20, locked: false },

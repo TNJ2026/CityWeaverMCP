@@ -452,7 +452,7 @@ namespace CityWeaver
         {
             var ready = IsReady();
             var result = new JObject { ["connected"] = true, ["city_loaded"] = ready, ["loading"] = GameManager.instance.isGameLoading,
-                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.24.6", ["read_only"] = false };
+                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.24.7", ["read_only"] = false };
             result["paused"] = JValue.CreateNull();
             if (ready)
             {
@@ -496,7 +496,8 @@ namespace CityWeaver
                 ["requires_paused_city"] = true, ["preview_ttl_seconds"] = 300, ["max_operations_per_session"] = 4096,
                 ["workflow"] = "list_road_prefabs -> preview_road, preview_road_route, preview_road_ring, preview_road_grid, or preview_road_autoroute -> get_road_operation(preview_ready) -> build_road -> get_road_operation(completed)",
                 ["endpoint_targets"] = new JArray("new_node", "existing_node", "existing_edge_split"),
-                ["elevation_m"] = "New points accept -50..50 metres relative to terrain, further limited by the road prefab. >=8 forces elevated; <=-12 requests tunnel.",
+                ["waterway_crossings"] = "Road creation reports native shared road/waterway nodes in waterway_crossings. Crossings observed in preview require permanent adjacency readback before completed; waterway_crossings_verified is null when no shared crossing was observed. Native waterway collision diagnostics report sampled deck and waterway height envelopes, without overriding validation or automatically lowering roads.",
+                ["elevation_m"] = "New points accept finite metres relative to terrain. Ordinary roads use prefab elevation_range_m; bridge clearance is validated by native preview, not capped by that placement range. >=8 forces elevated; <=-12 requests tunnel.",
                 ["existing_road_workflow"] = "preview_road_upgrade, preview_road_demolition, preview_road_batch_upgrade, preview_road_batch_demolition, preview_road_zoning, preview_road_features, preview_road_parking, preview_road_policies, preview_intersection_control, preview_intersection_roundabout, or preview_intersection_rules -> get_road_operation(preview_ready) -> build_road -> get_road_operation(completed)",
                 ["batch_max_edges"] = 64, ["zoning_sides"] = "left/right relative to each edge start-to-end direction",
                 ["road_feature_upgrades"] = new JArray("tram_tracks", "left/right bicycle lanes", "left/right one-way public transport lanes", "wide sidewalks", "side/median decoration", "wide median"),

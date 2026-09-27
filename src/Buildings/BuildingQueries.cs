@@ -40,6 +40,7 @@ namespace CityWeaver
         public long Cost, MaxCost;
         public readonly JArray Errors = new JArray();
         public readonly JArray Warnings = new JArray();
+        public readonly JArray ValidationDetails = new JArray();
         public readonly List<Entity> PreviewEntities = new List<Entity>();
         public readonly List<Entity> ResultEntities = new List<Entity>();
         public readonly List<BuildingPlacementPlan> Placements = new List<BuildingPlacementPlan>();
@@ -63,6 +64,7 @@ namespace CityWeaver
             ["upgrade_placement_offset_m"] = Type == "upgrade" ? new JValue(UpgradePlacementOffset) : null,
             ["rotation_degrees"] = RotationDegrees, ["cost"] = Cost, ["max_cost"] = MaxCost,
             ["errors"] = Errors.DeepClone(), ["warnings"] = Warnings.DeepClone(), ["error"] = Error,
+            ["validation_details"] = ValidationDetails.DeepClone(),
             ["preview_entity_count"] = PreviewEntities.Count, ["expected_building_count"] = ExpectedResultCount,
             ["specialized_industry_owner"] = ExtractorOwnerPlacement,
             ["extractor_area_on_owner"] = ExtractorAreaOnOwner,
@@ -160,7 +162,7 @@ namespace CityWeaver
                     if (kind == "specialized_industry" && (!building || !ExtractorOwnerPrefab(em, entity))) continue;
                     if (!prefabs.TryGetPrefab<PrefabBase>(entity, out var prefab) || (!string.IsNullOrEmpty(search) && prefab.name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0)) continue;
                     bool locked = PrefabLocked(em, entity); if (unlockedOnly && locked) continue;
-                    var row = new JObject { ["name"] = prefab.name, ["kind"] = upgrade ? "upgrade" : "building", ["locked"] = locked };
+                    var row = new JObject { ["name"] = prefab.name, ["kind"] = upgrade ? "upgrade" : "building", ["locked"] = locked, ["source"] = PrefabSource(world, entity) };
                     if (em.HasComponent<BuildingData>(entity)) { var data = em.GetComponentData<BuildingData>(entity); row["lot_cells"] = new JObject { ["width"] = data.m_LotSize.x, ["depth"] = data.m_LotSize.y };
                         row["building_flags"] = data.m_Flags.ToString(); row["requires_road"] = (data.m_Flags & Game.Prefabs.BuildingFlags.RequireRoad) != 0;
                         row["requires_access"] = (data.m_Flags & Game.Prefabs.BuildingFlags.RequireAccess) != 0; row["can_be_roadside"] = (data.m_Flags & Game.Prefabs.BuildingFlags.CanBeRoadSide) != 0;

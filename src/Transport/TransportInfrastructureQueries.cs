@@ -47,7 +47,7 @@ namespace CityWeaver
         {
             var em=world.EntityManager;var ps=world.GetExistingSystemManaged<PrefabSystem>();ps.TryGetPrefab<PrefabBase>(e,out var p);
             var transports=new HashSet<string>();var tracks=new HashSet<string>();CollectFacilityNetworks(em,e,new HashSet<Entity>(),transports,tracks);
-            var row=new JObject{{"name",p?.name},{"locked",RoadOperation.IsLocked(em,e)},{"station",em.HasComponent<TransportStationData>(e)},{"depot",em.HasComponent<TransportDepotData>(e)},
+            var row=new JObject{{"name",p?.name},{"source",PrefabSource(world,e)},{"locked",RoadOperation.IsLocked(em,e)},{"station",em.HasComponent<TransportStationData>(e)},{"depot",em.HasComponent<TransportDepotData>(e)},
                 {"passenger",em.HasComponent<PublicTransportStationData>(e)},{"cargo",em.HasComponent<CargoTransportStationData>(e)},{"transport_types",new JArray(transports.OrderBy(x=>x))},{"track_types",new JArray(tracks.OrderBy(x=>x))}};
             if(em.HasComponent<TransportStationData>(e)){var d=em.GetComponentData<TransportStationData>(e);row["comfort_factor"]=d.m_ComfortFactor;row["loading_factor"]=d.m_LoadingFactor;}
             if(em.HasComponent<TransportDepotData>(e)){var d=em.GetComponentData<TransportDepotData>(e);row["depot_transport_type"]=d.m_TransportType.ToString();row["vehicle_capacity"]=d.m_VehicleCapacity;row["energy_types"]=d.m_EnergyTypes.ToString();row["dispatch_center"]=d.m_DispatchCenter;row["size_class"]=d.m_SizeClass.ToString();}

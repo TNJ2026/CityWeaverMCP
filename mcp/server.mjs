@@ -57,7 +57,7 @@ const buildingPlanId = z.string().regex(/^bplan-[a-f0-9]{16}$/);
 const cityPlanId = z.string().regex(/^cplan-[a-f0-9]{16}$/);
 const coordinate = z.number().finite().min(-7168).max(7168);
 const roadControl = z.object({ x: coordinate, z: coordinate }).strict();
-const roadPoint = z.object({ x: coordinate, z: coordinate, elevation_m: z.number().finite().min(-50).max(50).optional(), node_id: entityId.optional(), edge_id: entityId.optional() }).strict()
+const roadPoint = z.object({ x: coordinate, z: coordinate, elevation_m: z.number().finite().optional(), node_id: entityId.optional(), edge_id: entityId.optional() }).strict()
   .refine(point => !(point.node_id && point.edge_id), 'Use either node_id or edge_id, not both.');
 const trackPoint = z.object({ x: coordinate, z: coordinate, elevation_m: z.number().finite().min(-50).max(200).optional(), node_id: entityId.optional(), edge_id: entityId.optional() }).strict()
   .refine(point => !(point.node_id && point.edge_id), 'Use either node_id or edge_id, not both.');
@@ -533,7 +533,7 @@ const definitions = [
     position: z.object({ x: z.number().min(-7168).max(7168), z: z.number().min(-7168).max(7168) }).strict(),
     rotation_degrees: z.number().min(-360).max(360).default(0)
   }],
-  ['list_road_prefabs', 'List actual road prefab names, widths, speed limits, one-way direction and lock states. Use exact names for road previews. Supports straight, quadratic and cubic roads 16..256 metres, including elevation and tunnels within prefab limits; locked roads cannot be built.', {
+  ['list_road_prefabs', 'List actual road prefab names, widths, speed limits, one-way direction and lock states. Use exact names for road previews. Supports straight, quadratic and cubic roads 16..256 metres, including elevation and tunnels within prefab limits; locked roads cannot be built. Each item includes source with direct DLC/mod/login requirements, native labels and asset-pack membership; no_declared_requirement does not prove base-game origin.', {
     search: z.string().max(100).default(''), offset: z.number().int().min(0).max(10000).default(0), limit: z.number().int().min(1).max(100).default(50)
   }],
   ['find_roads_by_name', 'Find permanent road entities by their rendered in-game street name, resolved from the owning street aggregate (including generated and custom names). Supports exact or contains matching and returns road IDs, prefab, endpoints and length for follow-up road operations. Falls back to the road edge label when no valid street aggregate name is available.', {
@@ -548,7 +548,7 @@ const definitions = [
   ['inspect_road_zoning', 'Inspect native Zone Block and Cell data owned by 1..64 permanent road edges. Reports block direction, 8 metre cell-lattice consistency, clear frontage, and Blocked, Shared, Occupied and Redundant cell counts. orderly_geometry verifies axis-aligned blocks, a common lattice phase and buffer-size consistency; it does not guarantee compatibility with every building prefab.', {
     edge_ids: z.array(entityId).min(1).max(64)
   }],
-  ['preview_road', 'Create a temporary in-game road preview. Requires a paused city and default selection tool. x/z are world metres; elevation_m is relative to terrain for a new point (-50..50). Values at or above 8m force elevated structures; values at or below -12m request tunnels. Optional node_id joins an existing node; edge_id snaps to and splits an existing road edge. Attached endpoints use their existing height. Optional curve supports quadratic or cubic control points. Poll get_road_operation. Game errors/warnings or building removal block commit. Reuse request_id to retry this exact route. Preview expires after 5 minutes.', {
+  ['preview_road', 'Create a temporary in-game road preview. Requires a paused city and default selection tool. x/z are world metres; elevation_m is relative to terrain for a new point (ordinary roads use prefab elevation_range_m; bridge clearance is validated by native preview, not capped by that placement range). Values at or above 8m force elevated structures; values at or below -12m request tunnels. Optional node_id joins an existing node; edge_id snaps to and splits an existing road edge. Attached endpoints use their existing height. Optional curve supports quadratic or cubic control points. Poll get_road_operation. Game errors/warnings or building removal block commit. Reuse request_id to retry this exact route. Preview expires after 5 minutes.', {
     request_id: requestId, road_prefab: z.string().min(1).max(200), start: roadPoint, end: roadPoint, curve: roadCurve.optional()
   }],
   ['preview_road_route', 'Preview one continuous polyline road route as a single operation. Provide 2..16 points; each adjacent pair is a straight ground segment of 16..256 metres. Points may use node_id or edge_id for exact network attachment. Shared unsnapped coordinates become shared junction nodes through the native road pipeline. Poll the returned operation and commit it once with build_road.', {
@@ -798,7 +798,7 @@ const definitions = [
     operation_id: operationId, request_id: requestId
   }],
   ['cancel_terrain_preview', 'Cancel an uncommitted terrain plan. A dispatched terrain brush cannot be cancelled because the native height operation is immediate.', { operation_id: operationId }],
-  ['list_building_prefabs', 'List exact placeable building and service-upgrade prefab names with lock state, construction cost, lot size, physical size and placement flags. kind=specialized_industry returns declared extractor owners, including owners whose native extractor area is declared by a compatible upgrade.', {
+  ['list_building_prefabs', 'List exact placeable building and service-upgrade prefab names with lock state, construction cost, lot size, physical size and placement flags. kind=specialized_industry returns declared extractor owners, including owners whose native extractor area is declared by a compatible upgrade. Each item includes source with direct DLC/mod/login requirements, native labels and asset-pack membership; no_declared_requirement does not prove base-game origin.', {
     search: z.string().max(100).default(''), kind: z.enum(['building', 'upgrade', 'specialized_industry', 'all']).default('building'), unlocked_only: z.boolean().default(true),
     offset: z.number().int().min(0).max(100000).default(0), limit: z.number().int().min(1).max(100).default(50)
   }],
@@ -937,7 +937,7 @@ const definitions = [
   ['release_transport_line_vehicle', 'Mark one assigned passenger or cargo vehicle to abandon the route and return through native simulation. Requires paused city.', { line_id: entityId, vehicle_id:entityId }],
   ['list_transport_line_policies', 'List route policies for activation, schedules, ticket price and vehicle interval with active state and slider range.', { line_id: entityId }],
   ['set_transport_line_policy', 'Queue a native route policy change by exact policy name.', { line_id: entityId, policy:z.string().min(1).max(200), active:z.boolean(), adjustment:z.number().finite().optional() }],
-  ['list_transport_facility_prefabs', 'List unlocked passenger/cargo stations, depots, airports, harbors and terminals with exact prefab name, supported transport/track types, placement mode, size, capacity and cost.', {
+  ['list_transport_facility_prefabs', 'List unlocked passenger/cargo stations, depots, airports, harbors and terminals with exact prefab name, supported transport/track types, placement mode, size, capacity and cost. Each item includes source with direct DLC/mod/login requirements, native labels and asset-pack membership; no_declared_requirement does not prove base-game origin.', {
     search: z.string().max(100).default(''), kind: z.enum(['all','station','depot','passenger','cargo']).default('all'), unlocked_only: z.boolean().default(true), offset: z.number().int().min(0).max(10000).default(0), limit: z.number().int().min(1).max(100).default(50)
   }],
   ['list_transport_facilities', 'List permanent transport stations and depots with instance state, type and position.', {}],
@@ -991,7 +991,7 @@ const definitions = [
   ['apply_work_route_operation', 'Commit a preview_ready work route; permanent route entity is created as a ServiceUpgrade-owned Route.', { operation_id: operationId, request_id: requestId }],
   ['cancel_work_route_preview', 'Cancel an uncommitted work route preview.', { operation_id: operationId }],
   ['delete_work_route', 'Delete only a permanent WorkRoute (for example Fishing Line), never passenger/cargo transport lines. Detaches route registrations and marks it Deleted for native cleanup. Requires a paused city.', { route_id: entityId }],
-  ['list_utility_facility_prefabs', 'List exact unlocked power plants, transformers, batteries, water pumps, sewage facilities, water towers and telecom facilities with placement and size data.', {
+  ['list_utility_facility_prefabs', 'List exact unlocked power plants, transformers, batteries, water pumps, sewage facilities, water towers and telecom facilities with placement and size data. Each item includes source with direct DLC/mod/login requirements, native labels and asset-pack membership; no_declared_requirement does not prove base-game origin.', {
     search: z.string().max(100).default(''), kind: z.enum(['all','power_plant','transformer','battery','water_pump','sewage','water_tower','telecom']).default('all'), unlocked_only: z.boolean().default(true), offset: z.number().int().min(0).max(10000).default(0), limit: z.number().int().min(1).max(100).default(50)
   }],
   ['list_utility_facilities', 'List permanent electricity, water, sewage and telecom facilities with current production, storage, pollution, processing and efficiency state.', { kind: z.enum(['all','power_plant','transformer','battery','water_pump','sewage','water_tower','telecom']).default('all') }],
@@ -1017,7 +1017,7 @@ const definitions = [
   ['apply_utility_operation', 'Commit one preview-ready utility create, upgrade or demolition operation while paused.', { operation_id: operationId, request_id: requestId, max_cost: z.number().int().min(0).max(1000000000) }],
   ['cancel_utility_preview', 'Cancel an uncommitted utility-network preview.', { operation_id: operationId }],
   ['connect_utility_facility', 'Discover a facility port and compatible utility target, try bounded native preview candidates, commit the first preview-ready connection, poll to completion, and restore the original simulation speed. Uses native preview/apply and never retries an outcome_unknown transaction with a new request ID.', { request_id: requestId, facility_id: entityId, connection: z.enum(['auto','high_voltage','low_voltage','fresh_water','sewage','stormwater']).default('auto'), utility_prefab: z.string().min(1).max(200).optional(), search_radius_m: z.number().finite().min(16).max(5000).default(500), routing: z.enum(['auto','direct','orthogonal']).default('auto'), max_preview_attempts: z.number().int().min(1).max(16).default(8), operation_timeout_ms: z.number().int().min(1000).max(120000).default(20000), max_cost: z.number().int().min(0).max(1000000000).default(1000000) }],
-  ['list_city_service_prefabs', 'List unlocked healthcare, fire, police, education, garbage, deathcare, maintenance, park, post, parking, welfare, research and emergency facility prefabs with capacities and placement data.', {
+  ['list_city_service_prefabs', 'List unlocked healthcare, fire, police, education, garbage, deathcare, maintenance, park, post, parking, welfare, research and emergency facility prefabs with capacities and placement data. Each item includes source with direct DLC/mod/login requirements, native labels and asset-pack membership; no_declared_requirement does not prove base-game origin.', {
     search: z.string().max(100).default(''), kind: z.enum(['all','healthcare','fire','police','education','garbage','deathcare','maintenance','park','post','parking','welfare','research','emergency']).default('all'), unlocked_only: z.boolean().default(true), offset: z.number().int().min(0).max(10000).default(0), limit: z.number().int().min(1).max(100).default(50)
   }],
   ['list_city_service_facilities', 'List permanent city-service facilities with service type, position, efficiency, current load, processing state and owned vehicle count.', { kind: z.enum(['all','healthcare','fire','police','education','garbage','deathcare','maintenance','park','post','parking','welfare','research','emergency']).default('all') }],

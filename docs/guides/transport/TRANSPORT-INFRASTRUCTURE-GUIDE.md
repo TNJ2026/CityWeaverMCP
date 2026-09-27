@@ -37,7 +37,7 @@
 | 货运火车 | Rail Yard；货运火车站；铁轨；货车道路入口 | 同时需要可寻路铁轨与道路货运通道；对外货运需要铁路外部连接和货运线路 | 货运站兼具存储/分拨作用，即使没有货运线路也可能被本地卡车使用。吞吐会产生大量卡车，不得把唯一出入口放在住宅道路或紧贴拥堵路口。 |
 | 有轨电车 | Tram Depot；站点；连续兼容电车轨道 | 车辆段必须接轨；轨道可嵌入兼容道路，也可独立铺设 | 支持单向/双向、地面、高架、桥梁、路堑和隧道。道路嵌轨会与路口及道路交通相互影响；独立路权减少冲突，但仍需站点步行可达。 |
 | 地铁 | Subway Yard；地面/地下/高架车站；连续专用地铁轨道 | 车辆段与所有站台必须接入同一可寻路地铁网络 | 支持单向/双向、地面、高架、桥梁、路堑和隧道。地下站入口占地较小，但站体、轨道曲线、坡度、隧道净空和其他地下网络仍须通过原生预览。 |
-| 客运船舶 | 客运港口，或港口主门 + Passenger Terminal；Seaway；船舶线路 | 港口须满足岸线/水深放置规则，并接到可达地图边缘的航道；陆侧需要道路和步行接驳 | 城际船运只有在港口、航道和外部连接形成连续路径后才能运行。客运码头建成不等于航线已创建。 |
+| 客运船舶 | 客运港口，或港口主门 + Passenger Terminal；Seaway；船舶线路 | 港口须满足岸线/水深放置规则；市内航线需要港口之间连续可寻路的航道，城际航线还须接通地图边缘的外部连接；陆侧需要道路和步行接驳 | 城际船运只有在港口、航道和外部连接形成连续路径后才能运行。客运码头建成不等于航线已创建。 |
 | 货运船舶 | Cargo Harbor，或港口主门 + 仓储 + 码头/起重机；Seaway；货运船线路 | 同时需要岸线/水深、连续航道、道路货运入口和存储能力 | 港口会产生大量卡车；铁路升级还需连接兼容铁轨。仓储、泊位与陆侧道路任一断开都会限制吞吐。 |
 | 航空客运 | 机场；航空线路 | 需要大块连续净空和道路接入；使用线路工具直接连接航空外部连接 | 不需要额外铺设航空网络。跑道两端的起降区会限制分区建筑高度，必须把整条限高走廊纳入选址和后续规划。 |
 | 航空货运 | 机场 + 兼容货运航站升级；航空货运线路；道路货运入口 | 除机场条件外，还要为货运航站、卡车排队和扩建预留空间 | 容量通常低于火车和船舶但速度高；航空不受城市道路拥堵影响，机场陆侧卡车仍受道路容量约束。 |
@@ -66,7 +66,7 @@
 
 移动和拆除分别使用 `preview_transport_facility_move` 与 `preview_transport_facility_delete`，随后走相同的读取、提交和验证流程。预览未提交时可用 `cancel_transport_facility_preview` 清理。
 
-`list_transport_facility_upgrades`、`preview_transport_facility_upgrade` 和 `preview_transport_facility_upgrade_removal` 覆盖兼容升级模块；名称、启停和政策使用 `set_transport_facility_name`、`set_transport_facility_active`、`list_transport_facility_policies` 与 `set_transport_facility_policy`。升级列表复用通用建筑升级几何，返回主体侧吸附点，并在原生范围允许时返回 `road_side_candidates`。主体侧模式使用返回的 `placement_side` 与 `placement_offset_m`；道路侧模式必须把候选的 `position`、`rotation_degrees` 和 `road_edge_id` 原样传给 `preview_transport_facility_upgrade`。隔着道路仍保持设施所有权，但不能覆盖道路，最终以原生预览为准。
+`list_transport_facility_upgrades`、`preview_transport_facility_upgrade` 和 `preview_transport_facility_upgrade_removal` 覆盖兼容升级模块；名称、启停和政策使用 `set_transport_facility_name`、`set_transport_facility_active`、`list_transport_facility_policies` 与 `set_transport_facility_policy`。升级列表复用通用建筑升级几何，返回主体侧吸附点，并在原生范围允许时返回 `road_side_candidates`。主体侧模式使用返回的 `placement_side` 与 `placement_offset_m`；道路侧模式必须把候选的 `position`、`rotation_degrees` 和 `road_edge_id` 原样传给 `preview_transport_facility_upgrade`。隔着道路仍保持设施所有权。普通模块须避让道路；具有 `CanBeOnRoad` 标志的模块允许按原生规则占用道路，例如当前吊臂和客运楼的候选吸附到道路中心线。不要为避让道路而手动偏移这些候选，具体放置与碰撞是否合法以原生预览为准。
 
 ## 航道
 
@@ -75,6 +75,8 @@ Seaway 查询、原生预览、提交、取消和拆除接口见 [航道 MCP 指
 标准货运港口的岸线候选、内部航道接驳及水电污水/首船验收，按 [港口施工与验收要点](WATERWAY-GUIDE.md#港口施工与验收要点) 执行。1.23.1已完成同型Medium Seaway接港实测；异宽Narrow→Medium接头仍有限制，不能根据同型成功推断异宽可用。
 
 ## 轨道
+
+有轨电车从走廊规划、道路嵌轨、独立轨道、车辆段、道路侧站点到闭合线路和实车验收的完整顺序，见[有轨电车规划、施工与运营验收指南](TRAM-CONSTRUCTION-GUIDE.md)。
 
 `list_transport_track_prefabs` 返回游戏中的 `TrackPrefab`，包含 Train、Subway、Tram 类型及速度、宽度、最大坡度、允许长度、高程范围和单位长度费用。`list_transport_tracks` 与 `get_transport_track` 读取永久轨道、端点节点、曲线和所有者。
 

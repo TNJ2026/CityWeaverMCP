@@ -9,7 +9,7 @@ test('concurrent identical requests share one preview and reject conflicting in-
   const started=new Promise(resolve=>{entered=resolve;});
   const workflow=createBuildingWorkflow(async tool=>{
     if(tool==='get_game_status')return response({city_loaded:true,paused:true});
-    if(tool==='list_building_prefabs')return response({items:[{name:'FixtureBuilding'}]});
+    if(tool==='list_building_prefabs')return response({items:[{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false },name:'FixtureBuilding'}]});
     if(tool==='plan_building_site')return response({candidates:[{position:{x:0,z:0},rotation_degrees:0}]});
     if(tool==='preview_building_placement'){previews++;entered();await gate;return response({state:'preview_ready',operation_id:'one-preview'});}
     throw new Error(tool);
@@ -35,7 +35,7 @@ test('terminal planning failure releases the pending request and records failed 
   let reads=0;
   const workflow=createBuildingWorkflow(async tool=>{
     if(tool==='get_game_status')return response({city_loaded:true,paused:true});
-    if(tool==='list_building_prefabs')return response({items:[{name:'FixtureBuilding'}]});
+    if(tool==='list_building_prefabs')return response({items:[{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false },name:'FixtureBuilding'}]});
     if(tool==='plan_building_site'){reads++;if(reads===1)throw new BridgeError('TERRAIN_UNAVAILABLE','fixture');return response({candidates:[{position:{x:0,z:0}}]});}
     if(tool==='preview_building_placement')return response({state:'preview_ready',operation_id:'retry'});
     throw new Error(tool);
@@ -52,7 +52,7 @@ test('education and passenger transport score all candidates in one batch query'
     const tool=category==='city_service'?'analyze_education_demand':'analyze_transport_catchment';
     const workflow=createBuildingWorkflow(async(name,args)=>{
       if(name==='get_game_status')return response({city_loaded:true,paused:true});
-      if(name===`list_${category}_prefabs`)return response({items:[{name:'FixtureBuilding',kind:'education',education_level:1,student_capacity:100,passenger:true}]});
+      if(name===`list_${category}_prefabs`)return response({items:[{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false },name:'FixtureBuilding',kind:'education',education_level:1,student_capacity:100,passenger:true}]});
       if(name===`plan_${category}_site`)return response({candidates:[0,100].map(x=>({position:{x,z:0},rotation_degrees:0,score:x}))});
       if(name===tool){
         analysisCalls++;assert.equal(args.positions.length,2);
@@ -75,7 +75,7 @@ test('unsupported analysis batches fall back once per city session and preserve 
   const r=data=>({data,meta:{session_id:currentSession}});
   const workflow=createBuildingWorkflow(async(tool,args)=>{
     if(tool==='get_game_status')return r({city_loaded:true,paused:true});
-    if(tool==='list_city_service_prefabs')return r({items:[{name:'FixtureBuilding',kind:'education',education_level:1,student_capacity:100}]});
+    if(tool==='list_city_service_prefabs')return r({items:[{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false },name:'FixtureBuilding',kind:'education',education_level:1,student_capacity:100}]});
     if(tool==='plan_city_service_site')return r({candidates:[0,100].map(x=>({position:{x,z:0},rotation_degrees:0,score:x}))});
     if(tool==='analyze_education_demand'){
       if(args.positions){batchCalls++;throw new BridgeError('INVALID_ARGUMENT','legacy mod');}
@@ -99,7 +99,7 @@ test('uncertain previews stop candidate fallback, retries and batch continuation
     let previews=0;
     const workflow=createBuildingWorkflow(async tool=>{
       if(tool==='get_game_status')return response({city_loaded:true,paused:true});
-      if(tool==='list_building_prefabs')return response({items:[{name:'FixtureBuilding'}]});
+      if(tool==='list_building_prefabs')return response({items:[{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false },name:'FixtureBuilding'}]});
       if(tool==='plan_building_site')return response({candidates:[0,100].map(x=>({position:{x,z:0},rotation_degrees:0}))});
       if(tool==='preview_building_placement'){previews++;return response({state:'queued',operation_id:'original-preview'});}
       if(tool==='get_building_operation'){
@@ -122,7 +122,7 @@ test('reservation filtering widens a truncated candidate pool within the origina
   const counts=[];
   const workflow=createBuildingWorkflow(async(tool,args)=>{
     if(tool==='get_game_status')return response({city_loaded:true,paused:true});
-    if(tool==='list_building_prefabs')return response({items:[{name:'FixtureBuilding',size_m:{x:20,z:20}}]});
+    if(tool==='list_building_prefabs')return response({items:[{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false },name:'FixtureBuilding',size_m:{x:20,z:20}}]});
     if(tool==='plan_building_site'){
       counts.push(args.candidate_count);assert.equal(args.search_radius_m,500);
       return response({candidates:(args.candidate_count===1?[0]:[0,100]).map(x=>({position:{x,z:0},rotation_degrees:0}))});
@@ -145,7 +145,7 @@ test('batch deployment stops on unsafe outcomes and honors continue_on_error for
     let commits = 0, applied = false;
     const workflow = createBuildingWorkflow(async (tool, args) => {
       if (tool === 'get_game_status') return response({ city_loaded: true, paused: true, selected_speed: 0 });
-      if (tool === 'list_building_prefabs') return response({ items: [{ name: 'School' }] });
+      if (tool === 'list_building_prefabs') return response({ items: [{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false }, name: 'School' }] });
       if (tool === 'plan_building_site') return response({ candidates: [{ position: args.near, rotation_degrees: 0, road_edge_id: edgeId }] });
       if (tool === 'preview_building_placement') { applied = false; return response({ operation_id: `op-${commits}`, state: 'preview_ready', cost: 100 }); }
       if (tool === 'get_building_operation') return response({ state: applied ? outcome : 'preview_ready', cost: 100 });
@@ -190,7 +190,7 @@ test('planned footprint reservations filter candidates before creating native pr
   const selected = [];
   const workflow = createBuildingWorkflow(async (tool, args) => {
     if (tool === 'get_game_status') return response({ city_loaded:true, paused:true });
-    if (tool === 'list_building_prefabs') return response({items:[{name:'FixtureBuilding',size_m:{x:40,z:20}}]});
+    if (tool === 'list_building_prefabs') return response({items:[{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false },name:'FixtureBuilding',size_m:{x:40,z:20}}]});
     if (tool === 'plan_building_site') return response({candidates:[0,100].map(x=>({position:{x,z:0},rotation_degrees:0,score:x}))});
     if (tool === 'preview_building_placement') { selected.push(args.position.x); return response({state:'preview_ready',operation_id:'preview'}); }
     throw new Error(`Unexpected ${tool}`);
@@ -204,7 +204,7 @@ test('greedy deployment re-reads marginal coverage after each permanent building
   const selected = [], analysisSnapshots = [];
   const workflow = createBuildingWorkflow(async (tool, args) => {
     if (tool === 'get_game_status') return response({ city_loaded: true, paused: true, selected_speed: 0 });
-    if (tool === 'list_city_service_prefabs') return response({ items: [{ name: 'Clinic', kind: 'healthcare' }] });
+    if (tool === 'list_city_service_prefabs') return response({ items: [{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false }, name: 'Clinic', kind: 'healthcare' }] });
     if (tool === 'plan_city_service_site') return response({ candidates: [0, 100].map(x => ({ position: { x, z: 0 }, score: x, road_edge_id: edgeId, rotation_degrees: 0 })) });
     if (tool === 'analyze_service_coverage') {
       analysisSnapshots.push(built);
@@ -235,7 +235,7 @@ test('greedy ranking still rejects collisions and falls back after native reject
   const previews = [];
   const workflow = createBuildingWorkflow(async (tool, args) => {
     if (tool === 'get_game_status') return response({ city_loaded: true, paused: true, selected_speed: 0 });
-    if (tool === 'list_city_service_prefabs') return response({ items: [{ name: 'Clinic', kind: 'healthcare' }] });
+    if (tool === 'list_city_service_prefabs') return response({ items: [{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false }, name: 'Clinic', kind: 'healthcare' }] });
     if (tool === 'plan_city_service_site') return response({ candidates: [0, 100, 200].map(x => ({ position: { x, z: 0 }, score: x, approximate_collision: x === 200 })) });
     if (tool === 'analyze_service_coverage') return response({ uncovered_residential_buildings: args.position.x });
     if (tool === 'preview_city_service_placement') {
@@ -260,7 +260,7 @@ test('building workflow falls back after native rejection and commits only durin
     calls.push({ tool, args });
     if (tool === 'get_game_status') return response({ city_loaded: true, city_name: 'Fixture City', paused, selected_speed: paused ? 0 : 4 });
     if (tool === 'set_simulation_speed') { paused = args.speed === 'paused'; return response({ paused, selected_speed: paused ? 0 : 4 }); }
-    if (tool === 'list_building_prefabs') return response({ items: [{ name: 'FixtureBuilding', placement_flags: 'RoadSide, OnGround', construction_cost: 12000 }] });
+    if (tool === 'list_building_prefabs') return response({ items: [{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false }, name: 'FixtureBuilding', placement_flags: 'RoadSide, OnGround', construction_cost: 12000 }] });
     if (tool.startsWith('list_') && tool.endsWith('_facility_prefabs') || tool === 'list_city_service_prefabs') return response({ items: [] });
     if (tool === 'plan_building_site') return response({ candidates: [
       { position: { x: 110, y: 5, z: 210 }, rotation_degrees: 0, road_edge_id: edgeId, approximate_collision: false },
@@ -305,8 +305,8 @@ test('auto discovery prefers city-service workflow and supports cancellation', a
     calls.push({ tool, args });
     if (tool === 'get_game_status') return response({ city_loaded: true, city_name: 'Fixture City', paused, selected_speed: paused ? 0 : 2 });
     if (tool === 'set_simulation_speed') { paused = args.speed === 'paused'; return response({ paused, selected_speed: paused ? 0 : 2 }); }
-    if (tool === 'list_building_prefabs') return response({ items: [{ name: 'FixturePark', placement_flags: 'RoadSide, OnGround' }] });
-    if (tool === 'list_city_service_prefabs') return response({ items: [{ name: 'FixturePark', kind: 'park', placement_flags: 'RoadSide, OnGround' }] });
+    if (tool === 'list_building_prefabs') return response({ items: [{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false }, name: 'FixturePark', placement_flags: 'RoadSide, OnGround' }] });
+    if (tool === 'list_city_service_prefabs') return response({ items: [{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false }, name: 'FixturePark', kind: 'park', placement_flags: 'RoadSide, OnGround' }] });
     if (tool === 'list_transport_facility_prefabs' || tool === 'list_utility_facility_prefabs') return response({ items: [] });
     if (tool === 'plan_city_service_site') return response({ coverage_model: 'euclidean_radius_proxy', candidates: [{ position: { x: 50, y: 5, z: 60 }, road_edge_id: edgeId, rotation_degrees: -90, approximate_collision: false }] });
     if (tool === 'preview_city_service_placement') return response({ operation_id: '3'.repeat(32), state: 'preview_ready', cost: 5000, warnings: [], expires_at_utc: '2099-01-01T00:00:00Z' });
@@ -329,7 +329,7 @@ test('auto discovery prefers city-service workflow and supports cancellation', a
 test('building workflow skips optional service impact analysis when disabled', async () => {
   const query = async (tool, args) => {
     if (tool === 'get_game_status') return response({ city_loaded: true, city_name: 'Fixture City', paused: true, selected_speed: 0 });
-    if (tool === 'list_city_service_prefabs') return response({ items: [{ name: 'FixtureSchool', kind: 'education', placement_flags: 'RoadSide, OnGround' }] });
+    if (tool === 'list_city_service_prefabs') return response({ items: [{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false }, name: 'FixtureSchool', kind: 'education', placement_flags: 'RoadSide, OnGround' }] });
     if (tool === 'plan_city_service_site') return response({ candidates: [{ position: { x: 50, y: 5, z: 60 }, road_edge_id: edgeId, rotation_degrees: 0, approximate_collision: false }] });
     if (tool === 'preview_city_service_placement') return response({ operation_id: '7'.repeat(32), state: 'preview_ready', cost: 5000 });
     if (tool.startsWith('analyze_')) throw new Error('impact analysis should be disabled');
@@ -350,7 +350,7 @@ test('execution recovers an already completed native operation and reads it back
     calls.push({ tool, args });
     if (tool === 'get_game_status') return response({ city_loaded: true, city_name: 'Fixture City', paused, selected_speed: paused ? 0 : 1 });
     if (tool === 'set_simulation_speed') { paused = args.speed === 'paused'; return response({ paused, selected_speed: paused ? 0 : 1 }); }
-    if (tool === 'list_building_prefabs') return response({ items: [{ name: 'RecoveredBuilding', placement_flags: 'RoadSide, OnGround', placement: { unique: true } }] });
+    if (tool === 'list_building_prefabs') return response({ items: [{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false }, name: 'RecoveredBuilding', placement_flags: 'RoadSide, OnGround', placement: { unique: true } }] });
     if (tool.startsWith('list_')) return response({ items: [] });
     if (tool === 'plan_building_site') return response({ candidates: [{ position: { x: 20, y: 5, z: 30 }, road_edge_id: edgeId, rotation_degrees: 0, approximate_collision: false }] });
     if (tool === 'preview_building_placement') return response({ operation_id: '4'.repeat(32), state: 'preview_ready', cost: 7000 });
@@ -378,7 +378,7 @@ test('execution rejects a completed roadside building whose permanent road bindi
   const query = async (tool, args) => {
     if (tool === 'get_game_status') return response({ city_loaded: true, city_name: 'Fixture City', paused, selected_speed: paused ? 0 : 2 });
     if (tool === 'set_simulation_speed') { paused = args.speed === 'paused'; return response({ paused, selected_speed: paused ? 0 : 2 }); }
-    if (tool === 'list_building_prefabs') return response({ items: [{ name: 'UnboundBuilding', placement_flags: 'RoadSide, OnGround' }] });
+    if (tool === 'list_building_prefabs') return response({ items: [{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false }, name: 'UnboundBuilding', placement_flags: 'RoadSide, OnGround' }] });
     if (tool.startsWith('list_')) return response({ items: [] });
     if (tool === 'plan_building_site') return response({ candidates: [{ position: { x: 40, y: 5, z: 50 }, road_edge_id: edgeId, rotation_degrees: 0, approximate_collision: false }] });
     if (tool === 'preview_building_placement') return response({ operation_id: '8'.repeat(32), state: 'preview_ready', cost: 6000 });
@@ -408,7 +408,7 @@ test('batch deployment pauses once and restores speed once', async () => {
     calls.push({ tool, args });
     if (tool === 'get_game_status') return response({ city_loaded: true, city_name: 'Fixture City', paused, selected_speed: paused ? 0 : 4 });
     if (tool === 'set_simulation_speed') { paused = args.speed === 'paused'; return response({ paused, selected_speed: paused ? 0 : 4 }); }
-    if (tool === 'list_building_prefabs') return response({ items: [{ name: 'BatchBuilding', placement_flags: 'RoadSide, OnGround' }] });
+    if (tool === 'list_building_prefabs') return response({ items: [{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false }, name: 'BatchBuilding', placement_flags: 'RoadSide, OnGround' }] });
     if (tool.startsWith('list_')) return response({ items: [] });
     if (tool === 'plan_building_site') return response({ candidates: [{ position: { x: 100 + operationNumber, y: 5, z: 200 }, road_edge_id: edgeId, rotation_degrees: 0, approximate_collision: false }] });
     if (tool === 'preview_building_placement') {
@@ -445,7 +445,7 @@ test('different requests share in-flight prefab discovery and retry after failur
       if(tool==='list_building_prefabs'){
         calls++; entered(); await gate;
         if(fail && calls===1)throw new BridgeError('GAME_UNAVAILABLE','fixture');
-        return response({items:[{name:'FixtureBuilding'}]});
+        return response({items:[{ source: { category: 'no_declared_requirement', requirements_complete: true, content_available: true, is_builtin_asset: true, is_subscribed_mod: false },name:'FixtureBuilding'}]});
       }
       if(tool==='plan_building_site')return response({candidates:[{position:{x:0,z:0}}]});
       if(tool==='preview_building_placement')return response({state:'preview_ready',operation_id:'shared-discovery'});
