@@ -4,6 +4,8 @@
 
 ## 正常流程
 
+展示优先使用 MCP App 卡片。卡片已显示时，不再自动打开规划图网页或重复提供网页链接；只有卡片不可用、加载失败或用户明确要求网页时才使用保存的 HTML/SVG。返回的文件路径用于回退和归档，不代表必须打开网页；`presentation.card_payload` 只报告数据准备状态，不确认宿主显示状态。
+
 1. `render_city_plan` 或 `propose_city_plan` 返回 `plan_ref`、原有 `plan_id` 和网页 `artifact_path` / `artifact_uri`、文件大小、SHA-256。HTML/SVG 文件保持原渲染内容，不再内嵌进工具响应。文件链接只保证本机可访问，远端客户端需由宿主提供文件传输或可信资源映射；不得为取文件而再次让模型读取整份 HTML。
 2. 用户批准规划后，调用 `prepare_city_plan_construction({plan_ref, approved_plan_id})`。它仍实时检查会话和 prefab，验证规划哈希及虚拟沙盒，保存编译批次与执行器版本，返回 `construction_id` 和 `next_action`。渲染、持有引用都不代表已批准施工。
 3. 后续原样使用小型 `next_action.arguments`，例如：
@@ -34,7 +36,9 @@
 
 不可变记录采用完整SHA-256内容引用；既有 `cplan-...` 审批算法保持兼容。施工日志采用临时文件、刷盘后重命名；跨进程文件锁避免同一目录内的句柄施工并发。执行前保存 `in_flight`，完成后保存结果和证据。
 
-进程中断或原生结果未知时保持 `CONSTRUCTION_RECOVERY_REQUIRED`，不自动重试或绕过失败。用 `read_planning_record` 读取日志中的 `in_flight.arguments`、request ID、operation ID，再用原领域查询核对原生事务和永久对象。当前版本不提供自动解除恢复锁或跨会话续建；不能删除日志并重新 prepare 来重建已完成对象。崩溃遗留 `construction.lock` 时，先确认记录的进程已退出、核对日志，才可人工移除锁文件；移除文件锁不解除日志中的恢复状态。
+进程中断或原生结果未知时保持 `CONSTRUCTION_RECOVERY_REQUIRED`，不自动重试或绕过失败。用 `read_planning_record` 读取日志中的 `in_flight.arguments`、request ID、operation ID，再用原领域查询核对原生事务和永久对象。不能删除日志并重新 prepare 来重建已完成对象。崩溃遗留 `construction.lock` 时，先确认记录的进程已退出、核对日志，才可人工移除锁文件；移除文件锁不解除日志中的恢复状态。
+
+受限恢复入口 `recover_city_plan_request_collision({construction_id,state_version})` 仅用于旧版中文名称或长名称造成的预览请求编号冲突。要求失败明确为 `IDEMPOTENCY_CONFLICT`、发生于预览而非提交，且旧编号对应上一批已完成的原生道路操作；同时核对城市会话、规划与编译哈希，以及已建道路的实时回读。通过后只更新原施工日志的下一预览编号并保存审计证据，不施工、不重新创建句柄、不重建已完成道路。超时、结果未知、提交冲突和跨会话仍锁定。恢复后的日志要求新版执行器，旧 MCP 进程会拒绝续建，须重新加载 Node MCP 服务；无需重启游戏。新编号对完整规划、批次及操作类型生成稳定 SHA-256，保留精确重试语义。
 
 锁只覆盖此目录的句柄施工，不代替游戏原生工具互斥，也不阻止玩家或其他接口操作城市。原生预览、提交前检查、道路绑定和永久回读仍负责检测相关实时变化。无自动删除活动日志或证据的保留策略，长期运行应在确认工程结束并归档后管理磁盘空间。
 

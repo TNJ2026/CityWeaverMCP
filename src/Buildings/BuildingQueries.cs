@@ -383,6 +383,10 @@ namespace CityWeaver
 
         private JObject ListBuildingUpgrades(JObject args, World world)
         {
+            string requestedPrefab = (string)args["upgrade_prefab"];
+            bool includeGeometry = (bool?)args["include_placement_geometry"] ?? true;
+            if (requestedPrefab != null && (string.IsNullOrWhiteSpace(requestedPrefab) || requestedPrefab.Length > 200))
+                throw new QueryException("INVALID_ARGUMENT", "upgrade_prefab must be an exact non-empty prefab name of at most 200 characters.");
             var em = world.EntityManager; var prefabs = world.GetExistingSystemManaged<PrefabSystem>();
             var buildingEntity = ParseEntity((string)args["building_id"], em);
             if (!em.HasComponent<Building>(buildingEntity) || !em.HasComponent<PrefabRef>(buildingEntity) || em.HasComponent<Deleted>(buildingEntity) || em.HasComponent<Temp>(buildingEntity))
@@ -395,21 +399,28 @@ namespace CityWeaver
             }
             var installedPrefabs = new List<Entity>(); foreach (var entity in installed) if (em.HasComponent<PrefabRef>(entity)) installedPrefabs.Add(em.GetComponentData<PrefabRef>(entity).m_Prefab);
             var rows = new List<JObject>();
+            int compatibleCount = 0;
             using (var query = em.CreateEntityQuery(ComponentType.ReadOnly<Game.Prefabs.ServiceUpgradeData>(), ComponentType.ReadOnly<ServiceUpgradeBuilding>(), ComponentType.ReadOnly<PrefabData>()))
             using (var entities = query.ToEntityArray(Allocator.Temp)) foreach (var entity in entities)
             {
                 var compatible = em.GetBuffer<ServiceUpgradeBuilding>(entity, true); bool matches = false;
                 for (int i = 0; i < compatible.Length; i++) if (compatible[i].m_Building == buildingPrefab) { matches = true; break; }
                 if (!matches || !prefabs.TryGetPrefab<PrefabBase>(entity, out var prefab)) continue;
+                compatibleCount++;
+                // Filter before candidate generation: harbor catalogs contain many costly
+                // shoreline/subnet searches that need not run for unrelated modules.
+                if (requestedPrefab != null && !string.Equals(prefab.name, requestedPrefab, StringComparison.Ordinal)) continue;
                 var data = em.GetComponentData<Game.Prefabs.ServiceUpgradeData>(entity); int installedCount = installedPrefabs.Count(x => x == entity); bool locked = PrefabLocked(em, entity);
                 rows.Add(new JObject { ["name"] = prefab.name, ["locked"] = locked, ["upgrade_cost"] = data.m_UpgradeCost, ["forbid_multiple"] = data.m_ForbidMultiple,
                     ["max_placement_distance_m"] = data.m_MaxPlacementDistance, ["max_placement_offset_cells"] = data.m_MaxPlacementOffset, ["installed_count"] = installedCount,
                     ["can_install"] = !locked && (!data.m_ForbidMultiple || installedCount == 0),
-                    ["placement_geometry"] = UpgradePlacementGeometry(em, buildingEntity, buildingPrefab, entity, data, world) });
+                    ["placement_geometry"] = includeGeometry ? UpgradePlacementGeometry(em, buildingEntity, buildingPrefab, entity, data, world) : null });
             }
             rows.Sort((a, b) => string.CompareOrdinal((string)a["name"], (string)b["name"]));
             return new JObject { ["building_id"] = new BuildingOperation { Session = m_Session }.EntityId(buildingEntity), ["building_prefab"] = prefabs.GetPrefab<PrefabBase>(buildingPrefab).name,
-                ["compatible_upgrade_count"] = rows.Count, ["installed_upgrade_count"] = installed.Count, ["installed_upgrade_ids"] = new JArray(installed.Select(x => new BuildingOperation { Session = m_Session }.EntityId(x))), ["items"] = new JArray(rows) };
+                ["compatible_upgrade_count"] = compatibleCount, ["returned_upgrade_count"] = rows.Count,
+                ["upgrade_prefab"] = requestedPrefab, ["placement_geometry_included"] = includeGeometry,
+                ["installed_upgrade_count"] = installed.Count, ["installed_upgrade_ids"] = new JArray(installed.Select(x => new BuildingOperation { Session = m_Session }.EntityId(x))), ["items"] = new JArray(rows) };
         }
 
         private Entity TopLevelBuilding(JObject args, World world)
@@ -1083,6 +1094,14 @@ namespace CityWeaver
                             if (math.distance(p.xz, ownerPosition.xz) < math.length(new float2(ownerLot.x, ownerLot.y)) * 4f + math.length(prefabHalf) + 8f) continue;
                         }
                         if (mode == "shoreline") { angle += 180; if (angle > 180) angle -= 360; }
+                        if (mode == "floating")
+                        {
+                            var place = em.GetComponentData<PlaceableObjectData>(prefab);
+                            var reference = p;
+                            if ((place.m_Flags & Game.Objects.PlacementFlags.RoadSide) != 0 && em.HasComponent<BuildingData>(prefab))
+                                reference = BuildingUtils.CalculateFrontPosition(new Game.Objects.Transform(p, quaternion.RotateY(math.radians(angle))), em.GetComponentData<BuildingData>(prefab).m_LotSize.y);
+                            p.y = FloatingPlacement.Height(waterHeight, place.m_PlacementOffset.y, TerrainUtils.SampleHeight(ref terrain, reference));
+                        }
                         candidates.Add(Tuple.Create(distance + (mode == "shoreline" ? math.abs(depth) * 10 + shorelineGap * 20 : 0), new JObject { ["position"] = new JObject { ["x"] = p.x, ["y"] = p.y, ["z"] = p.z },
                             ["rotation_degrees"] = angle, ["snap_target_id"] = null, ["snap_target_kind"] = mode, ["water_depth_m"] = depth,
                             ["water_depth_at_outer_edge_m"] = outerDepth, ["water_surface_height_m"] = waterHeight, ["shoreline_height_gap_m"] = shorelineGap, ["distance_from_request_m"] = distance }));
@@ -1196,8 +1215,13 @@ namespace CityWeaver
                         var water = world.GetExistingSystemManaged<WaterSystem>().GetSurfaceData(out var waterDeps); waterDeps.Complete();
                         if (!terrain.isCreated || !water.isCreated) throw new QueryException("WATER_UNAVAILABLE", "Terrain or water surface data is not ready.");
                         bool hasWater; float waterHeight = WaterUtils.SampleHeight(ref water, ref terrain, op.Position, out hasWater);
-                        if (!hasWater || math.abs(op.Position.y - waterHeight) > 1f || WaterUtils.SampleDepth(ref water, op.Position) < 1f)
-                            throw new QueryException("UPGRADE_WATER_UNAVAILABLE", "Use a current floating candidate with a matching water-surface height.");
+                        var floatingPlace = em.GetComponentData<PlaceableObjectData>(op.Prefab);
+                        var reference = op.Position;
+                        if ((floatingPlace.m_Flags & Game.Objects.PlacementFlags.RoadSide) != 0)
+                            reference = BuildingUtils.CalculateFrontPosition(new Game.Objects.Transform(op.Position, op.Rotation), module.m_LotSize.y);
+                        float expectedHeight = FloatingPlacement.Height(waterHeight, floatingPlace.m_PlacementOffset.y, TerrainUtils.SampleHeight(ref terrain, reference));
+                        if (!hasWater || math.abs(op.Position.y - expectedHeight) > 1f || WaterUtils.SampleDepth(ref water, op.Position) < 1f)
+                            throw new QueryException("UPGRADE_WATER_UNAVAILABLE", "Use a current floating candidate including the prefab water-surface placement offset.");
                         BuildingUtils.CalculateUpgradeRangeValues(op.OriginalRotation, host, module, upgradeData,
                             out var rangeForward, out var width, out var length, out var roundness, out var circular);
                         if (!UpgradeFootprintInsideRange(op.OriginalPosition, rangeForward.xz, width, length, roundness, circular, module, op.Position, op.Rotation))

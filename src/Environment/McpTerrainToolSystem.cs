@@ -77,6 +77,14 @@ namespace CityWeaver
             if (m_Phase == 0)
             {
                 if (m_Ticks < 3) return;
+                if (op.Mode == "clear_shallow_water")
+                {
+                    if (World.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0)
+                    { Fail("CITY_MUST_BE_PAUSED"); return; }
+                    try { ShallowWaterCleanup.Apply(op, World); }
+                    catch (QueryException e) { op.Error = e.Code; op.State = op.ApplyDispatched ? "outcome_unknown" : "failed"; }
+                    Finish(); return;
+                }
                 if (op.Mode == "raise_land")
                 {
                     ApplyLandShift(op);

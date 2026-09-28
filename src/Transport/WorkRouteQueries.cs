@@ -21,6 +21,8 @@ namespace CityWeaver
         public string Id = Guid.NewGuid().ToString("N"), Session, RequestId, Fingerprint, Type, State = "queued", Error, PrefabName;
         public Entity Owner, OwnerPrefab, Prefab, Target, Result;
         public readonly List<float3> Points = new List<float3>();
+        public readonly List<Entity> Stops = new List<Entity>();
+        public JObject ConnectionDetails = new JObject();
         public bool CommitRequested, CancelRequested, ApplyDispatched;
         public DateTime Expires = DateTime.UtcNow.AddMinutes(5);
         public JArray Errors = new JArray(), Warnings = new JArray();
@@ -41,7 +43,8 @@ namespace CityWeaver
                 ["owner_building_id"] = EntityId(Owner), ["area_prefab"] = PrefabName,
                 ["target_route_id"] = EntityId(Target), ["result_route_id"] = EntityId(Result),
                 ["errors"] = Errors, ["warnings"] = Warnings, ["error"] = Error,
-                ["validation_scope"] = "conservative_map_water_owner_vehicle_preflight; native_route_path_not_previewed",
+                ["validation_scope"] = "native_route_preview_and_path_validation",
+                ["connection_details"] = ConnectionDetails,
                 ["can_commit"] = State == "preview_ready",
                 ["expires_at_utc"] = Expires.ToString("O")
             };
@@ -55,6 +58,7 @@ namespace CityWeaver
 
         private void ResetWorkRouteOperations()
         {
+            World.DefaultGameObjectInjectionWorld?.GetExistingSystemManaged<McpWorkRouteToolSystem>()?.AbortForLoading();
             m_WorkRouteOperations.Clear();
             m_WorkRouteRequestIds.Clear();
         }
@@ -133,6 +137,7 @@ namespace CityWeaver
                     stops.Add(item);
                 }
                 row["waypoints"] = stops;
+                row["connectivity"] = WorkRouteConnectivity.Read(em, e, EntityId);
             }
             return row;
         }
@@ -211,13 +216,21 @@ namespace CityWeaver
             }
 
             ValidateWorkRoutePlan(op, world);
-            op.Warnings.Add("This preflight does not run the native route tool or prove a navigable path; verify segment paths and dispatched vehicles after simulation resumes.");
+            for (int i = 0; i < op.Points.Count; i++)
+            {
+                var stop = FindNearestWorkStop(em, op.Points[i], 64f, op.Owner);
+                op.Stops.Add(stop);
+                if (stop != Entity.Null) op.Points[i] = em.GetComponentData<Game.Objects.Transform>(stop).m_Position;
+            }
+            // Check the snapped geometry, not only the caller's nearby points.
+            ValidateWorkRoutePlan(op, world);
+            op.Warnings.Add("Native path validation does not guarantee production or vehicle dispatch; verify after simulation resumes.");
 
             m_WorkRouteOperations.Add(op.Id, op);
             m_WorkRouteRequestIds.Add(key, op.Id);
 
-            // This is a conservative terrain/water/owner preflight, not a native temp preview.
-            op.State = "preview_ready";
+            try { world.GetOrCreateSystemManaged<McpWorkRouteToolSystem>().Begin(op); }
+            catch { op.State = "failed"; op.Error = "WORK_ROUTE_PREVIEW_NOT_STARTED"; throw; }
 
             return op.Json();
         }
@@ -245,6 +258,7 @@ namespace CityWeaver
                 throw new QueryException("REQUEST_ID_CONFLICT", "Use the preview request_id.");
             if (op.State == "expired")
                 throw new QueryException("WORK_ROUTE_PREVIEW_EXPIRED", "Preview expired; create a new operation after rechecking the map.");
+            if (op.CommitRequested || op.ApplyDispatched) return op.Json();
             if (op.State != "preview_ready")
                 throw new QueryException("INVALID_OPERATION_STATE", "Only a preview_ready work route operation can be applied.");
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0)
@@ -253,129 +267,13 @@ namespace CityWeaver
             // The map, water and owner may have changed since preview.
             ValidateWorkRoutePlan(op, world);
 
-            // Apply: create the route through the prefab's own native archetypes so the
-            // component set exactly matches what GenerateRoutesSystem produces for a
-            // hand-drawn route. Lane snapping (AccessLane/RouteLane/Connected), segment
-            // paths (PathTargets/PathElement) and curves (CurveElement) are then computed
-            // reactively by WaypointConnectionSystem, RoutePathSystem, SegmentCurveSystem
-            // and the rendering RouteBufferSystem once the simulation updates.
-            var em = world.EntityManager;
-            var routeData = em.GetComponentData<Game.Prefabs.RouteData>(op.Prefab);
-
-            var routeEntity = CreateFromArchetype(em, routeData.m_RouteArchetype);
-            if (em.HasComponent<Route>(routeEntity))
-                em.SetComponentData(routeEntity, new Route { m_Flags = RouteFlags.Complete });
-            // The native route archetype intentionally has NO Owner component
-            // (RoutePrefab.GetArchetypeComponents only adds Owner to waypoint/segment
-            // archetypes); GenerateRoutesSystem adds it afterwards. A HasComponent guard
-            // here would silently skip and produce an orphan route, so add explicitly.
-            if (!em.HasComponent<Owner>(routeEntity))
-                em.AddComponent<Owner>(routeEntity);
-            em.SetComponentData(routeEntity, new Owner { m_Owner = op.Owner });
-            if (em.HasComponent<PrefabRef>(routeEntity))
-                em.SetComponentData(routeEntity, new PrefabRef { m_Prefab = op.Prefab });
-            if (em.HasComponent<Game.Routes.Color>(routeEntity))
-                em.SetComponentData(routeEntity, new Game.Routes.Color { m_Color = routeData.m_Color });
-            if (em.HasComponent<RouteNumber>(routeEntity))
-                em.SetComponentData(routeEntity, new RouteNumber { m_Number = NextRouteNumber(em) });
-
-            // Vehicle model: copy the primary boat prefab from an existing route of the
-            // same prefab when one exists, so vehicle dispatch has a model to spawn.
-            var boatPrefab = ResolveWorkRouteVehiclePrefab(em, op.Prefab);
-            var models = em.HasBuffer<VehicleModel>(routeEntity)
-                ? em.GetBuffer<VehicleModel>(routeEntity)
-                : em.AddBuffer<VehicleModel>(routeEntity);
-            models.Add(new VehicleModel { m_PrimaryPrefab = boatPrefab, m_SecondaryPrefab = Entity.Null });
-
-            // Waypoints. When a requested point sits near a WorkStop (Fishing Berth,
-            // Watercraft Work Location, ...), mirror GenerateWaypointsSystem: use the
-            // prefab's m_ConnectedArchetype and set Connected(stop), with the position
-            // snapped to the stop transform (native waypoints sit exactly on their stop).
-            // The stop's ConnectedRoute buffer is registered manually because our entities
-            // carry no Created component, so WaypointConnectionSystem's registration job
-            // skips them. AccessLane/RouteLane are then attached reactively.
-            var waypointBuffer = em.HasBuffer<RouteWaypoint>(routeEntity)
-                ? em.GetBuffer<RouteWaypoint>(routeEntity)
-                : em.AddBuffer<RouteWaypoint>(routeEntity);
-            for (int i = 0; i < op.Points.Count; i++)
-            {
-                var stop = FindNearestWorkStop(em, op.Points[i], 64f);
-                Entity wpEntity;
-                if (stop != Entity.Null && routeData.m_ConnectedArchetype.Valid)
-                {
-                    wpEntity = CreateFromArchetype(em, routeData.m_ConnectedArchetype);
-                    em.SetComponentData(wpEntity, new Connected { m_Connected = stop });
-                    var stopPos = em.GetComponentData<Game.Objects.Transform>(stop).m_Position;
-                    if (em.HasComponent<Game.Routes.Position>(wpEntity))
-                        em.SetComponentData(wpEntity, new Game.Routes.Position { m_Position = stopPos });
-                    // No manual ConnectedRoute registration: archetype entities carry
-                    // Created, so WaypointConnectionSystem auto-registers (plain Add,
-                    // no uniqueness check) — adding here would create duplicates.
-                }
-                else
-                {
-                    wpEntity = CreateFromArchetype(em, routeData.m_WaypointArchetype);
-                    if (em.HasComponent<Game.Routes.Position>(wpEntity))
-                        em.SetComponentData(wpEntity, new Game.Routes.Position { m_Position = op.Points[i] });
-                }
-                if (em.HasComponent<Waypoint>(wpEntity))
-                    em.SetComponentData(wpEntity, new Waypoint { m_Index = i });
-                if (em.HasComponent<Owner>(wpEntity))
-                    em.SetComponentData(wpEntity, new Owner { m_Owner = routeEntity });
-                if (em.HasComponent<PrefabRef>(wpEntity))
-                    em.SetComponentData(wpEntity, new PrefabRef { m_Prefab = op.Prefab });
-                waypointBuffer.Add(new RouteWaypoint { m_Waypoint = wpEntity });
-            }
-
-            // One segment per waypoint (closed loop: segment i links waypoint i to the
-            // next), matching the native 2-waypoint Fishing Line which has 2 segments.
-            var segmentBuffer = em.HasBuffer<RouteSegment>(routeEntity)
-                ? em.GetBuffer<RouteSegment>(routeEntity)
-                : em.AddBuffer<RouteSegment>(routeEntity);
-            for (int i = 0; i < op.Points.Count; i++)
-            {
-                var segEntity = CreateFromArchetype(em, routeData.m_SegmentArchetype);
-                if (em.HasComponent<Game.Routes.Segment>(segEntity))
-                    em.SetComponentData(segEntity, new Game.Routes.Segment { m_Index = i });
-                if (em.HasComponent<Owner>(segEntity))
-                    em.SetComponentData(segEntity, new Owner { m_Owner = routeEntity });
-                if (em.HasComponent<PrefabRef>(segEntity))
-                    em.SetComponentData(segEntity, new PrefabRef { m_Prefab = op.Prefab });
-                segmentBuffer.Add(new RouteSegment { m_Segment = segEntity });
-            }
-
-            // Register on the owner building like native routes (SubRoute, not
-            // InstalledUpgrade — ServiceUpgradeReferencesSystem requires Game.Objects.Object
-            // which routes lack). ReferencesSystem would add this reactively via
-            // TryAddUniqueValue on the next frame anyway; doing it here keeps the link
-            // consistent immediately, even while the city stays paused.
-            var subRoutes = em.HasBuffer<Game.Routes.SubRoute>(op.Owner)
-                ? em.GetBuffer<Game.Routes.SubRoute>(op.Owner)
-                : em.AddBuffer<Game.Routes.SubRoute>(op.Owner);
-            var alreadyRegistered = false;
-            for (int i = 0; i < subRoutes.Length; i++)
-                if (subRoutes[i].m_Route == routeEntity) { alreadyRegistered = true; break; }
-            if (!alreadyRegistered)
-                subRoutes.Add(new Game.Routes.SubRoute { m_Route = routeEntity });
-
-            op.Result = routeEntity;
-            op.ApplyDispatched = true;
-            op.State = "completed";
-
+            op.CommitRequested = true;
             return op.Json();
-        }
-
-        private static Entity CreateFromArchetype(EntityManager em, EntityArchetype archetype)
-        {
-            var array = em.CreateEntity(archetype, 1, Allocator.Temp);
-            var e = array[0];
-            array.Dispose();
-            return e;
         }
 
         // Nearest permanent WorkStop (Fishing Berth, Watercraft Work Location, ...) whose
         // transform lies within maxDist (XZ plane) of the requested waypoint position.
-        private static Entity FindNearestWorkStop(EntityManager em, float3 position, float maxDist)
+        private static Entity FindNearestWorkStop(EntityManager em, float3 position, float maxDist, Entity owner)
         {
             using (var query = em.CreateEntityQuery(
                 ComponentType.ReadOnly<Game.Routes.WorkStop>(),
@@ -389,7 +287,7 @@ namespace CityWeaver
                 for (int i = 0; i < entities.Length; i++)
                 {
                     var e = entities[i];
-                    if (!em.HasBuffer<ConnectedRoute>(e))
+                    if (!em.HasBuffer<ConnectedRoute>(e) || !WorkStopOwnedBy(em, e, owner))
                         continue;
                     var p = em.GetComponentData<Game.Objects.Transform>(e).m_Position;
                     var dx = p.x - position.x;
@@ -405,14 +303,16 @@ namespace CityWeaver
             }
         }
 
-        private static int NextRouteNumber(EntityManager em)
+        private static bool WorkStopOwnedBy(EntityManager em, Entity stop, Entity owner)
         {
-            int max = 0;
-            using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<RouteNumber>(), ComponentType.Exclude<Temp>(), ComponentType.Exclude<Deleted>()))
-            using (var numbers = q.ToComponentDataArray<RouteNumber>(Allocator.Temp))
-            foreach (var n in numbers)
-                if (n.m_Number > max) max = n.m_Number;
-            return max + 1;
+            var visited = new HashSet<Entity>();
+            while (stop != Entity.Null && em.Exists(stop) && visited.Add(stop))
+            {
+                if (stop == owner) return true;
+                if (!em.HasComponent<Owner>(stop)) return false;
+                stop = em.GetComponentData<Owner>(stop).m_Owner;
+            }
+            return false;
         }
 
         private static Entity FindExistingRouteVehiclePrefab(EntityManager em, Entity routePrefab)
@@ -471,7 +371,7 @@ namespace CityWeaver
             deps.Complete();
             if (!terrain.isCreated || !water.isCreated)
                 throw new QueryException("WATER_UNAVAILABLE", "Terrain/water samples are unavailable.");
-            if (FindNearestWorkStop(em, op.Points[0], 64f) == Entity.Null)
+            if (FindNearestWorkStop(em, op.Points[0], 64f, op.Owner) == Entity.Null)
                 throw new QueryException("WORK_ROUTE_MISSING_BERTH", "The first waypoint must be within 64 m of a permanent work stop.");
             if (op.Points.Count > 2 && math.distance(op.Points[0].xz, op.Points[op.Points.Count - 1].xz) < 8f)
                 throw new QueryException("WORK_ROUTE_DUPLICATE_CLOSURE", "Do not repeat the first waypoint; work routes are closed automatically.");
@@ -494,7 +394,15 @@ namespace CityWeaver
                     throw new QueryException("WORK_ROUTE_REQUIRES_WATER", "Every work route waypoint must be on water.");
                 bool hasWater;
                 var surface = WaterUtils.SampleHeight(ref water, ref terrain, point, out hasWater);
-                if (!hasWater || math.abs(point.y - surface) > 8f)
+                // Connected work locations are deck fixtures, not free water waypoints.
+                // A semi-submersible's native stop is 18 m above water. Only trust the
+                // exact same-owner stop snapshot; arbitrary elevated points remain invalid.
+                var stop = i < op.Stops.Count ? op.Stops[i] : Entity.Null;
+                bool nativeStop = stop != Entity.Null && em.Exists(stop) && !em.HasComponent<Deleted>(stop) &&
+                    em.HasComponent<Game.Routes.WorkStop>(stop) && em.HasComponent<Game.Objects.Transform>(stop) &&
+                    WorkStopOwnedBy(em, stop, op.Owner) &&
+                    math.distance(em.GetComponentData<Game.Objects.Transform>(stop).m_Position, point) <= .25f;
+                if (!WorkRoutePathValidation.HeightAllowed(hasWater, point.y, surface, nativeStop))
                     throw new QueryException("WORK_ROUTE_HEIGHT_MISMATCH", "Waypoint elevation must be within 8 m of the water surface.");
             }
             // A dry or out-of-bounds straight leg is not a safe route. Sampling is a
@@ -517,7 +425,7 @@ namespace CityWeaver
         private JObject CancelWorkRouteOperation(JObject args)
         {
             var op = WorkRouteOperationById(args);
-            if (op.State == "preview_ready" || op.State == "queued")
+            if (!op.Terminal && !op.ApplyDispatched)
             {
                 op.CancelRequested = true;
                 op.State = "cancelled";

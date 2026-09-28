@@ -26,6 +26,11 @@ namespace CityWeaver
         public int LandHeightCells, WaterHeightCells;
         public bool ClearWater, RemoveWaterSources;
         public int ClearedWaterCells, RemovedWaterSources;
+        public float MaxWaterDepth, WaterCellSize;
+        public double WaterVolume;
+        public UnityEngine.RectInt WaterRegion;
+        public readonly List<int> ShallowCells = new List<int>();
+        public readonly List<float> ShallowDepths = new List<float>();
         public DateTime Created = DateTime.UtcNow, Expires = DateTime.UtcNow.AddMinutes(5);
         public bool CommitRequested, ApplyDispatched, CancelRequested;
         public bool Terminal => State == "completed" || State == "failed" || State == "cancelled" || State == "expired" || State == "outcome_unknown";
@@ -53,6 +58,18 @@ namespace CityWeaver
                 ["change_observed"] = ChangeObserved.HasValue ? new JValue(ChangeObserved.Value) : JValue.CreateNull(),
                 ["error"] = Error == null ? JValue.CreateNull() : new JValue(Error)
             };
+            if (Mode == "clear_shallow_water")
+            {
+                result["max_water_depth_m"] = MaxWaterDepth;
+                result["selected_water_cells"] = ShallowCells.Count;
+                result["selected_area_m2"] = ShallowCells.Count * WaterCellSize * WaterCellSize;
+                result["selected_volume_m3"] = WaterVolume;
+                result["water_cell_size_m"] = WaterCellSize;
+                result["preview_kind"] = "bounded_gpu_water_depth_selection";
+                result["terrain_modified"] = false;
+                result["water_sources_modified"] = false;
+                result["note"] = "Only fully contained shallow cells are cleared. Connected water, sources and rainfall can refill them. No global water reset is performed.";
+            }
             if (AfterHeights.Count == BeforeHeights.Count && BeforeHeights.Count != 0)
             {
                 var deltas = AfterHeights.Zip(BeforeHeights, (a, b) => a - b).ToArray();
@@ -124,8 +141,9 @@ namespace CityWeaver
         private JObject PreviewTerrain(JObject args, World world)
         {
             var key = RequestKey(args); var mode = ((string)args["mode"] ?? "").ToLowerInvariant();
-            if (!new[] { "raise", "lower", "level", "smooth", "slope", "raise_land", "flatten_map" }.Contains(mode)) throw new QueryException("INVALID_ARGUMENT", "mode must be raise, lower, level, smooth, slope, raise_land, or flatten_map.");
+            if (!new[] { "raise", "lower", "level", "smooth", "slope", "raise_land", "flatten_map", "clear_shallow_water" }.Contains(mode)) throw new QueryException("INVALID_ARGUMENT", "Unknown terrain/water mode.");
             var fingerprint = new JObject { ["mode"] = mode, ["points"] = args["points"]?.DeepClone(), ["brush_size_m"] = args["brush_size_m"]?.DeepClone(), ["strength"] = args["strength"]?.DeepClone(), ["passes"] = args["passes"]?.DeepClone(), ["target_height_m"] = args["target_height_m"]?.DeepClone(), ["start_height_m"] = args["start_height_m"]?.DeepClone(), ["amount_m"] = args["amount_m"]?.DeepClone(), ["clear_water"] = args["clear_water"]?.DeepClone(), ["remove_water_sources"] = args["remove_water_sources"]?.DeepClone() }.ToString(Formatting.None);
+            fingerprint += "|max_water_depth_m=" + args["max_water_depth_m"]?.ToString(Formatting.None);
             if (m_TerrainRequestIds.TryGetValue(key, out var oldId))
             {
                 var old = m_TerrainOperations[oldId];
@@ -162,6 +180,11 @@ namespace CityWeaver
             operation.Amount = mode == "raise_land" ? TerrainNumber(args, "amount_m", 0, 0.0625f, 500, true) : 0;
             operation.ClearWater = mode == "flatten_map" && TerrainBool(args, "clear_water", true);
             operation.RemoveWaterSources = mode == "flatten_map" && TerrainBool(args, "remove_water_sources", true);
+            if (mode == "clear_shallow_water")
+            {
+                operation.MaxWaterDepth = TerrainNumber(args, "max_water_depth_m", 0, .01f, 2, true);
+                ShallowWaterCleanup.Capture(operation, world);
+            }
             if (mode == "flatten_map" && operation.ClearWater && operation.TargetHeight <= world.GetExistingSystemManaged<WaterSystem>().SeaLevel)
                 throw new QueryException("TARGET_BELOW_SEA_LEVEL", "A dry flattened map requires target_height_m above the current sea level.");
             m_TerrainOperations.Add(operation.Id, operation); m_TerrainRequestIds.Add(key, operation.Id);

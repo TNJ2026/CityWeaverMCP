@@ -15,6 +15,7 @@ namespace CityWeaver
         private float2 m_TargetAngle;
         private float m_StartZoom;
         private float m_TargetZoom;
+        private bool m_PreserveZoom;
         private float m_Duration;
         private float m_Elapsed;
         private bool m_Active;
@@ -30,7 +31,7 @@ namespace CityWeaver
             Enabled = false;
         }
 
-        public bool Begin(float3 targetPivot, float targetZoom, float2? targetAngle, float duration)
+        public bool Begin(float3 targetPivot, float targetZoom, float2? targetAngle, float duration, bool preserveZoom = false)
         {
             var cameraSystem = World.GetExistingSystemManaged<CameraUpdateSystem>();
             m_Controller = cameraSystem?.gamePlayController;
@@ -38,6 +39,7 @@ namespace CityWeaver
             m_StartPivot = m_Controller.pivot;
             m_StartAngle = m_Controller.angle;
             m_StartZoom = m_Controller.zoom;
+            m_PreserveZoom = preserveZoom;
             m_TargetPivot = targetPivot;
             m_TargetAngle = targetAngle ?? m_StartAngle;
             m_TargetZoom = math.clamp(targetZoom, m_Controller.zoomRange.min, m_Controller.zoomRange.max);
@@ -87,13 +89,13 @@ namespace CityWeaver
             var eased = linear * linear * (3f - 2f * linear);
             m_Controller.pivot = math.lerp(m_StartPivot, m_TargetPivot, eased);
             m_Controller.angle = CameraController.LerpAngle(m_StartAngle, m_TargetAngle, eased);
-            m_Controller.zoom = math.lerp(m_StartZoom, m_TargetZoom, eased);
+            if (!m_PreserveZoom) m_Controller.zoom = math.lerp(m_StartZoom, m_TargetZoom, eased);
             m_LastAppliedPivot = m_Controller.pivot;
             m_HasAppliedFrame = true;
             if (linear < 1f) return;
             m_Controller.pivot = m_TargetPivot;
             m_Controller.angle = m_TargetAngle;
-            m_Controller.zoom = m_TargetZoom;
+            if (!m_PreserveZoom) m_Controller.zoom = m_TargetZoom;
             m_Active = false;
             status = "completed";
             Enabled = false;

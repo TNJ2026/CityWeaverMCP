@@ -70,6 +70,13 @@ namespace CityWeaver
         public Entity PierOwner, PierOwnerPrefab;
         public float3 PierOwnerPosition;
         public quaternion PierOwnerRotation;
+        public Entity ResourceOwner, ResourceOwnerPrefab;
+        public float3 ResourceOwnerPosition;
+        public quaternion ResourceOwnerRotation;
+        public Entity NetworkOwner => ResourceOwner != Entity.Null ? ResourceOwner : PierOwner;
+        public Entity NetworkOwnerPrefab => ResourceOwner != Entity.Null ? ResourceOwnerPrefab : PierOwnerPrefab;
+        public float3 NetworkOwnerPosition => ResourceOwner != Entity.Null ? ResourceOwnerPosition : PierOwnerPosition;
+        public quaternion NetworkOwnerRotation => ResourceOwner != Entity.Null ? ResourceOwnerRotation : PierOwnerRotation;
         public Entity TargetEdge;
         public List<Entity> TargetEdges = new List<Entity>();
         public List<Entity> TargetNodes = new List<Entity>();
@@ -199,6 +206,8 @@ namespace CityWeaver
     internal sealed class RoadEndpoint
     {
         public float3 Position;
+        public float3? TargetPosition;
+        public bool LocalConnection;
         public Entity Target;
         public float Split;
         public float Elevation;
@@ -222,6 +231,8 @@ namespace CityWeaver
         public bool HasUpgradeFlags;
         public float3 Start, End;
         public Entity StartTarget, EndTarget;
+        public float3? StartTargetPosition, EndTargetPosition;
+        public bool StartLocalConnection, EndLocalConnection;
         public float StartSplit, EndSplit;
         public float StartElevation, EndElevation;
         public Bezier4x3 Curve;

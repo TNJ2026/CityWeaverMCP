@@ -58,6 +58,8 @@ CityWeaverMCP 提供两个只读工具，用于把玩家当前看到的地图范
 
 人工操作始终优先。平滑聚焦期间一旦检测到玩家移动、旋转、缩放或通过屏幕边缘改变焦点，本次动画会立即取消，并保留玩家选择的视角，不会在同一施工批次中把镜头拉回。后续新施工批次只有在目标仍完全不可见时才会重新触发自动聚焦。
 
+施工自动聚焦保留玩家当前缩放值，只平滑移动焦点；动画过程中及结束时均不写入缩放，不再根据施工范围自动拉近或拉远。显式调用 `focus_camera` 仍可指定 `zoom_m`，省略时仍按目标范围适配缩放。
+
 `focus_camera` 返回 `scheduled=true` 只表示接受了移动请求。随后读取 `get_camera_view.focus_status`：`idle`（尚无请求）、`scheduled`、`moving`、`completed`、`cancelled_by_user` 或 `camera_unavailable`。`completed` 表示控制器插值结束，仍应结合 `center_hit` 与 `visible_bounds` 确认目标实际进入画面；原生相机的碰撞和地形约束可能调整视角。
 
 镜头动画系统必须在 `PreCulling` 阶段、原生 `CameraUpdateSystem` 之前注册。游戏的相对调度只关联同阶段系统；误用 `Rendering` 会导致请求已排队但动画系统不执行。该阶段在模拟暂停时仍运行。

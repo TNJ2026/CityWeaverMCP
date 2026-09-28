@@ -1,9 +1,11 @@
 import { BridgeError } from './bridge-client.mjs';
 import { computeCityPlanId } from './planning-renderer.mjs';
-import { compileCityPlanRoads } from './city-plan-construction-workflow.mjs';
+import { compileCityPlanRoads, requestIdFor } from './city-plan-construction-workflow.mjs';
 import { contentHash } from './planning-store.mjs';
 
-export const EXECUTOR_VERSION = 'city-plan-executor-1';
+const LEGACY_EXECUTOR_VERSION = 'city-plan-executor-1';
+export const EXECUTOR_VERSION = 'city-plan-executor-2';
+const supportedExecutor = version => [LEGACY_EXECUTOR_VERSION, EXECUTOR_VERSION].includes(version);
 export function createPlanningSession({ store, queryGame, prepare, advance }) {
   async function register(bounds, plan, session_id = null) {
     const plan_id = computeCityPlanId(bounds, plan);
@@ -33,7 +35,8 @@ export function createPlanningSession({ store, queryGame, prepare, advance }) {
       const result = await prepare({ ...resolved, compiled_plan: compiled });
       const registered = await register(resolved.bounds, resolved.plan, result.session_id);
       const compiled_hash = contentHash(compiled);
-      const construction_id = `construction-${contentHash({ plan_ref: registered.plan_ref, session_id: result.session_id, executor: EXECUTOR_VERSION })}`;
+      // Keep handle identity stable across this request-ID-only upgrade.
+      const construction_id = `construction-${contentHash({ plan_ref: registered.plan_ref, session_id: result.session_id, executor: LEGACY_EXECUTOR_VERSION })}`;
       let journal;
       try { journal = await store.get(construction_id); }
       catch (error) { if (error.code !== 'REFERENCE_NOT_FOUND') throw error; }
@@ -54,7 +57,7 @@ export function createPlanningSession({ store, queryGame, prepare, advance }) {
       const journal = await store.get(args.construction_id);
       const status = await queryGame('get_game_status', {});
       if (!journal.session_id || journal.session_id !== status.meta?.session_id) throw new BridgeError('CITY_SESSION_CHANGED', 'Construction belongs to another city session.');
-      if (journal.executor_version !== EXECUTOR_VERSION) throw new BridgeError('EXECUTOR_CHANGED', 'Construction executor version changed.');
+      if (!supportedExecutor(journal.executor_version)) throw new BridgeError('EXECUTOR_CHANGED', 'Construction executor version changed.');
       const fingerprint = contentHash({ state_version: args.state_version, action: args.action, batch_id: args.batch_id, max_cost: args.max_cost });
       if (journal.in_flight || journal.recovery_required) throw new BridgeError('CONSTRUCTION_RECOVERY_REQUIRED', `Inspect ${args.construction_id}; do not replay native writes after interrupted execution.`);
       if (journal.last_fingerprint === fingerprint) return decorate(journal.last_result, args.construction_id, journal);
@@ -64,10 +67,12 @@ export function createPlanningSession({ store, queryGame, prepare, advance }) {
       const record = await store.get(journal.plan_ref);
       if (computeCityPlanId(record.bounds, record.plan) !== journal.approved_plan_id || contentHash(journal.compiled) !== journal.compiled_hash) throw new BridgeError('EXECUTOR_CHANGED', 'Approved plan or compiled batch integrity changed.');
       const nativeArgs = { ...expected, operation_timeout_ms: args.operation_timeout_ms ?? 20000, compiled_plan: journal.compiled };
+      nativeArgs.request_id = requestIdFor(journal.approved_plan_id, expected.batch_id, expected.action.startsWith('preview') ? 'preview' : 'commit');
       if (args.max_cost !== undefined) {
         if (!Number.isFinite(expected.max_cost) || args.max_cost > expected.max_cost) throw new BridgeError('COST_LIMIT', 'Caller may only lower the preview budget.');
         nativeArgs.max_cost = args.max_cost;
       }
+      journal.executor_version = EXECUTOR_VERSION;
       journal.in_flight = { fingerprint, started_at: new Date().toISOString(), arguments: nativeArgs };
       await store.save(args.construction_id, journal);
       try {
@@ -86,5 +91,50 @@ export function createPlanningSession({ store, queryGame, prepare, advance }) {
       }
     });
   }
-  return { register, resolve, prepare: prepareStored, advance: advanceStored };
+  // Narrow recovery: a rejected preview reused a previously completed road
+  // operation's ID. Never recover commits, timeouts or unknown native outcomes.
+  async function recoverRequestCollision({ construction_id, state_version }, busyPreview = false) {
+    return store.locked(async () => {
+      const journal = await store.get(construction_id);
+      const fail = message => { throw new BridgeError('CONSTRUCTION_RECOVERY_REQUIRED', message); };
+      if (journal.state_version !== state_version) throw new BridgeError('STALE_CONSTRUCTION_STATE', 'Read the current journal version.');
+      if (!supportedExecutor(journal.executor_version)) fail('Unsupported executor.');
+      const pending = journal.in_flight?.arguments;
+      const failureCode = busyPreview ? 'TOOL_BUSY' : 'IDEMPOTENCY_CONFLICT';
+      if (!journal.recovery_required || journal.failure?.code !== failureCode || pending?.action !== 'preview_batch' || pending.operation_id || journal.failure.operation_id) fail('Only a rejected preview before native dispatch is recoverable.');
+      if (busyPreview && !['preview_road', 'preview_road_route', 'preview_road_grid'].includes(journal.compiled.batches.find(batch => batch.batch_id === pending.batch_id)?.native_tool)) fail('Busy recovery is limited to road preview guards.');
+      const status = await queryGame('get_game_status', {});
+      const checkSession = envelope => { if (envelope.meta?.session_id !== journal.session_id) throw new BridgeError('CITY_SESSION_CHANGED', 'Recovery belongs to another city session.'); };
+      checkSession(status);
+      const record = await store.get(journal.plan_ref);
+      if (computeCityPlanId(record.bounds, record.plan) !== journal.approved_plan_id || contentHash(journal.compiled) !== journal.compiled_hash || contentHash(compileCityPlanRoads(record.bounds, record.plan, journal.approved_plan_id)) !== journal.compiled_hash) fail('Plan or compiled batch integrity changed.');
+      const expected = journal.next_action?.arguments;
+      if (!expected || contentHash({ ...pending, compiled_plan: undefined, operation_timeout_ms: undefined }) !== contentHash(expected)) fail('Pending request does not match the saved next action.');
+      const last = journal.last_result;
+      const operationId = last?.native_operation?.operation_id;
+      if (last?.state !== 'completed_verified' || !last.permanent_readback?.verified || !operationId || last.batch_id === pending.batch_id || last.native_operation.state !== 'completed') fail('A distinct verified preceding batch is required.');
+      const envelope = await queryGame('get_road_operation', { operation_id: operationId });
+      checkSession(envelope);
+      const operation = envelope.data;
+      if (operation?.state !== 'completed' || operation.operation_id !== operationId || (!busyPreview && operation.request_id !== pending.request_id) || (busyPreview && operation.request_id === pending.request_id)) fail('Live operation does not prove the rejected preview is distinct or colliding as expected.');
+      const ids = last.permanent_readback.verified_road_ids;
+      if (!ids?.length || ids.some(id => !operation.created_road_ids?.includes(id))) fail('Completed road evidence is inconsistent.');
+      const snapshot = await queryGame('get_planning_map_snapshot', { bounds: last.permanent_readback.bounds, include_roads: true, include_buildings: false, include_tracks: false, include_utilities: false, max_features_per_layer: 5000 });
+      checkSession(snapshot);
+      const present = new Set((snapshot.data?.roads ?? []).map(road => road.id ?? road.edge_id));
+      if (ids.some(id => !present.has(id))) fail('Previously built roads are missing from live readback.');
+      const request_id = busyPreview ? pending.request_id : requestIdFor(journal.approved_plan_id, pending.batch_id, 'preview');
+      if (!busyPreview && request_id === pending.request_id) fail('Collision was not caused by the legacy request-ID encoding.');
+      const evidence_ref = await store.put('evidence', { kind: busyPreview ? 'busy_preview_recovery' : 'request_id_collision_recovery', previous_failure: journal.failure, previous_in_flight: journal.in_flight, operation, verified_road_ids: ids, next_request_id: request_id });
+      journal.recoveries = [...(journal.recoveries ?? []), { state_version, evidence_ref }];
+      journal.next_action.arguments.request_id = request_id;
+      journal.state_version++;
+      journal.executor_version = EXECUTOR_VERSION;
+      journal.in_flight = null; journal.recovery_required = false; journal.failure = null;
+      journal.last_fingerprint = null;
+      await store.save(construction_id, journal);
+      return decorate({ state: 'recovered_ready_for_native_preview', permanent_changes: false, evidence_ref }, construction_id, journal);
+    });
+  }
+  return { register, resolve, prepare: prepareStored, advance: advanceStored, recoverRequestCollision, recoverBusyPreview: args => recoverRequestCollision(args, true) };
 }

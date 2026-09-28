@@ -1,4 +1,4 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { registerAppResource, RESOURCE_MIME_TYPE } from '@modelcontextprotocol/ext-apps/server';
 import { z } from 'zod';
@@ -23,7 +23,7 @@ import { augmentGridProposal } from './planning-multilayer.mjs';
 import { bindCityPlanBuildings } from './city-plan-building-binder.mjs';
 import { PlanningStore, compactResult, contentHash } from './planning-store.mjs';
 import { createPlanningSession } from './planning-session.mjs';
-import { PLANNING_APP_URI, createPlanningAppPayload, planningAppHtml } from './planning-app.mjs';
+import { PLANNING_APP_URI, planningPresentation, createPlanningAppPayload, planningAppHtml, readPlanningMapResource } from './planning-app.mjs';
 const planningStore = new PlanningStore();
 const planningRenderCache = createPlanningRenderCache(planningStore);
 const planningSession = createPlanningSession({ store: planningStore, queryGame, prepare: prepareCityPlanConstruction, advance: advanceCityPlanConstruction });
@@ -49,6 +49,30 @@ registerAppResource(server, 'CityWeaver Planning', PLANNING_APP_URI, {
   }]
 }));
 const annotations = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
+server.registerTool('show_saved_planning_map', {
+  description: 'Display an existing saved planning image in the MCP Apps card without querying or modifying the game.',
+  inputSchema: { sha256: z.string().regex(/^[a-f0-9]{64}$/), extension: z.enum(['html','svg']) },
+  annotations,
+  _meta: { ui: { resourceUri: PLANNING_APP_URI } }
+}, async ({ sha256, extension }) => {
+  try {
+    const map = await readPlanningMapResource(planningStore, sha256, extension);
+    const result = { ok: true, data: { sha256, mime_type: extension === 'svg' ? 'image/svg+xml' : 'text/html' }, presentation: planningPresentation({ map }) };
+    return { content: [{type:'text',text:JSON.stringify(result)}], structuredContent: result,
+      _meta: { cityweaver_planning_app: { schema_version:1, tool_name:'show_saved_planning_map', map } } };
+  } catch (error) {
+    return { isError:true, content:[{type:'text',text:error.message}] };
+  }
+});
+server.registerResource('CityWeaver Planning Map', new ResourceTemplate('cityweaver://planning-map/{sha256}/{extension}', { list: undefined }), {
+  description: 'Read the saved planning image by its verified artifact hash. Used by cards when private tool metadata is unavailable.',
+  mimeType: 'application/json'
+}, async (uri, { sha256, extension }) => ({ contents: [{ uri: uri.href, mimeType: 'application/json',
+  text: JSON.stringify(await readPlanningMapResource(planningStore, sha256, extension)) }] }));
+server.registerResource('CityWeaver Planning Map Chunk', new ResourceTemplate('cityweaver://planning-map/{sha256}/{extension}/chunks/{index}', { list: undefined }), {
+  description: 'Read one bounded chunk of the saved SVG image.', mimeType: 'application/json'
+}, async (uri, { sha256, extension, index }) => ({ contents: [{ uri: uri.href, mimeType: 'application/json',
+  text: JSON.stringify(await readPlanningMapResource(planningStore, sha256, extension, index)) }] }));
 const component = z.string().min(1).max(200).regex(/^Game\.[A-Za-z0-9_.+`]+$/);
 const entityId = z.string().regex(/^[a-f0-9]{32}:\d+:\d+$/);
 const requestId = z.string().min(8).max(100).regex(/^[A-Za-z0-9_-]+$/);
@@ -163,6 +187,7 @@ const mutationAnnotations = {
   prepare_grid_native_preview: { ...annotations, readOnlyHint: false },
   advance_grid_construction: { ...annotations, readOnlyHint: false, destructiveHint: true },
   advance_city_plan_construction: { ...annotations, readOnlyHint: false, destructiveHint: true },
+  recover_city_plan_request_collision: { ...annotations, readOnlyHint: false, destructiveHint: false },
   bind_city_plan_buildings: { ...annotations, readOnlyHint: false },
   deploy_grid_district: { ...annotations, readOnlyHint: false, destructiveHint: true, idempotentHint: false },
   plan_building_workflow: { ...annotations, readOnlyHint: false },
@@ -462,9 +487,9 @@ const definitions = [
   ['get_planning_map_snapshot', 'Read a bounded, render-ready live geometry snapshot containing permanent road curves, building transforms and footprints, transport tracks and standalone utility networks. This is read-only and does not create a native preview. Road-embedded utility capacity and exact public-transport route paths are not expanded.', {
     bounds: planningBounds, include_roads: z.boolean().default(true), include_buildings: z.boolean().default(true), include_tracks: z.boolean().default(true), include_utilities: z.boolean().default(true), max_features_per_layer: z.number().int().min(1).max(5000).default(2000)
   }],
-  ['render_city_plan', 'Render a read-only city plan as a self-contained static HTML page over the entire purchasable map, with equal-scale world X/Z coordinates, land, water, all map tiles and live infrastructure. The page works without a server and supports bounded pan/zoom. bounds remains the authorized planning/construction envelope and does not crop the full-map visualization. This does not run native preview or authorize construction.', {
+  ['render_city_plan', 'Render a read-only city plan as a self-contained static HTML page with equal-scale world X/Z coordinates. Plans automatically render the current planning area in both the MCP App card and exported image, including long routes. Only empty plans without a local boundary default to the full map. render.extent can select auto, planning or full_map. bounds remains the authorized planning/construction envelope regardless of display extent. The page supports bounded pan/zoom. This does not run native preview or authorize construction.', {
     bounds: planningBounds, plan: cityPlan, include_existing: z.boolean().default(true), include_water: z.boolean().default(true), water_cell_size_m: z.number().finite().min(2).max(128).default(8), include_terrain: z.boolean().default(true), terrain_cell_size_m: z.number().finite().min(32).max(256).default(64), max_features_per_layer: z.number().int().min(1).max(5000).default(5000),
-    render: z.object({ title: z.string().max(200).default('城市综合规划图'), width: z.number().int().min(640).max(4096).default(1600), height: z.number().int().min(480).max(4096).default(1000), view: z.enum(['surface', 'underground', 'combined', 'surface_and_underground']).default('surface_and_underground'), format: z.enum(['svg', 'static_html', 'interactive_html']).default('static_html') }).strict().default({})
+    render: z.object({ title: z.string().max(200).default('城市综合规划图'), width: z.number().int().min(640).max(4096).default(1600), height: z.number().int().min(480).max(4096).default(1000), view: z.enum(['surface', 'underground', 'combined', 'surface_and_underground']).default('surface_and_underground'), extent: z.enum(['auto', 'planning', 'full_map']).default('auto'), format: z.enum(['svg', 'static_html', 'interactive_html']).default('static_html') }).strict().default({})
   }],
   ['bind_city_plan_buildings', 'Resolve exact prefab-backed city-plan buildings against live native placement candidates. For each selected building, it computes the authoritative position, rotation and road/network binding, verifies them with a native preview, cancels that temporary preview, and returns an updated plan. It never commits a permanent building. Buildings without an exact prefab remain conceptual and are never guessed.', {
     request_id: requestId,
@@ -482,6 +507,10 @@ const definitions = [
     bounds: planningBounds,
     plan: cityPlan,
     approved_plan_id: cityPlanId.optional()
+  }],
+  ['recover_city_plan_request_collision', 'Recover only a rejected legacy preview request-ID collision. Verifies the unchanged plan, session, completed conflicting native operation and permanent roads before advancing the existing journal version. Does not create a preview or change the city. Commits, timeouts and unknown outcomes remain locked.', {
+    construction_id: z.string().regex(/^construction-[a-f0-9]{64}$/),
+    state_version: z.number().int().min(0)
   }],
   ['advance_city_plan_construction', 'Advance exactly one native road, ploppable-building or utility-network batch in an approved rendered city plan. preview_batch derives exact geometry and prefabs from the approved plan rather than accepting arbitrary coordinates. commit_batch accepts only that domain preview operation, enforces the smaller of plan and caller budgets, waits for completed, then verifies permanent objects by domain readback. Legacy preview_road/commit_road action names remain accepted for road batches. The city stays paused; failures, outcome_unknown, or incomplete readback stop the workflow.', {
     action: z.enum(['preview_batch', 'commit_batch', 'preview_road', 'commit_road']),
@@ -506,7 +535,7 @@ const definitions = [
     road_prefab: z.string().min(1).max(200).optional(), zone_type: z.string().min(1).max(200).optional(),
     include_water: z.boolean().default(true), water_cell_size_m: z.number().finite().min(2).max(128).default(8), include_terrain: z.boolean().default(true), terrain_cell_size_m: z.number().finite().min(32).max(256).default(64), maximum_slope_degrees: z.number().finite().min(1).max(45).default(12),
     max_features_per_layer: z.number().int().min(1).max(5000).default(5000),
-    render: z.object({ title: z.string().max(200).default('自动网格规划候选'), width: z.number().int().min(640).max(4096).default(1600), height: z.number().int().min(480).max(4096).default(1000), view: z.enum(['surface', 'underground', 'combined', 'surface_and_underground']).default('combined'), format: z.enum(['svg', 'static_html', 'interactive_html']).default('static_html') }).strict().default({})
+    render: z.object({ title: z.string().max(200).default('自动网格规划候选'), width: z.number().int().min(640).max(4096).default(1600), height: z.number().int().min(480).max(4096).default(1000), view: z.enum(['surface', 'underground', 'combined', 'surface_and_underground']).default('combined'), extent: z.enum(['auto', 'planning', 'full_map']).default('auto'), format: z.enum(['svg', 'static_html', 'interactive_html']).default('static_html') }).strict().default({})
   }],
   ['propose_city_plan', 'Generate a read-only multilayer district plan inside currently purchased tiles. It first selects and binds a grid, then adds a conceptual access road, service-building reservations, water/sewage and electricity corridors, plus a subway or industrial rail corridor. Conceptual buildings and networks deliberately omit exact construction prefabs and ports until separate live discovery and native previews.', {
     district_kind: z.enum(['residential', 'commercial', 'industrial', 'office']).default('residential'),
@@ -520,7 +549,7 @@ const definitions = [
     power_level: z.enum(['surface', 'underground']).default('surface'),
     include_water: z.boolean().default(true), water_cell_size_m: z.number().finite().min(2).max(128).default(8), include_terrain: z.boolean().default(true), terrain_cell_size_m: z.number().finite().min(32).max(256).default(64), maximum_slope_degrees: z.number().finite().min(1).max(45).default(12),
     max_features_per_layer: z.number().int().min(1).max(5000).default(5000),
-    render: z.object({ title: z.string().max(200).default('自动多层城市规划'), width: z.number().int().min(640).max(4096).default(1600), height: z.number().int().min(480).max(4096).default(1000), view: z.enum(['surface', 'underground', 'combined', 'surface_and_underground']).default('combined'), format: z.enum(['svg', 'static_html', 'interactive_html']).default('static_html') }).strict().default({})
+    render: z.object({ title: z.string().max(200).default('自动多层城市规划'), width: z.number().int().min(640).max(4096).default(1600), height: z.number().int().min(480).max(4096).default(1000), view: z.enum(['surface', 'underground', 'combined', 'surface_and_underground']).default('combined'), extent: z.enum(['auto', 'planning', 'full_map']).default('auto'), format: z.enum(['svg', 'static_html', 'interactive_html']).default('static_html') }).strict().default({})
   }],
   ['set_simulation_speed', 'Pause the loaded city or run it at normal, fast, or fastest simulation speed. Road mutation previews require paused.', {
     speed: z.enum(['paused', 'normal', 'fast', 'fastest'])
@@ -591,7 +620,7 @@ const definitions = [
     check_conflicts: z.boolean().default(true),
     clearance_m: z.number().finite().min(0).max(128).default(16),
     operation_timeout_ms: z.number().int().min(1000).max(120000).default(20000),
-    render: z.object({ include_existing: z.boolean().default(true), include_water: z.boolean().default(true), include_terrain: z.boolean().default(true), padding_m: z.number().finite().min(0).max(1000).default(160), water_cell_size_m: z.number().finite().min(2).max(128).default(8), terrain_cell_size_m: z.number().finite().min(32).max(256).default(64), max_features_per_layer: z.number().int().min(1).max(5000).default(5000), title: z.string().max(200).default('道路原生预检结果'), width: z.number().int().min(640).max(4096).default(1600), height: z.number().int().min(480).max(4096).default(1000), view: z.enum(['surface', 'underground', 'combined', 'surface_and_underground']).default('combined'), format: z.enum(['svg', 'static_html', 'interactive_html']).default('static_html') }).strict().optional()
+    render: z.object({ include_existing: z.boolean().default(true), include_water: z.boolean().default(true), include_terrain: z.boolean().default(true), padding_m: z.number().finite().min(0).max(1000).default(160), water_cell_size_m: z.number().finite().min(2).max(128).default(8), terrain_cell_size_m: z.number().finite().min(32).max(256).default(64), max_features_per_layer: z.number().int().min(1).max(5000).default(5000), title: z.string().max(200).default('道路原生预检结果'), width: z.number().int().min(640).max(4096).default(1600), height: z.number().int().min(480).max(4096).default(1000), view: z.enum(['surface', 'underground', 'combined', 'surface_and_underground']).default('combined'), extent: z.enum(['auto', 'planning', 'full_map']).default('auto'), format: z.enum(['svg', 'static_html', 'interactive_html']).default('static_html') }).strict().optional()
   }],
   ['advance_grid_construction', 'Advance exactly one authorized construction stage after prepare_grid_native_preview. commit_roads consumes its preview_ready road operation, enforces max_cost, waits for completed and returns permanent edge IDs. preview_zoning accepts only those permanent IDs, validates the exact live zone/theme, inspects native zoning blocks and creates a separate atomic zoning preview. apply_zoning commits only that preview_ready zoning operation. Every call stops on failure or outcome_unknown, returns a next_action for the following stage, and never demolishes completed roads as an automatic rollback.', {
     stage: z.enum(['commit_roads', 'preview_zoning', 'apply_zoning']),
@@ -786,8 +815,9 @@ const definitions = [
   ['sample_terrain', 'Read live terrain height in metres at 1..256 world coordinates using the game CPU height map. This waits for pending GPU terrain readback so results include completed edits.', {
     points: z.array(terrainPoint).min(1).max(256)
   }],
-  ['preview_terrain', 'Validate and journal a terrain plan without changing terrain. Modes: raise, lower, level, smooth, slope, raise_land, and flatten_map. raise_land shifts every dry native heightmap cell once using the live water-depth mask and requires amount_m. flatten_map sets the entire native heightmap to target_height_m and can clear dynamic water plus remove natural water sources. Other modes use a brush path. Slope requires at least two points plus start_height_m and target_height_m. Poll or apply within five minutes.', {
-    request_id: requestId, mode: z.enum(['raise', 'lower', 'level', 'smooth', 'slope', 'raise_land', 'flatten_map']), points: z.array(terrainPoint).min(1).max(64),
+  ['preview_terrain', 'Validate and journal a terrain plan without changing terrain. Modes: raise, lower, level, smooth, slope, raise_land, and flatten_map. raise_land shifts every dry native heightmap cell once using the live water-depth mask and requires amount_m. flatten_map sets the entire native heightmap to target_height_m and can clear dynamic water plus remove natural water sources. clear_shallow_water clears only fully contained shallow GPU water cells up to required max_water_depth_m, preserving terrain and water sources; no global reset. Other modes use a brush path. Slope requires at least two points plus start_height_m and target_height_m. Poll or apply within five minutes.', {
+    request_id: requestId, mode: z.enum(['raise', 'lower', 'level', 'smooth', 'slope', 'raise_land', 'flatten_map', 'clear_shallow_water']), points: z.array(terrainPoint).min(1).max(64),
+    max_water_depth_m: z.number().finite().min(0.01).max(2).optional().describe('Required for clear_shallow_water: only fully contained cells up to this depth are cleared; bounds must fit 2048 x 2048 m. Terrain and water sources are preserved.'),
     brush_size_m: z.number().finite().min(8).max(1000).default(100), strength: z.number().finite().min(0.01).max(1).default(0.5),
     passes: z.number().int().min(1).max(32).default(1), target_height_m: z.number().finite().min(-1024).max(4096).optional(),
     start_height_m: z.number().finite().min(-1024).max(4096).optional(), amount_m: z.number().finite().min(0.0625).max(500).optional(),
@@ -803,7 +833,9 @@ const definitions = [
     offset: z.number().int().min(0).max(100000).default(0), limit: z.number().int().min(1).max(100).default(50)
   }],
   ['list_building_upgrades', 'List compatible upgrades and installed modules for one permanent building. Owner-side upgrades include the native highlighted placement range, validation outline, four snap segments, legal snapped points and matching placement_offset_m values.', {
-    building_id: entityId
+    building_id: entityId,
+    upgrade_prefab: z.string().min(1).max(200).optional().describe('Return only this exact compatible upgrade; filters before expensive placement searches.'),
+    include_placement_geometry: z.boolean().default(true).describe('False returns the upgrade catalog without computing placement candidates. Query one upgrade with geometry to obtain native placement candidates.')
   }],
   ['get_building_state', 'Read one permanent building custom name, active state, whether activation is supported, and current native building policies.', { building_id: entityId }],
   ['set_building_name', 'Set a permanent building custom name through the game NameSystem. An empty or whitespace-only name restores the generated name.', {
@@ -942,7 +974,11 @@ const definitions = [
   }],
   ['list_transport_facilities', 'List permanent transport stations and depots with instance state, type and position.', {}],
   ['get_transport_facility', 'Read one transport facility including station/depot state, owned vehicles, transport stops and owned track edges.', { facility_id: entityId }],
-  ['list_transport_facility_upgrades', 'List compatible and installed upgrades for a permanent transport station or depot.', { facility_id: entityId }],
+  ['list_transport_facility_upgrades', 'List compatible and installed upgrades for a permanent transport station or depot. For large harbors, read the catalog without placement geometry, then query one exact upgrade with geometry.', {
+    facility_id: entityId,
+    upgrade_prefab: z.string().min(1).max(200).optional(),
+    include_placement_geometry: z.boolean().default(true)
+  }],
   ['set_transport_facility_name', 'Set or clear the custom name of a permanent transport station or depot.', { facility_id: entityId, name:z.string().max(100) }],
   ['set_transport_facility_active', 'Enable or disable a supported transport facility through the native inactive-building policy. Requires paused city.', { facility_id: entityId, active:z.boolean() }],
   ['list_transport_facility_policies', 'List native building policies applicable to a transport facility.', { facility_id: entityId }],
@@ -985,8 +1021,8 @@ const definitions = [
   ['apply_transport_track_operation', 'Commit one preview-ready track creation or demolition operation. Requires a paused city and sufficient max_cost.', { operation_id: operationId, request_id: requestId, max_cost: z.number().int().min(0).max(1000000000) }],
   ['cancel_transport_track_preview', 'Cancel and clean up an uncommitted transport-track preview.', { operation_id: operationId }],
   ['list_work_routes', 'List permanent work routes (Fishing Line, etc.) with owner, waypoint count, segment count and completion state.', { owner_building_id: entityId.optional() }],
-  ['get_work_route', 'Read one work route with ordered waypoints and positions.', { route_id: entityId }],
-  ['preview_work_route', 'Conservative work-route preflight (not a native temporary route): checks owner, unlocked prefab, compatible work boat, map bounds, water and straight legs before preview_ready. Native path connectivity remains unverified until the route runs.', { request_id: requestId, owner_building_id: entityId, route_prefab: z.string().min(1).max(200).default('Fishing Line'), waypoints: z.array(z.object({ x: z.number().finite().min(-7168).max(7168), y: z.number().finite().min(-1024).max(4096).optional(), z: z.number().finite().min(-7168).max(7168) })).min(2).max(64) }],
+  ['get_work_route', 'Read one work route with ordered waypoints, positions, stop lane bindings, segment path readiness and vehicle count.', { route_id: entityId }],
+  ['preview_work_route', 'Preview a native temporary work route. Validates owner, water, stop lane binding and every segment path before preview_ready. Inspect connection_details; dispatched vehicles still require running simulation.', { request_id: requestId, owner_building_id: entityId, route_prefab: z.string().min(1).max(200).default('Fishing Line'), waypoints: z.array(z.object({ x: z.number().finite().min(-7168).max(7168), y: z.number().finite().min(-1024).max(4096).optional(), z: z.number().finite().min(-7168).max(7168) })).min(2).max(64) }],
   ['get_work_route_operation', 'Read work route preview state and errors.', { operation_id: operationId }],
   ['apply_work_route_operation', 'Commit a preview_ready work route; permanent route entity is created as a ServiceUpgrade-owned Route.', { operation_id: operationId, request_id: requestId }],
   ['cancel_work_route_preview', 'Cancel an uncommitted work route preview.', { operation_id: operationId }],
@@ -1253,7 +1289,8 @@ const definitions = [
 const referenceSchema = z.string().regex(/^(plan|snapshot|evidence|construction)-[a-f0-9]{64}$/);
 const summaryTools = new Set(['render_city_plan', 'propose_city_plan', 'propose_grid_plan', 'bind_city_plan_buildings', 'prepare_city_plan_construction', 'advance_city_plan_construction', 'prepare_grid_native_preview', 'advance_grid_construction', 'deploy_grid_district', 'deploy_building_plans', 'build_utility_backbone']);
 const planTools = new Set(['render_city_plan', 'bind_city_plan_buildings', 'prepare_city_plan_construction', 'advance_city_plan_construction']);
-const planningAppTools = new Set(['render_city_plan', 'propose_city_plan', 'propose_grid_plan', 'bind_city_plan_buildings', 'prepare_city_plan_construction', 'advance_city_plan_construction', 'prepare_grid_native_preview', 'advance_grid_construction', 'deploy_grid_district']);
+// Only planning/display tools open cards; construction and native previews return progress data.
+const planningAppTools = new Set(['render_city_plan', 'propose_city_plan', 'propose_grid_plan']);
 definitions.push(['inspect_planning_cache', 'Inspect process-local immutable-record, render-artifact and snapshot-index cache counters and estimated memory use. Does not query or mutate the game.', {}]);
 definitions.push(['inspect_prefab_catalog_cache', 'Inspect process-local session catalog cache statistics. refresh clears cached observations and in-flight generation; does not alter the game or imply asset revision support.', { refresh: z.boolean().default(false) }]);
 definitions.push(['read_planning_record', 'Read a bounded record page. Nested values return field indexes; use fields to inspect objects. Does not execute city actions.', { ref: referenceSchema, fields: z.array(z.string().max(200)).max(16).default([]), offset: z.number().int().min(0).default(0), limit: z.number().int().min(1).max(64).default(20) }]);
@@ -1316,6 +1353,9 @@ for (const [name, description, inputSchema] of definitions) {
       }
       else if (name === 'bind_city_plan_buildings') {
         result = { ok: true, meta: { queried_at_utc: new Date().toISOString(), source: name }, data: await bindCityPlanBuildings(args) };
+      }
+      else if (name === 'recover_city_plan_request_collision') {
+        result = { ok: true, meta: { queried_at_utc: new Date().toISOString(), source: name }, data: await planningSession.recoverRequestCollision(args) };
       }
       else if (name === 'advance_city_plan_construction') {
         if (!args.construction_id && (!args.request_id || !args.approved_plan_id)) throw new BridgeError('INVALID_WORKFLOW_INPUT', 'Legacy inline construction requires request_id and approved_plan_id.');
@@ -1434,6 +1474,7 @@ for (const [name, description, inputSchema] of definitions) {
           data: { connected: false, city_loaded: null, paused: null, reason: code, message } };
       } else { result = { ok: false, error: { code, message, ...(error.performance ? { performance: error.performance } : {}), ...(error.recovery_required ? { recovery_required: true, construction_id: error.construction_id ?? null, operation_id: error.operation_id ?? null, request_id: error.request_id ?? null } : {}) } }; isError = true; }
     }
+    if (planningAppPayload && !isError) result.presentation = planningPresentation(planningAppPayload);
     const content = [{ type: 'text', text: JSON.stringify(result) }];
     if (imageData && !isError) content.push({ type: 'image', data: imageData, mimeType: imageMimeType });
     const response = { content, structuredContent: result, isError };

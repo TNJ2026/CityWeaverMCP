@@ -38,6 +38,7 @@ namespace CityWeaver
             updateSystem.UpdateBefore<McpBuildingAreaToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpDistrictToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpTransportLineToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
+            updateSystem.UpdateBefore<McpWorkRouteToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             m_Queries = new GameQueryService();
             StartBridge();
         }

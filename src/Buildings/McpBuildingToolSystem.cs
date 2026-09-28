@@ -22,6 +22,7 @@ namespace CityWeaver
         private BuildingOperation m_Operation;
         private readonly List<Entity> m_Definitions = new List<Entity>();
         private readonly List<Entity> m_Candidates = new List<Entity>();
+        private readonly List<Tuple<Entity, float3, float>> m_FloatingChecks = new List<Tuple<Entity, float3, float>>();
         private EntityQuery m_TempQuery, m_WarningQuery;
         private NativeList<ControlPoint> m_ControlPoints;
         private int m_Phase, m_Ticks, m_StableTicks; private string m_LastSignature;
@@ -219,14 +220,46 @@ namespace CityWeaver
             return attachment;
         }
 
+        private ControlPoint PlacementPoint(Entity prefab, float3 position, quaternion rotation, Entity parent)
+        {
+            var point = new ControlPoint { m_Position = position, m_HitPosition = position, m_Rotation = rotation, m_OriginalEntity = parent, m_ElementIndex = new int2(-1) };
+            if (EntityManager.HasComponent<PlaceableObjectData>(prefab))
+            {
+                var place = EntityManager.GetComponentData<PlaceableObjectData>(prefab);
+                if ((place.m_Flags & Game.Objects.PlacementFlags.Floating) != 0)
+                {
+                    var terrain = World.GetExistingSystemManaged<Game.Simulation.TerrainSystem>().GetHeightData(true);
+                    if (!terrain.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Floating placement requires live terrain data.");
+                    var reference = position;
+                    if ((place.m_Flags & Game.Objects.PlacementFlags.RoadSide) != 0 && EntityManager.HasComponent<BuildingData>(prefab))
+                        reference = BuildingUtils.CalculateFrontPosition(new Game.Objects.Transform(position, rotation), EntityManager.GetComponentData<BuildingData>(prefab).m_LotSize.y);
+                    point.m_Elevation = FloatingPlacement.Elevation(position.y, Game.Simulation.TerrainUtils.SampleHeight(ref terrain, reference));
+                    var water = World.GetExistingSystemManaged<WaterSystem>().GetSurfaceData(out var waterDeps);
+                    waterDeps.Complete();
+                    if (!water.isCreated) throw new QueryException("WATER_UNAVAILABLE", "Floating placement requires live water data.");
+                    if (parent == Entity.Null && WaterUtils.SampleDepth(ref water, position) >= .2f)
+                    {
+                        float waterHeight = WaterUtils.SampleHeight(ref water, ref terrain, position);
+                        float expectedHeight = FloatingPlacement.Height(waterHeight, place.m_PlacementOffset.y, TerrainUtils.SampleHeight(ref terrain, reference));
+                        if (math.abs(position.y - expectedHeight) > .25f)
+                            throw new QueryException("FLOATING_HEIGHT_MISMATCH", "Use a fresh floating candidate with this prefab's water-surface offset.");
+                    }
+                    // Capture before native preview terrain is generated, and verify both
+                    // absolute height and seabed clearance before allowing any commit.
+                    m_FloatingChecks.Add(Tuple.Create(prefab, position, point.m_Elevation));
+                }
+            }
+            return point;
+        }
+
         private void GenerateDefinitions()
         {
-            var op = m_Operation; m_Definitions.Clear();
+            var op = m_Operation; m_Definitions.Clear(); m_FloatingChecks.Clear();
             if (op.Type == "batch_place")
             {
                 var config = World.GetExistingSystemManaged<Game.City.CityConfigurationSystem>();
                 var placement = op.Placements[m_BatchIndex];
-                m_ControlPoints.Clear(); m_ControlPoints.Add(new ControlPoint { m_Position = placement.Position, m_HitPosition = placement.Position, m_Rotation = placement.Rotation, m_OriginalEntity = placement.ParentRoad, m_ElementIndex = new int2(-1) });
+                m_ControlPoints.Clear(); m_ControlPoints.Add(PlacementPoint(placement.Prefab, placement.Position, placement.Rotation, placement.ParentRoad));
                 CreateDefinitions(placement.Prefab, Entity.Null, Entity.Null, Entity.Null, Entity.Null, Entity.Null, config.defaultTheme, m_ControlPoints, default(NativeReference<AttachmentData>), false, config.leftHandTraffic, false, false, 100, 0, .5f, 0, 0, RandomSeed.Next(), Snap.All, Game.Tools.AgeMask.Sapling, false, default, default);
             }
             else if (op.Type == "place" || op.Type == "move" || op.Type == "upgrade" || op.Type == "rebuild")
@@ -237,8 +270,8 @@ namespace CityWeaver
                 // reproduce the game's placement tool.
                 var snapParent = op.Type == "place" || op.Type == "move" ||
                     (op.Type == "upgrade" && op.UpgradePlacementMode == "road_side") ? op.ParentRoad : Entity.Null;
-                m_ControlPoints.Clear(); var point = new ControlPoint { m_Position = op.Position, m_HitPosition = op.Position, m_Rotation = op.Rotation, m_OriginalEntity = snapParent, m_ElementIndex = new int2(-1) }; m_ControlPoints.Add(point);
                 Entity prefab = op.Type == "rebuild" ? Entity.Null : op.Type == "move" ? op.OriginalPrefab : op.Prefab;
+                m_ControlPoints.Clear(); m_ControlPoints.Add(PlacementPoint(prefab == Entity.Null ? op.OriginalPrefab : prefab, op.Position, op.Rotation, snapParent));
                 Entity owner = op.Type == "upgrade" || op.Type == "rebuild" ? op.Target : Entity.Null;
                 Entity original = op.Type == "move" ? op.Target : Entity.Null;
                 var config = World.GetExistingSystemManaged<Game.City.CityConfigurationSystem>();
@@ -251,7 +284,7 @@ namespace CityWeaver
             else if (op.Type == "replace")
             {
                 AddDefinition(op.OriginalPrefab, op.Target, Entity.Null, CreationFlags.Delete, op.OriginalPosition, op.OriginalRotation);
-                m_ControlPoints.Clear(); var point = new ControlPoint { m_Position = op.OriginalPosition, m_HitPosition = op.OriginalPosition, m_Rotation = op.OriginalRotation, m_OriginalEntity = op.ParentRoad, m_ElementIndex = new int2(-1) }; m_ControlPoints.Add(point);
+                m_ControlPoints.Clear(); m_ControlPoints.Add(PlacementPoint(op.Prefab, op.OriginalPosition, op.OriginalRotation, op.ParentRoad));
                 var config = World.GetExistingSystemManaged<Game.City.CityConfigurationSystem>();
                 CreateDefinitions(op.Prefab, Entity.Null, Entity.Null, Entity.Null, Entity.Null, Entity.Null, config.defaultTheme, m_ControlPoints, default(NativeReference<AttachmentData>), false, config.leftHandTraffic, false, false, 100, 0, .5f, 0, 0, RandomSeed.Next(), Snap.All, Game.Tools.AgeMask.Sapling, false, default, default);
             }
@@ -308,6 +341,21 @@ namespace CityWeaver
                 if (relevant) m_Candidates.Add(e);
             }
             m_Candidates.Sort((a, b) => a.Index.CompareTo(b.Index)); op.PreviewEntities.Clear(); op.PreviewEntities.AddRange(m_Candidates);
+            foreach (var check in m_FloatingChecks)
+            {
+                var candidate = m_Candidates.FirstOrDefault(e => EntityManager.HasComponent<PrefabRef>(e) &&
+                    EntityManager.GetComponentData<PrefabRef>(e).m_Prefab == check.Item1 && EntityManager.HasComponent<Game.Objects.Transform>(e) &&
+                    math.distance(EntityManager.GetComponentData<Game.Objects.Transform>(e).m_Position.xz, check.Item2.xz) < .25f);
+                float? actualHeight = candidate == Entity.Null ? (float?)null : EntityManager.GetComponentData<Game.Objects.Transform>(candidate).m_Position.y;
+                float actualElevation = candidate != Entity.Null && EntityManager.HasComponent<Game.Objects.Elevation>(candidate)
+                    ? EntityManager.GetComponentData<Game.Objects.Elevation>(candidate).m_Elevation : 0f;
+                bool valid = actualHeight.HasValue && FloatingPlacement.Matches(actualHeight.Value, actualElevation, check.Item2.y, check.Item3);
+                op.ValidationDetails.Add(new JObject { ["check"] = "floating_height_and_seabed_clearance", ["valid"] = valid,
+                    ["expected_height_m"] = check.Item2.y, ["actual_height_m"] = actualHeight,
+                    ["expected_elevation_m"] = check.Item3, ["actual_elevation_m"] = actualElevation,
+                    ["terrain_reference_m"] = check.Item2.y - check.Item3 });
+                if (!valid) op.Errors.Add("FLOATING_ELEVATION_MISMATCH");
+            }
             if (op.RoadStopPlacement)
             {
                 if (op.Warnings.Count > 0) op.Errors.Add("ROAD_STOP_HAS_NATIVE_WARNINGS");
@@ -346,6 +394,20 @@ namespace CityWeaver
             return m_Candidates.Count > 0;
         }
         private bool VerifyResult()
+        {
+            if (!VerifyResultCore()) return false;
+            foreach (var check in m_FloatingChecks)
+            {
+                var entity = m_Operation.ResultEntities.FirstOrDefault(e => EntityManager.HasComponent<PrefabRef>(e) &&
+                    EntityManager.GetComponentData<PrefabRef>(e).m_Prefab == check.Item1 && EntityManager.HasComponent<Game.Objects.Transform>(e) &&
+                    math.distance(EntityManager.GetComponentData<Game.Objects.Transform>(e).m_Position.xz, check.Item2.xz) < .25f);
+                if (entity == Entity.Null) return false;
+                float elevation = EntityManager.HasComponent<Game.Objects.Elevation>(entity) ? EntityManager.GetComponentData<Game.Objects.Elevation>(entity).m_Elevation : 0f;
+                if (!FloatingPlacement.Matches(EntityManager.GetComponentData<Game.Objects.Transform>(entity).m_Position.y, elevation, check.Item2.y, check.Item3)) return false;
+            }
+            return true;
+        }
+        private bool VerifyResultCore()
         {
             var op = m_Operation; op.ResultEntities.Clear();
             if (op.Type == "demolish" || op.Type == "remove_upgrade") return !EntityManager.Exists(op.Target) || EntityManager.HasComponent<Deleted>(op.Target);

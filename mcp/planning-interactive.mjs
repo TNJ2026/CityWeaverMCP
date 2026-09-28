@@ -46,6 +46,9 @@ function focusViewOf(worldBounds, planningBounds, options = {}, maxZoom = 10) {
 
 const MAX_ZOOM = 10;
 
+// Shared by the standalone page and MCP App: extracted SVGs reference these variables.
+export const PLANNING_THEME_CSS = '--background:#fff;--foreground:#0f172a;--muted:#e2e8f0;--border:#94a3b8;--ring:#2563eb;--blue:#38bdf8;--green:#16a34a;--destructive:#dc2626;--viz-series-1:#22c55e;--viz-series-2:#2563eb;--viz-series-3:#f59e0b;--viz-series-4:#a855f7;--viz-series-5:#ef4444;--viz-series-6:#0f766e;';
+
 export function renderCityPlanInteractive(snapshot, plan, options = {}) {
   const rendered = renderCityPlan(snapshot, plan, options);
   const rootId = `city-plan-${rendered.plan_id.replace(/[^a-z0-9-]/gi, '')}`;
@@ -58,8 +61,9 @@ export function renderCityPlanInteractive(snapshot, plan, options = {}) {
     ? `校验发现 ${validation.error_count} 个错误、${validation.warning_count} 个警告。选择对象查看详情。`
     : '几何校验未发现问题；正式施工仍需通过游戏原生 preview。';
   const validationJson = JSON.stringify(validation.issues).replaceAll('<', '\\u003c');
-  // 初始视图聚焦规划边界：全图底图与平移/缩放范围不变，只是打开时对准规划范围。
-  const focusViewJson = JSON.stringify(focusViewOf(rendered.bounds, options.planning_bounds, options, MAX_ZOOM));
+  // 局部 SVG 已按范围绘制，不再二次放大；全图视图可保留规划取景。
+  const focusViewJson = JSON.stringify(rendered.display_extent === 'planning' || options.extent === 'full_map'
+    ? null : focusViewOf(rendered.bounds, options.planning_bounds, options, MAX_ZOOM));
 
   const html = `<!doctype html>
 <html lang="zh-CN">
@@ -68,7 +72,7 @@ export function renderCityPlanInteractive(snapshot, plan, options = {}) {
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${title}</title>
   <style>
-    :root { color-scheme: light; --background: #fff; --foreground: #0f172a; --muted: #e2e8f0; --border: #94a3b8; --ring: #2563eb; --blue: #38bdf8; --green: #16a34a; --destructive: #dc2626; --viz-series-1: #22c55e; --viz-series-2: #2563eb; --viz-series-3: #f59e0b; --viz-series-4: #a855f7; --viz-series-5: #ef4444; --viz-series-6: #0f766e; }
+    :root { color-scheme: light; ${PLANNING_THEME_CSS} }
     * { box-sizing: border-box; }
     body { margin: 0; padding: 18px; background: #f1f5f9; color: var(--foreground); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
     #${rootId} { color: var(--foreground); width: 100%; }
@@ -118,7 +122,7 @@ export function renderCityPlanInteractive(snapshot, plan, options = {}) {
     <label class="form-check"><input class="form-check-input" type="checkbox" data-filter="layer" value="terrain" checked><span class="form-check-label">坡度</span></label>
     <label class="form-check"><input class="form-check-input" type="checkbox" data-filter="status" value="existing" checked><span class="form-check-label">现状</span></label>
     <label class="form-check"><input class="form-check-input" type="checkbox" data-filter="status" value="planned" checked><span class="form-check-label">规划</span></label>
-    <span class="map-actions" aria-label="地图视图控制"><button type="button" data-map-action="zoom-out" aria-label="缩小">−</button><button type="button" data-map-action="reset" aria-label="复位到规划视图">复位</button><button type="button" data-map-action="zoom-in" aria-label="放大">＋</button><button type="button" data-map-action="fit-all" aria-label="显示全地图">全图</button></span>
+    <span class="map-actions" aria-label="地图视图控制"><button type="button" data-map-action="zoom-out" aria-label="缩小">−</button><button type="button" data-map-action="reset" aria-label="复位到规划视图">复位</button><button type="button" data-map-action="zoom-in" aria-label="放大">＋</button><button type="button" data-map-action="fit-all" aria-label="显示完整视图">${rendered.display_extent === 'planning' ? '完整区域' : '全图'}</button></span>
   </div>
   <div class="city-plan-legend text-small" aria-label="线型说明">
     <span class="city-plan-key"><span class="city-plan-line"></span>现状</span>

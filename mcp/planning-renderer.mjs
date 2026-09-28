@@ -274,6 +274,10 @@ function panelSvg({ snapshot, plan, mode, title, x, y, width, height, bounds }) 
   });
   const mapFill = underground ? '#111827' : '#f8fafc';
   const parts = [`<g id="${mode}" clip-path="url(#clip-${mode})">`, `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${mapFill}"/>`];
+  const corner = project({ x: bounds.min_x, z: bounds.max_z });
+  const opposite = project({ x: bounds.max_x, z: bounds.min_z });
+  // Clip world bounds too, so aspect-ratio gutters cannot reveal adjacent map areas.
+  parts.push(`<defs><clipPath id="extent-${mode}"><rect x="${corner.x}" y="${corner.y}" width="${opposite.x - corner.x}" height="${opposite.y - corner.y}"/></clipPath></defs><g clip-path="url(#extent-${mode})">`);
   if (tileRects.length) parts.push(`<g class="map-tile-grid" data-layer="map_tiles">${tileRects.join('')}</g>`);
   const gridStep = 100; const firstX = Math.ceil(bounds.min_x / gridStep) * gridStep, firstZ = Math.ceil(bounds.min_z / gridStep) * gridStep;
   for (let gx = firstX; gx <= bounds.max_x; gx += gridStep) { const a = project({ x: gx, z: bounds.min_z }), b = project({ x: gx, z: bounds.max_z }); parts.push(`<path class="metric-grid-line" d="M${a.x},${a.y} L${b.x},${b.y}" stroke="${underground ? '#1f2937' : '#e2e8f0'}" stroke-width=".6" stroke-opacity=".35"/>`); }
@@ -300,15 +304,53 @@ function panelSvg({ snapshot, plan, mode, title, x, y, width, height, bounds }) 
   for (const item of plan.utilities ?? []) if (visible(item)) parts.push(renderLine(item, project, COLORS[item.network_type] ?? COLORS.resource, true, dashFor(item, '6 3'), 'utilities'));
   if (!underground) for (const [index, grid] of (plan.grids ?? []).entries()) parts.push(renderPreviewMarker(grid, index, project));
   if (!underground) parts.push(`<g class="building-label-layer" data-layer="building-labels">${[...(snapshot.buildings ?? []).map(item => renderBuildingLabel(item, project)), ...(plan.buildings ?? []).map(item => renderBuildingLabel(item, project))].join('')}</g>`);
-  parts.push('</g>', `<text x="${x + 12}" y="${y + 24}" font-size="18" font-weight="700" fill="${underground ? '#f8fafc' : '#0f172a'}">${escapeXml(title)}</text>`, `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="#64748b" stroke-width="1"/>`);
+  parts.push('</g></g>', `<text x="${x + 12}" y="${y + 24}" font-size="18" font-weight="700" fill="${underground ? '#f8fafc' : '#0f172a'}">${escapeXml(title)}</text>`, `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="#64748b" stroke-width="1"/>`);
   return parts.join('');
+}
+
+// Display bounds are independent of the authorization envelope and plan hash.
+function displayBounds(world, planning, plan, extent = 'auto') {
+  if (extent === 'full_map') return world;
+  const valid = b => b && b.max_x > b.min_x && b.max_z > b.min_z;
+  const local = valid(planning) && planning.min_x >= world.min_x && planning.max_x <= world.max_x
+    && planning.min_z >= world.min_z && planning.max_z <= world.max_z
+    && Object.keys(world).some(key => planning[key] !== world[key]);
+  if (extent === 'planning' || local) return planning;
+  // Automatic proposals may authorize all purchased tiles while only drawing one block.
+  const points = [];
+  const add = (p, radius = 0) => {
+    if (!Number.isFinite(p?.x) || !Number.isFinite(p?.z)) return;
+    points.push({ x: p.x - radius, z: p.z - radius }, { x: p.x + radius, z: p.z + radius });
+  };
+  for (const item of [...plan.roads, ...plan.tracks, ...plan.utilities]) {
+    for (const p of item.points ?? []) add(p, finite(item.width_m) / 2);
+    for (const curve of [item.curve, ...(item.curves ?? [])]) {
+      for (const key of ['a', 'b', 'c', 'd', 'control', 'control_1', 'control_2']) add(curve?.[key], finite(item.width_m) / 2);
+    }
+  }
+  for (const item of plan.zones) for (const p of item.polygon ?? []) add(p);
+  for (const item of plan.buildings) {
+    const size = item.reserved_size_m ?? item.size_m;
+    add(item.position, Math.hypot(finite(size?.x), finite(size?.z)) / 2);
+  }
+  if (!points.length) return world;
+  const box = {
+    min_x: Math.min(...points.map(p => p.x)), max_x: Math.max(...points.map(p => p.x)),
+    min_z: Math.min(...points.map(p => p.z)), max_z: Math.max(...points.map(p => p.z)),
+  };
+  const padding = Math.max(32, Math.max(box.max_x - box.min_x, box.max_z - box.min_z) * .06);
+  const padded = { min_x: Math.max(world.min_x, box.min_x - padding), max_x: Math.min(world.max_x, box.max_x + padding),
+    min_z: Math.max(world.min_z, box.min_z - padding), max_z: Math.min(world.max_z, box.max_z + padding) };
+  return valid(padded) ? padded : world;
 }
 
 export function renderCityPlan(snapshotInput, planInput, options = {}) {
   const snapshot = snapshotInput ?? {}; const plan = expandCityPlan(planInput ?? {});
-  const bounds = options.bounds ?? snapshot.bounds;
-  const planningBounds = options.planning_bounds ?? bounds;
-  if (!bounds || finite(bounds.min_x) >= finite(bounds.max_x) || finite(bounds.min_z) >= finite(bounds.max_z)) throw new Error('Valid render bounds are required.');
+  const worldBounds = options.bounds ?? snapshot.bounds;
+  const planningBounds = options.planning_bounds ?? worldBounds;
+  if (!worldBounds || finite(worldBounds.min_x) >= finite(worldBounds.max_x) || finite(worldBounds.min_z) >= finite(worldBounds.max_z)) throw new Error('Valid render bounds are required.');
+  const bounds = displayBounds(worldBounds, planningBounds, plan, options.extent);
+  const local = bounds !== worldBounds;
   const legendEntries = [
     ['已购地图格', '#f8fafc'], ['未购地图格', '#94a3b8'], ['地表水体', COLORS.surface_water], ['高程底色', '#bd9b6a'], ['等高线', '#6b4f3a'], ['中坡', COLORS.terrain_moderate], ['陡坡', COLORS.terrain_steep], ['道路', COLORS.road], ['火车', COLORS.train], ['地铁', COLORS.subway], ['高压/电力', COLORS.electricity], ['清水', COLORS.water], ['污水', COLORS.sewage],
     ['住宅', COLORS.residential], ['商业', COLORS.commercial], ['工业', COLORS.industrial], ['办公', COLORS.office], ['公共设施', COLORS.service]
@@ -338,10 +380,10 @@ export function renderCityPlan(snapshotInput, planInput, options = {}) {
   const planId = `cplan-${createHash('sha256').update(JSON.stringify({ bounds: planningBounds, plan })).digest('hex').slice(0, 16)}`;
   const validation = validateCityPlan(snapshot, { ...plan, grids: [] }, planningBounds);
   return {
-    plan_id: planId, svg, mime_type: 'image/svg+xml', bounds, planning_bounds: planningBounds,
+    plan_id: planId, svg, mime_type: 'image/svg+xml', bounds, planning_bounds: planningBounds, world_bounds: worldBounds, display_extent: local ? 'planning' : 'full_map',
     counts: { roads: plan.roads?.length ?? 0, buildings: plan.buildings?.length ?? 0, zones: plan.zones?.length ?? 0, tracks: plan.tracks?.length ?? 0, utilities: plan.utilities?.length ?? 0, waters: snapshot.waters?.length ?? 0, terrain_cells: snapshot.terrain?.cells?.length ?? 0, map_tiles: (snapshot.map_tiles ?? snapshot.purchased_tiles ?? []).length, purchased_tiles: (snapshot.map_tiles ?? snapshot.purchased_tiles ?? []).filter(tile => tile.owned !== false).length },
     coordinate_mapping: { axis: 'world_xz', aspect_ratio: '1:1', world_width_m: bounds.max_x - bounds.min_x, world_height_m: bounds.max_z - bounds.min_z },
     validation, native_preview_summary: nativePreview ? { state: nativePreview.state, cost: nativePreview.cost ?? 0, warnings: nativePreview.warnings ?? [], errors: nativePreview.errors ?? [], error: nativePreview.error ?? null, operation_id: nativePreview.operation_id ?? null, snapped_origin: nativePreview.snapped_origin ?? null } : null, snapshot_session_id: snapshot.session_id ?? null, snapshot_truncated: snapshot.truncated === true,
-    notes: 'Read-only full-map schematic with equal X/Z scale. Unowned tiles are context only and remain invalid for construction. Planned geometry has not passed native construction preview.'
+    notes: `Read-only ${local ? 'local planning-area' : 'full-map'} schematic with equal X/Z scale. Display bounds do not change planning authorization. Unowned tiles remain invalid for construction. Planned geometry has not passed native construction preview.`
   };
 }

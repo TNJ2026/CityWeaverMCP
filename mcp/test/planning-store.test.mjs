@@ -7,6 +7,7 @@ import { PlanningStore, contentHash, compactResult } from '../planning-store.mjs
 import { createPlanningSession } from '../planning-session.mjs';
 import { computeCityPlanId, renderCityPlan } from '../planning-renderer.mjs';
 import { readToolMedia } from '../tool-media.mjs';
+import { compileCityPlanRoads, requestIdFor } from '../city-plan-construction-workflow.mjs';
 
 async function fixture(t) {
   const root = await mkdtemp(path.join(tmpdir(), 'planning-store-'));
@@ -81,7 +82,7 @@ test('unknown native outcome remains blocked across restart, journal retains sta
   await assert.rejects(h.api().advance(prepared.next_action.arguments), { code: 'BRIDGE_TIMEOUT' });
   await assert.rejects(h.api().advance(prepared.next_action.arguments), { code: 'CONSTRUCTION_RECOVERY_REQUIRED' });
   assert.equal(h.calls(), 1);
-  assert.equal((await store.get(prepared.construction_id)).in_flight.arguments.request_id, 'preview_request');
+  assert.equal((await store.get(prepared.construction_id)).in_flight.arguments.request_id, requestIdFor(h.planId, 'a', 'preview'));
 });
 test('cross-instance writer exclusion does not silently remove another writer lock', async t => {
   const store = await fixture(t);
@@ -89,6 +90,86 @@ test('cross-instance writer exclusion does not silently remove another writer lo
     await assert.rejects(new PlanningStore(store.root).locked(() => assert.fail('must not enter')), { code: 'CONSTRUCTION_BUSY' });
   });
   await store.locked(async () => {});
+});
+
+test('native request IDs preserve Unicode, long suffixes and operation identity', () => {
+  const ids = ['北侧七车道 →', '东侧七车道 ↓', 'a'.repeat(120) + '1', 'a'.repeat(120) + '2'];
+  const requests = ids.flatMap(id => ['preview', 'commit'].map(action => requestIdFor('cplan-test', id, action)));
+  assert.equal(new Set(requests).size, 8);
+  assert.ok(requests.every(id => /^[A-Za-z0-9_-]{1,100}$/.test(id)));
+  assert.equal(requests[0], requestIdFor('cplan-test', ids[0], 'preview'));
+  assert.notEqual(requests[0], requestIdFor('cplan-other', ids[0], 'preview'));
+});
+
+async function collisionFixture(t) {
+  const store = await fixture(t), h = harness(store);
+  const prepared = await h.api().prepare({ bounds, plan, approved_plan_id: h.planId });
+  const ref = prepared.construction_id, journal = await store.get(ref);
+  journal.executor_version = 'city-plan-executor-1';
+  journal.state_version = 2;
+  journal.recovery_required = true;
+  journal.failure = { code: 'IDEMPOTENCY_CONFLICT', operation_id: null };
+  journal.in_flight = { arguments: { ...journal.next_action.arguments, operation_timeout_ms: 20000, compiled_plan: journal.compiled } };
+  journal.last_result = { batch_id: 'previous', state: 'completed_verified', native_operation: { operation_id: 'op', state: 'completed' }, permanent_readback: { verified: true, verified_road_ids: ['edge'], bounds } };
+  await store.save(ref, journal);
+  const reads = [], operation = { operation_id: 'op', state: 'completed', request_id: 'preview_request', created_road_ids: ['edge'] };
+  const control = { session: 'session-a', roads: [{ id: 'edge' }] };
+  const api = createPlanningSession({ store, queryGame: async tool => {
+    reads.push(tool);
+    const data = tool === 'get_road_operation' ? operation : tool === 'get_planning_map_snapshot' ? { roads: control.roads } : { city_loaded: true };
+    return { meta: { session_id: control.session }, data };
+  } });
+  return { store, ref, api, operation, control, reads };
+}
+
+test('collision recovery keeps the existing handle, completed result and audit evidence without native writes', async t => {
+  const f = await collisionFixture(t);
+  const result = await f.api.recoverRequestCollision({ construction_id: f.ref, state_version: 2 });
+  assert.equal(result.state, 'recovered_ready_for_native_preview');
+  assert.equal(result.state_version, 3);
+  assert.equal(result.next_action.arguments.batch_id, 'a');
+  assert.deepEqual(f.reads, ['get_game_status', 'get_road_operation', 'get_planning_map_snapshot']);
+  const j = await f.store.get(f.ref);
+  assert.equal(j.last_result.batch_id, 'previous');
+  assert.equal(j.recovery_required, false);
+  assert.equal(j.executor_version, 'city-plan-executor-2');
+  assert.equal(j.next_action.arguments.request_id, requestIdFor(harness(f.store).planId, 'a', 'preview'));
+  const evidence = await f.store.get(j.recoveries[0].evidence_ref);
+  assert.equal(evidence.previous_failure.code, 'IDEMPOTENCY_CONFLICT');
+  assert.equal(evidence.previous_in_flight.arguments.request_id, 'preview_request');
+  await assert.rejects(f.api.recoverRequestCollision({ construction_id: f.ref, state_version: 2 }), { code: 'STALE_CONSTRUCTION_STATE' });
+});
+
+for (const scenario of ['timeout', 'commit', 'wrong-operation', 'missing-road', 'session', 'integrity']) {
+  test(`collision recovery refuses ${scenario} and preserves the lock`, async t => {
+    const f = await collisionFixture(t), j = await f.store.get(f.ref);
+    if (scenario === 'timeout') j.failure.code = 'WORKFLOW_TIMEOUT';
+    if (scenario === 'commit') j.in_flight.arguments.action = 'commit_batch';
+    if (scenario === 'wrong-operation') f.operation.request_id = 'other';
+    if (scenario === 'missing-road') f.control.roads = [];
+    if (scenario === 'session') f.control.session = 'other';
+    if (scenario === 'integrity') j.compiled_hash = 'changed';
+    await f.store.save(f.ref, j);
+    await assert.rejects(f.api.recoverRequestCollision({ construction_id: f.ref, state_version: 2 }));
+    assert.equal((await f.store.get(f.ref)).recovery_required, true);
+    assert.equal((await f.store.get(f.ref)).state_version, 2);
+  });
+}
+
+test('road TOOL_BUSY recovery keeps the rejected request ID and still refuses commit or unknown failure', async t => {
+  const f = await collisionFixture(t), j = await f.store.get(f.ref);
+  j.failure.code = 'TOOL_BUSY';
+  f.operation.request_id = 'previous_completed_request';
+  await f.store.save(f.ref, j);
+  const result = await f.api.recoverBusyPreview({ construction_id: f.ref, state_version: 2 });
+  assert.equal(result.state_version, 3);
+  assert.equal((await f.store.get(f.ref)).next_action.arguments.request_id, 'preview_request');
+  j.failure.code = 'WORKFLOW_TIMEOUT';
+  await f.store.save(f.ref, j);
+  await assert.rejects(f.api.recoverBusyPreview({ construction_id: f.ref, state_version: 2 }));
+  j.failure.code = 'TOOL_BUSY'; j.in_flight.arguments.action = 'commit_batch';
+  await f.store.save(f.ref, j);
+  await assert.rejects(f.api.recoverBusyPreview({ construction_id: f.ref, state_version: 2 }));
 });
 test('summary preserves outcome and verification evidence without full geometry', () => {
   const full = { state: 'completed_readback_incomplete', recovery_required: true, permanent_readback: { verified: false, missing_ids: ['x'] }, errors: ['failed'], plan: { roads: Array(1000).fill(plan.roads[0]) } };

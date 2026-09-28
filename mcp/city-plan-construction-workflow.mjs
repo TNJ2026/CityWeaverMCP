@@ -1,6 +1,7 @@
 import { withPrefabCatalog } from './prefab-catalog-service.mjs';
 import { queryGame as liveQueryGame, BridgeError } from './bridge-client.mjs';
 import { computeCityPlanId, expandCityPlan } from './planning-renderer.mjs';
+import { createHash } from 'node:crypto';
 
 const TERMINAL_FAILURES = new Set(['failed', 'cancelled', 'expired', 'outcome_unknown']);
 const COMMIT_IN_PROGRESS = new Set(['commit_queued', 'applying']);
@@ -16,7 +17,9 @@ const sessionIdOf = envelope => envelope?.meta?.session_id || envelope?.data?.se
 const speedOf = status => status?.paused || status?.selected_speed === 0 ? 'paused'
   : status?.selected_speed === 4 ? 'fastest' : status?.selected_speed === 2 ? 'fast' : 'normal';
 const textOf = value => typeof value === 'string' ? value : value?.message ?? value?.code ?? JSON.stringify(value);
-const requestIdFor = (planId, roadId, suffix) => `${planId.replace('cplan-', 'cp_')}_${String(roadId).replace(/[^A-Za-z0-9_-]+/g, '_')}_${suffix}`.slice(0, 100);
+// Hash the complete tuple before truncating anything: Unicode labels and long
+// common prefixes must not alias, and preview/commit must remain distinct.
+export const requestIdFor = (planId, roadId, suffix) => `cp_${createHash('sha256').update(JSON.stringify([planId, String(roadId), suffix])).digest('hex')}_${suffix}`;
 
 function workflowError(code, message, details = {}) {
   const error = new BridgeError(code, message);

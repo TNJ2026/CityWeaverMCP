@@ -23,8 +23,8 @@ The repository is not necessarily at the local path shown below. Locate the proj
 - 接手、修复或继续发展已有城市：先读 `docs/workflows/development-strategies.md`，再读 `docs/workflows/existing-city.md`。
 - 公共服务、住宅/商业/办公/工业及道路的联合检查：读 `docs/workflows/CITY-CONSTRUCTION-CHECKLIST.md`；区分划区写入与实际成长、行政区归属与服务工作区，以及道路改造前后沿街依赖。
 - 快速选址、NxN 网格或批量建设：读 `docs/workflows/efficient-deployment.md`。
-- 生成全地图静态规划图、在已购区域自动选择网格、按图分阶段施工或执行不施工的道路原生预检：读 `docs/guides/planning/PLANNING-MAP-GUIDE.md`；规划图不等于游戏原生 preview。
-- 使用规划文件链接、持久化规划/施工引用、紧凑响应或快照复用：读 `docs/workflows/planning-token-efficiency.md`。先通过 MCP schema 确认支持；优先 `plan_ref` → `construction_id`，原样使用带 `state_version` 的小型 `next_action`，不要逐批重复传完整规划。默认读摘要，诊断时用 `evidence_ref` 和 `read_planning_record` 按字段分页读取；网页直接打开返回的文件，不把完整 HTML/SVG 读回上下文。绑定后的新规划必须遵守原审批规则。快照内容指纹不是实时游戏版本，60秒复用也不保证未变化；恢复标记、失败或未知结果不能通过删除日志、更换句柄或重建来绕过。
+- 生成局部规划图（或明确要求的全地图）、在已购区域自动选择网格、按图分阶段施工或执行不施工的道路原生预检：读 `docs/guides/planning/PLANNING-MAP-GUIDE.md`；规划图不等于游戏原生 preview。
+- 使用规划文件链接、持久化规划/施工引用、紧凑响应或快照复用：读 `docs/workflows/planning-token-efficiency.md`。先通过 MCP schema 确认支持；优先 `plan_ref` → `construction_id`，原样使用带 `state_version` 的小型 `next_action`，不要逐批重复传完整规划。默认读摘要，诊断时用 `evidence_ref` 和 `read_planning_record` 按字段分页读取；优先显示 MCP App 卡片；卡片已显示时不再打开规划网页或重复附网页链接。仅在卡片不可用、加载失败或用户明确要求时打开返回的文件，不把完整 HTML/SVG 读回上下文。绑定后的新规划必须遵守原审批规则。快照内容指纹不是实时游戏版本，60秒复用也不保证未变化；恢复标记、失败或未知结果不能通过删除日志、更换句柄或重建来绕过。
 - 获取玩家当前镜头范围、捕获游戏画面或让施工镜头平滑聚焦：读 `docs/guides/planning/CAMERA-VIEW-GUIDE.md`；玩家输入始终优先于自动聚焦。
 - 需要完整施工生命周期、阶段状态机或失败恢复：读 `docs/workflows/new-city.md` 的“开工基线”“统一阶段状态机”“失败回退协议”，并结合 `docs/workflows/operations.md`。
 - 建筑规划、升级放置和附属区域：读 `docs/guides/buildings/BUILDING-GUIDE.md`、`docs/guides/city/CITY-SERVICE-GUIDE.md` 的升级范围说明与 `docs/guides/buildings/BUILDING-AREA-GUIDE.md`；交通设施升级还读 `docs/guides/transport/TRANSPORT-INFRASTRUCTURE-GUIDE.md`。
@@ -40,6 +40,20 @@ The repository is not necessarily at the local path shown below. Locate the proj
 用户要求建城、发展、提效、扭亏或接手城市时，先读 `docs/workflows/development-strategies.md`，再按场景读 `docs/workflows/new-city.md` 或 `docs/workflows/existing-city.md`。普通单项查询不必加载策略全文。
 
 默认选择稳健经营，并按预算、地形与实际瓶颈调整；可切换为紧凑公交、资源产业、多中心渐进或财政修复策略。以持续现金流、住房和岗位匹配、服务与交通承载能力决定扩张，不把需求条清零或人口最大化当作默认目标。参考中的观察阈值是可调整建议，不是游戏硬规则。仅请求攻略时不操作游戏；正常经营不默认使用无限资金、强制需求、直接创建市民/企业或批量清车。
+
+## 专题施工入口
+
+按任务只读取相关专题，路径相对项目根目录：
+
+- 海上油井、平台、管道与油轮作业线：`docs/guides/buildings/OFFSHORE-OIL-CONSTRUCTION-GUIDE.md`。
+- 山顶煤矿/矿石、最大有效扩区与搬移残留：`docs/guides/buildings/MOUNTAIN-MINING-GUIDE.md`。
+- 并列单向高速桥、通航及巨型环岛：`docs/guides/roads/PARALLEL-HIGHWAY-BRIDGE-GUIDE.md`。
+- 机场山脚选址、起降净空及航线：`docs/guides/transport/AIRPORT-CONSTRUCTION-GUIDE.md`。
+- 有轨电车环线与摆渡：分别读 `docs/guides/transport/TRAM-CONSTRUCTION-GUIDE.md`、`docs/guides/transport/FERRY-CONSTRUCTION-GUIDE.md`。
+- 方形均匀网格、面积调整与受控接口：`docs/guides/planning/SQUARE-GRID-TOWN-GUIDE.md`。
+- 客货站与地下地铁接驳：`docs/guides/transport/RAIL-STATION-CHECKLIST.md`。
+
+上述指南中的历史车道数、接口数、桥位航道宽度和坐标只属于对应工程，不自动成为其他任务的默认规则。
 
 ## 游戏机制规则参考（项目物理常量 + Paradox Wiki）
 
@@ -102,6 +116,8 @@ The repository is not necessarily at the local path shown below. Locate the proj
 
 ## 关键领域边界
 
+- 石油平台（顺应塔、半潜式）选址必须避开所有既有航线和航道，包括平台本体及自带航道的全宽与净空；不允许放置时自动合并或压占既有通航走廊。先读 `docs/guides/buildings/BUILDING-AREA-GUIDE.md` 的海上石油设施施工规则，建筑完成后再用独立连接段接驳。
+
 - 渔港码头延长、Fishing Pier 升级项或码头预览重叠排查：先读 [渔港码头延长](references/pier-extension.md)。发现永久水侧端点，以 Pathway 原生预览/提交延伸，完成后核验共享节点及附着建筑；不要与航道或捕鱼线路混用。
 
 - 新增普通建筑、市政服务、交通设施或公用设施优先使用 `plan_building_workflow` / `execute_building_plan`；已授权的一组建筑可用 `deploy_building_plans`。移动、升级、拆除及专用网络仍使用领域工具。可升级建筑用 `reserve_upgrade_prefabs` 预留组合占地；不需要覆盖代理时将 `consider_service_coverage` 设为 `false`，但不能跳过原生放置预览。
@@ -109,7 +125,7 @@ The repository is not necessarily at the local path shown below. Locate the proj
 - 垃圾填埋场储存区和专门产业采集区是建筑附属区域，不是行政区或 zoning。先由 `list_building_areas` 发现 owner 允许的精确区域 prefab。
 - 规则网格必须按授权粒度选择入口，不能把三个入口混用：只规划位置用 `propose_grid_plan`；单个网格需要让用户在预览与永久提交之间检查时，用 `prepare_grid_native_preview` → `advance_grid_construction`；已经明确授权自动连续施工一个独立网格时，才用 `deploy_grid_district(approval_mode="automatic")`。其安全默认 `approval_mode="staged"` 只创建道路原生预览并返回下一步，不永久施工。整张已批准施工图中的规则部分写入 `plan.grids[]`，环路、主干道、绿带断路和其他不规则部分才写入 `plan.roads[]`。
 - 多个网格可以依次施工，但必须串行且范围不重叠；相邻网格不得重复生成同一条外围道路。规划器应优先拆成由片区集散路隔开的独立开发单元。发现轴对齐、等间距、完整矩形且不超过原生批次上限的道路组时，不得静默展开为逐条道路；无法无损使用网格工具时，在 `plan.grid_exceptions[]` 记录范围、道路 ID 和原因。
-- 用户只要求“规划、画图、看看方案”时，先用 `propose_grid_plan` / `propose_city_plan` / `render_city_plan`，不得因此调用施工工具。规划网页以全部可购买地图格为固定底图，但规划授权和施工仍限于已购区域；水岸线默认按 8 米原生水深样本插值，可用 `water_cell_size_m` 下调至 2 米，结果出现 `adaptive_resolution=true` 时必须按实际 `cell_size_m` 报告精度。`propose_city_plan` 自动添加的服务建筑、轨道和管网是概念占位；概念建筑必须保持 `placement_status="conceptual"`、`rotation_source="unresolved"`、`rotation_degrees=null`，不得猜测角度。它们必须后续绑定精确 prefab、端口和连接层。用户确认整张规划图并要求按图施工道路时，先把未精确绑定的建筑标记为 `construction_status="skipped"`，或生成只含道路的阶段计划，再用该阶段完全相同的 `bounds`、结构化 `plan` 和渲染返回的 `plan_id` 调用 `prepare_city_plan_construction`；只有哈希一致才建立虚拟路网沙盒，先检查宽度边界、8 米对齐和端点拓扑，再把每个网格保留为一次原生批次、把超长路线仅按原生上限拆批。道路批次永久回读后，恢复完整建筑清单，并对带精确 prefab 的规划建筑调用 `bind_city_plan_buildings`：它以实时规划器候选和原生 preview 取得精确坐标、朝向、`road_edge_id`/`snap_target_id`，验证后取消临时 preview，不永久施工。随后必须重新 `render_city_plan` 并让用户确认新的 `plan_id`；禁止复用道路阶段的旧审批。再沿 `advance_city_plan_construction` 的 `preview_batch` / `commit_batch` 逐批执行最终坐标原生预览、提交和永久道路/建筑/管网回读；建筑还必须回读永久 `m_RoadEdge`；若原生合并道路导致 ID 改变，先停止并验证新边的位置、兼容性及拓扑，记录变更依据后才能继续，不能直接忽略回读失败或重建建筑。虚拟沙盒不在地下或其他位置建设道路，也不得从 SVG 像素反推坐标。用户要求单个网格原生预检但尚未授权施工时，用 `prepare_grid_native_preview`；它只保留临时道路 preview，可通过 `render` 把费用、状态、警告、错误和吸附原点标注回规划图，不调用 `build_road`、`preview_zoning` 或 apply。获得施工授权后用 `advance_grid_construction` 依次执行 `commit_roads` → `preview_zoning` → `apply_zoning`，每次只推进一个阶段并优先沿用返回的 `next_action`；分区预览必须使用道路完成后回读的永久 edge ID。任一阶段失败、超时、`outcome_unknown` 或永久回读不完整都停止，已完成道路不得自动拆除。
+- 用户只要求“规划、画图、看看方案”时，先用 `propose_grid_plan` / `propose_city_plan` / `render_city_plan`，不得因此调用施工工具。规划图默认显示本次规划区域及必要连接端点，明确要求时才显示全地图；已有 MCP App 卡片时不重复打开网页，规划授权和施工仍限于已购区域；水岸线默认按 8 米原生水深样本插值，可用 `water_cell_size_m` 下调至 2 米，结果出现 `adaptive_resolution=true` 时必须按实际 `cell_size_m` 报告精度。`propose_city_plan` 自动添加的服务建筑、轨道和管网是概念占位；概念建筑必须保持 `placement_status="conceptual"`、`rotation_source="unresolved"`、`rotation_degrees=null`，不得猜测角度。它们必须后续绑定精确 prefab、端口和连接层。用户确认整张规划图并要求按图施工道路时，先把未精确绑定的建筑标记为 `construction_status="skipped"`，或生成只含道路的阶段计划，再用该阶段完全相同的 `bounds`、结构化 `plan` 和渲染返回的 `plan_id` 调用 `prepare_city_plan_construction`；只有哈希一致才建立虚拟路网沙盒，先检查宽度边界、8 米对齐和端点拓扑，再把每个网格保留为一次原生批次、把超长路线仅按原生上限拆批。道路批次永久回读后，恢复完整建筑清单，并对带精确 prefab 的规划建筑调用 `bind_city_plan_buildings`：它以实时规划器候选和原生 preview 取得精确坐标、朝向、`road_edge_id`/`snap_target_id`，验证后取消临时 preview，不永久施工。随后必须重新 `render_city_plan` 并让用户确认新的 `plan_id`；禁止复用道路阶段的旧审批。再沿 `advance_city_plan_construction` 的 `preview_batch` / `commit_batch` 逐批执行最终坐标原生预览、提交和永久道路/建筑/管网回读；建筑还必须回读永久 `m_RoadEdge`；若原生合并道路导致 ID 改变，先停止并验证新边的位置、兼容性及拓扑，记录变更依据后才能继续，不能直接忽略回读失败或重建建筑。虚拟沙盒不在地下或其他位置建设道路，也不得从 SVG 像素反推坐标。用户要求单个网格原生预检但尚未授权施工时，用 `prepare_grid_native_preview`；它只保留临时道路 preview，可通过 `render` 把费用、状态、警告、错误和吸附原点标注回规划图，不调用 `build_road`、`preview_zoning` 或 apply。获得施工授权后用 `advance_grid_construction` 依次执行 `commit_roads` → `preview_zoning` → `apply_zoning`，每次只推进一个阶段并优先沿用返回的 `next_action`；分区预览必须使用道路完成后回读的永久 edge ID。任一阶段失败、超时、`outcome_unknown` 或永久回读不完整都停止，已完成道路不得自动拆除。
 - 跨领域批量建设可使用 `deploy_service_cluster`、`deploy_industrial_campus`、`deploy_transit_corridor`、`build_utility_backbone`、`repair_congested_corridor`；它们按固定阶段串行执行并返回 `phases`。阶段失败或 `outcome_unknown` 时停止后续工作，不更换 `request_id` 重试，也不提供跨领域自动回滚。`build_utility_backbone` 将设施端口接驳与显式骨架管线按顺序建设，并在每次接驳前按剩余 `max_total_cost` 限幅、对管线段执行总额和 `max_cost_per_segment` 预检；`repair_congested_corridor` 先分析瓶颈，`auto` 只处理明确的扩容/分流建议，2–64 条升级道路会合并为一次原生批量事务，`reroute` 对一条走廊只创建一次绕行。
 - 公共服务采用“分级分散、小规模集中”：小学、诊所、社区警务和消防按实际需求与道路阻隔分散；医院、大学、总部和大型后勤设施集中在区域节点或外围，并分别检查覆盖、道路容量、升级占地和财政负担，详见项目文档 `docs/guides/city/CITY-SERVICE-GUIDE.md`。
 - zoning 名称与城市主题和资产包相关，必须使用 `list_zone_types` 返回的精确名称。

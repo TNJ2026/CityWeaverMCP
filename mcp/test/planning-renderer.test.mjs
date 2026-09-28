@@ -2,6 +2,53 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { computeCityPlanId, renderCityPlan } from '../planning-renderer.mjs';
 import { renderCityPlanInteractive } from '../planning-interactive.mjs';
+
+test('local rendering crops the SVG without changing construction bounds or identity', () => {
+  const world = { min_x: -7168, max_x: 7168, min_z: -7168, max_z: 7168 };
+  const local = { min_x: 2400, max_x: 3600, min_z: -6950, max_z: -5750 };
+  const plan = { roads: [{ points: [{ x: 2600, z: -6400 }, { x: 3400, z: -6100 }], width_m: 16 }] };
+  for (const view of ['surface', 'underground', 'combined', 'surface_and_underground']) {
+    const result = renderCityPlan({ bounds: world }, plan, { planning_bounds: local, view });
+    assert.deepEqual(result.bounds, local);
+    assert.deepEqual(result.world_bounds, world);
+    assert.deepEqual(result.planning_bounds, local);
+    assert.equal(result.plan_id, computeCityPlanId(local, plan));
+    assert.equal(result.display_extent, 'planning');
+    assert.equal(result.coordinate_mapping.world_width_m, 1200);
+    assert.match(result.svg, /clip-path="url\(#extent-/);
+    const full = renderCityPlan({ bounds: world }, plan, { planning_bounds: local, view, extent: 'full_map' });
+    assert.deepEqual(full.bounds, world);
+    assert.equal(full.plan_id, result.plan_id);
+  }
+});
+
+test('automatic extent follows drawn geometry even for long routes; empty plans retain the map', () => {
+  const bounds = { min_x: -7168, max_x: 7168, min_z: -7168, max_z: 7168 };
+  const grid = { grids: [{ origin: { x: 100, z: 200 }, rows: 2, columns: 3, block_width_m: 96, block_height_m: 96 }] };
+  const local = renderCityPlan({ bounds }, grid, { planning_bounds: bounds });
+  assert.equal(local.display_extent, 'planning');
+  assert.ok(local.bounds.min_x < 100 && local.bounds.max_x > 388);
+  assert.ok(local.bounds.min_z < 200 && local.bounds.max_z > 392);
+  assert.deepEqual(local.planning_bounds, bounds);
+  assert.equal(renderCityPlan({ bounds }, {}).display_extent, 'full_map');
+  const citywide = { roads: [{ points: [{ x: -6500, z: 0 }, { x: 6500, z: 0 }] }] };
+  const route = renderCityPlan({ bounds }, citywide);
+  assert.equal(route.display_extent, 'planning');
+  assert.ok(route.bounds.min_x <= -6500 && route.bounds.max_x >= 6500);
+  assert.ok(route.bounds.min_z > -1000 && route.bounds.max_z < 1000);
+  assert.deepEqual(renderCityPlan({ bounds }, citywide, { extent: 'full_map' }).bounds, bounds);
+  const planning_bounds = { min_x: -6000, max_x: 4000, min_z: -1000, max_z: 1000 };
+  assert.deepEqual(renderCityPlan({ bounds }, {}, { planning_bounds }).bounds, planning_bounds);
+});
+
+test('local HTML uses the already-cropped SVG rather than zooming a second time', () => {
+  const bounds = { min_x: -7168, max_x: 7168, min_z: -7168, max_z: 7168 };
+  const planning_bounds = { min_x: 100, max_x: 200, min_z: 100, max_z: 1200 };
+  const result = renderCityPlanInteractive({ bounds }, {}, { planning_bounds });
+  assert.deepEqual(result.bounds, planning_bounds);
+  assert.match(result.html, /完整区域/);
+  assert.match(result.html, /const focusView = null/);
+});
 import { validateCityPlan } from '../planning-validator.mjs';
 import { proposeGridPlan } from '../planning-proposer.mjs';
 import { bindGridProposal } from '../planning-binder.mjs';
@@ -67,7 +114,7 @@ test('maps physical road width at the same X/Z world scale', () => {
   const bounds = { min_x: 0, min_z: 0, max_x: 100, max_z: 100 };
   const result = renderCityPlan({ bounds, roads: [], buildings: [], tracks: [], utilities: [] }, {
     roads: [{ id: 'ten-metre-road', width_m: 10, points: [{ x: 10, z: 50 }, { x: 90, z: 50 }] }],
-  }, { bounds, width: 1000, height: 1000, view: 'surface' });
+  }, { bounds, width: 1000, height: 1000, view: 'surface', extent: 'full_map' });
 
   // The responsive three-row legend leaves an 830-unit map panel: 10 m becomes 83 SVG units.
   assert.match(result.svg, /data-object-id="ten-metre-road" data-width-m="10" data-width-svg="83\.0000"/);
@@ -158,7 +205,7 @@ test('renders the complete tile grid without clipping unowned land or water', ()
     roads: [{ id: 'outside-owned-road', points: [{ x: 120, z: 50 }, { x: 180, z: 50 }] }],
     buildings: [], tracks: [], utilities: [],
     waters: [{ id: 'future-lake', polygons: [[{ x: 130, z: 10 }, { x: 190, z: 10 }, { x: 190, z: 40 }, { x: 130, z: 40 }]] }],
-  }, plan, { bounds, planning_bounds: planningBounds, view: 'surface' });
+  }, plan, { bounds, planning_bounds: planningBounds, view: 'surface', extent: 'full_map' });
 
   assert.equal(result.counts.map_tiles, 2);
   assert.equal(result.counts.purchased_tiles, 1);

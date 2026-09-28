@@ -4,21 +4,29 @@
 
 ## 渔港码头控制点（Pathway，不是航道）
 
+**施工标准：渔港码头至少延长 100 米。** 这是项目建造要求，不是引擎最小段长：新增长度从主体自带码头的水侧末端起算，不含原段。回读已有延长段，玩家手动完成的长度也计入；已达到要求时不再重复延长，用户明确要求保留现状时遵从该要求。受碰撞或水域限制无法达到时，先报告具体障碍，不能静默改为不足 100 米。
+
 渔港主体可能自带高于水面的 `Narrow Boatway` Pathway 码头。其 `LocalConnect` 控制点需要先延长码头，才能尝试放置要求连接的附属建筑；`preview_waterway` 只建设船舶航道，不能接入该 Pathway。先在当前城市调用 `list_pier_pathway_prefabs` 和 `list_pier_pathways`，取得精确 prefab 名称及永久控制节点 ID。暂停城市后，以控制节点作为 `start_node_id`，传 `end`（世界 x/z）或另一永久 `end_node_id`，调用 `preview_pier_pathway`；等待 `get_pier_pathway_operation` 返回 `preview_ready`，核对碰撞、净空、错误与费用，再用独立提交 `request_id` 和费用上限调用 `apply_pier_pathway_operation`。只有 `completed` 且 `list_pier_pathways` 回读到永久边和节点连接，才算码头延长完成。取消未提交预览使用 `cancel_pier_pathway_preview`。首版仅支持单段直线；仍须实机验证附属建筑是否可吸附，不能把码头连接等同于渔业设施已经投产。
 
 2026-09-21 渔港实机诊断：一段从永久 `Fishing Pier` 控制节点向水面延伸约 49 米的预览返回原生 `OverlapExisting`，没有提交，也没有新增永久码头。仅补建筑 owner 临时升级定义和新路径 `OwnerDefinition` 后，同几何实机预览仍被拒。对照原生 NetTool 发现，它还会把 owner 已有的附属边作为原对象加入预览，以免旧码头与新码头互判为重叠；源码已补齐这一环节并通过暂存构建。2026-09-22 在游戏 1.6.2f1、CityWeaver 1.23.2、奥本山存档中实机验证通过：从新建水产主楼（`Aquaculture Area Placeholder -Water`）15 米 `Fishing Pier` 的水侧控制节点沿原方向延长 120 米，原生预览 `preview_ready`、提交 `completed` 并回读到 120.0 米永久边与新末端控制节点，未再出现 `OverlapExisting`。遇到该错误仍应回读原操作和永久边，不能忽略碰撞强制提交。
 
 是否可用于当前游戏，以运行中的 `get_query_capabilities` 为准。2026-09-20，在游戏1.6.2f1、CityWeaver 1.23.1、奥本山存档中，已完成标准货运港口、同型普通航道接入和货运航线施工，并读到首艘货船。此验证不覆盖所有港口资产、异宽航道接头或实际装卸吞吐。MCP 134项测试及官方后处理构建已通过。
 
+## 石油港口码头与平台避让
+
+**石油港口码头默认至少延长 320 米，达标后仍可继续延长；提示词指定的延长长度超过 320 米时，按指定长度执行。石油平台及其自带航道必须避开码头完整占地和左右两侧航道。** 新增长度从主体自带码头水侧末端起算，玩家手动延长计入目标长度；明确要求“再延长”或“额外延长”时，从当前水侧末端增加指定长度。先回读码头永久边链并按现状计算本次增量，同时勘察附着设施和两侧航道的实际曲线与全宽，再规划平台与接驳；平台自带航道也应计入碰撞和净空检查，不能只检查建筑外框。手动修改码头后废弃旧端点及候选，重新勘察。码头 Pathway、船舶航道和油轮工作路线分别建设与验收，不能互相替代。完整规则见[海上石油设施施工规则](../buildings/BUILDING-AREA-GUIDE.md#海上石油设施施工规则2026-09-28-更新)。
+
 ## 渔港船道连接（Narrow Boatway / Pier Boatway 是航道 prefab）
+
+**捕鱼区、养鱼区及其扩区边界必须同时避开渔港码头和码头两侧航道。** 先回读码头完整占地、两侧船道的真实曲线、owner 与端点，再按实时 prefab 的完整宽度预留禁占走廊；46 米宽船道须保护中心线两侧各 23 米，而不是仅保留一条中心线。为作业区入口接驳及转弯另留空间，捕鱼区与养鱼区也不能相互覆盖。码头延长成功不证明两侧船道已经生成；若未发现预期船道或泊位，先处理缺失前置，不能继续把作业区画进预留航道。玩家手动修改码头后必须重新勘察。完整施工顺序见[开放水域渔业施工规则](../buildings/BUILDING-AREA-GUIDE.md#开放水域渔业施工规则2026-09-28-更新)。
 
 `Narrow Boatway` 和 `Pier Boatway` 不在 `list_pier_pathway_prefabs` 中（`preview_pier_pathway` 会报 `PIER_PATHWAY_PREFAB_NOT_FOUND`），但它们是 `list_waterway_prefabs` 中的 Ship 型航道 prefab（宽 46 米、单段上限 1000 米、Floating、约 16/24 每米），**可以也必须用 `preview_waterway` 绘制**。入口类升级（如 `Openwater Fishing Area Entrance`）的 SubNet 含 Narrow Boatway 短 stub 和永久节点；从码头两侧 Pier Boatway 的自由末端节点出发，用带 `node_id` 的 `points` 接入入口 stub 节点即完成"码头 → 采集区"船道连接。2026-09-22 奥本山 1.23.2 实机验证：西侧 Pier Boatway 末端 → 3 段 Narrow Boatway（186/206/109 米，含 46° 折角，直线段）→ 捕鱼入口 stub 节点，预览 `preview_ready`、提交 `completed` 并回读到永久边链，费用 1,008。注意避开既有采集区（`OverlapExisting` 的 validation_entities 会列出被撞的 Area 实体及 owner）和既有船道 46 米全宽；折角约 82° 的手动连接先例也被原生接受。水上区域和船道须以 `list_waterways`、SubNet/SubArea 回读发现，`list_pier_pathways` 不包含 Boatway。
 
 ## 捕鱼路线（Fishing Line / WorkRoute）
 
-水产建筑的捕鱼路线是 `Fishing Line` prefab 的 WorkRoute 实体，由游戏内 `RouteToolSystem`（requireRoutes=WorkRoute、requireNet=Waterway、serviceUpgrade=true）手绘创建。MCP 工具组：`list_work_routes` / `get_work_route`（**仅列出 WorkRoute**）、`preview_work_route` / `get_work_route_operation` / `apply_work_route_operation` / `cancel_work_route_preview` / `delete_work_route`。删除工具仅接受 WorkRoute，不接受公交、铁路等普通路线。它给路线实体加 `Deleted`，让游戏系统级联清理航点、路段和车辆，同时摘除主楼 `SubRoute` 与泊位 `ConnectedRoute` 注册；须先暂停城市。预览是模组保守预检，不是原生临时路线预览，详情见 [WORKROUTE-GUIDE.md](../routes/WORKROUTE-GUIDE.md)。
+水产建筑的捕鱼路线是 `Fishing Line` prefab 的 WorkRoute 实体，由游戏内 `RouteToolSystem`（requireRoutes=WorkRoute、requireNet=Waterway、serviceUpgrade=true）手绘创建。MCP 工具组：`list_work_routes` / `get_work_route`（**仅列出 WorkRoute**）、`preview_work_route` / `get_work_route_operation` / `apply_work_route_operation` / `cancel_work_route_preview` / `delete_work_route`。删除工具仅接受 WorkRoute，不接受公交、铁路等普通路线。它给路线实体加 `Deleted`，让游戏系统级联清理航点、路段和车辆，同时摘除主楼 `SubRoute` 与泊位 `ConnectedRoute` 注册；须先暂停城市。预览先做水域检查，再走原生临时路线和寻路校验，详情见 [WORKROUTE-GUIDE.md](../routes/WORKROUTE-GUIDE.md)。
 
-2026-09-22 实机曾确认：已有 MCP 捕鱼路线能挂接泊位/水上作业点、生成车道与路线段、派船出海，游戏内路线面板可见，读档后 owner 归属正常。这不代表任意新航点都会成功；一次明显越界的航点曾错误返回 `preview_ready`，现已加入地图边界、水域航段、owner 兼容性和工作船型号门禁，并在提交前重检。无现有同类路线时，船型从匹配 `WorkRouteData` 的已解锁 `WorkVehicleData` / `WatercraftData` prefab 发现。实现仍直接创建 ECS 路线/航点/路段，`AccessLane`/`RouteLane`/路段寻路和曲线由游戏系统反应式补齐。**`completed` 只表示永久路线已写入，不保证派船或生产；必须在模拟运行后回读 `PathInformation`、`PathElement`、`RouteVehicle`。** 使用建议：航点从泊位附近开始，后续沿可通行水域布置且不要重复首点；owner 传水产主楼。鱼群分布用 `read_environment_grid(system="Game.Simulation.NaturalResourceSystem")` 的 `m_Fish.m_Base/m_Used`（256×256、每格 56 米）。
+2026-09-22 实机曾确认：已有 MCP 捕鱼路线能挂接泊位/水上作业点、生成车道与路线段、派船出海，游戏内路线面板可见，读档后 owner 归属正常。这不代表任意新航点都会成功；一次明显越界的航点曾错误返回 `preview_ready`，现已加入地图边界、水域航段、owner 兼容性和工作船型号门禁，并在提交前重检。无现有同类路线时，船型从匹配 `WorkRouteData` 的已解锁 `WorkVehicleData` / `WatercraftData` prefab 发现。实现已改为原生临时路线预览与 ApplyRoutes 提交；泊位绑定或航段寻路未通过时禁止提交。**`completed` 要求永久线路与路径回读通过，仍不保证派船或生产；必须在模拟运行后回读 `RouteVehicle`。** 使用建议：航点从泊位附近开始，后续沿可通行水域布置且不要重复首点；owner 传水产主楼。鱼群分布用 `read_environment_grid(system="Game.Simulation.NaturalResourceSystem")` 的 `m_Fish.m_Base/m_Used`（256×256、每格 56 米）。
 
 ## 工具与流程
 

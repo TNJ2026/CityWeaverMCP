@@ -27,6 +27,8 @@
 
 ## 公共交通设施建设要求
 
+机场完整选址、山脚起降净空与实际航班验收见[机场指南](AIRPORT-CONSTRUCTION-GUIDE.md)；火车与地下地铁的独立端口、高程和车辆段路径见[铁路站区检查清单](RAIL-STATION-CHECKLIST.md)。
+
 下表描述稳定的设施族规则，不是固定 prefab 清单。资产包和 DLC 会增加同类车站、车辆段、枢纽和升级；施工前仍须以 `list_transport_facility_prefabs` 返回的当前城市真实 prefab、`placement`、尺寸、轨道类型和解锁状态为准。
 
 | 系统 | 必要设施 | 前置网络与放置要求 | 关键物理规则 |
@@ -47,6 +49,8 @@
 官方给出的陆上交通建设链是“车辆段/车场 → 站点或车站 → 道路/轨道 → 线路”。车站建成、轨道相接和线路存在是三个不同状态，缺一项都不能报告为已运营。[官方公共与货运交通说明](https://www.paradoxinteractive.com/zh-CN/games/cities-skylines-ii/features/public-cargo-transportation)
 
 ### 可定制港口与渡轮（Bridges & Ports）
+
+摆渡站的选址、先建站后接航道、桥下通航、客运线路与实际派船验收，见[摆渡建造指南](FERRY-CONSTRUCTION-GUIDE.md)。
 
 - 港口从 Small/Medium/Large Port 主门开始；主门确定后不能更换尺寸。所有港口 sub-building 必须位于主门 `1 km` 半径内。
 - 可运行货运港的最小逻辑组合为主门、与货物类型兼容的仓储、Port Quay/Cargo Crane、通向外部的 Seaway 和 Cargo Ship Route。仓储设施按资源类型限制可存货物。

@@ -5,7 +5,7 @@
 | 目标 | 功能与入口示例 | 项目指南 |
 | --- | --- | --- |
 | 城市概览 | `get_game_status`、`get_city_summary`；连接、人口、幸福度、健康、资金、建筑分类 | `mcp/README.md` |
-| 规划图、建筑精确绑定、网格预检与分阶段施工 | `get_planning_map_snapshot`、`render_city_plan`、`propose_grid_plan`、`propose_city_plan`、`bind_city_plan_buildings`、`prepare_grid_native_preview`、`advance_grid_construction`、`deploy_grid_district`、`prepare_city_plan_construction`、`advance_city_plan_construction`；静态网页显示全部可购买地图格，规划与施工仅限已购区域；建筑绑定用临时原生预览取得精确朝向和道路边后立即取消；规则子网格优先保存在 `plan.grids[]`，只有不能无损表示时才使用逐路方案并记录 `grid_exceptions` | `docs/guides/planning/PLANNING-MAP-GUIDE.md` |
+| 规划图、建筑精确绑定、网格预检与分阶段施工 | `get_planning_map_snapshot`、`render_city_plan`、`propose_grid_plan`、`propose_city_plan`、`bind_city_plan_buildings`、`prepare_grid_native_preview`、`advance_grid_construction`、`deploy_grid_district`、`prepare_city_plan_construction`、`advance_city_plan_construction`；默认局部规划卡片，明确要求时才显示全地图；卡片已显示时不重复打开网页，规划与施工仅限已购区域；建筑绑定用临时原生预览取得精确朝向和道路边后立即取消；规则子网格优先保存在 `plan.grids[]`，只有不能无损表示时才使用逐路方案并记录 `grid_exceptions` | `docs/guides/planning/PLANNING-MAP-GUIDE.md` |
 | 当前镜头与施工聚焦 | `get_camera_view`、`capture_game_view`、`focus_camera`；读取当前游戏镜头覆盖范围、捕获游戏画面，并在施工目标不可见时平滑聚焦；玩家输入立即取消自动移动 | `docs/guides/planning/CAMERA-VIEW-GUIDE.md` |
 | 建筑、分区与道路联合验收 | 容量与实际使用、分区成长、服务工作区、主干道范围与沿街依赖 | `docs/workflows/CITY-CONSTRUCTION-CHECKLIST.md` |
 | 城市管理 | `set_city_name`、`set_city_configuration`、`set_city_money`、`set_city_policy`；名称、配置、全市政策、资金、修正值、统计历史 | `docs/guides/city/CITY-MANAGEMENT-GUIDE.md` |
@@ -35,7 +35,20 @@
 | 通用 ECS 数据 | `list_component_types`、`get_component_schema`、`query_entities`、`count_entities`、`get_entity_components`、`get_city_data`；组件筛选、缓冲区分页、实体关系 | `mcp/QUERY-GUIDE.md` |
 | 深层系统与环境栅格 | `list_game_systems`、`get_system_schema`、`read_entity_field`、`list_environment_layers`；私有字段、原生容器、系统状态与环境图层，具体可读性看返回标记 | `docs/guides/inspection/DEEP-QUERY-GUIDE.md` |
 
-## 选择工作流的要点
+## 专题施工导航
+
+| 目标 | 项目指南 |
+| --- | --- |
+| 海上油井、平台高度、资源管道与油轮作业线 | `docs/guides/buildings/OFFSHORE-OIL-CONSTRUCTION-GUIDE.md` |
+| 山顶煤矿与矿石、扩区及残留清理 | `docs/guides/buildings/MOUNTAIN-MINING-GUIDE.md` |
+| 并列高速吊桥、通航与巨型环岛 | `docs/guides/roads/PARALLEL-HIGHWAY-BRIDGE-GUIDE.md` |
+| 机场、山脚选址及起降验收 | `docs/guides/transport/AIRPORT-CONSTRUCTION-GUIDE.md` |
+| 电车环线及真实载客循环 | `docs/guides/transport/TRAM-CONSTRUCTION-GUIDE.md` |
+| 摆渡站、接驳航道及客运线路 | `docs/guides/transport/FERRY-CONSTRUCTION-GUIDE.md` |
+| 方形网格、缩小面积及每面限定接口 | `docs/guides/planning/SQUARE-GRID-TOWN-GUIDE.md` |
+| 火车站与地下地铁分别接轨 | `docs/guides/transport/RAIL-STATION-CHECKLIST.md` |
+
+## 具体工作流选择
 
 - “看看堵在哪里”：先交通分析，再沿道路/车道/车辆 ID 追踪。诊断请求本身不包含清车、改限速或扩路。
 - “规划一个住宅街区”：已购地图格、地形、水域与现有道路发现 → `propose_grid_plan`（仅网格）或 `propose_city_plan`（概念服务、交通与管网）→ 精确道路和主题分区绑定 → `render_city_plan`；不施工。道路永久建成后，可用 `bind_city_plan_buildings` 把精确 prefab 建筑绑定到原生候选朝向与道路边；绑定会改变计划哈希，必须重新渲染和确认。

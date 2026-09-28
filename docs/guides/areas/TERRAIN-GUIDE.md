@@ -4,6 +4,18 @@
 
 ## 工作流
 
+### 局部浅层积水清除
+
+`preview_terrain(mode="clear_shallow_water", points=[{x,z}], brush_size_m=100, max_water_depth_m=0.3)` 预览局部清水；继续使用 `apply_terrain`、`get_terrain_operation` 和 `cancel_terrain_preview`。
+
+- `max_water_depth_m` 必填，范围 0.01–2 米。`points` 与刷子直径定义圆形或沿路径扫过的范围，外包矩形每边最多 2048 米。
+- 只选择完全包含于范围内、模拟水深未超过阈值的湿水格；边缘水格、深水和无效值跳过。小于水格尺寸的刷子可能选不到水。
+- 预览返回 `selected_water_cells`、`selected_area_m2`、`selected_volume_m3`、`water_cell_size_m`。没有游戏内刷子变形预览。
+- 提交前重新检查所选水格的水深；发生变化返回 `WATER_PREVIEW_STALE`，需重新预览。清除后读取 GPU 水深纹理核验，并通过原生内核重建渲染水面高度，写入后无法确认则为 `outcome_unknown`，不得盲目重试。
+- 不抬高地形、不删除水源、不修改建筑、不调用整图水模拟重置；`passes`、`strength`、`clear_water`、`remove_water_sources` 不用于此模式。
+- 这是一次性清水。相连水体、水源或降雨可能再次补水；它不会判断浅水是否属于河湖，必须先确认范围。
+- 需要当前水模拟和支持精确纹理复制的图形设备；不支持旧版水模拟。CPU 单元同步不代替 GPU 回读。尚须在游戏重新加载新模组后进行现场验证。
+
 1. 用 `sample_terrain` 读取路径的当前高度。
 2. 用 `preview_terrain` 验证模式、路径、刷子尺寸、强度、次数和目标高度。
 3. 检查返回的基线高度，并用 `apply_terrain` 提交。

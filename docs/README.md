@@ -5,18 +5,26 @@
 ## 使用指南
 
 - `guides/buildings`：建筑放置与建筑附属区域。
+  - [海上油井规划、施工与验收](guides/buildings/OFFSHORE-OIL-CONSTRUCTION-GUIDE.md)
+  - [山地煤矿与矿石开采施工](guides/buildings/MOUNTAIN-MINING-GUIDE.md)
 - `guides/roads`：道路、路口、停车和交通出行。
   - [爬山公路规划、施工与验收](guides/roads/MOUNTAIN-ROAD-GUIDE.md)
+  - [并列单向高速桥与环岛接入](guides/roads/PARALLEL-HIGHWAY-BRIDGE-GUIDE.md)
 - `guides/areas`：行政区、土地分区、地图、地形与环境景观。
 - `guides/transport`：公共交通线路、交通设施、轨道与公用管网。
   - [有轨电车规划、施工与运营验收](guides/transport/TRAM-CONSTRUCTION-GUIDE.md)
+  - [摆渡站与渡轮线路规划、施工及验收](guides/transport/FERRY-CONSTRUCTION-GUIDE.md)
+  - [机场选址、施工与运营验收](guides/transport/AIRPORT-CONSTRUCTION-GUIDE.md)
+  - [铁路站区与地下地铁接驳](guides/transport/RAIL-STATION-CHECKLIST.md)
   - [港口建设与客货航线验收](guides/transport/HARBOR-CONSTRUCTION-GUIDE.md)
 - `guides/city`：城市管理、公共服务、发展需求和进度解锁。
 - `guides/economy`：城市财政、人口、企业与资源经济。
 - `guides/disasters`：灾害操作与灾后处理。
 - `guides/inspection`：深层 ECS、系统与环境数据读取。
 - `guides/planning`：已购区域规划图、自动网格与多层设施走廊、地形/水域叠加，以及可视化但不施工的原生道路预检。
+  - [默认规划规则：对称、直线与直角、平滑曲线、垂直交叉和平行道路](guides/planning/PLANNING-MAP-GUIDE.md#默认规划规则)
   - [当前镜头范围与游戏画面](guides/planning/CAMERA-VIEW-GUIDE.md)
+  - [方形网格城镇与受控外围连接](guides/planning/SQUARE-GRID-TOWN-GUIDE.md)
 
 ## 城市工作流
 

@@ -6,7 +6,7 @@ import { renderCityPlan } from './planning-renderer.mjs';
 import { renderCityPlanInteractive } from './planning-interactive.mjs';
 
 // Bump when renderer semantics change. Cache is process-local and stores no HTML.
-export const RENDERER_VERSION = 'planning-render-1';
+export const RENDERER_VERSION = 'planning-render-3-plan-first-extent';
 export function createPlanningRenderCache(store, render = (snapshot, plan, options, html) =>
   html ? renderCityPlanInteractive(snapshot, plan, options) : renderCityPlan(snapshot, plan, options)) {
   const cache = new BoundedCache(8 * 1024 * 1024, 64);

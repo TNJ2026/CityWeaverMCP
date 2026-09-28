@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Colossal.Mathematics;
 using Game.Common;
@@ -46,6 +46,7 @@ namespace CityWeaver
         private bool IsWaterway => m_Operation.TransactionKind == "waterway";
         private bool IsPierPathway => m_Operation.TransactionKind == "pier_pathway";
         private bool IsTransportTrack => m_Operation.TransactionKind == "transport_track";
+        private bool IsOwnedNetwork => IsPierPathway || (IsUtilityNetwork && m_Operation.ResourceOwner != Entity.Null);
         private bool IsUtilityNetwork => m_Operation.TransactionKind == "utility_network";
         private bool IsUtilityPrefab(Entity prefab) => EntityManager.Exists(prefab) &&
             (EntityManager.HasComponent<PowerLineData>(prefab) || EntityManager.HasComponent<PipelineData>(prefab));
@@ -356,16 +357,18 @@ namespace CityWeaver
                 if (completed.Count == 0 || pending > 0 || completed.Count != m_Candidates.Count) { Fail("APPLY_OUTCOME_UNKNOWN"); return; }
                 if (!VerifyWaterwayCrossings(completed))
                 { if (m_Ticks < 120) return; Fail("WATERWAY_CROSSING_READBACK_FAILED"); return; }
-                if (IsPierPathway)
+                if (!VerifyResourcePipeConnections(completed))
+                { if (m_Ticks < 120) return; Fail("RESOURCE_CONNECTION_READBACK_FAILED"); return; }
+                if (IsOwnedNetwork)
                 {
-                    bool ownedAndAttached = EntityManager.Exists(op.PierOwner) && !EntityManager.HasComponent<Deleted>(op.PierOwner) &&
-                        EntityManager.HasBuffer<Game.Net.SubNet>(op.PierOwner);
+                    bool ownedAndAttached = EntityManager.Exists(op.NetworkOwner) && !EntityManager.HasComponent<Deleted>(op.NetworkOwner) &&
+                        EntityManager.HasBuffer<Game.Net.SubNet>(op.NetworkOwner);
                     if (ownedAndAttached)
                     {
-                        var subnets = EntityManager.GetBuffer<Game.Net.SubNet>(op.PierOwner, true);
+                        var subnets = EntityManager.GetBuffer<Game.Net.SubNet>(op.NetworkOwner, true);
                         foreach (var edge in completed)
                         {
-                            if (!EntityManager.HasComponent<Owner>(edge) || EntityManager.GetComponentData<Owner>(edge).m_Owner != op.PierOwner)
+                            if (!EntityManager.HasComponent<Owner>(edge) || EntityManager.GetComponentData<Owner>(edge).m_Owner != op.NetworkOwner)
                             { ownedAndAttached = false; break; }
                             bool listed = false;
                             foreach (var subnet in subnets) if (subnet.m_SubNet == edge) { listed = true; break; }
@@ -392,6 +395,35 @@ namespace CityWeaver
                 Finish();
             }
         }
+        private bool VerifyResourcePipeConnections(List<Entity> completed)
+        {
+            var op = m_Operation;
+            if (!IsUtilityNetwork || !EntityManager.HasComponent<LocalConnectData>(op.Prefab) ||
+                (EntityManager.GetComponentData<LocalConnectData>(op.Prefab).m_Layers & Layer.ResourceLine) == 0) return true;
+            foreach (var segment in op.Segments)
+            foreach (var target in new[] { segment.StartTarget, segment.EndTarget })
+            {
+                if (target == Entity.Null) continue;
+                bool Valid(Entity entity) => EntityManager.Exists(entity) && !EntityManager.HasComponent<Deleted>(entity) &&
+                    !EntityManager.HasComponent<Temp>(entity) && EntityManager.HasComponent<Game.Net.ResourceConnection>(entity);
+                IEnumerable<Entity> Adjacent(Entity entity)
+                {
+                    if (EntityManager.HasComponent<Edge>(entity))
+                    {
+                        var edge = EntityManager.GetComponentData<Edge>(entity);
+                        yield return edge.m_Start; yield return edge.m_End;
+                    }
+                    if (EntityManager.HasBuffer<ConnectedEdge>(entity))
+                        foreach (var edge in EntityManager.GetBuffer<ConnectedEdge>(entity, true)) yield return edge.m_Edge;
+                    if (EntityManager.HasBuffer<ConnectedNode>(entity))
+                        foreach (var node in EntityManager.GetBuffer<ConnectedNode>(entity, true)) yield return node.m_Node;
+                }
+                bool connected = ResourceNetworkConnectivity.Reaches(target, new HashSet<Entity>(completed), Valid, Adjacent);
+                if (!connected) return false;
+            }
+            return true;
+        }
+
         private bool HasLiveTramLane(Entity road)
         {
             if (!EntityManager.Exists(road) || !EntityManager.HasBuffer<Game.Net.SubLane>(road)) return false;
@@ -509,24 +541,24 @@ namespace CityWeaver
                     else if (IsUtilityNetwork && (!EntityManager.HasComponent<PrefabRef>(target) || !IsUtilityPrefab(EntityManager.GetComponentData<PrefabRef>(target).m_Prefab))) return false;
                 return op.TargetEdges.Count > 0;
             }
-            if (IsPierPathway)
+            if (IsOwnedNetwork)
             {
-                if (!EntityManager.Exists(op.PierOwner) || EntityManager.HasComponent<Deleted>(op.PierOwner) ||
-                    EntityManager.HasComponent<Temp>(op.PierOwner) || !EntityManager.HasComponent<Game.Buildings.Building>(op.PierOwner) ||
-                    !EntityManager.HasComponent<Game.Objects.Transform>(op.PierOwner) || !EntityManager.HasComponent<PrefabRef>(op.PierOwner) ||
-                    EntityManager.GetComponentData<PrefabRef>(op.PierOwner).m_Prefab != op.PierOwnerPrefab) return false;
-                var transform = EntityManager.GetComponentData<Game.Objects.Transform>(op.PierOwner);
-                if (math.distance(transform.m_Position, op.PierOwnerPosition) > 0.01f ||
-                    math.distance(transform.m_Rotation.value, op.PierOwnerRotation.value) > 0.01f) return false;
-                foreach (var segment in op.Segments)
+                if (!EntityManager.Exists(op.NetworkOwner) || EntityManager.HasComponent<Deleted>(op.NetworkOwner) ||
+                    EntityManager.HasComponent<Temp>(op.NetworkOwner) || !EntityManager.HasComponent<Game.Buildings.Building>(op.NetworkOwner) ||
+                    !EntityManager.HasComponent<Game.Objects.Transform>(op.NetworkOwner) || !EntityManager.HasComponent<PrefabRef>(op.NetworkOwner) ||
+                    EntityManager.GetComponentData<PrefabRef>(op.NetworkOwner).m_Prefab != op.NetworkOwnerPrefab) return false;
+                var transform = EntityManager.GetComponentData<Game.Objects.Transform>(op.NetworkOwner);
+                if (math.distance(transform.m_Position, op.NetworkOwnerPosition) > 0.01f ||
+                    math.distance(transform.m_Rotation.value, op.NetworkOwnerRotation.value) > 0.01f) return false;
+                if (IsPierPathway) foreach (var segment in op.Segments)
                     foreach (var node in new[] { segment.StartTarget, segment.EndTarget })
                         if (node != Entity.Null && (!EntityManager.HasComponent<Owner>(node) ||
-                            EntityManager.GetComponentData<Owner>(node).m_Owner != op.PierOwner)) return false;
+                            EntityManager.GetComponentData<Owner>(node).m_Owner != op.NetworkOwner)) return false;
             }
             foreach (var segment in op.Segments)
             {
                 if (segment.Prefab != Entity.Null && (!EntityManager.Exists(segment.Prefab) || RoadOperation.IsLocked(EntityManager, segment.Prefab))) return false;
-                foreach (var endpoint in new[] { (segment.StartTarget, segment.Start, segment.StartSplit), (segment.EndTarget, segment.End, segment.EndSplit) })
+                foreach (var endpoint in new[] { (segment.StartTarget, segment.StartTargetPosition ?? segment.Start, segment.StartSplit), (segment.EndTarget, segment.EndTargetPosition ?? segment.End, segment.EndSplit) })
                 {
                     if (endpoint.Item1 == Entity.Null) continue;
                     if (!EntityManager.Exists(endpoint.Item1) || EntityManager.HasComponent<Deleted>(endpoint.Item1) || EntityManager.HasComponent<Temp>(endpoint.Item1)) return false;
@@ -665,7 +697,7 @@ namespace CityWeaver
                     if (op.OperationType != "create" && (op.TargetEdges.Contains(temp.m_Original) || op.TargetNodes.Contains(temp.m_Original)) &&
                         (IsDemolish ? (temp.m_Flags & TempFlags.Delete) != 0 : (temp.m_Flags & TempFlags.Delete) == 0)) targetPreviews.Add(temp.m_Original);
                     if ((temp.m_Flags & TempFlags.Cancel) == 0) op.Cost += temp.m_Cost;
-                    bool expectedPierOwner = IsPierPathway && IsExpectedPierBuilding(e, temp);
+                    bool expectedPierOwner = IsOwnedNetwork && IsExpectedPierBuilding(e, temp);
                     if (temp.m_Original != Entity.Null && EntityManager.HasComponent<Game.Buildings.Building>(temp.m_Original) &&
                         (temp.m_Flags & (TempFlags.Delete | TempFlags.Replace)) != 0 && !expectedPierOwner)
                         op.Errors.Add("WOULD_REMOVE_BUILDING");
@@ -746,6 +778,27 @@ namespace CityWeaver
             m_Candidates.Sort((a, b) => a.Index.CompareTo(b.Index));
             m_SplitRemnants.Sort((a, b) => a.Index.CompareTo(b.Index));
             op.SplitRemnantEdges = new List<Entity>(m_SplitRemnants);
+            if (IsUtilityNetwork && op.OperationType == "create")
+                foreach (var segment in op.Segments)
+                {
+                    CheckLocalEndpoint(segment.Start, segment.StartLocalConnection);
+                    CheckLocalEndpoint(segment.End, segment.EndLocalConnection);
+                }
+            void CheckLocalEndpoint(float3 planned, bool localConnection)
+            {
+                if (!localConnection || m_Candidates.Count == 0) return;
+                bool matched = false;
+                foreach (var candidate in m_Candidates)
+                {
+                    if (!EntityManager.HasComponent<Curve>(candidate)) continue;
+                    var curve = EntityManager.GetComponentData<Curve>(candidate).m_Bezier;
+                    foreach (var actual in new[] { curve.a, curve.d })
+                        if (math.distance(planned.xz, actual.xz) <= 4f && UtilityPlacementHeight.EndpointHeightMatches(planned.y, actual.y))
+                        { matched = true; break; }
+                    if (matched) break;
+                }
+                if (!matched) op.Errors.Add("RESOURCE_PIPE_ENDPOINT_HEIGHT_CHANGED");
+            }
             op.WaterwayCrossings = ReadWaterwayCrossings(m_Candidates, false);
             op.WaterwayCrossingsVerified = op.WaterwayCrossings.Count == 0 ? (bool?)null : false;
             ReadWaterwayCrossingDiagnostics();
@@ -895,28 +948,28 @@ namespace CityWeaver
                 }
                 return;
             }
-            if (IsPierPathway)
+            if (IsOwnedNetwork)
             {
-                CreatePierOwnerDefinition(op.PierOwner, Entity.Null);
-                if (EntityManager.HasComponent<Game.Objects.Attachment>(op.PierOwner))
-                    CreatePierOwnerDefinition(EntityManager.GetComponentData<Game.Objects.Attachment>(op.PierOwner).m_Attached, op.PierOwner);
+                CreatePierOwnerDefinition(op.NetworkOwner, Entity.Null);
+                if (EntityManager.HasComponent<Game.Objects.Attachment>(op.NetworkOwner))
+                    CreatePierOwnerDefinition(EntityManager.GetComponentData<Game.Objects.Attachment>(op.NetworkOwner).m_Attached, op.NetworkOwner);
             }
             for (int i = 0; i < op.Segments.Count; i++)
             {
                 var segment = op.Segments[i]; var curve = segment.Curve;
-                CoursePos Point(float3 p, Entity target, float split, float elevation, bool first) => new CoursePos {
-                    m_Entity = target, m_Position = p, m_Rotation = NetUtils.GetNodeRotation(first ? MathUtils.StartTangent(curve) : MathUtils.EndTangent(curve)),
+                CoursePos Point(float3 p, Entity target, float split, float elevation, bool first, bool localConnection) => new CoursePos {
+                    m_Entity = localConnection ? Entity.Null : target, m_Position = p, m_Rotation = NetUtils.GetNodeRotation(first ? MathUtils.StartTangent(curve) : MathUtils.EndTangent(curve)),
                     m_Elevation = new float2(elevation), m_CourseDelta = first ? 0 : 1, m_ParentMesh = -1, m_SplitPosition = split,
                     m_Flags = (first ? CoursePosFlags.IsFirst : CoursePosFlags.IsLast) | CoursePosFlags.IsLeft | CoursePosFlags.IsRight |
                         (elevation >= 8 ? CoursePosFlags.ForceElevatedNode | CoursePosFlags.ForceElevatedEdge : 0) };
                 var definition = EntityManager.CreateEntity(); m_Definitions.Add(definition);
                 EntityManager.AddComponentData(definition, new CreationDefinition { m_Prefab = segment.Prefab != Entity.Null ? segment.Prefab : op.Prefab, m_Flags = CreationFlags.SubElevation, m_RandomSeed = 1 + ((op.Id.GetHashCode() + i) & 0x3fffffff) });
-                if (IsPierPathway)
+                if (IsOwnedNetwork)
                     EntityManager.AddComponentData(definition, new OwnerDefinition {
-                        m_Prefab = op.PierOwnerPrefab, m_Position = op.PierOwnerPosition, m_Rotation = op.PierOwnerRotation });
+                        m_Prefab = op.NetworkOwnerPrefab, m_Position = op.NetworkOwnerPosition, m_Rotation = op.NetworkOwnerRotation });
                 EntityManager.AddComponentData(definition, new NetCourse { m_Curve = curve,
-                    m_StartPosition = Point(segment.Start, segment.StartTarget, segment.StartSplit, segment.StartElevation, true),
-                    m_EndPosition = Point(segment.End, segment.EndTarget, segment.EndSplit, segment.EndElevation, false),
+                    m_StartPosition = Point(segment.Start, segment.StartTarget, segment.StartSplit, segment.StartElevation, true, segment.StartLocalConnection),
+                    m_EndPosition = Point(segment.End, segment.EndTarget, segment.EndSplit, segment.EndElevation, false, segment.EndLocalConnection),
                     m_Length = MathUtils.Length(curve), m_Elevation = new float2(0), m_FixedIndex = -1 });
                 EntityManager.AddComponent<Updated>(definition);
             }
@@ -924,7 +977,7 @@ namespace CityWeaver
         private bool IsExpectedPierBuilding(Entity preview, Temp temp)
         {
             var original = temp.m_Original;
-            var owner = m_Operation.PierOwner;
+            var owner = m_Operation.NetworkOwner;
             bool expected = original == owner;
             if (!expected && EntityManager.HasComponent<Game.Objects.Attachment>(owner))
                 expected = original == EntityManager.GetComponentData<Game.Objects.Attachment>(owner).m_Attached;

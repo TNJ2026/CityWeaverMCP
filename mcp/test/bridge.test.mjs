@@ -139,9 +139,18 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   t.after(() => client.close());
   await client.connect(transport);
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 392);
+  assert.equal(tools.length, 394);
+  const recoveryTool = tools.find(tool => tool.name === 'recover_city_plan_request_collision');
+  assert.deepEqual(recoveryTool.inputSchema.required, ['construction_id', 'state_version']);
+  assert.equal(recoveryTool.annotations.readOnlyHint, false);
   const planningTool = tools.find(tool => tool.name === 'render_city_plan');
   assert.equal(planningTool._meta?.ui?.resourceUri, 'ui://cityweaver/planning/v1.html');
+  for (const name of ['show_saved_planning_map', 'propose_city_plan', 'propose_grid_plan']) {
+    assert.equal(tools.find(tool => tool.name === name)._meta?.ui?.resourceUri, 'ui://cityweaver/planning/v1.html');
+  }
+  for (const name of ['bind_city_plan_buildings', 'prepare_city_plan_construction', 'advance_city_plan_construction', 'prepare_grid_native_preview', 'advance_grid_construction', 'deploy_grid_district']) {
+    assert.equal(tools.find(tool => tool.name === name)._meta, undefined, `${name} must not open an app card`);
+  }
   const { resources } = await client.listResources();
   assert(resources.some(resource => resource.uri === 'ui://cityweaver/planning/v1.html'), 'planning MCP App resource is registered');
   const planningApp = await client.readResource({ uri: 'ui://cityweaver/planning/v1.html' });
@@ -172,10 +181,37 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
     plan: { grids: [{ origin: { x: 40, z: 40 }, columns: 2, rows: 3, zone_type: 'Fixture Residential', zone_kind: 'residential', native_preview: { operation_id: 'a'.repeat(32), state: 'preview_ready', cost: 50, warnings: [], errors: [], snapped_origin: { x: 40, z: 40 } } }] }
   } });
   assert.equal(renderedPlan.isError, false);
+  assert.equal(renderedPlan.structuredContent.presentation.preferred, 'mcp_app');
+  assert.equal(renderedPlan.structuredContent.presentation.card_payload, 'ready');
+  assert.deepEqual(JSON.parse(renderedPlan.content[0].text).presentation, renderedPlan.structuredContent.presentation);
   assert(!renderedPlan.content.some(item => item.type === 'resource'));
   assert.equal(renderedPlan._meta.cityweaver_planning_app.tool_name, 'render_city_plan');
   assert.equal(renderedPlan._meta.cityweaver_planning_app.map.encoding, 'gzip+base64');
-  assert.ok(renderedPlan._meta.cityweaver_planning_app.map.data.length > 100);
+  assert.equal(renderedPlan._meta.cityweaver_planning_app.map.data, undefined);
+  assert.ok(renderedPlan._meta.cityweaver_planning_app.map.chunk_count > 0);
+  const mapUri = `cityweaver://planning-map/${renderedPlan.structuredContent.data.sha256}/html`;
+  const savedMap = await client.readResource({ uri: mapUri });
+  assert.equal(savedMap.contents[0].uri, mapUri);
+  assert.deepEqual(JSON.parse(savedMap.contents[0].text), renderedPlan._meta.cityweaver_planning_app.map);
+  const shown = await client.callTool({name:'show_saved_planning_map',arguments:{sha256:renderedPlan.structuredContent.data.sha256,extension:'html'}});
+  assert.equal(shown.structuredContent.ok,true);
+  assert.deepEqual(shown.structuredContent.presentation, renderedPlan.structuredContent.presentation);
+  assert.deepEqual(shown._meta.cityweaver_planning_app.map,JSON.parse(savedMap.contents[0].text));
+  const manifest = JSON.parse(savedMap.contents[0].text);
+  let encoded = '';
+  for (let index = 0; index < manifest.chunk_count; index++) {
+    const chunkResult = await client.readResource({uri: mapUri + '/chunks/' + index});
+    const chunk = JSON.parse(chunkResult.contents[0].text);
+    assert.equal(chunk.index, index);
+    assert.equal(chunk.artifact_sha256, manifest.artifact_sha256);
+    assert.ok(chunk.data.length <= 8192);
+    encoded += chunk.data;
+  }
+  assert.equal(encoded.length, manifest.encoded_length);
+  assert.equal(Buffer.from(encoded, 'base64').length, manifest.compressed_bytes);
+  await assert.rejects(client.readResource({uri: mapUri + '/chunks/' + manifest.chunk_count}));
+  await assert.rejects(client.readResource({ uri: 'cityweaver://planning-map/not-a-hash/html' }));
+  await assert.rejects(client.readResource({ uri: `cityweaver://planning-map/${renderedPlan.structuredContent.data.sha256}/exe` }));
   assert.match(renderedPlan.structuredContent.data.plan_ref, /^plan-[a-f0-9]{64}$/);
   assert.match(await readFile(renderedPlan.structuredContent.data.artifact_path, 'utf8'), /<html/);
   assert.match(renderedPlan.structuredContent.data.plan_id, /^cplan-[a-f0-9]{16}$/);
@@ -278,6 +314,7 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   for (const name of ['preview_pier_pathway', 'apply_pier_pathway_operation', 'cancel_pier_pathway_preview']) mutations.add(name);
   for (const name of ['preview_work_route', 'apply_work_route_operation', 'cancel_work_route_preview', 'delete_work_route']) mutations.add(name);
   for (const name of ['set_traffic_signal_program', 'clear_traffic_signal_program']) mutations.add(name);
+  mutations.add('recover_city_plan_request_collision');
   assert(tools.every(tool => tool.annotations.readOnlyHint === !mutations.has(tool.name)));
   assert.equal(tools.find(tool => tool.name === 'build_road').annotations.destructiveHint, true);
   assert.equal(tools.find(tool => tool.name === 'get_road_operation').annotations.readOnlyHint, true);

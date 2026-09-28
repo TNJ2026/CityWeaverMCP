@@ -208,20 +208,20 @@ namespace CityWeaver
             return false;
         }
 
-        private JObject ScheduleCameraFocus(CameraFocusBounds bounds, World world, float duration, float? requestedZoom = null, float? yaw = null, float? pitch = null)
+        private JObject ScheduleCameraFocus(CameraFocusBounds bounds, World world, float duration, float? requestedZoom = null, float? yaw = null, float? pitch = null, bool preserveZoom = false)
         {
             if (!bounds.HasValue) throw new QueryException("CAMERA_FOCUS_TARGET_REQUIRED", "No world-space construction geometry was found.");
             var terrain = world.GetExistingSystemManaged<TerrainSystem>().GetHeightData(true);
             var center = new float3((bounds.MinX + bounds.MaxX) * .5f, 0, (bounds.MinZ + bounds.MaxZ) * .5f);
             if (terrain.isCreated) center.y = TerrainUtils.SampleHeight(ref terrain, center);
             var span = math.max(bounds.MaxX - bounds.MinX, bounds.MaxZ - bounds.MinZ);
-            var zoom = requestedZoom ?? math.max(120f, span * 1.35f + 40f);
             var cameraSystem = world.GetExistingSystemManaged<CameraUpdateSystem>();
             var controller = cameraSystem?.gamePlayController;
             if (controller == null || !controller.controllerEnabled) throw new QueryException("GAMEPLAY_CAMERA_UNAVAILABLE", "The gameplay camera controller is not active.");
+            var zoom = preserveZoom ? controller.zoom : requestedZoom ?? math.max(120f, span * 1.35f + 40f);
             float2? angle = null;
             if (yaw.HasValue || pitch.HasValue) angle = new float2(yaw ?? controller.angle.x, pitch ?? controller.angle.y);
-            var scheduled = world.GetOrCreateSystemManaged<McpCameraFocusSystem>().Begin(center, zoom, angle, duration);
+            var scheduled = world.GetOrCreateSystemManaged<McpCameraFocusSystem>().Begin(center, zoom, angle, duration, preserveZoom);
             if (!scheduled) throw new QueryException("GAMEPLAY_CAMERA_UNAVAILABLE", "The gameplay camera controller is not active.");
             return new JObject {
                 ["scheduled"] = true, ["smooth"] = true, ["duration_seconds"] = duration,
@@ -253,7 +253,7 @@ namespace CityWeaver
             var center = new float3((bounds.MinX + bounds.MaxX) * .5f, 0, (bounds.MinZ + bounds.MaxZ) * .5f);
             if (terrain.isCreated) center.y = TerrainUtils.SampleHeight(ref terrain, center);
             if (BoundsVisible(ActiveGameCamera(world), bounds, center.y)) return;
-            try { ScheduleCameraFocus(bounds, world, .8f); }
+            try { ScheduleCameraFocus(bounds, world, .8f, preserveZoom: true); }
             catch (QueryException ex) when (ex.Code == "GAMEPLAY_CAMERA_UNAVAILABLE") { Mod.log.Warn("Automatic construction focus skipped: " + ex.Message); }
         }
 
