@@ -3,6 +3,19 @@ import assert from 'node:assert/strict';
 import { createPrefabCatalog, prefabCatalogFor } from '../prefab-catalog-service.mjs';
 const env = (items, session = 'a', extra = {}) => ({ ok: true, meta: { session_id: session }, data: { items, ...extra } });
 
+test('loaded editor keeps its prefab session while main menu clears it', async () => {
+  let editor = true;
+  const catalog = createPrefabCatalog(async tool => tool === 'get_game_status'
+    ? env([], 'editor-map', {city_loaded:false, editor_ready:editor}) : env([{name:'Medium Seaway'}], 'editor-map'));
+  await catalog.query('get_game_status');
+  assert.equal((await catalog.query('list_waterway_prefabs')).data.items[0].name,'Medium Seaway');
+  assert.equal(catalog.inspect().session_id,'editor-map');
+  editor = false;
+  await catalog.query('get_game_status');
+  assert.equal(catalog.inspect().session_id,null);
+  assert.equal(catalog.inspect().entries,0);
+});
+
 test('fresh service starts cold; observed bridge loss clears the previous session', async () => {
   let unavailable = false, catalogs = 0;
   const raw = async tool => {

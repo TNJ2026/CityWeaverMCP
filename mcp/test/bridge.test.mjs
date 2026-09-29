@@ -139,7 +139,48 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   t.after(() => client.close());
   await client.connect(transport);
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 394);
+  assert.equal(tools.length, 414);
+  for (const name of ['get_editor_state', 'show_editor_save_panel', 'preview_map_resources', 'apply_map_resources', 'get_map_resource_operation', 'cancel_map_resource_preview']) {
+    assert(tools.some(tool => tool.name === name), `${name} is registered`);
+  }
+  const resourcePreview = tools.find(tool => tool.name === 'preview_map_resources');
+  assert.deepEqual(resourcePreview.inputSchema.properties.resource.enum, ['ore', 'oil', 'fertility', 'groundwater']);
+  assert.equal(resourcePreview.inputSchema.properties.value.maximum, 10000);
+  assert.equal(resourcePreview.annotations.readOnlyHint, false);
+  const editorState = await client.callTool({name:'get_editor_state', arguments:{}});
+  assert.equal(editorState.structuredContent.data.tool, 'get_editor_state');
+  const resourceCall = await client.callTool({name:'preview_map_resources', arguments:{request_id:'editor-test',resource:'ore',center:{x:0,z:0},radius_m:200,value:5000}});
+  assert.equal(resourceCall.structuredContent.data.args.value, 5000);
+  assert.equal(resourceCall.structuredContent.data.args.resource, 'ore');
+  const beforeBadResources = calls;
+  for (const changes of [{resource:'forest'}, {value:10001}, {value:0.5}, {radius_m:2001}, {center:{x:8000,z:0}}]) {
+    const invalid = await client.callTool({name:'preview_map_resources',arguments:{request_id:'invalid-editor',resource:'ore',center:{x:0,z:0},radius_m:200,value:5000,...changes}});
+    assert.equal(invalid.isError, true);
+  }
+  assert.equal(calls, beforeBadResources, 'Invalid editor resource plans must not reach the game');
+  for(const name of ['get_editor_configuration','preview_editor_configuration','apply_editor_configuration','get_editor_configuration_operation','cancel_editor_configuration_preview'])
+    assert(tools.some(tool=>tool.name===name), `${name} is registered`);
+  const config = await client.callTool({name:'preview_editor_configuration',arguments:{request_id:'editor-config-test',changes:[
+    {path:'season.m_TempNightDay',season_index:0,value:[2,15]}, {path:'water.SeaLevel',value:511.7}, {path:'water_render.m_SeaWindAffectWavesDirection',value:true}
+  ]}});
+  assert.deepEqual(config.structuredContent.data.args.changes[0],{path:'season.m_TempNightDay',season_index:0,value:[2,15]});
+  const beforeBadConfig=calls;
+  for(const changes of [[],[{path:'climate.m_Latitude',value:'north'}],[{path:'season.m_TempNightDay',season_index:-1,value:[0,10]}],[{path:'water.SeaLevel',value:500,unexpected:true}],[{path:'water_render.m_WaterColor',value:[0,0,0,0,0]}]]) {
+    const invalid=await client.callTool({name:'preview_editor_configuration',arguments:{request_id:'bad-editor-config',changes}});
+    assert.equal(invalid.isError,true);
+  }
+  assert.equal(calls,beforeBadConfig,'Malformed config patches must not reach the game');
+  const presetTool=tools.find(t=>t.name==='preview_editor_environment');
+  assert.equal(presetTool.annotations.readOnlyHint,false);
+  const presets={climate:'Temperate fixture',water_render:'Blue fixture',terrain_render:'Grass fixture'};
+  const presetCall=await client.callTool({name:'preview_editor_environment',arguments:{request_id:'environment-fixture',presets}});
+  assert.deepEqual(presetCall.structuredContent.data.args.presets,presets);
+  const beforeBadPresets=calls;
+  for(const presets of [{},{climate:''},{climate:7},{theme:'theme'},{terrain_render:'rock',file:'D:/texture.png'}]) {
+    const invalid=await client.callTool({name:'preview_editor_environment',arguments:{request_id:'invalid-environment',presets}});
+    assert.equal(invalid.isError,true);
+  }
+  assert.equal(calls,beforeBadPresets,'Empty or unknown environment selections must not reach the game');
   const recoveryTool = tools.find(tool => tool.name === 'recover_city_plan_request_collision');
   assert.deepEqual(recoveryTool.inputSchema.required, ['construction_id', 'state_version']);
   assert.equal(recoveryTool.annotations.readOnlyHint, false);
@@ -286,7 +327,7 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   assert.ok(householdProfile.inputSchema.properties.income_last_day, 'household income uses the current game field semantics');
   assert.ok(householdProfile.inputSchema.properties.salary_last_day, 'legacy salary input remains available as a compatibility alias');
   assert.equal(tools.find(tool => tool.name === 'plan_building_workflow').annotations.destructiveHint, false);
-  const mutations = new Set(['set_simulation_speed', 'preview_disaster', 'apply_disaster_operation', 'cancel_disaster_preview', 'update_disaster', 'stop_disaster', 'clear_disaster_effects', 'set_city_name', 'set_city_money', 'set_city_configuration', 'set_city_policy', 'set_transport_line_schedule', 'set_transport_line_ticket_price', 'set_transport_line_vehicle_count', 'set_transport_line_number', 'set_transport_line_unbunching', 'set_transport_stop_name', 'set_transport_facility_name', 'set_transport_facility_active', 'set_transport_facility_policy', 'preview_transport_facility_upgrade', 'preview_transport_facility_upgrade_removal', 'request_transport_line_vehicle', 'cancel_transport_line_vehicle_requests', 'release_transport_line_vehicle', 'preview_map_tile_purchase', 'apply_map_tile_purchase', 'cancel_map_tile_purchase', 'unlock_all_map_tiles', 'place_landscape_objects', 'plant_landscape_pattern', 'move_landscape_object', 'set_tree_state', 'remove_landscape_objects', 'clear_landscape_area', 'create_water_source', 'update_water_source', 'delete_water_source', 'set_pollution_area', 'set_weather_override', 'set_wind', 'set_unlimited_demand', 'set_citizen_attributes', 'set_household_money', 'set_company_profitability', 'set_resource_amount', 'create_citizen', 'set_citizen_name', 'set_citizen_profile', 'set_citizen_household', 'set_citizen_workplace', 'set_citizen_school', 'set_citizen_location', 'set_citizen_health_problem', 'delete_citizen', 'create_household', 'set_household_name', 'set_household_profile', 'set_household_housing', 'set_household_need', 'delete_household', 'create_company', 'set_company_name', 'set_company_financials', 'set_company_workforce', 'set_company_property', 'set_company_trade_cost', 'delete_company', 'request_vehicle_reroute', 'set_vehicle_target', 'set_vehicle_behavior', 'remove_vehicle', 'request_traveler_reroute', 'set_traveler_target', 'set_traveler_speed', 'request_citizen_trip', 'cancel_citizen_trips', 'manage_traffic', 'set_experience_points', 'set_development_points', 'purchase_development_node', 'unlock_prefab', 'unlock_all_progression', 'preview_road', 'preview_road_route', 'preview_road_ring', 'preview_road_grid', 'preview_road_parallel', 'preview_road_interchange', 'preview_intersection_prefab', 'preview_road_autoroute', 'preview_road_reverse', 'preview_road_batch_reverse', 'preview_road_upgrade', 'preview_road_demolition', 'preview_road_batch_upgrade', 'preview_road_batch_demolition', 'preview_road_elevation', 'preview_road_zoning', 'preview_road_features', 'preview_road_parking', 'preview_intersection_control', 'preview_intersection_roundabout', 'preview_intersection_rules', 'preview_road_policies', 'preview_road_undo', 'build_road', 'cancel_road_preview', 'preview_terrain', 'apply_terrain', 'cancel_terrain_preview', 'preview_building_placement', 'preview_special_building_placement', 'preview_building_batch_placement', 'preview_building_move', 'preview_building_replacement', 'preview_building_upgrade', 'preview_building_rebuild', 'preview_building_demolition', 'preview_building_upgrade_removal', 'apply_building_operation', 'cancel_building_preview', 'set_building_name', 'set_building_active', 'set_building_policy', 'preview_zoning', 'apply_zoning', 'cancel_zoning_preview', 'preview_district_create', 'preview_district_boundary', 'preview_district_delete', 'apply_district_operation', 'cancel_district_preview', 'set_district_name', 'set_district_policy', 'set_service_districts', 'preview_transport_line', 'preview_transport_line_stops', 'preview_transport_line_delete', 'apply_transport_line_operation', 'cancel_transport_line_preview', 'set_transport_line_name', 'set_transport_line_active', 'set_transport_line_color', 'set_transport_line_policy', 'preview_transport_facility_placement', 'preview_transport_facility_move', 'preview_transport_facility_delete', 'apply_transport_facility_operation', 'cancel_transport_facility_preview', 'preview_transport_track', 'preview_transport_track_delete', 'apply_transport_track_operation', 'cancel_transport_track_preview', 'preview_utility_facility_placement', 'preview_utility_facility_move', 'preview_utility_facility_delete', 'apply_utility_facility_operation', 'cancel_utility_facility_preview', 'preview_utility_network', 'preview_utility_network_upgrade', 'preview_utility_network_delete', 'apply_utility_operation', 'cancel_utility_preview', 'preview_city_service_placement', 'preview_city_service_move', 'preview_city_service_upgrade', 'preview_city_service_upgrade_removal', 'preview_city_service_delete', 'apply_city_service_operation', 'cancel_city_service_preview', 'preview_tax_change', 'preview_service_budget', 'preview_service_fee', 'preview_loan_change', 'apply_economy_operation', 'cancel_economy_preview']);
+  const mutations = new Set(['preview_editor_environment', 'preview_editor_configuration', 'apply_editor_configuration', 'cancel_editor_configuration_preview', 'preview_map_resources', 'apply_map_resources', 'cancel_map_resource_preview', 'show_editor_save_panel', 'set_simulation_speed', 'preview_disaster', 'apply_disaster_operation', 'cancel_disaster_preview', 'update_disaster', 'stop_disaster', 'clear_disaster_effects', 'set_city_name', 'set_city_money', 'set_city_configuration', 'set_city_policy', 'set_transport_line_schedule', 'set_transport_line_ticket_price', 'set_transport_line_vehicle_count', 'set_transport_line_number', 'set_transport_line_unbunching', 'set_transport_stop_name', 'set_transport_facility_name', 'set_transport_facility_active', 'set_transport_facility_policy', 'preview_transport_facility_upgrade', 'preview_transport_facility_upgrade_removal', 'request_transport_line_vehicle', 'cancel_transport_line_vehicle_requests', 'release_transport_line_vehicle', 'preview_map_tile_purchase', 'apply_map_tile_purchase', 'cancel_map_tile_purchase', 'unlock_all_map_tiles', 'place_landscape_objects', 'plant_landscape_pattern', 'move_landscape_object', 'set_tree_state', 'remove_landscape_objects', 'clear_landscape_area', 'create_water_source', 'update_water_source', 'delete_water_source', 'set_pollution_area', 'set_weather_override', 'set_wind', 'set_unlimited_demand', 'set_citizen_attributes', 'set_household_money', 'set_company_profitability', 'set_resource_amount', 'create_citizen', 'set_citizen_name', 'set_citizen_profile', 'set_citizen_household', 'set_citizen_workplace', 'set_citizen_school', 'set_citizen_location', 'set_citizen_health_problem', 'delete_citizen', 'create_household', 'set_household_name', 'set_household_profile', 'set_household_housing', 'set_household_need', 'delete_household', 'create_company', 'set_company_name', 'set_company_financials', 'set_company_workforce', 'set_company_property', 'set_company_trade_cost', 'delete_company', 'request_vehicle_reroute', 'set_vehicle_target', 'set_vehicle_behavior', 'remove_vehicle', 'request_traveler_reroute', 'set_traveler_target', 'set_traveler_speed', 'request_citizen_trip', 'cancel_citizen_trips', 'manage_traffic', 'set_experience_points', 'set_development_points', 'purchase_development_node', 'unlock_prefab', 'unlock_all_progression', 'preview_road', 'preview_road_route', 'preview_road_ring', 'preview_road_grid', 'preview_road_parallel', 'preview_road_interchange', 'preview_intersection_prefab', 'preview_road_autoroute', 'preview_road_reverse', 'preview_road_batch_reverse', 'preview_road_upgrade', 'preview_road_demolition', 'preview_road_batch_upgrade', 'preview_road_batch_demolition', 'preview_road_elevation', 'preview_road_zoning', 'preview_road_features', 'preview_road_parking', 'preview_intersection_control', 'preview_intersection_roundabout', 'preview_intersection_rules', 'preview_road_policies', 'preview_road_undo', 'build_road', 'cancel_road_preview', 'preview_terrain', 'apply_terrain', 'cancel_terrain_preview', 'preview_building_placement', 'preview_special_building_placement', 'preview_building_batch_placement', 'preview_building_move', 'preview_building_replacement', 'preview_building_upgrade', 'preview_building_rebuild', 'preview_building_demolition', 'preview_building_upgrade_removal', 'apply_building_operation', 'cancel_building_preview', 'set_building_name', 'set_building_active', 'set_building_policy', 'preview_zoning', 'apply_zoning', 'cancel_zoning_preview', 'preview_district_create', 'preview_district_boundary', 'preview_district_delete', 'apply_district_operation', 'cancel_district_preview', 'set_district_name', 'set_district_policy', 'set_service_districts', 'preview_transport_line', 'preview_transport_line_stops', 'preview_transport_line_delete', 'apply_transport_line_operation', 'cancel_transport_line_preview', 'set_transport_line_name', 'set_transport_line_active', 'set_transport_line_color', 'set_transport_line_policy', 'preview_transport_facility_placement', 'preview_transport_facility_move', 'preview_transport_facility_delete', 'apply_transport_facility_operation', 'cancel_transport_facility_preview', 'preview_transport_track', 'preview_transport_track_delete', 'apply_transport_track_operation', 'cancel_transport_track_preview', 'preview_utility_facility_placement', 'preview_utility_facility_move', 'preview_utility_facility_delete', 'apply_utility_facility_operation', 'cancel_utility_facility_preview', 'preview_utility_network', 'preview_utility_network_upgrade', 'preview_utility_network_delete', 'apply_utility_operation', 'cancel_utility_preview', 'preview_city_service_placement', 'preview_city_service_move', 'preview_city_service_upgrade', 'preview_city_service_upgrade_removal', 'preview_city_service_delete', 'apply_city_service_operation', 'cancel_city_service_preview', 'preview_tax_change', 'preview_service_budget', 'preview_service_fee', 'preview_loan_change', 'apply_economy_operation', 'cancel_economy_preview']);
   mutations.add('preview_roundabout_placement');
   mutations.add('deploy_grid_district');
   mutations.add('prepare_grid_native_preview');
@@ -314,6 +355,8 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   for (const name of ['preview_pier_pathway', 'apply_pier_pathway_operation', 'cancel_pier_pathway_preview']) mutations.add(name);
   for (const name of ['preview_work_route', 'apply_work_route_operation', 'cancel_work_route_preview', 'delete_work_route']) mutations.add(name);
   for (const name of ['set_traffic_signal_program', 'clear_traffic_signal_program']) mutations.add(name);
+  for (const name of ['select_editor_asset','preview_editor_asset','apply_editor_asset','cancel_editor_asset_preview']) mutations.add(name);
+  for (const name of ['list_editor_assets','get_editor_asset','select_editor_asset','preview_editor_asset','get_editor_asset_operation','apply_editor_asset','cancel_editor_asset_preview']) assert(tools.some(tool=>tool.name===name), name+' registered');
   mutations.add('recover_city_plan_request_collision');
   assert(tools.every(tool => tool.annotations.readOnlyHint === !mutations.has(tool.name)));
   assert.equal(tools.find(tool => tool.name === 'build_road').annotations.destructiveHint, true);
@@ -589,3 +632,31 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
 
 
 
+
+
+test('generic editor asset tools forward exact geometry and reject malformed schemas',async t=>{
+  const calls=[];
+  const {endpointPath}=await fixture(t,(socket,request)=>{calls.push(request);socket.end(JSON.stringify({ok:true,meta:{session_id:'asset-test'},data:{state:'preview_ready'}})+'\n');});
+  const client=new Client({name:'editor-asset-test',version:'1.0.0'});
+  const transport=new StdioClientTransport({command:process.execPath,args:[fileURLToPath(new URL('../server.mjs',import.meta.url))],env:{...process.env,CSII_BRIDGE_FILE:endpointPath,CITYWEAVER_PLANNING_STORE:path.join(path.dirname(endpointPath),'planning-store')}});
+  t.after(()=>client.close());await client.connect(transport);
+  const requests=[
+    {name:'list_editor_assets',arguments:{kind:'outside_connection',search:'Air',offset:0,limit:10}},
+    {name:'preview_editor_asset',arguments:{request_id:'asset-airport-001',prefab_id:'asset-test:123:1',position:{x:14336,y:1000,z:14336},rotation_degrees:45}},
+    {name:'preview_editor_asset',arguments:{request_id:'asset-network-01',prefab:'Road',points:[{x:0,z:0,node_id:'asset-test:456:1'},{x:100,z:0}],curves:[{mode:'cubic',control_1:{x:30,z:0},control_2:{x:70,z:0}}]}},
+    {name:'preview_editor_asset',arguments:{request_id:'asset-polygon-01',prefab:'Surface',points:[{x:0,z:0},{x:100,z:0},{x:100,z:100}]}},
+    {name:'apply_editor_asset',arguments:{operation_id:'operation-one',request_id:'asset-commit-001',max_cost:0}},
+    {name:'get_editor_asset_operation',arguments:{operation_id:'operation-one'}},
+    {name:'cancel_editor_asset_preview',arguments:{operation_id:'operation-one'}},
+    {name:'select_editor_asset',arguments:{prefab:'Native brush'}}
+  ];
+  for(const req of requests){const result=await client.callTool(req);assert.equal(result.isError,false);assert.equal(calls.at(-1).tool,req.name);assert.deepEqual(calls.at(-1).arguments,req.arguments);}
+  const count=calls.length;
+  for(const args of [
+    {request_id:'asset-invalid-01',prefab:'A',position:{x:100001,z:0}},
+    {request_id:'asset-invalid-02',prefab:'A',position:{x:0,z:0},rotation_degrees:361},
+    {request_id:'asset-invalid-03',prefab:'A',points:Array.from({length:129},()=>({x:0,z:0}))},
+    {request_id:'asset-invalid-04',prefab:'A',curves:[{mode:'circle'}]}
+  ])assert.equal((await client.callTool({name:'preview_editor_asset',arguments:args})).isError,true);
+  assert.equal(calls.length,count,'bad schemas must not reach game');
+});

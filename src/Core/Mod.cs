@@ -34,6 +34,7 @@ namespace CityWeaver
             updateSystem.UpdateBefore<McpRoadToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateAfter<McpTrafficSignalProgramSystem, Game.Simulation.TrafficLightSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateBefore<McpTerrainToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
+            updateSystem.UpdateBefore<McpEditorAssetToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpBuildingToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpBuildingAreaToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpDistrictToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);

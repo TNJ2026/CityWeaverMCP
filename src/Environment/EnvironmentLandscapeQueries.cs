@@ -82,7 +82,12 @@ namespace CityWeaver
         }
         private float3 LandscapePoint(JToken token, TerrainHeightData terrain)
         {
-            var p = token as JObject ?? throw new QueryException("INVALID_ARGUMENT", "Each position requires x and z."); var result = new float3((float)p["x"], 0, (float)p["z"]); result.y = p["y"] != null ? (float)p["y"] : TerrainUtils.SampleHeight(ref terrain, result); return result;
+            var p = token as JObject ?? throw new QueryException("INVALID_ARGUMENT", "Each position requires x and z.");
+            if (!terrain.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain heights are not ready.");
+            var result = TerrainPoint(p, "position");
+            result.y = p["y"] != null ? TerrainNumber(p, "y", 0, -1024, 4096) : TerrainUtils.SampleHeight(ref terrain, result);
+            if (!math.isfinite(result.y)) throw new QueryException("TERRAIN_UNAVAILABLE", "Landscape position has no valid height.");
+            return result;
         }
         private Entity CreateLandscapeInstance(Entity prefab, float3 position, float rotation, float age, bool natural, World world)
         {
@@ -97,10 +102,12 @@ namespace CityWeaver
         }
         private JObject PlaceLandscapeObjects(JObject args, World world)
         {
-            RequirePaused(world); var prefab = ResolveLandscapePrefab((string)args["prefab"], world); if (RoadOperation.IsLocked(world.EntityManager, prefab)) throw new QueryException("LANDSCAPE_PREFAB_LOCKED", "The selected landscape prefab is locked.");
+            RequirePaused(world); var prefab = ResolveLandscapePrefab((string)args["prefab"], world); if (!IsEditorReady() && RoadOperation.IsLocked(world.EntityManager, prefab)) throw new QueryException("LANDSCAPE_PREFAB_LOCKED", "The selected landscape prefab is locked.");
             var positions = args["positions"] as JArray ?? throw new QueryException("INVALID_ARGUMENT", "positions must contain 1..256 points."); if (positions.Count < 1 || positions.Count > 256) throw new QueryException("INVALID_ARGUMENT", "positions must contain 1..256 points.");
             float rotation = (float?)args["rotation_degrees"] ?? 0, age = (float?)args["age"] ?? 1; bool natural = (bool?)args["natural"] ?? false; var terrain = world.GetExistingSystemManaged<TerrainSystem>().GetHeightData(true); var ids = new JArray();
-            foreach (var token in positions) ids.Add(EntityId(CreateLandscapeInstance(prefab, LandscapePoint(token, terrain), rotation, age, natural, world)));
+            // Validate the entire batch before creating the first object.
+            var points = positions.Select(token => LandscapePoint(token, terrain)).ToArray();
+            foreach (var point in points) ids.Add(EntityId(CreateLandscapeInstance(prefab, point, rotation, age, natural, world)));
             return new JObject { ["created_count"] = ids.Count, ["object_ids"] = ids, ["prefab"] = (string)args["prefab"], ["native_object_pipeline"] = true };
         }
         private JObject PlantLandscapePattern(JObject args, World world)

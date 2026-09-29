@@ -45,6 +45,8 @@ The repository is not necessarily at the local path shown below. Locate the proj
 
 按任务只读取相关专题，路径相对项目根目录：
 
+- 地图编辑器制作地图（地形、水体、资源、植被、气候、环境）：`docs/guides/areas/MAP-EDITOR-GUIDE.md`。用 `editor_ready` 判断 Editor 状态，不将城市的 `city_loaded=false` 当作编辑器不可用；仅使用实时支持清单中的工具。
+
 - 海上油井、平台、管道与油轮作业线：`docs/guides/buildings/OFFSHORE-OIL-CONSTRUCTION-GUIDE.md`。
 - 山顶煤矿/矿石、最大有效扩区与搬移残留：`docs/guides/buildings/MOUNTAIN-MINING-GUIDE.md`。
 - 并列单向高速桥、通航及巨型环岛：`docs/guides/roads/PARALLEL-HIGHWAY-BRIDGE-GUIDE.md`。

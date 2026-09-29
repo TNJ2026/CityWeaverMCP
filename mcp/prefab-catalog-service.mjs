@@ -28,7 +28,7 @@ export function createPrefabCatalog(queryGame, { now = Date.now, ttlMs = 30000, 
   function observe(response) {
     const actual = sessionOf(response);
     if (actual && actual !== session) invalidateSession(actual);
-    if (response?.data?.city_loaded === false) invalidateSession(null);
+    if (response?.data?.city_loaded === false && response?.data?.editor_ready !== true) invalidateSession(null);
   }
   async function query(tool, args = {}, { force_refresh = false } = {}) {
     if (!catalogTools.has(tool)) {

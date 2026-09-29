@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Colossal.Mathematics;
 using Game.Common;
@@ -20,6 +20,7 @@ namespace CityWeaver
     public sealed partial class McpRoadToolSystem : ObjectToolBaseSystem
     {
         private RoadOperation m_Operation;
+        private bool IsEditorNetwork => m_Operation != null && EditorAccessPolicy.EditorNetwork(Game.SceneFlow.GameManager.instance.gameMode == Game.GameMode.Editor, m_Operation.TransactionKind, m_Operation.OperationType);
         private NativeList<ControlPoint> m_StampControlPoints;
         private bool IsIntersectionPrefab => m_Operation.CurveMode == "intersection_prefab";
         private readonly List<Entity> m_Definitions = new List<Entity>();
@@ -65,6 +66,8 @@ namespace CityWeaver
         protected override void OnDestroy() { if (m_StampControlPoints.IsCreated) m_StampControlPoints.Dispose(); base.OnDestroy(); }
         public void Begin(RoadOperation operation)
         {
+            if (Game.SceneFlow.GameManager.instance.gameMode == Game.GameMode.Editor && !EditorAccessPolicy.EditorNetwork(true, operation.TransactionKind, operation.OperationType))
+                throw new QueryException("TOOL_NOT_AVAILABLE_IN_EDITOR", "Only native road creation and waterway operations are enabled in the map editor.");
             if (Busy) throw new QueryException("TOOL_BUSY", "Another road operation is active.");
             if (!m_TempQuery.IsEmptyIgnoreFilter) throw new QueryException("TOOL_BUSY", "Another tool preview is still present; return to the default selection tool and wait.");
             m_Operation = operation; m_Phase = 0; m_Ticks = 0; m_StableTicks = 0; m_LastSignature = null;
@@ -158,10 +161,13 @@ namespace CityWeaver
                 if (op.ZoningAligned && op.PlannerStrategy != null && !PlannedZoningValid()) { Fail("ZONING_ALIGNMENT_INVALID"); return; }
                 if (op.Cost > op.MaxCost) { Fail("COST_LIMIT"); return; }
                 if (World.GetExistingSystemManaged<Game.Simulation.SimulationSystem>().selectedSpeed != 0) { Fail("CITY_MUST_BE_PAUSED"); return; }
-                var city = World.GetExistingSystemManaged<Game.Simulation.CitySystem>().City;
-                if (!EntityManager.HasComponent<Game.City.PlayerMoney>(city)) { Fail("CITY_MONEY_UNAVAILABLE"); return; }
-                var money = EntityManager.GetComponentData<Game.City.PlayerMoney>(city);
-                if (!money.m_Unlimited && money.money < op.Cost) { Fail("NOT_ENOUGH_MONEY"); return; }
+                if (!IsEditorNetwork)
+                {
+                    var city = World.GetExistingSystemManaged<Game.Simulation.CitySystem>().City;
+                    if (!EntityManager.HasComponent<Game.City.PlayerMoney>(city)) { Fail("CITY_MONEY_UNAVAILABLE"); return; }
+                    var money = EntityManager.GetComponentData<Game.City.PlayerMoney>(city);
+                    if (!money.m_Unlimited && money.money < op.Cost) { Fail("NOT_ENOUGH_MONEY"); return; }
+                }
                 // Do not honor the game's developer ignoreErrors switch for MCP commits.
                 if (!m_ErrorQuery.IsEmptyIgnoreFilter || !GetAllowApply()) { Fail("GAME_REJECTED_ROAD"); return; }
                 op.ApplyDispatched = true; op.State = "applying";
@@ -523,7 +529,7 @@ namespace CityWeaver
         private bool EndpointsValid()
         {
             var op = m_Operation;
-            if (!IsDemolish && !IsZoning && !IsRoadFeatures && !IsIntersectionRules && !IsIntersectionControl && !IsIntersectionRoundabout && (!EntityManager.Exists(op.Prefab) || RoadOperation.IsLocked(EntityManager, op.Prefab))) return false;
+            if (!IsDemolish && !IsZoning && !IsRoadFeatures && !IsIntersectionRules && !IsIntersectionControl && !IsIntersectionRoundabout && (!EntityManager.Exists(op.Prefab) || (!IsEditorNetwork && RoadOperation.IsLocked(EntityManager, op.Prefab)))) return false;
             if (IsIntersectionPrefab) return EntityManager.HasComponent<AssetStampData>(op.Prefab);
             if (IsIntersectionControl || IsIntersectionRoundabout)
             {
@@ -557,7 +563,7 @@ namespace CityWeaver
             }
             foreach (var segment in op.Segments)
             {
-                if (segment.Prefab != Entity.Null && (!EntityManager.Exists(segment.Prefab) || RoadOperation.IsLocked(EntityManager, segment.Prefab))) return false;
+                if (segment.Prefab != Entity.Null && (!EntityManager.Exists(segment.Prefab) || (!IsEditorNetwork && RoadOperation.IsLocked(EntityManager, segment.Prefab)))) return false;
                 foreach (var endpoint in new[] { (segment.StartTarget, segment.StartTargetPosition ?? segment.Start, segment.StartSplit), (segment.EndTarget, segment.EndTargetPosition ?? segment.End, segment.EndSplit) })
                 {
                     if (endpoint.Item1 == Entity.Null) continue;

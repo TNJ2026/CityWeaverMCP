@@ -16,8 +16,10 @@ namespace CityWeaver
     {
         private static void RequirePaused(World world)
         {
-            if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0)
-                throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before changing progression or unlock state.");
+            var simulation = world.GetExistingSystemManaged<SimulationSystem>();
+            if (simulation == null) throw new QueryException("SIMULATION_UNAVAILABLE", "Simulation control is not ready.");
+            if (simulation.selectedSpeed != 0)
+                throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city or editor simulation before this change.");
         }
 
         private static string PrefabName(PrefabSystem system, Entity entity)

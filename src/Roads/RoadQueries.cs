@@ -590,7 +590,7 @@ namespace CityWeaver
             var name = (string)args["road_prefab"];
             foreach (var e in RoadPrefabs(em)) if (prefabs.TryGetPrefab<PrefabBase>(e, out var p) && p is RoadPrefab && p.name == name) { prefabEntity = e; break; }
             if (prefabEntity == Entity.Null) throw new QueryException("UNKNOWN_ROAD_PREFAB", "Use an exact name from list_road_prefabs.");
-            if (RoadOperation.IsLocked(em, prefabEntity)) throw new QueryException("ROAD_LOCKED", "This road is not unlocked.");
+            if (!IsEditorReady() && RoadOperation.IsLocked(em, prefabEntity)) throw new QueryException("ROAD_LOCKED", "This road is not unlocked.");
             var terrain = world.GetExistingSystemManaged<TerrainSystem>(); var heights = terrain.GetHeightData(true);
             if (!heights.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain CPU heights are not ready.");
             var start = RoadPoint(args, "start", world, heights, prefabEntity); var end = RoadPoint(args, "end", world, heights, prefabEntity);
@@ -642,7 +642,7 @@ namespace CityWeaver
             var name = (string)args["road_prefab"];
             foreach (var e in RoadPrefabs(em)) if (prefabs.TryGetPrefab<PrefabBase>(e, out var p) && p is RoadPrefab && p.name == name) { prefabEntity = e; break; }
             if (prefabEntity == Entity.Null) throw new QueryException("UNKNOWN_ROAD_PREFAB", "Use an exact name from list_road_prefabs.");
-            if (RoadOperation.IsLocked(em, prefabEntity)) throw new QueryException("ROAD_LOCKED", "This road is not unlocked.");
+            if (!IsEditorReady() && RoadOperation.IsLocked(em, prefabEntity)) throw new QueryException("ROAD_LOCKED", "This road is not unlocked.");
             var heights = world.GetExistingSystemManaged<TerrainSystem>().GetHeightData(true);
             if (!heights.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain CPU heights are not ready.");
             var endpoints = new List<RoadEndpoint>();
@@ -679,7 +679,7 @@ namespace CityWeaver
                 !math.isfinite(radius) || radius < 12 || radius > 160) throw new QueryException("INVALID_ARGUMENT", "radius_m must be from 12 to 160 metres.");
             var direction = (string)args["direction"] ?? "auto";
             if (direction != "auto" && direction != "clockwise" && direction != "counterclockwise") throw new QueryException("INVALID_ARGUMENT", "direction must be auto, clockwise or counterclockwise.");
-            if (direction == "auto") direction = world.GetExistingSystemManaged<Game.City.CityConfigurationSystem>().leftHandTraffic ? "clockwise" : "counterclockwise";
+            if (direction == "auto") direction = (world.GetExistingSystemManaged<Game.City.CityConfigurationSystem>()?.leftHandTraffic ?? false) ? "clockwise" : "counterclockwise";
             if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); var em = world.EntityManager;
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before previewing a road ring.");
@@ -687,7 +687,7 @@ namespace CityWeaver
             var prefabs = world.GetExistingSystemManaged<PrefabSystem>(); Entity prefabEntity = Entity.Null; var name = (string)args["road_prefab"];
             foreach (var e in RoadPrefabs(em)) if (prefabs.TryGetPrefab<PrefabBase>(e, out var p) && p is RoadPrefab && p.name == name) { prefabEntity = e; break; }
             if (prefabEntity == Entity.Null) throw new QueryException("UNKNOWN_ROAD_PREFAB", "Use an exact name from list_road_prefabs.");
-            if (RoadOperation.IsLocked(em, prefabEntity)) throw new QueryException("ROAD_LOCKED", "This road is not unlocked.");
+            if (!IsEditorReady() && RoadOperation.IsLocked(em, prefabEntity)) throw new QueryException("ROAD_LOCKED", "This road is not unlocked.");
             var heights = world.GetExistingSystemManaged<TerrainSystem>().GetHeightData(true);
             if (!heights.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain CPU heights are not ready.");
             var center = new float3(ReadCoordinate(centerArgs, "center", "x"), 0, ReadCoordinate(centerArgs, "center", "z"));
@@ -2082,6 +2082,8 @@ namespace CityWeaver
         {
             if (!m_RoadOperations.TryGetValue((string)args["operation_id"] ?? "", out var operation) || operation.Session != m_Session)
                 throw new QueryException("ROAD_OPERATION_NOT_FOUND", "Unknown operation in this city session. Never replay an old commit after a reload.");
+            if (IsEditorReady() && !EditorAccessPolicy.EditorNetwork(true, operation.TransactionKind, operation.OperationType))
+                throw new QueryException("TOOL_NOT_AVAILABLE_IN_EDITOR", "This network operation is not supported in the map editor.");
             return operation;
         }
         private JObject CommitRoad(JObject args)

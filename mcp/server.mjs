@@ -225,6 +225,18 @@ const mutationAnnotations = {
   preview_road_policies: { ...annotations, readOnlyHint: false },
   preview_road_undo: { ...annotations, readOnlyHint: false },
   preview_terrain: { ...annotations, readOnlyHint: false },
+  preview_map_resources: { ...annotations, readOnlyHint: false },
+  preview_editor_configuration: { ...annotations, readOnlyHint: false },
+  select_editor_asset: { ...annotations, readOnlyHint: false },
+  preview_editor_asset: { ...annotations, readOnlyHint: false },
+  apply_editor_asset: { ...annotations, readOnlyHint: false, destructiveHint: true },
+  cancel_editor_asset_preview: { ...annotations, readOnlyHint: false },
+  preview_editor_environment: { ...annotations, readOnlyHint: false },
+  apply_editor_configuration: { ...annotations, readOnlyHint: false, destructiveHint: true },
+  cancel_editor_configuration_preview: { ...annotations, readOnlyHint: false },
+  apply_map_resources: { ...annotations, readOnlyHint: false, destructiveHint: true },
+  cancel_map_resource_preview: { ...annotations, readOnlyHint: false },
+  show_editor_save_panel: { ...annotations, readOnlyHint: false },
   apply_terrain: { ...annotations, readOnlyHint: false, destructiveHint: true },
   cancel_terrain_preview: { ...annotations, readOnlyHint: false },
   preview_building_placement: { ...annotations, readOnlyHint: false },
@@ -812,7 +824,38 @@ const definitions = [
     operation_id: operationId, request_id: requestId, max_cost: z.number().int().min(0).max(10000000)
   }],
   ['cancel_road_preview', 'Cancel and clean up an uncommitted temporary preview. Does not undo an already dispatched road build.', { operation_id: operationId }],
-  ['sample_terrain', 'Read live terrain height in metres at 1..256 world coordinates using the game CPU height map. This waits for pending GPU terrain readback so results include completed edits.', {
+  ['get_editor_state', 'Inspect a loaded map editor: active panel and tool, terrain readiness, supported tools, resource types and save limitations. Does not modify the map.', {}],
+  ['get_editor_configuration', 'Read persistent map editor climate, indexed seasons, global water, wind, water rendering and terrain material settings, plus exact editable paths, types, component counts, units and ranges. Read this before planning changes. Does not modify the map.', {}],
+  ['list_editor_assets', 'Discover all loaded editor prefab types, content requirements and explicit automatic-placement support. Objects/stamps use a position, geometric networks a route, areas a polygon; non-geometric data requires dedicated editors. Includes outside connections. Returns native world bounds; do not confuse them with buildable tile bounds. Listing does not guarantee native placement validity.', {search:z.string().max(256).default(''),kind:z.enum(['all','object','stamp','network','area','data','outside_connection']).default('all'),offset:z.number().int().min(0).max(200000).default(0),limit:z.number().int().min(1).max(100).default(30)}],
+  ['get_editor_asset', 'Inspect one exact loaded editor asset. Use prefab_id for duplicate names. Does not change or unlock content.', {prefab:z.string().min(1).max(256).optional(),prefab_id:z.string().min(1).max(200).optional()}],
+  ['select_editor_asset', 'Activate the native editor tool accepting an exact loaded prefab. Does not place anything. Requires paused editor and default tool; unsupported data returns selected=false. This is a manual-tool handoff, not automated construction.', {prefab:z.string().min(1).max(256).optional(),prefab_id:z.string().min(1).max(200).optional()}],
+  ['preview_editor_asset', 'Preview an editor asset through native object/stamp, network or area pipelines. Discover exact prefab first. Require paused editor/default tool; no permanent write. Object position y is absolute and optional; floating/hovering assets sample native water height plus prefab offset and must omit y. Roadside assets require exact parent_id. Network points optionally use node_id; segments 16..256m, at most 16 points. Areas use 3..128 simple polygon points, without repeated closing vertex. Outside connections require actual world boundary. Native errors, warnings and existing-object deletion block commit. Poll get_editor_asset_operation.', {
+    request_id:requestId,prefab:z.string().min(1).max(256).optional(),prefab_id:z.string().min(1).max(200).optional(),
+    position:z.object({x:z.number().finite().min(-100000).max(100000),y:z.number().finite().min(-100000).max(100000).optional(),z:z.number().finite().min(-100000).max(100000)}).strict().optional(),
+    rotation_degrees:z.number().finite().min(-360).max(360).optional(),parent_id:z.string().min(1).max(200).optional(),
+    points:z.array(z.object({x:z.number().finite().min(-100000).max(100000),y:z.number().finite().min(-100000).max(100000).optional(),z:z.number().finite().min(-100000).max(100000),node_id:z.string().min(1).max(200).optional()}).strict()).min(2).max(128).optional(),
+    curves:z.array(z.union([z.object({mode:z.literal('quadratic'),control:z.object({x:z.number().finite().min(-100000).max(100000),z:z.number().finite().min(-100000).max(100000)}).strict()}).strict(),z.object({mode:z.literal('cubic'),control_1:z.object({x:z.number().finite().min(-100000).max(100000),z:z.number().finite().min(-100000).max(100000)}).strict(),control_2:z.object({x:z.number().finite().min(-100000).max(100000),z:z.number().finite().min(-100000).max(100000)}).strict()}).strict(),z.null()])).max(15).optional()
+  }],
+  ['get_editor_asset_operation', 'Read original editor asset transaction. Only completed plus created permanent entity readback confirms placement. Unknown results must not be replayed with a new request.', {operation_id:z.string().min(1).max(100)}],
+  ['apply_editor_asset', 'Commit a ready native editor asset preview once with max_cost. Revalidates geometry, attachment, native errors/warnings and paused mode. Poll original operation to completion. Does not save the map.', {operation_id:z.string().min(1).max(100),request_id:requestId,max_cost:z.number().int().min(0).max(10000000)}],
+  ['cancel_editor_asset_preview', 'Cancel an uncommitted editor asset preview. Refuses after native application was dispatched.', {operation_id:z.string().min(1).max(100)}],
+  ['list_editor_environment_presets', 'List loaded climate, water_render and terrain_render presets with exact names, current selections and climate/terrain details. Combine all three for a complete environment. Does not import files or modify the map.', {kind:z.enum(['all','climate','water_render','terrain_render']).default('all'),search:z.string().max(100).default(''),offset:z.number().int().min(0).max(100000).default(0),limit:z.number().int().min(1).max(100).default(30)}],
+  ['preview_editor_environment', 'Preview switching one or all three native environment presets by exact names from list_editor_environment_presets. Apply with apply_editor_configuration, same request_id. Checks current map and selected source preset baselines. Preserves complete preset curves/textures; no sea-level, terrain-height, resources, vegetation or city-theme change. Does not import external textures. Paused default tool required.', {request_id:requestId,presets:z.object({climate:z.string().min(1).max(256).optional(),water_render:z.string().min(1).max(256).optional(),terrain_render:z.string().min(1).max(256).optional()}).strict().refine(v=>Object.keys(v).length>0,'Select at least one preset')}],
+  ['preview_editor_configuration', 'Preview map-wide editor settings without writing. Use only paths returned by get_editor_configuration.fields. Season paths require season_index; temperature vectors are [night,day], colors RGBA. Changes use private prefab copies on apply. SeaLevel changes boundary water, not a global water fill/reset; wind direction follows native editor behavior with pressure 40. Paused default tool required. Not transient weather override.', {
+    request_id: requestId, changes: z.array(z.object({path:z.string().min(1).max(100), season_index:z.number().int().min(0).max(63).optional(), value:z.union([z.number().finite(),z.boolean(),z.array(z.number().finite()).min(2).max(4)])}).strict()).min(1).max(128)
+  }],
+  ['apply_editor_configuration', 'Apply an editor configuration preview using the same request_id. Requires unchanged baseline, paused default tool; clones native settings, rebuilds climate curves and reads back edited fields. Does not save map. outcome_unknown must be inspected, not retried with a new preview.', {operation_id:operationId, request_id:requestId}],
+  ['get_editor_configuration_operation', 'Read configuration preview or apply result in this map session, including requested changes, before/after values and any error.', {operation_id:operationId}],
+  ['cancel_editor_configuration_preview', 'Cancel an uncommitted map configuration preview. Does not undo applied edits.', {operation_id:operationId}],
+  ['show_editor_save_panel', 'Open the native map editor save dialog while paused and idle, with no pending map previews. Does not save, overwrite or publish; the player confirms the filename in game.', {}],
+  ['preview_map_resources', 'Editor only: preview setting ore, oil, fertility or groundwater in fully contained grid cells inside a circular brush. Raw value 0..10000, not percent. Preserves other resource layers. Natural-resource depletion resets in selected cells; groundwater amount and maximum are set together. Fish derives from water and forest from vegetation. Paused, default tool required.', {
+    request_id: requestId, resource: z.enum(['ore', 'oil', 'fertility', 'groundwater']), center: terrainPoint,
+    radius_m: z.number().finite().min(56).max(2000), value: z.number().int().min(0).max(10000)
+  }],
+  ['apply_map_resources', 'Apply an editor resource preview using its same request_id. Rechecks every selected baseline cell before writes, then reads back the native grid. Completed confirms grid edits, not a saved map. Retry the original operation after a timeout.', { operation_id: operationId, request_id: requestId }],
+  ['get_map_resource_operation', 'Read the resource operation state, selection size, original range and readiness in the current map session.', { operation_id: operationId }],
+  ['cancel_map_resource_preview', 'Cancel an uncommitted editor resource preview. Completed edits cannot be undone by this tool.', { operation_id: operationId }],
+  ['sample_terrain', 'Read live terrain height in a city or loaded map editor at 1..256 world coordinates using the game CPU height map. Waits for GPU terrain readback.', {
     points: z.array(terrainPoint).min(1).max(256)
   }],
   ['preview_terrain', 'Validate and journal a terrain plan without changing terrain. Modes: raise, lower, level, smooth, slope, raise_land, and flatten_map. raise_land shifts every dry native heightmap cell once using the live water-depth mask and requires amount_m. flatten_map sets the entire native heightmap to target_height_m and can clear dynamic water plus remove natural water sources. clear_shallow_water clears only fully contained shallow GPU water cells up to required max_water_depth_m, preserving terrain and water sources; no global reset. Other modes use a brush path. Slope requires at least two points plus start_height_m and target_height_m. Poll or apply within five minutes.', {
@@ -1247,7 +1290,7 @@ const definitions = [
   ['read_entity_field', 'Read a selected private/public component field or nested native container. For buffer components choose buffer_index first. field_path uses exact field names or string indices. offset/limit page the selected value; BlobAssetReference values return raw payload bytes as base64, with byte offsets, not decoded objects.', {
     entity_id: entityId, component, buffer_index: z.number().int().min(0).max(2000000).default(0), field_path: z.array(z.string().min(1).max(200)).max(12).default([]), offset: z.number().int().min(0).max(268435456).default(0), limit: z.number().int().min(1).max(4096).default(64)
   }],
-  ['get_game_status', 'Check game bridge connection, city loading state, pause state, city name, and session metadata. Works in the main menu. An unavailable game is explicitly reported.', {}],
+  ['get_game_status', 'Check game bridge connection, city/editor readiness, loading, pause state and session metadata. In Editor mode also reports the active panel and tool; city_loaded remains false. Works in the main menu.', {}],
   ['get_city_summary', 'Read current city population, happiness, health, money and building counts by category. Counts are building instances, not households/housing units; mixed-use categories may overlap.', {}],
   ['find_buildings_by_name', 'Find permanent building instances by rendered label name (including custom names) or native street address, using exact or contains matching. Address format is NUMBER STREET, for example 362 水仙街; the street name uses the current game language. Returns entity_id, name, position, prefab_name, categories, state flags, address, street_name, street_number and street_id. Address fields are null when unavailable. Duplicate names return separate buildings, with each building returned once even if both its name and address match. total_matches counts all matches before limit; truncated indicates omitted results. Does not search tenant company names or prefab catalog names.', {
     name: z.string().trim().min(1).max(200), match: z.enum(['exact', 'contains']).default('contains'), case_sensitive: z.boolean().default(false),

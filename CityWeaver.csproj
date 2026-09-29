@@ -4,9 +4,9 @@
 		<AssemblyName>CityWeaver</AssemblyName>
 		<RootNamespace>CityWeaver</RootNamespace>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<Version>1.24.7</Version>
-		<AssemblyVersion>1.24.7.0</AssemblyVersion>
-		<FileVersion>1.24.7.0</FileVersion>
+		<Version>1.26.0</Version>
+		<AssemblyVersion>1.26.0.0</AssemblyVersion>
+		<FileVersion>1.26.0.0</FileVersion>
 		<Configurations>Debug;Release</Configurations>
 	
 		<!--The file where mod information which is required for publishing mod on PDX mods are stored-->
@@ -61,6 +61,7 @@
 		<Reference Include="UnityEngine.CoreModule">
 			<Private>false</Private>
 		</Reference>
+		<Reference Include="UnityEngine.JSONSerializeModule"><Private>false</Private></Reference>
 		<Reference Include="UnityEngine.ImageConversionModule">
 			<Private>false</Private>
 		</Reference>

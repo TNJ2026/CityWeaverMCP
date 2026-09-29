@@ -37,6 +37,8 @@
 
 ## 专题施工导航
 
+地图编辑器使用 `get_editor_state` 获取面板、工具及允许操作；地形、水体、资源、植被、气候和环境的工作流见 `docs/guides/areas/MAP-EDITOR-GUIDE.md`。资源写入使用独立预览/提交流程，原生保存窗口打开不等于文件已保存。
+
 | 目标 | 项目指南 |
 | --- | --- |
 | 海上油井、平台高度、资源管道与油轮作业线 | `docs/guides/buildings/OFFSHORE-OIL-CONSTRUCTION-GUIDE.md` |

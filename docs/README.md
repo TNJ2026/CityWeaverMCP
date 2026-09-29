@@ -11,6 +11,7 @@
   - [爬山公路规划、施工与验收](guides/roads/MOUNTAIN-ROAD-GUIDE.md)
   - [并列单向高速桥与环岛接入](guides/roads/PARALLEL-HIGHWAY-BRIDGE-GUIDE.md)
 - `guides/areas`：行政区、土地分区、地图、地形与环境景观。
+  - [地图编辑器：地形、水体、资源、气候与环境](guides/areas/MAP-EDITOR-GUIDE.md)
 - `guides/transport`：公共交通线路、交通设施、轨道与公用管网。
   - [有轨电车规划、施工与运营验收](guides/transport/TRAM-CONSTRUCTION-GUIDE.md)
   - [摆渡站与渡轮线路规划、施工及验收](guides/transport/FERRY-CONSTRUCTION-GUIDE.md)

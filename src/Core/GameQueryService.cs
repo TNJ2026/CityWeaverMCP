@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game;
@@ -40,11 +40,11 @@ namespace CityWeaver
 
         public GameQueryService()
         {
-            m_Preload = (purpose, mode) => { ResetRoadOperations(); ResetTrafficSignalPrograms(); ResetTerrainOperations(); ResetBuildingOperations(); ResetBuildingAreaOperations(); ResetZoningOperations(); ResetDistrictOperations(); ResetTransportOperations(); ResetWorkRouteOperations(); ResetEconomyOperations(); ResetMapTileOperations(); ResetDisasterOperations(); m_Loaded = false; m_Session = Guid.NewGuid().ToString("N"); m_Snapshots.Clear(); };
-            m_LoadComplete = (purpose, mode) => { m_Loaded = mode == GameMode.Game; };
+            m_Preload = (purpose, mode) => { ResetEditorAssets(); ResetEditorConfigurations(); ResetMapResources(); ResetRoadOperations(); ResetTrafficSignalPrograms(); ResetTerrainOperations(); ResetBuildingOperations(); ResetBuildingAreaOperations(); ResetZoningOperations(); ResetDistrictOperations(); ResetTransportOperations(); ResetWorkRouteOperations(); ResetEconomyOperations(); ResetMapTileOperations(); ResetDisasterOperations(); m_Loaded = false; m_Session = Guid.NewGuid().ToString("N"); m_Snapshots.Clear(); };
+            m_LoadComplete = (purpose, mode) => { m_Loaded = mode == GameMode.Game || mode == GameMode.Editor; };
             GameManager.instance.onGamePreload += m_Preload;
             GameManager.instance.onGameLoadingComplete += m_LoadComplete;
-            m_Loaded = GameManager.instance.gameMode == GameMode.Game && !GameManager.instance.isGameLoading;
+            m_Loaded = (GameManager.instance.gameMode == GameMode.Game || GameManager.instance.gameMode == GameMode.Editor) && !GameManager.instance.isGameLoading;
         }
 
         public JObject Execute(JObject request)
@@ -55,13 +55,38 @@ namespace CityWeaver
             if (tool == "get_game_status") return Wrap(Status());
             if (tool == "list_component_types") return Wrap(Inspector.Catalog(args));
             if (tool == "get_component_schema") return Wrap(Inspector.Schema((string)args["component"]));
-            if (!IsReady()) throw new QueryException("CITY_NOT_READY", "Load a playable city and wait for loading to finish.");
+            if (!IsReady())
+            {
+                if (!IsEditorReady()) throw new QueryException("CITY_NOT_READY", "Load a playable city or editor map and wait for loading to finish.");
+                if (!EditorAccessPolicy.Allows(tool)) throw new QueryException("TOOL_NOT_AVAILABLE_IN_EDITOR", "This tool is city-only. Use get_editor_state for supported map editing tools.");
+            }
             var world = World.DefaultGameObjectInjectionWorld;
             var em = world.EntityManager;
-            MaybeAutoFocusConstruction(tool, args, world);
+            if (IsEditorReady() && EditorAccessPolicy.DirectMutation(tool)) RequireEditorIdle(world);
+            if (IsReady()) MaybeAutoFocusConstruction(tool, args, world);
             if (tool == "get_entity_components" || tool == "query_entities" || tool == "find_roads_by_name" || tool == "find_buildings_by_name" || tool == "get_city_data" || tool == "inspect_road_zoning" || tool == "analyze_zoning_cells" || tool == "get_planning_map_snapshot") SyncReads(world);
             switch (tool)
             {
+                case "list_editor_assets": return Wrap(ListEditorAssets(args, world));
+                case "get_editor_asset": return Wrap(GetEditorAsset(args, world));
+                case "select_editor_asset": return Wrap(SelectEditorAsset(args, world));
+                case "preview_editor_asset": return Wrap(PreviewEditorAsset(args, world));
+                case "get_editor_asset_operation": return Wrap(EditorAssetOperationById(args).Json());
+                case "apply_editor_asset": return Wrap(ApplyEditorAsset(args, world));
+                case "cancel_editor_asset_preview": return Wrap(CancelEditorAsset(args));
+                case "get_editor_state": return Wrap(EditorState(world));
+                case "get_editor_configuration": return Wrap(GetEditorConfiguration(world));
+                case "list_editor_environment_presets": return Wrap(ListEditorEnvironmentPresets(args, world));
+                case "preview_editor_environment": return Wrap(PreviewEditorEnvironment(args, world));
+                case "preview_editor_configuration": return Wrap(PreviewEditorConfiguration(args, world));
+                case "apply_editor_configuration": return Wrap(ApplyEditorConfiguration(args, world));
+                case "get_editor_configuration_operation": return Wrap(EditorConfigurationById(args).Json());
+                case "cancel_editor_configuration_preview": return Wrap(CancelEditorConfiguration(args));
+                case "show_editor_save_panel": return Wrap(ShowEditorSavePanel(world));
+                case "preview_map_resources": return Wrap(PreviewMapResources(args, world));
+                case "apply_map_resources": return Wrap(ApplyMapResources(args, world));
+                case "get_map_resource_operation": return Wrap(MapResourceById(args).Json());
+                case "cancel_map_resource_preview": return Wrap(CancelMapResources(args));
                 case "get_camera_view": return Wrap(GetCameraView(args, world));
                 case "capture_game_view": return Wrap(CaptureGameView(args, world));
                 case "focus_camera": return Wrap(FocusCamera(args, world));
@@ -452,14 +477,23 @@ namespace CityWeaver
         {
             var ready = IsReady();
             var result = new JObject { ["connected"] = true, ["city_loaded"] = ready, ["loading"] = GameManager.instance.isGameLoading,
-                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.24.7", ["read_only"] = false };
+                ["game_mode"] = GameManager.instance.gameMode.ToString(), ["bridge_version"] = "1.26.0", ["read_only"] = false };
+            result["editor_ready"] = IsEditorReady();
+            result["map_loaded"] = ready || IsEditorReady();
             result["paused"] = JValue.CreateNull();
-            if (ready)
+            if (ready || IsEditorReady())
             {
                 var world = World.DefaultGameObjectInjectionWorld;
                 var sim = world.GetExistingSystemManaged<SimulationSystem>();
                 if (sim != null) { result["paused"] = sim.selectedSpeed == 0; result["selected_speed"] = sim.selectedSpeed; }
-                result["city_name"] = world.GetExistingSystemManaged<CityConfigurationSystem>()?.cityName;
+                if (ready) result["city_name"] = world.GetExistingSystemManaged<CityConfigurationSystem>()?.cityName;
+                else
+                {
+                    var panel = world.GetExistingSystemManaged<Game.UI.Editor.EditorPanelUISystem>()?.activePanel;
+                    result["active_panel_type"] = panel?.GetType().FullName;
+                    result["active_panel_tag"] = panel?.uiTag;
+                    result["active_tool"] = world.GetExistingSystemManaged<ToolSystem>()?.activeTool?.toolID;
+                }
             }
             return result;
         }
@@ -467,6 +501,8 @@ namespace CityWeaver
         private JObject Capabilities()
         {
             var result = new JObject {
+            ["editor_assets"] = new JObject { ["catalog"] = "All loaded prefab types, source requirements and explicit placement status", ["placement_kinds"] = new JArray("object", "stamp", "network", "area"), ["workflow"] = "list_editor_assets -> preview_editor_asset -> get_editor_asset_operation -> apply_editor_asset -> permanent readback", ["max_network_points"] = 16, ["max_polygon_points"] = 128, ["network_segment_length_m"] = "16..256", ["native_validation_required"] = true, ["limitations"] = "No arbitrary resource/material writes or downloads; data-only assets require specialized tools. Catalog support is not live placement validation." },
+            ["map_editor"] = new JObject { ["supported_tools"] = new JArray(EditorAccessPolicy.Tools.OrderBy(x => x)), ["resource_types"] = new JArray("ore", "oil", "fertility", "groundwater"), ["configuration_workflow"] = "get_editor_configuration -> preview_editor_configuration -> apply_editor_configuration -> get_editor_configuration_operation", ["configuration_domains"] = new JArray("climate", "seasons", "sea_level", "wind", "water_render", "terrain_render"), ["resource_range"] = "0..10000 raw units", ["resource_workflow"] = "preview_map_resources -> apply_map_resources (same request_id) -> get_map_resource_operation", ["saving"] = "Native save dialog, player confirmation required; no automatic overwrite or publishing", ["limitations"] = "Editor support is explicit per tool. Native road creation and waterways are supported. Generic object/stamp, network and area native placement includes outside-connection assets. Non-geometric data needs its dedicated editor. No city economy, metadata or starting-tile editing." },
             ["waterway_operations"] = new JObject { ["modes"] = new JArray("create_polyline", "create_bezier_chain", "delete"), ["requires_paused_city"] = true, ["surface"] = "live water surface", ["max_points"] = 16, ["max_delete_edges"] = 64, ["width_depth_sampling_interval_m"] = 8, ["default_minimum_water_depth_m"] = 2, ["max_operations_per_session"] = 4096, ["workflow"] = "list_waterway_prefabs -> preview_waterway|preview_waterway_delete -> get_waterway_operation(preview_ready) -> apply_waterway_operation -> get_waterway_operation(completed)", ["validation"] = "Native NetCourse preview plus sampled water depth across the full prefab width every 8 metres; owning-facility waterways are rejected.", ["limitations"] = "Sampled geometry checks supplement native preview. Does not create shipping lines. Shares the 4096-operation road journal." },
             ["road_stop_operations"] = new JObject { ["modes"] = new JArray("place"), ["transport_types"] = new JArray("Bus", "Tram"), ["requires_paused_city"] = true, ["preview_ttl_seconds"] = 300, ["max_operations_per_session"] = 4096, ["workflow"] = "list_road_stop_prefabs -> plan_road_stop_site -> preview_road_stop_placement -> get_road_stop_operation(preview_ready) -> apply_road_stop_operation -> get_road_stop_operation(completed)", ["validation"] = "Native road-side placement with permanent TransportStop, ConnectedRoute buffer and Attached-to-road verification; tram stops require a live tram track lane.", ["limitations"] = "Standalone roadside stops only. Never removes an existing stop or edits transport lines; update routes with the transport-line tools." },
             ["intersection_prefab_operations"] = new JObject { ["modes"] = new JArray("place"), ["requires_paused_city"] = true, ["preview_ttl_seconds"] = 300, ["max_operations_per_session"] = 4096, ["workflow"] = "list_intersection_prefabs -> preview_intersection_prefab -> get_road_operation(preview_ready) -> build_road -> get_road_operation(completed)", ["validation"] = "Native asset-stamp pipeline with generated network topology and connection-point verification; only stamps whose networks are all roads are supported.", ["limitations"] = "Placement does not connect surrounding roads, replace a highway or provide a road-only whole-stamp undo. Preview errors, warnings and building removals block the commit." },
@@ -707,6 +743,7 @@ namespace CityWeaver
 
         public void Dispose()
         {
+            ResetEditorAssets();
             ResetRoadOperations();
             ResetTerrainOperations();
             ResetBuildingOperations();
