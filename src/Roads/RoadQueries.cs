@@ -965,7 +965,8 @@ namespace CityWeaver
                 ["connection_search_radius_m"] = args["connection_search_radius_m"]?.DeepClone(), ["connection_road_prefab"] = args["connection_road_prefab"]?.DeepClone(),
                 ["minimum_connections"] = args["minimum_connections"]?.DeepClone(), ["maximum_connections"] = args["maximum_connections"]?.DeepClone(),
                 ["origin"] = args["origin"]?.DeepClone(), ["columns"] = args["columns"]?.DeepClone(), ["rows"] = args["rows"]?.DeepClone(),
-                ["block_width_m"] = args["block_width_m"]?.DeepClone(), ["block_height_m"] = args["block_height_m"]?.DeepClone() }.ToString(Formatting.None);
+                ["block_width_m"] = args["block_width_m"]?.DeepClone(), ["block_height_m"] = args["block_height_m"]?.DeepClone(),
+                ["cells_x"] = args["cells_x"]?.DeepClone(), ["cells_z"] = args["cells_z"]?.DeepClone() }.ToString(Formatting.None);
             if (m_RoadRequestIds.TryGetValue(key, out var oldId))
             {
                 var old = m_RoadOperations[oldId];
@@ -975,11 +976,17 @@ namespace CityWeaver
             if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
             var columns = ComponentInspector.Int(args, "columns", -1, 1, 5); var rows = ComponentInspector.Int(args, "rows", -1, 1, 5);
             var blockWidth = ComponentInspector.Int(args, "block_width_m", -1, 32, 240); var blockHeight = ComponentInspector.Int(args, "block_height_m", -1, 32, 240);
+            // cells_x / cells_z size every block by its clear span in 8 m zoning cells between the edges of its two
+            // bounding roads, so blocks fill exactly even when perimeter and interior roads differ in width.
+            var cellsX = ComponentInspector.Int(args, "cells_x", -1, 1, 30); var cellsZ = ComponentInspector.Int(args, "cells_z", -1, 1, 30);
+            if ((cellsX > 0) == (blockWidth > 0)) throw new QueryException("INVALID_ARGUMENT", "Give exactly one of block_width_m or cells_x.");
+            if ((cellsZ > 0) == (blockHeight > 0)) throw new QueryException("INVALID_ARGUMENT", "Give exactly one of block_height_m or cells_z.");
+            if (cellsX > 0) blockWidth = cellsX * 8 + 16; if (cellsZ > 0) blockHeight = cellsZ * 8 + 16;
             var autoConnect = args["auto_connect"] != null && (bool)args["auto_connect"];
             var minimumConnections = ComponentInspector.Int(args, "minimum_connections", 1, 1, 4);
             var maximumConnections = ComponentInspector.Int(args, "maximum_connections", 4, 1, 4);
             var connectionSearchRadius = ComponentInspector.Int(args, "connection_search_radius_m", 96, 16, 256);
-            if (columns < 1 || rows < 1 || blockWidth < 32 || blockHeight < 32) throw new QueryException("INVALID_ARGUMENT", "columns, rows, block_width_m and block_height_m are required.");
+            if (columns < 1 || rows < 1) throw new QueryException("INVALID_ARGUMENT", "columns and rows are required.");
             if (minimumConnections > maximumConnections) throw new QueryException("INVALID_ARGUMENT", "minimum_connections must not exceed maximum_connections.");
             if (blockWidth % 8 != 0 || blockHeight % 8 != 0) throw new QueryException("INVALID_ARGUMENT", "Block dimensions must be multiples of the 8 metre zoning grid.");
             var segmentCount = (rows + 1) * columns + (columns + 1) * rows;
@@ -987,8 +994,6 @@ namespace CityWeaver
             if (!(args["origin"] is JObject originArgs)) throw new QueryException("INVALID_ARGUMENT", "origin must contain x and z.");
             var originX = math.round(ReadCoordinate(originArgs, "origin", "x") / 8f) * 8f;
             var originZ = math.round(ReadCoordinate(originArgs, "origin", "z") / 8f) * 8f;
-            if (math.abs(originX + columns * blockWidth) > 7168 || math.abs(originZ + rows * blockHeight) > 7168)
-                throw new QueryException("INVALID_ARGUMENT", "The generated grid extends outside the supported world coordinate range.");
             var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); var em = world.EntityManager;
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before planning a road grid.");
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
@@ -1018,17 +1023,39 @@ namespace CityWeaver
             if (minimumConnections > connectionSides.Count) throw new QueryException("INVALID_ARGUMENT", "minimum_connections cannot exceed the number of requested connection_sides.");
             var heights = world.GetExistingSystemManaged<TerrainSystem>().GetHeightData(true);
             if (!heights.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain CPU heights are not ready.");
+            float HalfWidth(Entity prefab) => em.GetComponentData<NetGeometryData>(prefab).m_DefaultWidth * 0.5f;
+            float[] Lines(float origin, int count, int cells, int block, Entity interior)
+            {
+                var lines = new float[count + 1]; lines[0] = origin;
+                for (int i = 0; i < count; i++)
+                {
+                    float span = block;
+                    if (cells > 0) span = cells * 8f + HalfWidth(i == 0 ? perimeterPrefab : interior) + HalfWidth(i + 1 == count ? perimeterPrefab : interior);
+                    if (span < 32 || span > 240) throw new QueryException("INVALID_ARGUMENT", "Each block must span 32..240 metres between road centre lines; this cell count gives " + span.ToString("0.#") + " m.");
+                    lines[i + 1] = lines[i] + span;
+                }
+                return lines;
+            }
+            var xLines = Lines(originX, columns, cellsX, blockWidth, verticalPrefab); var zLines = Lines(originZ, rows, cellsZ, blockHeight, horizontalPrefab);
+            if (math.abs(xLines[columns]) > 7168 || math.abs(zLines[rows]) > 7168)
+                throw new QueryException("INVALID_ARGUMENT", "The generated grid extends outside the supported world coordinate range.");
+            // The global 8 m lattice check only holds when every line sits on it and all roads share one cell phase.
+            bool OnLattice(float v) => math.abs(v / 8f - math.round(v / 8f)) < 0.001f;
+            var phases = new HashSet<float> { HalfWidth(perimeterPrefab) % 8f, HalfWidth(horizontalPrefab) % 8f, HalfWidth(verticalPrefab) % 8f };
+            bool globalLattice = xLines.All(OnLattice) && zLines.All(OnLattice) && (cellsX <= 0 && cellsZ <= 0 || phases.Count == 1);
             var vertices = new float3[columns + 1, rows + 1];
             for (int x = 0; x <= columns; x++) for (int z = 0; z <= rows; z++)
             {
-                var point = new float3(originX + x * blockWidth, 0, originZ + z * blockHeight);
+                var point = new float3(xLines[x], 0, zLines[z]);
                 point.y = TerrainUtils.SampleHeight(ref heights, point); vertices[x, z] = point;
             }
             var operation = new RoadOperation { Session = m_Session, RequestId = key, Fingerprint = fingerprint, OperationType = "create", Prefab = defaultPrefab,
-                PrefabName = defaultName, CurveMode = "grid", PlannerStrategy = "grid", PlannerGridSize = 8, ZoningAligned = true, ZoningValidation = "planned",
+                PrefabName = defaultName, CurveMode = "grid", PlannerStrategy = "grid", PlannerGridSize = 8, ZoningAligned = globalLattice,
+                ZoningValidation = globalLattice ? "planned" : "per_road_exact_cells",
                 GridDefaultPrefabName = defaultName, GridHorizontalPrefabName = horizontalName, GridVerticalPrefabName = verticalName, GridPerimeterPrefabName = perimeterName,
                 GridAutoConnect = autoConnect, GridConnectionSearchRadius = connectionSearchRadius, GridMinimumConnections = minimumConnections, GridMaximumConnections = maximumConnections,
-                GridOrigin = vertices[0, 0], GridColumns = columns, GridRows = rows, GridBlockWidth = blockWidth, GridBlockHeight = blockHeight };
+                GridOrigin = vertices[0, 0], GridColumns = columns, GridRows = rows,
+                GridBlockWidth = (xLines[columns] - xLines[0]) / columns, GridBlockHeight = (zLines[rows] - zLines[0]) / rows };
             operation.GridConnectionSides.AddRange(connectionSides);
             void AddSegment(float3 start, float3 end, Entity prefab, string prefabName, string role, string side, Entity endTarget = default(Entity), float endSplit = 0)
             {
@@ -1050,8 +1077,8 @@ namespace CityWeaver
                     else { var z = side == "south" ? 0 : rows; for (int x = 0; x <= columns; x++) result.Add(vertices[x, z]); }
                     return result;
                 }
-                bool Outward(string side, float3 point) => side == "west" ? point.x < originX - 1 : side == "east" ? point.x > originX + columns * blockWidth + 1 :
-                    side == "south" ? point.z < originZ - 1 : point.z > originZ + rows * blockHeight + 1;
+                bool Outward(string side, float3 point) => side == "west" ? point.x < xLines[0] - 1 : side == "east" ? point.x > xLines[columns] + 1 :
+                    side == "south" ? point.z < zLines[0] - 1 : point.z > zLines[rows] + 1;
                 using (var query = em.CreateEntityQuery(new EntityQueryDesc { All = new[] { ComponentType.ReadOnly<Edge>(), ComponentType.ReadOnly<Curve>(), ComponentType.ReadOnly<Road>() },
                     None = new[] { ComponentType.ReadOnly<Deleted>(), ComponentType.ReadOnly<Temp>() } }))
                 using (var edges = query.ToEntityArray(Allocator.Temp))

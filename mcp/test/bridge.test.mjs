@@ -485,6 +485,9 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   assert.deepEqual((await client.callTool({ name: 'preview_road_grid', arguments: grid })).structuredContent.data.args, grid);
   const parallelRoute = { request_id: 'route-parallel-001', road_prefab: 'Fixture Road', points: [{ x: 0, z: 0 }, { x: 200, z: 0 }, { x: 200, z: 200 }], parallel_count: 1, parallel_offset_m: 4 };
   assert.deepEqual((await client.callTool({ name: 'preview_road_route', arguments: parallelRoute })).structuredContent.data.args, parallelRoute);
+  const cellGrid = { request_id: 'route-cell-grid-001', road_prefab: 'Small Road', perimeter_road_prefab: 'Medium Road', origin: { x: 0, z: 0 }, columns: 3, rows: 2, cells_x: 20, cells_z: 12 };
+  assert.deepEqual((await client.callTool({ name: 'preview_road_grid', arguments: cellGrid })).structuredContent.data.args,
+    { ...cellGrid, auto_connect: false, connection_sides: ['north', 'east', 'south', 'west'], connection_search_radius_m: 96, minimum_connections: 1, maximum_connections: 4 });
   const continuous = { request_id: 'route-continuous-001', road_prefab: 'Fixture Road', start: { x: 0, z: 0 }, direction: { x: 100, z: 0 }, points: [{ x: 300, z: 150 }, { x: 600, z: 0, node_id: 'a'.repeat(32) + ':1:1' }], parallel_count: 1 };
   assert.deepEqual((await client.callTool({ name: 'preview_road_continuous', arguments: continuous })).structuredContent.data.args, continuous);
   const simpleCurve = { request_id: 'road-simple-curve-001', road_prefab: 'Fixture Road', start: { x: 0, z: 0 }, end: { x: 200, z: 0 }, curve: { mode: 'simple', control: { x: 100, z: 80 } } };
