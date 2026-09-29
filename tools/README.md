@@ -8,6 +8,7 @@
 | --- | --- | --- | --- |
 | `survey-space.mjs` | 城市空间勘察 | 只读 | 建设前检查土地、地形、建筑碰撞、污染、风和资源，或搜索候选区域 |
 | `deploy-district.mjs` | 街区部署 | 修改城市 | 一次完成空间检查、网格道路、可选连接路、分区、建筑批量放置和增长观察 |
+| `batch-road-features.mjs` | 批量道路升级 | 默认只预览；`--commit` 才修改城市 | 按矩形区域选路，批量加自行车道、行道树、宽人行道、公交专用道、有轨电车轨道等 |
 | `launcher-cdp.mjs` | 启动器 UI 辅助 | 可能点击启动器 | 检查或操作开启了 Chrome DevTools 调试端口的游戏启动器页面 |
 
 脚本中的 prefab 名称、实体 ID 和坐标都属于当前城市上下文。复用示例前必须重新发现目标；不要把历史存档中的实体 ID 用于其他会话。
@@ -110,6 +111,32 @@ CLI 只暴露常用参数。`--config` 或模块调用 `deployDistrict(options)`
 
 成功结果包含 `success`、`city`、`district_type`、`spatial_survey`、`grid`、`arterial`、`zoning`、`buildings`、`growth_loop`、`total_cost`、`duration_ms` 和 `notes`。CLI 默认输出摘要，`--verbose` 输出该完整对象。失败写入 stderr、退出码为 1，并尝试恢复建设前速度；调用方仍需查询已完成 operation 和永久对象，不能假设跨领域自动回滚。
 
+## 批量道路升级：`batch-road-features.mjs`
+
+按矩形区域（或边 ID 清单）选出道路，每 64 段一批调用 `preview_road_features`，逐批核对费用后经 `build_road` 提交。默认只预览：每批预览完立即取消，只报告道路数和预计费用，不产生永久改动；确认后加 `--commit` 才提交。
+
+### 用法
+
+```powershell
+# 先预览：正方形环路及内部所有道路两侧加自行车道
+node tools/batch-road-features.mjs --area -4848,2848,-2848,4848 --bicycle-lanes
+# 确认后提交，并限制总费用
+node tools/batch-road-features.mjs --area -4848,2848,-2848,4848 --bicycle-lanes --commit --max-total-cost 50000
+# 只给区域内的两车道道路两侧种树
+node tools/batch-road-features.mjs --area -4848,2848,-2848,4848 --side-trees --prefab "Small Road" --commit
+```
+
+`--help` 列出全部参数。要点：
+
+- **选路**：默认 `--mode contain` 只选四个控制点都在区域内（容差 `--tolerance`，默认 2 米）的道路，因此区域取环路中心线范围时包含环路本身，但不包含伸出区域的连接路；`--mode touch` 选与区域相交的道路。可用 `--prefab`、`--exclude-prefab`、`--exclude-edge` 进一步筛选，或用 `--edges-file` 直接给边 ID 清单。
+- **升级选项**：快捷写法 `--bicycle-lanes`、`--no-bicycle-lanes`、`--wide-sidewalks`、`--side-trees`、`--side-grass`；其余用 `--set key=value`，键与 `preview_road_features` 参数相同。脚本经 bridge 直连游戏、不经过 MCP schema，因此自己校验键名和取值。左右侧按每段道路起点到终点的方向判断。
+- **续跑**：运行 ID 由选中的边和升级选项确定性派生，提交用的请求 ID 由它生成。中断后原样重跑会命中已完成的批次并跳过，不会重复扣费。超出费用上限或某批失败时会停下并说明；这种情况下该批的请求 ID 已进入终态，要用新的 `--run-id` 重跑，已完成批次不会回滚。结果未知（`outcome_unknown`）时必须先核实，不要换 ID 重试。
+- **工具占用**：遇到 `TOOL_BUSY` 自动重试约 10 秒，仍失败则提示在游戏里按 Esc 回到默认选择工具。
+- **模拟速度**：运行期间暂停城市，结束或出错时还原为运行前的速度（用 `lib/simulation-speed.mjs`）。
+- **输出**：默认紧凑摘要（道路数按 prefab 分类、批次、费用、失败原因），`--verbose` 输出每批的请求 ID、操作 ID 和费用；`--journal PATH` 把逐批结果追加写入 JSONL。
+
+作为模块导入时可用 `batchRoadFeatures(options)`，以及纯函数 `parseArea`、`normalizeFeatures`、`selectEdges`、`planBatches`、`deriveRunId`、`parseCli`。
+
 ## 启动器辅助：`launcher-cdp.mjs`
 
 该脚本不通过 MCP，也不操作城市数据。它连接 `http://127.0.0.1:9222/json/list`，选择第一个 `page`，再通过 WebSocket 调用启动器页面。启动器必须以 Chrome DevTools 远程调试端口 9222 运行。
@@ -145,6 +172,7 @@ node tools/launcher-cdp.mjs ignore-warning
 
 ```powershell
 node tools/tests/test-physics-rules.mjs
+node tools/tests/test-batch-road-features.mjs
 node tools/tests/test-spatial-survey.mjs
 node tools/tests/test-plan-targets.mjs
 node tools/tests/test-town-plan.mjs
@@ -152,6 +180,7 @@ node tools/tests/test-region-plan.mjs
 ```
 
 - `test-physics-rules.mjs` 是离线数学和配置校验测试，不连接游戏。
+- `test-batch-road-features.mjs` 离线校验批量道路升级的区域解析、升级选项校验、contain/touch 选路与容差、prefab 与 ID 筛选、分批和运行 ID 派生、CLI 解析，不连接游戏。
 - `test-spatial-survey.mjs` 使用固定坐标查询实时城市，属于只读实机测试；换地图后断言可能不成立。
 - `test-region-plan.mjs` 校验 `plans/egelin-region-plan.json`（三区规划）。除了哈希、8 米对齐、id 唯一、边界包含这些常规项，重点是四条**图上看不出来**的不变量：**所有道路都必须是单段直线**（折线长度 = 首末直线距离，手写多段控制点造成的 ±4 m 起伏也会被拦下）、**路网必须是单一连通分量**（支路端点没真正落到相邻路上，整条路看着接上了其实谁都不连）、**分区进深必须落在 `[0, 48] m`（自路面外缘算起）**，以及**对外机动车出口必须是真的**（读 `access_points` 自述，反查坐标是否真落在 `via`/`to` 两条路的交点上、`to` 是否真属别的片区、两处出口间距是否 ≥400 m、每处接入路能否独立走到三区大道）。实机部分除了已购地图格与实时目录比对，还会**用实时道路折线**量主干道起点是否落在 8 米吸附容差内（不写死任何高速坐标，换存档也不会假通过）。
 - `test-town-plan.mjs` 校验 `plans/egelin-plateau-town-plan.json`：离线检查 `plan_id` 与 `bounds+plan` 的哈希一致、坐标全部有限、8 米格对齐、id 唯一、规划对象都在规划边界内、户数与人口口径可复算；游戏在跑时追加实机检查——规划几何落在当前已购地图格内（0 错误），道路 prefab、分区名与建筑 prefab 都能在当前城市目录里找到。桥未启动时自动跳过实机部分。规划文件是按「埃格林」这个城画的，换存档后实机断言会（正确地）失败。
