@@ -50,6 +50,7 @@ namespace CityWeaver
         public bool ZoningAligned;
         public int GridColumns, GridRows;
         public float GridBlockWidth, GridBlockHeight;
+        public JObject GridCellLayout;
         public float3 GridOrigin;
         public string GridDefaultPrefabName, GridHorizontalPrefabName, GridVerticalPrefabName, GridPerimeterPrefabName;
         public bool GridAutoConnect;
@@ -154,6 +155,7 @@ namespace CityWeaver
             ["grid_rows"] = CurveMode == "grid" || CurveMode == "native_grid" ? new JValue(GridRows) : null,
             ["grid_block_width_m"] = CurveMode == "grid" || CurveMode == "native_grid" ? new JValue(GridBlockWidth) : null,
             ["grid_block_height_m"] = CurveMode == "grid" || CurveMode == "native_grid" ? new JValue(GridBlockHeight) : null,
+            ["grid_cell_layout"] = GridCellLayout,
             ["grid_default_road_prefab"] = CurveMode == "grid" ? GridDefaultPrefabName : null,
             ["grid_horizontal_road_prefab"] = CurveMode == "grid" ? GridHorizontalPrefabName : null,
             ["grid_vertical_road_prefab"] = CurveMode == "grid" ? GridVerticalPrefabName : null,
@@ -966,7 +968,9 @@ namespace CityWeaver
                 ["minimum_connections"] = args["minimum_connections"]?.DeepClone(), ["maximum_connections"] = args["maximum_connections"]?.DeepClone(),
                 ["origin"] = args["origin"]?.DeepClone(), ["columns"] = args["columns"]?.DeepClone(), ["rows"] = args["rows"]?.DeepClone(),
                 ["block_width_m"] = args["block_width_m"]?.DeepClone(), ["block_height_m"] = args["block_height_m"]?.DeepClone(),
-                ["cells_x"] = args["cells_x"]?.DeepClone(), ["cells_z"] = args["cells_z"]?.DeepClone() }.ToString(Formatting.None);
+                ["cells_x"] = args["cells_x"]?.DeepClone(), ["cells_z"] = args["cells_z"]?.DeepClone(),
+                ["length_x_m"] = args["length_x_m"]?.DeepClone(), ["length_z_m"] = args["length_z_m"]?.DeepClone(),
+                ["separator_road_prefab"] = args["separator_road_prefab"]?.DeepClone() }.ToString(Formatting.None);
             if (m_RoadRequestIds.TryGetValue(key, out var oldId))
             {
                 var old = m_RoadOperations[oldId];
@@ -974,7 +978,16 @@ namespace CityWeaver
                 return old.Json();
             }
             if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
-            var columns = ComponentInspector.Int(args, "columns", -1, 1, 5); var rows = ComponentInspector.Int(args, "rows", -1, 1, 5);
+            const int MaxGridBlocksPerSide = 40, MaxGridSegments = 400;
+            var columns = ComponentInspector.Int(args, "columns", -1, 1, MaxGridBlocksPerSide); var rows = ComponentInspector.Int(args, "rows", -1, 1, MaxGridBlocksPerSide);
+            float ReadLength(string name)
+            {
+                var token = args[name]; if (token == null) return -1;
+                if (token.Type != JTokenType.Float && token.Type != JTokenType.Integer) throw new QueryException("INVALID_ARGUMENT", name + " must be a number.");
+                var value = (float)token; if (!math.isfinite(value) || value < 32 || value > 8000) throw new QueryException("INVALID_ARGUMENT", name + " must be 32..8000 metres.");
+                return value;
+            }
+            var lengthX = ReadLength("length_x_m"); var lengthZ = ReadLength("length_z_m");
             var blockWidth = ComponentInspector.Int(args, "block_width_m", -1, 32, 240); var blockHeight = ComponentInspector.Int(args, "block_height_m", -1, 32, 240);
             // cells_x / cells_z size every block by its clear span in 8 m zoning cells between the edges of its two
             // bounding roads, so blocks fill exactly even when perimeter and interior roads differ in width.
@@ -982,15 +995,15 @@ namespace CityWeaver
             if ((cellsX > 0) == (blockWidth > 0)) throw new QueryException("INVALID_ARGUMENT", "Give exactly one of block_width_m or cells_x.");
             if ((cellsZ > 0) == (blockHeight > 0)) throw new QueryException("INVALID_ARGUMENT", "Give exactly one of block_height_m or cells_z.");
             if (cellsX > 0) blockWidth = cellsX * 8 + 16; if (cellsZ > 0) blockHeight = cellsZ * 8 + 16;
+            if (lengthX > 0 && cellsX <= 0 || lengthZ > 0 && cellsZ <= 0) throw new QueryException("INVALID_ARGUMENT", "length_x_m / length_z_m require cells_x / cells_z on the same axis.");
+            if (lengthX > 0 && columns > 0 || lengthZ > 0 && rows > 0) throw new QueryException("INVALID_ARGUMENT", "Give either columns / rows or length_x_m / length_z_m for an axis, not both.");
             var autoConnect = args["auto_connect"] != null && (bool)args["auto_connect"];
             var minimumConnections = ComponentInspector.Int(args, "minimum_connections", 1, 1, 4);
             var maximumConnections = ComponentInspector.Int(args, "maximum_connections", 4, 1, 4);
             var connectionSearchRadius = ComponentInspector.Int(args, "connection_search_radius_m", 96, 16, 256);
-            if (columns < 1 || rows < 1) throw new QueryException("INVALID_ARGUMENT", "columns and rows are required.");
+            if (columns < 1 && lengthX <= 0 || rows < 1 && lengthZ <= 0) throw new QueryException("INVALID_ARGUMENT", "columns and rows (or length_x_m / length_z_m with cells) are required.");
             if (minimumConnections > maximumConnections) throw new QueryException("INVALID_ARGUMENT", "minimum_connections must not exceed maximum_connections.");
             if (blockWidth % 8 != 0 || blockHeight % 8 != 0) throw new QueryException("INVALID_ARGUMENT", "Block dimensions must be multiples of the 8 metre zoning grid.");
-            var segmentCount = (rows + 1) * columns + (columns + 1) * rows;
-            if (segmentCount > 64) throw new QueryException("ROAD_GRID_TOO_LARGE", "A road grid may contain at most 64 definition segments.");
             if (!(args["origin"] is JObject originArgs)) throw new QueryException("INVALID_ARGUMENT", "origin must contain x and z.");
             var originX = math.round(ReadCoordinate(originArgs, "origin", "x") / 8f) * 8f;
             var originZ = math.round(ReadCoordinate(originArgs, "origin", "z") / 8f) * 8f;
@@ -1010,6 +1023,7 @@ namespace CityWeaver
             var horizontalName = (string)args["horizontal_road_prefab"] ?? defaultName; var horizontalPrefab = ResolvePrefab(horizontalName);
             var verticalName = (string)args["vertical_road_prefab"] ?? defaultName; var verticalPrefab = ResolvePrefab(verticalName);
             var perimeterName = (string)args["perimeter_road_prefab"] ?? defaultName; var perimeterPrefab = ResolvePrefab(perimeterName);
+            var separatorName = (string)args["separator_road_prefab"] ?? perimeterName; var separatorPrefab = ResolvePrefab(separatorName);
             var connectionName = (string)args["connection_road_prefab"] ?? perimeterName; var connectionPrefab = ResolvePrefab(connectionName);
             var connectionSides = new List<string>();
             var sideArgs = args["connection_sides"] as JArray;
@@ -1024,24 +1038,57 @@ namespace CityWeaver
             var heights = world.GetExistingSystemManaged<TerrainSystem>().GetHeightData(true);
             if (!heights.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain CPU heights are not ready.");
             float HalfWidth(Entity prefab) => em.GetComponentData<NetGeometryData>(prefab).m_DefaultWidth * 0.5f;
-            float[] Lines(float origin, int count, int cells, int block, Entity interior)
+            // One axis of the grid: line positions and the prefab of every line. With a total length, the block count
+            // is the largest that fits and the remainder is absorbed by swapping some interior roads for the wider
+            // separator road (e.g. a Small Road -> Medium Road swap adds 8 m) so every block keeps the exact cell count.
+            (float[] lines, Entity[] prefabs, string[] names) Layout(string axis, float origin, ref int count, int cells, int block, float length, Entity interior, string interiorName)
             {
+                var separators = new HashSet<int>();
+                if (length > 0)
+                {
+                    float wp = HalfWidth(perimeterPrefab) * 2, wi = HalfWidth(interior) * 2, extra = HalfWidth(separatorPrefab) * 2 - wi;
+                    float Base(int n) => n * cells * 8f + (n - 1) * wi + wp;
+                    int found = -1, needed = 0;
+                    for (int n = MaxGridBlocksPerSide; n >= 1 && found < 0; n--)
+                    {
+                        var rest = length - Base(n); if (rest < -0.01f) continue;
+                        if (rest < 0.01f) { found = n; needed = 0; }
+                        else if (extra > 0.01f && math.abs(rest / extra - math.round(rest / extra)) < 0.001f && (int)math.round(rest / extra) <= n - 1) { found = n; needed = (int)math.round(rest / extra); }
+                    }
+                    if (found < 0)
+                    {
+                        int n = 1; while (n < MaxGridBlocksPerSide && Base(n + 1) <= length) n++;
+                        throw new QueryException("GRID_LENGTH_NOT_FILLABLE", axis + " length " + length.ToString("0.#") + " m cannot be filled exactly with " + cells + "-cell blocks. With " + n + " blocks the length is " + Base(n).ToString("0.#") +
+                            " m" + (extra > 0.01f ? " and each wider separator road adds " + extra.ToString("0.#") + " m (up to " + (n - 1) + " of them)" : "") + "; the next block count needs " + Base(n + 1).ToString("0.#") + " m.");
+                    }
+                    count = found;
+                    for (int j = 0; j < needed; j++) separators.Add((int)math.round((j + 1) * (float)found / (needed + 1)));
+                }
+                var prefabsOut = new Entity[count + 1]; var namesOut = new string[count + 1];
+                for (int i = 0; i <= count; i++)
+                {
+                    bool edge = i == 0 || i == count; bool separator = !edge && separators.Contains(i);
+                    prefabsOut[i] = edge ? perimeterPrefab : separator ? separatorPrefab : interior;
+                    namesOut[i] = edge ? perimeterName : separator ? separatorName : interiorName;
+                }
                 var lines = new float[count + 1]; lines[0] = origin;
                 for (int i = 0; i < count; i++)
                 {
-                    float span = block;
-                    if (cells > 0) span = cells * 8f + HalfWidth(i == 0 ? perimeterPrefab : interior) + HalfWidth(i + 1 == count ? perimeterPrefab : interior);
+                    float span = cells > 0 ? cells * 8f + HalfWidth(prefabsOut[i]) + HalfWidth(prefabsOut[i + 1]) : block;
                     if (span < 32 || span > 240) throw new QueryException("INVALID_ARGUMENT", "Each block must span 32..240 metres between road centre lines; this cell count gives " + span.ToString("0.#") + " m.");
                     lines[i + 1] = lines[i] + span;
                 }
-                return lines;
+                return (lines, prefabsOut, namesOut);
             }
-            var xLines = Lines(originX, columns, cellsX, blockWidth, verticalPrefab); var zLines = Lines(originZ, rows, cellsZ, blockHeight, horizontalPrefab);
+            var (xLines, xPrefabs, xNames) = Layout("x", originX, ref columns, cellsX, blockWidth, lengthX, verticalPrefab, verticalName);
+            var (zLines, zPrefabs, zNames) = Layout("z", originZ, ref rows, cellsZ, blockHeight, lengthZ, horizontalPrefab, horizontalName);
+            var segmentCount = (rows + 1) * columns + (columns + 1) * rows;
+            if (segmentCount > MaxGridSegments) throw new QueryException("ROAD_GRID_TOO_LARGE", "A road grid may contain at most " + MaxGridSegments + " definition segments; this layout needs " + segmentCount + ".");
             if (math.abs(xLines[columns]) > 7168 || math.abs(zLines[rows]) > 7168)
                 throw new QueryException("INVALID_ARGUMENT", "The generated grid extends outside the supported world coordinate range.");
             // The global 8 m lattice check only holds when every line sits on it and all roads share one cell phase.
             bool OnLattice(float v) => math.abs(v / 8f - math.round(v / 8f)) < 0.001f;
-            var phases = new HashSet<float> { HalfWidth(perimeterPrefab) % 8f, HalfWidth(horizontalPrefab) % 8f, HalfWidth(verticalPrefab) % 8f };
+            var phases = new HashSet<float>(xPrefabs.Concat(zPrefabs).Select(p => HalfWidth(p) % 8f));
             bool globalLattice = xLines.All(OnLattice) && zLines.All(OnLattice) && (cellsX <= 0 && cellsZ <= 0 || phases.Count == 1);
             var vertices = new float3[columns + 1, rows + 1];
             for (int x = 0; x <= columns; x++) for (int z = 0; z <= rows; z++)
@@ -1056,6 +1103,16 @@ namespace CityWeaver
                 GridAutoConnect = autoConnect, GridConnectionSearchRadius = connectionSearchRadius, GridMinimumConnections = minimumConnections, GridMaximumConnections = maximumConnections,
                 GridOrigin = vertices[0, 0], GridColumns = columns, GridRows = rows,
                 GridBlockWidth = (xLines[columns] - xLines[0]) / columns, GridBlockHeight = (zLines[rows] - zLines[0]) / rows };
+            if (cellsX > 0 || cellsZ > 0)
+            {
+                JObject Axis(int cells, float[] lines, string[] names, string interiorName) => cells <= 0 ? null : new JObject {
+                    ["cells"] = cells, ["blocks"] = lines.Length - 1, ["length_m"] = lines[lines.Length - 1] - lines[0],
+                    ["separator_lines"] = names.Skip(1).Take(names.Length - 2).Count(n => n != interiorName),
+                    // Roads zone at most 6 cells deep: up to 6 cells are shared by both sides, 7..11 overlap, 12 is two full back-to-back lots, above 12 leaves the middle unzonable.
+                    ["zoning"] = cells <= 6 ? "shared: both facing roads zone the same " + cells + " cells" : cells < 12 ? "overlapping: facing 6-cell lots overlap by " + (12 - cells) + " cells" :
+                        cells == 12 ? "exact: two full 6-cell lots back to back" : "gap: " + (cells - 12) + " middle cells are beyond the 6-cell zoning depth and stay unzonable" };
+                operation.GridCellLayout = new JObject { ["x"] = Axis(cellsX, xLines, xNames, verticalName), ["z"] = Axis(cellsZ, zLines, zNames, horizontalName) };
+            }
             operation.GridConnectionSides.AddRange(connectionSides);
             void AddSegment(float3 start, float3 end, Entity prefab, string prefabName, string role, string side, Entity endTarget = default(Entity), float endSplit = 0)
             {
@@ -1064,9 +1121,9 @@ namespace CityWeaver
                     Role = role, GridSide = side, EndTarget = endTarget, EndSplit = endSplit });
             }
             for (int z = 0; z <= rows; z++) for (int x = 0; x < columns; x++)
-                AddSegment(vertices[x, z], vertices[x + 1, z], z == 0 || z == rows ? perimeterPrefab : horizontalPrefab, z == 0 || z == rows ? perimeterName : horizontalName, "grid", z == 0 ? "south" : z == rows ? "north" : null);
+                AddSegment(vertices[x, z], vertices[x + 1, z], zPrefabs[z], zNames[z], "grid", z == 0 ? "south" : z == rows ? "north" : null);
             for (int x = 0; x <= columns; x++) for (int z = 0; z < rows; z++)
-                AddSegment(vertices[x, z], vertices[x, z + 1], x == 0 || x == columns ? perimeterPrefab : verticalPrefab, x == 0 || x == columns ? perimeterName : verticalName, "grid", x == 0 ? "west" : x == columns ? "east" : null);
+                AddSegment(vertices[x, z], vertices[x, z + 1], xPrefabs[x], xNames[x], "grid", x == 0 ? "west" : x == columns ? "east" : null);
             if (autoConnect)
             {
                 var candidates = new List<GridConnectionCandidate>();
@@ -1119,7 +1176,7 @@ namespace CityWeaver
                 }
                 if (selected.Count < minimumConnections) throw new QueryException("NO_ROAD_CONNECTION", "Fewer than minimum_connections suitable existing-road targets were found within connection_search_radius_m.");
                 var connectionSegments = selected.Sum(c => c.Points.Count - 1);
-                if (operation.Segments.Count + connectionSegments > 64) throw new QueryException("ROAD_GRID_TOO_LARGE", "The grid and automatic connections require more than 64 definition segments.");
+                if (operation.Segments.Count + connectionSegments > MaxGridSegments) throw new QueryException("ROAD_GRID_TOO_LARGE", "The grid and automatic connections require more than " + MaxGridSegments + " definition segments.");
                 foreach (var connection in selected) for (int i = 0; i + 1 < connection.Points.Count; i++)
                     AddSegment(connection.Points[i], connection.Points[i + 1], connectionPrefab, connectionName, "connection", connection.Side,
                         i + 2 == connection.Points.Count ? connection.TargetEntity : Entity.Null, i + 2 == connection.Points.Count ? connection.Split : 0);
