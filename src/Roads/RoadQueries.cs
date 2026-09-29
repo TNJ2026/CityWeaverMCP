@@ -149,11 +149,11 @@ namespace CityWeaver
             ["zoning_shared_cells"] = ZoningValidation != null ? new JValue(ZoningSharedCellCount) : null,
             ["zoning_occupied_cells"] = ZoningValidation != null ? new JValue(ZoningOccupiedCellCount) : null,
             ["zoning_redundant_cells"] = ZoningValidation != null ? new JValue(ZoningRedundantCellCount) : null,
-            ["grid_origin"] = CurveMode == "grid" ? Point(GridOrigin) : null,
-            ["grid_columns"] = CurveMode == "grid" ? new JValue(GridColumns) : null,
-            ["grid_rows"] = CurveMode == "grid" ? new JValue(GridRows) : null,
-            ["grid_block_width_m"] = CurveMode == "grid" ? new JValue(GridBlockWidth) : null,
-            ["grid_block_height_m"] = CurveMode == "grid" ? new JValue(GridBlockHeight) : null,
+            ["grid_origin"] = CurveMode == "grid" || CurveMode == "native_grid" ? Point(GridOrigin) : null,
+            ["grid_columns"] = CurveMode == "grid" || CurveMode == "native_grid" ? new JValue(GridColumns) : null,
+            ["grid_rows"] = CurveMode == "grid" || CurveMode == "native_grid" ? new JValue(GridRows) : null,
+            ["grid_block_width_m"] = CurveMode == "grid" || CurveMode == "native_grid" ? new JValue(GridBlockWidth) : null,
+            ["grid_block_height_m"] = CurveMode == "grid" || CurveMode == "native_grid" ? new JValue(GridBlockHeight) : null,
             ["grid_default_road_prefab"] = CurveMode == "grid" ? GridDefaultPrefabName : null,
             ["grid_horizontal_road_prefab"] = CurveMode == "grid" ? GridHorizontalPrefabName : null,
             ["grid_vertical_road_prefab"] = CurveMode == "grid" ? GridVerticalPrefabName : null,
@@ -231,6 +231,9 @@ namespace CityWeaver
         public bool HasUpgradeFlags;
         public float3 Start, End;
         public Entity StartTarget, EndTarget;
+        // Native course flags for tools that reproduce a game tool exactly (native grid); otherwise defaults apply.
+        public bool HasCourseFlags;
+        public CoursePosFlags StartCourseFlags, EndCourseFlags;
         public float3? StartTargetPosition, EndTargetPosition;
         public bool StartLocalConnection, EndLocalConnection;
         public float StartSplit, EndSplit;
@@ -575,7 +578,8 @@ namespace CityWeaver
         private JObject PreviewRoad(JObject args, World world)
         {
             var key = RequestKey(args);
-            var fingerprint = new JObject { ["road_prefab"] = args["road_prefab"]?.DeepClone(), ["start"] = args["start"]?.DeepClone(), ["end"] = args["end"]?.DeepClone(), ["curve"] = args["curve"]?.DeepClone() }.ToString(Formatting.None);
+            var fingerprint = new JObject { ["road_prefab"] = args["road_prefab"]?.DeepClone(), ["start"] = args["start"]?.DeepClone(), ["end"] = args["end"]?.DeepClone(), ["curve"] = args["curve"]?.DeepClone(),
+                ["parallel_count"] = args["parallel_count"]?.DeepClone(), ["parallel_offset_m"] = args["parallel_offset_m"]?.DeepClone() }.ToString(Formatting.None);
             if (m_RoadRequestIds.TryGetValue(key, out var oldId))
             {
                 var old = m_RoadOperations[oldId];
@@ -599,7 +603,12 @@ namespace CityWeaver
             if (args["curve"] is JObject curveArgs)
             {
                 curveMode = (string)curveArgs["mode"];
-                if (curveMode == "quadratic")
+                if (curveMode == "simple")
+                {
+                    control1 = CurveControl(curveArgs["control"] as JObject, "curve.control", (start.Position.y + end.Position.y) * 0.5f);
+                    curve = NativeSimpleCurve(start.Position, control1.Value, end.Position, em.GetComponentData<NetGeometryData>(prefabEntity).m_DefaultWidth);
+                }
+                else if (curveMode == "quadratic")
                 {
                     control1 = CurveControl(curveArgs["control"] as JObject, "curve.control", (start.Position.y + end.Position.y) * 0.5f);
                     curve = new Bezier4x3(start.Position, start.Position + (control1.Value - start.Position) * (2f / 3f), end.Position + (control1.Value - end.Position) * (2f / 3f), end.Position);
@@ -610,23 +619,160 @@ namespace CityWeaver
                     control2 = CurveControl(curveArgs["control_2"] as JObject, "curve.control_2", math.lerp(start.Position.y, end.Position.y, 2f / 3f));
                     curve = new Bezier4x3(start.Position, control1.Value, control2.Value, end.Position);
                 }
-                else throw new QueryException("INVALID_ARGUMENT", "curve.mode must be quadratic or cubic.");
+                else throw new QueryException("INVALID_ARGUMENT", "curve.mode must be simple, quadratic or cubic.");
             }
             else curve = NetUtils.StraightCurve(start.Position, end.Position);
-            ValidateRoadCurve(curve, start.Elevation, end.Elevation, prefabEntity, em);
+            var pieces = SplitRoadCurve(curve, start, end);
+            foreach (var piece in pieces) ValidateRoadCurve(piece.Curve, piece.StartElevation, piece.EndElevation, prefabEntity, em);
             var operation = new RoadOperation { Session = m_Session, RequestId = key, Fingerprint = fingerprint, Prefab = prefabEntity, PrefabName = name,
                 Start = start.Position, End = end.Position, StartNode = start.Target, EndNode = end.Target, StartSplit = start.Split, EndSplit = end.Split,
                 StartElevation = start.Elevation, EndElevation = end.Elevation, Curve = curve, CurveMode = curveMode, Control1 = control1, Control2 = control2 };
-            operation.Segments.Add(new RoadSegmentPlan { Start = operation.Start, End = operation.End, StartTarget = operation.StartNode, EndTarget = operation.EndNode,
-                StartSplit = operation.StartSplit, EndSplit = operation.EndSplit, StartElevation = operation.StartElevation, EndElevation = operation.EndElevation, Curve = operation.Curve });
+            operation.Segments.AddRange(pieces);
+            AddNativeParallelCopies(operation, args, world, heights);
             tool.Begin(operation);
             m_RoadOperations.Add(operation.Id, operation); m_RoadRequestIds.Add(key, operation.Id);
+            return operation.Json();
+        }
+        // Splits a curve into equal arc-length pieces of at most maxLength, like the game splitting one drawn
+        // course into several edges. Elevations are interpolated along the pieces.
+        private static List<RoadSegmentPlan> SplitRoadCurve(Bezier4x3 curve, RoadEndpoint start, RoadEndpoint end, float maxLength = 256f)
+        {
+            var length = MathUtils.Length(curve); int pieces = math.max(1, (int)math.ceil(length / maxLength - 0.0001f));
+            var cuts = new List<float> { 0f };
+            if (pieces > 1)
+            {
+                // Arc-length parameterisation from a dense sample; each cut lands within centimetres of equal length.
+                const int samples = 512; var lengths = new float[samples + 1]; var previous = curve.a;
+                for (int i = 1; i <= samples; i++) { var p = MathUtils.Position(curve, (float)i / samples); lengths[i] = lengths[i - 1] + math.distance(previous, p); previous = p; }
+                int k = 1;
+                for (int piece = 1; piece < pieces; piece++)
+                {
+                    var target = lengths[samples] * piece / pieces;
+                    while (k < samples && lengths[k] < target) k++;
+                    var t0 = (float)(k - 1) / samples; var span = lengths[k] - lengths[k - 1];
+                    cuts.Add(t0 + (span > 0 ? (target - lengths[k - 1]) / span : 0) / samples);
+                }
+            }
+            cuts.Add(1f);
+            var result = new List<RoadSegmentPlan>();
+            for (int i = 0; i + 1 < cuts.Count; i++)
+            {
+                var piece = MathUtils.Cut(curve, new float2(cuts[i], cuts[i + 1]));
+                if (i > 0) piece.a = result[i - 1].Curve.d;
+                bool first = i == 0, last = i + 2 == cuts.Count;
+                result.Add(new RoadSegmentPlan { Start = piece.a, End = piece.d, Curve = piece,
+                    StartTarget = first ? start.Target : Entity.Null, EndTarget = last ? end.Target : Entity.Null,
+                    StartSplit = first ? start.Split : 0, EndSplit = last ? end.Split : 0,
+                    StartElevation = math.lerp(start.Elevation, end.Elevation, cuts[i]), EndElevation = math.lerp(start.Elevation, end.Elevation, cuts[i + 1]) });
+            }
+            return result;
+        }
+
+        private static void LinearizeCurveHeight(ref Bezier4x3 curve)
+        {
+            curve.b.y = math.lerp(curve.a.y, curve.d.y, 1f / 3f); curve.c.y = math.lerp(curve.a.y, curve.d.y, 2f / 3f);
+        }
+
+        // NetToolSystem.CreateSimpleCurve: fit between the tangent lines start->control and end->control, pulling
+        // the control point towards the chord end when it lies almost on the chord.
+        private static Bezier4x3 NativeSimpleCurve(float3 start, float3 control, float3 end, float roadWidth)
+        {
+            float distanceToEnd = MathUtils.Distance(new Line2.Segment(start.xz, control.xz), end.xz, out var t);
+            float distanceToStart = MathUtils.Distance(new Line2.Segment(end.xz, control.xz), start.xz, out var t2);
+            if (distanceToEnd <= roadWidth * 0.75f && distanceToEnd <= distanceToStart) control = math.lerp(start, control, t * (0.5f + distanceToEnd / roadWidth * (2f / 3f)));
+            else if (distanceToStart <= roadWidth * 0.75f) control = math.lerp(end, control, t2 * (0.5f + distanceToStart / roadWidth * (2f / 3f)));
+            var curve = NetUtils.FitCurve(new Line3.Segment(start, control), new Line3.Segment(end, control));
+            LinearizeCurveHeight(ref curve); return curve;
+        }
+
+        // NetToolSystem.CreateContinuousCurve for one piece: leaves start along startDirection and arrives along the
+        // chord direction. A chord perpendicular to the start direction becomes two blended halves (a U-turn).
+        private static List<Bezier4x3> NativeContinuousPiece(float3 start, float2 startDirection, float3 end, float middleDistance, bool noCurveSplit)
+        {
+            var startTangent = new float3(startDirection.x, 0, startDirection.y);
+            var chord = math.normalizesafe(end.xz - start.xz); var endTangent = new float3(chord.x, 0, chord.y);
+            float alignment = math.dot(chord, startDirection);
+            if (math.abs(alignment) < 0.01f && !noCurveSplit)
+            {
+                var side = MathUtils.Right(startDirection); if (math.dot(end.xz - start.xz, side) < 0f) side = -side;
+                var sideTangent = new float3(side.x, 0, side.y); var middle = start + sideTangent * middleDistance;
+                var first = NetUtils.FitCurve(start, startTangent, sideTangent, middle);
+                var second = NetUtils.FitCurve(middle, sideTangent, endTangent, end);
+                MathUtils.Divide(NetUtils.FitCurve(start, startTangent, endTangent, end), out var output, out var output2, 0.5f);
+                float blend = math.abs(alignment) * 100f;
+                first = MathUtils.Lerp(first, output, blend); second = MathUtils.Lerp(second, output2, blend);
+                var middleY = math.lerp(start.y, end.y, 0.5f); first.d.y = middleY; second.a = first.d;
+                LinearizeCurveHeight(ref first); LinearizeCurveHeight(ref second);
+                return new List<Bezier4x3> { first, second };
+            }
+            Bezier4x3 curve;
+            if (alignment < 0f) { curve = NetUtils.FitCurve(start, startTangent, endTangent, end + endTangent * alignment); curve.d = end; }
+            else curve = NetUtils.FitCurve(start, startTangent, endTangent, end);
+            LinearizeCurveHeight(ref curve);
+            return new List<Bezier4x3> { curve };
+        }
+
+        private JObject PreviewRoadContinuous(JObject args, World world)
+        {
+            var key = RequestKey(args);
+            var fingerprint = new JObject { ["operation_type"] = "continuous", ["road_prefab"] = args["road_prefab"]?.DeepClone(), ["start"] = args["start"]?.DeepClone(),
+                ["direction"] = args["direction"]?.DeepClone(), ["points"] = args["points"]?.DeepClone(),
+                ["parallel_count"] = args["parallel_count"]?.DeepClone(), ["parallel_offset_m"] = args["parallel_offset_m"]?.DeepClone() }.ToString(Formatting.None);
+            if (m_RoadRequestIds.TryGetValue(key, out var oldId))
+            {
+                var old = m_RoadOperations[oldId];
+                if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another route.");
+                return old.Json();
+            }
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
+            var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); var em = world.EntityManager;
+            if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before previewing a road.");
+            if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
+            if (!(args["points"] is JArray points) || points.Count < 1 || points.Count > 16) throw new QueryException("INVALID_ARGUMENT", "points must contain 1..16 waypoints after start.");
+            var prefabs = world.GetExistingSystemManaged<PrefabSystem>(); var name = (string)args["road_prefab"]; Entity prefab = Entity.Null;
+            foreach (var e in RoadPrefabs(em)) if (prefabs.TryGetPrefab<PrefabBase>(e, out var p) && p is RoadPrefab && p.name == name) { prefab = e; break; }
+            if (prefab == Entity.Null) throw new QueryException("UNKNOWN_ROAD_PREFAB", "Use an exact name from list_road_prefabs.");
+            if (!IsEditorReady() && RoadOperation.IsLocked(em, prefab)) throw new QueryException("ROAD_LOCKED", "This road is not unlocked.");
+            var geometry = em.GetComponentData<NetGeometryData>(prefab); bool noCurveSplit = (geometry.m_Flags & Game.Net.GeometryFlags.NoCurveSplit) != 0;
+            var heights = world.GetExistingSystemManaged<TerrainSystem>().GetHeightData(true);
+            if (!heights.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain CPU heights are not ready.");
+            var start = RoadPoint(args, "start", world, heights, prefab);
+            if (!(args["direction"] is JObject directionArgs)) throw new QueryException("INVALID_ARGUMENT", "direction must contain x and z.");
+            var directionPoint = new float2(ReadCoordinate(directionArgs, "direction", "x"), ReadCoordinate(directionArgs, "direction", "z"));
+            var direction = directionPoint - start.Position.xz; float middleDistance = math.length(direction);
+            if (!MathUtils.TryNormalize(ref direction)) throw new QueryException("INVALID_ARGUMENT", "direction must differ from start.");
+            var operation = new RoadOperation { Session = m_Session, RequestId = key, Fingerprint = fingerprint, Prefab = prefab, PrefabName = name, CurveMode = "continuous" };
+            var from = start;
+            for (int i = 0; i < points.Count; i++)
+            {
+                var to = RoadPoint(new JObject { ["point"] = points[i].DeepClone() }, "point", world, heights, prefab);
+                var pieces = NativeContinuousPiece(from.Position, direction, to.Position, i == 0 ? middleDistance : math.distance(from.Position.xz, to.Position.xz) * 0.5f, noCurveSplit);
+                for (int k = 0; k < pieces.Count; k++)
+                {
+                    var pieceStart = k == 0 ? from : new RoadEndpoint { Position = pieces[k].a, Elevation = math.lerp(from.Elevation, to.Elevation, 0.5f) };
+                    var pieceEnd = k + 1 == pieces.Count ? to : new RoadEndpoint { Position = pieces[k].d, Elevation = math.lerp(from.Elevation, to.Elevation, 0.5f) };
+                    foreach (var segment in SplitRoadCurve(pieces[k], pieceStart, pieceEnd))
+                    {
+                        ValidateRoadCurve(segment.Curve, segment.StartElevation, segment.EndElevation, prefab, em);
+                        operation.Segments.Add(segment);
+                    }
+                }
+                var tangent = MathUtils.EndTangent(pieces[pieces.Count - 1]).xz;
+                if (!MathUtils.TryNormalize(ref tangent)) throw new QueryException("INVALID_ARGUMENT", "Consecutive waypoints must not coincide.");
+                direction = tangent; from = to;
+            }
+            var first = operation.Segments[0]; var last = operation.Segments[operation.Segments.Count - 1];
+            operation.Start = first.Start; operation.End = last.End; operation.StartNode = first.StartTarget; operation.EndNode = last.EndTarget;
+            operation.StartSplit = first.StartSplit; operation.EndSplit = last.EndSplit; operation.StartElevation = first.StartElevation; operation.EndElevation = last.EndElevation; operation.Curve = first.Curve;
+            AddNativeParallelCopies(operation, args, world, heights);
+            tool.Begin(operation); m_RoadOperations.Add(operation.Id, operation); m_RoadRequestIds.Add(key, operation.Id);
             return operation.Json();
         }
         private JObject PreviewRoadRoute(JObject args, World world)
         {
             var key = RequestKey(args);
-            var fingerprint = new JObject { ["road_prefab"] = args["road_prefab"]?.DeepClone(), ["points"] = args["points"]?.DeepClone() }.ToString(Formatting.None);
+            var fingerprint = new JObject { ["road_prefab"] = args["road_prefab"]?.DeepClone(), ["points"] = args["points"]?.DeepClone(),
+                ["parallel_count"] = args["parallel_count"]?.DeepClone(), ["parallel_offset_m"] = args["parallel_offset_m"]?.DeepClone() }.ToString(Formatting.None);
             if (m_RoadRequestIds.TryGetValue(key, out var oldId))
             {
                 var old = m_RoadOperations[oldId];
@@ -652,15 +798,104 @@ namespace CityWeaver
             {
                 var a = endpoints[i]; var b = endpoints[i + 1];
                 if (a.Target != Entity.Null && a.Target == b.Target && math.abs(a.Split - b.Split) < 0.001f) throw new QueryException("INVALID_ENDPOINT", "Adjacent route points refer to the same network position.");
-                var curve = NetUtils.StraightCurve(a.Position, b.Position); ValidateRoadCurve(curve, a.Elevation, b.Elevation, prefabEntity, em);
-                operation.Segments.Add(new RoadSegmentPlan { Start = a.Position, End = b.Position, StartTarget = a.Target, EndTarget = b.Target, StartSplit = a.Split, EndSplit = b.Split,
-                    StartElevation = a.Elevation, EndElevation = b.Elevation, Curve = curve });
+                foreach (var piece in SplitRoadCurve(NetUtils.StraightCurve(a.Position, b.Position), a, b))
+                {
+                    ValidateRoadCurve(piece.Curve, piece.StartElevation, piece.EndElevation, prefabEntity, em);
+                    operation.Segments.Add(piece);
+                }
             }
             var first = operation.Segments[0]; var last = operation.Segments[operation.Segments.Count - 1];
             operation.Start = first.Start; operation.End = last.End; operation.StartNode = first.StartTarget; operation.EndNode = last.EndTarget;
             operation.StartSplit = first.StartSplit; operation.EndSplit = last.EndSplit; operation.StartElevation = first.StartElevation; operation.EndElevation = last.EndElevation; operation.Curve = first.Curve;
+            AddNativeParallelCopies(operation, args, world, heights);
             tool.Begin(operation); m_RoadOperations.Add(operation.Id, operation); m_RoadRequestIds.Add(key, operation.Id);
             return operation.Json();
+        }
+        // Reproduces NetToolSystem.CreateParallelCourses (the road tool's parallel mode): every drawn course gets
+        // parallel_count offset copies spaced parallel_offset_m + road width apart, on the left in right-hand
+        // traffic and on the right in left-hand traffic. Odd copies run reversed, copies of consecutive courses
+        // share nodes, curved copies are refitted until they follow the offset, and only the outermost copy
+        // carries a side flag.
+        private void AddNativeParallelCopies(RoadOperation operation, JObject args, World world, TerrainHeightData heights)
+        {
+            if (args["parallel_count"] == null) return;
+            var count = ComponentInspector.Int(args, "parallel_count", 0, 0, 10); if (count == 0) return;
+            float gap = 0;
+            if (args["parallel_offset_m"] != null)
+            {
+                if (args["parallel_offset_m"].Type != JTokenType.Float && args["parallel_offset_m"].Type != JTokenType.Integer) throw new QueryException("INVALID_ARGUMENT", "parallel_offset_m must be a number.");
+                gap = (float)args["parallel_offset_m"];
+                if (!math.isfinite(gap) || gap < 0 || gap > 128) throw new QueryException("INVALID_ARGUMENT", "parallel_offset_m must be from 0 to 128 metres.");
+            }
+            var em = world.EntityManager; var prefab = operation.Prefab;
+            if (!em.HasComponent<PlaceableNetData>(prefab) || (em.GetComponentData<PlaceableNetData>(prefab).m_PlacementFlags & Game.Net.PlacementFlags.AllowParallel) == 0)
+                throw new QueryException("PARALLEL_NOT_SUPPORTED", "The road tool does not offer parallel mode for this prefab.");
+            var geometry = em.GetComponentData<NetGeometryData>(prefab);
+            float spacing = gap + geometry.m_DefaultWidth, elevationLimit = geometry.m_ElevationLimit;
+            bool leftSide = !(world.GetExistingSystemManaged<Game.City.CityConfigurationSystem>()?.leftHandTraffic ?? false);
+            float signed = leftSide ? spacing : -spacing;
+            var nodeMap = new Dictionary<float4, float3>();
+            var baseSegments = operation.Segments.ToList();
+            void Final(Bezier4x3 curve, RoadSegmentPlan source, bool startFirst, bool endLast, bool invert, bool outer)
+            {
+                var a = curve.a; var d = curve.d;
+                a.y = TerrainUtils.SampleHeight(ref heights, a) + source.StartElevation; d.y = TerrainUtils.SampleHeight(ref heights, d) + source.EndElevation;
+                curve.a = a; curve.d = d; curve.b.y = math.lerp(a.y, d.y, 1f / 3f); curve.c.y = math.lerp(a.y, d.y, 2f / 3f);
+                var startFlags = (startFirst ? CoursePosFlags.IsFirst : 0) | CoursePosFlags.IsParallel;
+                var endFlags = (endLast ? CoursePosFlags.IsLast : 0) | CoursePosFlags.IsParallel;
+                float startElevation = source.StartElevation, endElevation = source.EndElevation;
+                if (math.abs(startElevation) < elevationLimit) startFlags |= CoursePosFlags.FreeHeight;
+                if (math.abs(endElevation) < elevationLimit) endFlags |= CoursePosFlags.FreeHeight;
+                if (invert)
+                {
+                    curve = MathUtils.Invert(curve);
+                    var f = startFlags; startFlags = endFlags; endFlags = f;
+                    var el = startElevation; startElevation = endElevation; endElevation = el;
+                }
+                if (outer)
+                {
+                    var side = invert == leftSide ? CoursePosFlags.IsRight : CoursePosFlags.IsLeft;
+                    startFlags |= side; endFlags |= side;
+                }
+                if (MathUtils.Length(curve) > 320) throw new QueryException("INVALID_ROAD_LENGTH", "A parallel copy would exceed the road segment length limit; use shorter segments.");
+                operation.Segments.Add(new RoadSegmentPlan { Start = curve.a, End = curve.d, Curve = curve, Prefab = source.Prefab, PrefabName = source.PrefabName, Role = "parallel",
+                    StartElevation = startElevation, EndElevation = endElevation, HasCourseFlags = true, StartCourseFlags = startFlags, EndCourseFlags = endFlags });
+            }
+            void Emit(Bezier4x3 baseCurve, Bezier4x3 copy, RoadSegmentPlan source, bool startFirst, bool endLast, bool invert, bool outer, int level)
+            {
+                float distance = math.abs(signed);
+                if (++level >= 10 || math.distance(copy.a.xz, copy.d.xz) < distance * 2f) { Final(copy, source, startFirst, endLast, invert, outer); return; }
+                var middle = MathUtils.Position(copy, 0.5f);
+                float actual = MathUtils.Distance(baseCurve.xz, middle.xz, out var t);
+                var onBase = MathUtils.Position(baseCurve, t);
+                var tangent = MathUtils.Tangent(baseCurve, t); tangent = MathUtils.Normalize(tangent, tangent.xz);
+                var offset = tangent.zx * new float2(-signed, signed);
+                if (math.abs(actual - distance) > distance * 0.02f || math.dot(offset, middle.xz - onBase.xz) < 0f)
+                {
+                    onBase.xz += offset;
+                    var startTangent = MathUtils.StartTangent(copy); var endTangent = MathUtils.EndTangent(copy);
+                    startTangent = MathUtils.Normalize(startTangent, startTangent.xz); endTangent = MathUtils.Normalize(endTangent, endTangent.xz);
+                    Emit(baseCurve, NetUtils.FitCurve(copy.a, startTangent, tangent, onBase), source, startFirst, false, invert, outer, level);
+                    Emit(baseCurve, NetUtils.FitCurve(onBase, tangent, endTangent, copy.d), source, false, endLast, invert, outer, level);
+                }
+                else Final(copy, source, startFirst, endLast, invert, outer);
+            }
+            foreach (var segment in baseSegments)
+            {
+                if (segment.Prefab == Entity.Null) segment.Prefab = prefab;
+                if (segment.PrefabName == null) segment.PrefabName = operation.PrefabName;
+                var previous = segment.Curve;
+                for (int i = 1; i <= count; i++)
+                {
+                    var level = leftSide ? -i : i;
+                    var copy = NetUtils.OffsetCurveLeftSmooth(previous, signed);
+                    var keyA = new float4(previous.a, level); var keyD = new float4(previous.d, level);
+                    if (nodeMap.TryGetValue(keyA, out var sharedA)) copy.a = sharedA; else nodeMap.Add(keyA, copy.a);
+                    if (nodeMap.TryGetValue(keyD, out var sharedD)) copy.d = sharedD; else nodeMap.Add(keyD, copy.d);
+                    Emit(previous, copy, segment, true, true, (i & 1) != 0, i == count, 0);
+                    previous = copy;
+                }
+            }
         }
         private JObject PreviewRoadRing(JObject args, World world)
         {
@@ -864,6 +1099,120 @@ namespace CityWeaver
             }
             var first = operation.Segments[0]; var last = operation.Segments[operation.Segments.Count - 1];
             operation.Start = first.Start; operation.End = last.End; operation.Curve = first.Curve;
+            tool.Begin(operation); m_RoadOperations.Add(operation.Id, operation); m_RoadRequestIds.Add(key, operation.Id); return operation.Json();
+        }
+        // Reproduces NetToolSystem.CreateGrid (the in-game Grid mode): three control points, one prefab,
+        // automatic block count per side, cut positions snapped to the 8 m cell lattice, native course flags
+        // and alternating segment directions. Only the input source differs: coordinates instead of mouse clicks.
+        private JObject PreviewRoadNativeGrid(JObject args, World world)
+        {
+            var key = RequestKey(args);
+            var fingerprint = new JObject { ["operation_type"] = "native_grid", ["road_prefab"] = args["road_prefab"]?.DeepClone(),
+                ["start"] = args["start"]?.DeepClone(), ["direction"] = args["direction"]?.DeepClone(), ["end"] = args["end"]?.DeepClone() }.ToString(Formatting.None);
+            if (m_RoadRequestIds.TryGetValue(key, out var oldId))
+            {
+                var old = m_RoadOperations[oldId];
+                if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another road grid.");
+                return old.Json();
+            }
+            if (m_RoadOperations.Count >= 4096) throw new QueryException("ROAD_OPERATION_LIMIT", "This city session has reached 4096 road operations; reload the city to reset the journal.");
+            var tool = RoadTool(world); var tools = world.GetExistingSystemManaged<ToolSystem>(); var em = world.EntityManager;
+            if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before planning a road grid.");
+            if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
+            var prefabs = world.GetExistingSystemManaged<PrefabSystem>(); var name = (string)args["road_prefab"]; Entity prefab = Entity.Null;
+            foreach (var e in RoadPrefabs(em)) if (prefabs.TryGetPrefab<PrefabBase>(e, out var p) && p is RoadPrefab && p.name == name) { prefab = e; break; }
+            if (prefab == Entity.Null) throw new QueryException("UNKNOWN_ROAD_PREFAB", "Use an exact name from list_road_prefabs.");
+            if (!IsEditorReady() && RoadOperation.IsLocked(em, prefab)) throw new QueryException("ROAD_LOCKED", "This road is not unlocked.");
+            if (!em.HasComponent<NetGeometryData>(prefab)) throw new QueryException("INVALID_ROAD_PREFAB", "The road prefab has no net geometry.");
+            var geometry = em.GetComponentData<NetGeometryData>(prefab);
+            // The native tool only offers Grid mode for prefabs without a minimum edge length.
+            if (geometry.m_EdgeLengthRange.min != 0f) throw new QueryException("GRID_NOT_SUPPORTED", "The native Grid mode is not available for this road prefab.");
+            var heights = world.GetExistingSystemManaged<TerrainSystem>().GetHeightData(true);
+            if (!heights.isCreated) throw new QueryException("TERRAIN_UNAVAILABLE", "Terrain CPU heights are not ready.");
+            var start = RoadPoint(args, "start", world, heights, prefab); var end = RoadPoint(args, "end", world, heights, prefab);
+            if (!(args["direction"] is JObject directionArgs)) throw new QueryException("INVALID_ARGUMENT", "direction must contain x and z.");
+            var directionPoint = new float2(ReadCoordinate(directionArgs, "direction", "x"), ReadCoordinate(directionArgs, "direction", "z"));
+            var direction = directionPoint - start.Position.xz;
+            if (!MathUtils.TryNormalize(ref direction)) throw new QueryException("INVALID_ARGUMENT", "direction must differ from start.");
+            var right = MathUtils.Right(direction);
+            // Control point 2 is projected onto the first side, exactly as CreateGrid does.
+            var span = end.Position.xz - start.Position.xz;
+            float length1 = math.abs(math.dot(span, direction)), length2 = math.abs(math.dot(span, right));
+            var sideAxis = math.sign(math.dot(span, right)) * right; var firstAxis = math.sign(math.dot(span, direction)) * direction;
+            bool flag = math.dot(span, right) > 0f;
+            flag ^= math.dot(span, direction) < 0f;
+            var snapCells = (geometry.m_Flags & Game.Net.GeometryFlags.SnapCellSize) != 0;
+            var target = snapCells ? (float)Game.Zones.ZoneUtils.GetCellWidth(geometry.m_DefaultWidth) * 8f + new float2(192f, 96f) : geometry.m_DefaultWidth * new float2(16f, 8f);
+            var lengths = new float2(length1, length2);
+            if (math.any(lengths > target * 11f)) throw new QueryException("ROAD_GRID_TOO_LARGE",
+                "The native Grid mode spans at most 11 blocks per side: " + (target.x * 11f).ToString("0") + " m along direction and " + (target.y * 11f).ToString("0") + " m across for this prefab.");
+            var count = math.max(1f, math.ceil((lengths - 0.16f) / target));
+            count -= math.select(0f, 1f, lengths / count < geometry.m_DefaultWidth + 3f);
+            int nx = (int)math.round(count.x), ny = (int)math.round(count.y);
+            if (nx == 0 || ny == 0) throw new QueryException("ROAD_GRID_TOO_SMALL", "One side is too short for a grid block; the native tool would draw a single straight road instead.");
+            float Cut(float length, float t) => snapCells ? math.saturate(MathUtils.Snap(length * t + 0.16f, 8f) / length) : t;
+            var vertices = new float3[nx + 1, ny + 1];
+            for (int i = 0; i <= nx; i++) for (int j = 0; j <= ny; j++)
+            {
+                var xz = start.Position.xz + firstAxis * (length1 * Cut(length1, (float)i / nx)) + sideAxis * (length2 * Cut(length2, (float)j / ny));
+                var point = new float3(xz.x, 0, xz.y); point.y = TerrainUtils.SampleHeight(ref heights, point); vertices[i, j] = point;
+            }
+            vertices[0, 0] = start.Position; vertices[nx, ny] = end.Position;
+            var operation = new RoadOperation { Session = m_Session, RequestId = key, Fingerprint = fingerprint, OperationType = "create", Prefab = prefab, PrefabName = name,
+                CurveMode = "native_grid", PlannerStrategy = "native_grid", PlannerGridSize = 8, GridOrigin = start.Position, GridColumns = nx, GridRows = ny,
+                GridBlockWidth = length1 / nx, GridBlockHeight = length2 / ny };
+            var sideFlag = flag ? CoursePosFlags.IsLeft : CoursePosFlags.IsRight;
+            void Add(int ai, int aj, int bi, int bj, CoursePosFlags startFlags, CoursePosFlags endFlags, bool invert)
+            {
+                var segment = new RoadSegmentPlan { Start = vertices[ai, aj], End = vertices[bi, bj], Prefab = prefab, PrefabName = name, Role = "grid",
+                    HasCourseFlags = true, StartCourseFlags = startFlags, EndCourseFlags = endFlags };
+                if (ai == 0 && aj == 0) { segment.StartTarget = start.Target; segment.StartSplit = start.Split; }
+                if (bi == nx && bj == ny) { segment.EndTarget = end.Target; segment.EndSplit = end.Split; }
+                if (invert)
+                {
+                    var p0 = segment.Start; segment.Start = segment.End; segment.End = p0;
+                    var t0 = segment.StartTarget; segment.StartTarget = segment.EndTarget; segment.EndTarget = t0;
+                    var s0 = segment.StartSplit; segment.StartSplit = segment.EndSplit; segment.EndSplit = s0;
+                    var f0 = segment.StartCourseFlags; segment.StartCourseFlags = segment.EndCourseFlags; segment.EndCourseFlags = f0;
+                }
+                segment.Curve = NetUtils.StraightCurve(segment.Start, segment.End); ValidateRoadCurve(segment.Curve, 0, 0, prefab, em);
+                operation.Segments.Add(segment);
+            }
+            for (int j = 0; j <= ny; j++)
+            {
+                for (int i = 0; i < nx; i++)
+                {
+                    var s = CoursePosFlags.IsGrid; var e = CoursePosFlags.IsGrid;
+                    if (j != 0) { s |= CoursePosFlags.IsParallel; e |= CoursePosFlags.IsParallel; }
+                    if (!(i == 0 && j == 0)) s |= CoursePosFlags.FreeHeight;
+                    if (!(i + 1 == nx && j == ny)) e |= CoursePosFlags.FreeHeight;
+                    if (j == 0 || j == ny)
+                    {
+                        if (i == 0) s |= CoursePosFlags.IsFirst;
+                        if (i + 1 == nx) e |= CoursePosFlags.IsLast;
+                        s |= sideFlag; e |= sideFlag;
+                    }
+                    Add(i, j, i + 1, j, s, e, (j & 1) == 1 || j == ny);
+                }
+                if (j == ny) break;
+                for (int i = 0; i <= nx; i++)
+                {
+                    var s = CoursePosFlags.IsGrid; var e = CoursePosFlags.IsGrid;
+                    if (i != nx) { s |= CoursePosFlags.IsParallel; e |= CoursePosFlags.IsParallel; }
+                    if (!(i == 0 && j == 0)) s |= CoursePosFlags.FreeHeight;
+                    if (!(i == nx && j + 1 == ny)) e |= CoursePosFlags.FreeHeight;
+                    if (i == 0 || i == nx)
+                    {
+                        if (j == 0) s |= CoursePosFlags.IsFirst;
+                        if (j + 1 == ny) e |= CoursePosFlags.IsLast;
+                        s |= sideFlag; e |= sideFlag;
+                    }
+                    Add(i, j, i, j + 1, s, e, ((nx - i) & 1) == 1 || i == 0);
+                }
+            }
+            var first = operation.Segments[0]; var last = operation.Segments[operation.Segments.Count - 1];
+            operation.Start = start.Position; operation.End = end.Position; operation.StartNode = start.Target; operation.EndNode = end.Target;
+            operation.StartSplit = start.Split; operation.EndSplit = end.Split; operation.Curve = first.Curve;
             tool.Begin(operation); m_RoadOperations.Add(operation.Id, operation); m_RoadRequestIds.Add(key, operation.Id); return operation.Json();
         }
         private JObject PreviewRoadParallel(JObject args, World world)

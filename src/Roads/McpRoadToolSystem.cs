@@ -966,7 +966,8 @@ namespace CityWeaver
                 CoursePos Point(float3 p, Entity target, float split, float elevation, bool first, bool localConnection) => new CoursePos {
                     m_Entity = localConnection ? Entity.Null : target, m_Position = p, m_Rotation = NetUtils.GetNodeRotation(first ? MathUtils.StartTangent(curve) : MathUtils.EndTangent(curve)),
                     m_Elevation = new float2(elevation), m_CourseDelta = first ? 0 : 1, m_ParentMesh = -1, m_SplitPosition = split,
-                    m_Flags = (first ? CoursePosFlags.IsFirst : CoursePosFlags.IsLast) | CoursePosFlags.IsLeft | CoursePosFlags.IsRight |
+                    m_Flags = (segment.HasCourseFlags ? (first ? segment.StartCourseFlags : segment.EndCourseFlags)
+                        : (first ? CoursePosFlags.IsFirst : CoursePosFlags.IsLast) | CoursePosFlags.IsLeft | CoursePosFlags.IsRight) |
                         (elevation >= 8 ? CoursePosFlags.ForceElevatedNode | CoursePosFlags.ForceElevatedEdge : 0) };
                 var definition = EntityManager.CreateEntity(); m_Definitions.Add(definition);
                 EntityManager.AddComponentData(definition, new CreationDefinition { m_Prefab = segment.Prefab != Entity.Null ? segment.Prefab : op.Prefab, m_Flags = CreationFlags.SubElevation, m_RandomSeed = 1 + ((op.Id.GetHashCode() + i) & 0x3fffffff) });

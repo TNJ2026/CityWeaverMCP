@@ -33,6 +33,8 @@ namespace CityWeaver
         public bool Overwrite, IncludeOccupied, HasArea;
         public float4 Area;
         public int SampleLimit = 8;
+        public string ToolMode;
+        public JObject ToolGeometry;
         public string State = "preview_ready", Error, CommitRequestId;
         public DateTime Created = DateTime.UtcNow, Expires = DateTime.UtcNow.AddMinutes(5);
         public readonly List<Entity> Edges = new List<Entity>();
@@ -44,6 +46,7 @@ namespace CityWeaver
             ["zone"] = ZoneName, ["zone_index"] = ZoneIndex, ["mode"] = ZoneIndex == 0 ? "clear" : "assign",
             ["road_side"] = Side, ["depth_cells"] = DepthCells, ["overwrite"] = Overwrite,
             ["include_occupied"] = IncludeOccupied, ["area"] = HasArea ? new JObject { ["min_x"] = Area.x, ["min_z"] = Area.y, ["max_x"] = Area.z, ["max_z"] = Area.w } : null,
+            ["tool_mode"] = ToolMode ?? "road", ["tool_geometry"] = ToolGeometry,
             ["target_edge_count"] = Edges.Count, ["target_edge_ids"] = Edges.Count <= 64 ? new JArray(Edges.Select(EntityId)) : null,
             ["changed_cell_count"] = Changes.Count,
             ["changes_by_side"] = new JObject { ["left"] = Changes.Count(c => c.Side == "left"), ["right"] = Changes.Count(c => c.Side == "right") },

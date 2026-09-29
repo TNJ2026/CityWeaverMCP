@@ -25,6 +25,16 @@
 
 例：832 m 见方、外围中心线为 x −4736..−3904、z 3904..4736 的网格，一次调用 `preview_zoning({ area: { min_x: -4736, min_z: 3904, max_x: -3904, max_z: 4736 }, zone, road_side: "both", depth_cells: 6, sample_cells: 0 })`，再 `apply_zoning` 即可。
 
+## 游戏分区工具模式：填充、框选、涂刷
+
+`preview_zoning_tool` 按游戏分区工具三种模式的选格规则（移植自 `ZoneToolSystem` 与 `GenerateZonesSystem`）挑选格子，再走与 `preview_zoning` 相同的原子预览/提交：
+
+- `mode: "fill"`（填充）：`point` 处的格子为种子，沿上下左右扩散到区域相同、可见/占用状态相同的相连格子，可跨越能共享格子的相邻分区块，相当于在游戏里单击填充。
+- `mode: "marquee"`（框选）：`start` 到 `end` 的矩形，四周各外扩半格（4 米），选中格子中心落在框内的可见格。`align` 为 `auto`（默认，跟随起点下方分区块的方向，斜路也能对齐）、`world`（正东西南北）或角度（度）。
+- `mode: "paint"`（涂刷）：`path` 为 1–256 个点的笔画，选中笔画经过的每个 8 米格（一格宽的画笔），相当于按住拖动涂刷。
+
+`zone: "none"` 为清除分区，按游戏规则总是覆盖。未设 `overwrite` 时已有分区的格子保持不变。与游戏工具不同的一点：默认不改已有建筑占用的格子，需显式 `include_occupied: true`。单次最多 32768 格；填充区域超限时返回 `TOO_MANY_CELLS`，请改用框选或分块。返回结果含 `tool_mode` 和 `tool_geometry`（框选时为实际四边形与方向）。提交仍用 `apply_zoning`。
+
 `Blocked`、`Shared` 和 `Redundant` 格不会被修改。`Occupied` 默认跳过，只有明确设置 `include_occupied: true` 才会改写；这可能使已成长建筑与新区域不匹配。
 
 当前接口操作道路拥有的分区格。专业产业区域、水域专用区域能出现在区域列表中，但其实际建筑生成还取决于资源区、水面、产业区工具以及对应游戏规则。

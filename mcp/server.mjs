@@ -166,6 +166,7 @@ async function readFullPlanningMap(args, includeExisting = true) {
   return snapshot;
 }
 const roadCurve = z.discriminatedUnion('mode', [
+  z.object({ mode: z.literal('simple'), control: roadControl }).strict(),
   z.object({ mode: z.literal('quadratic'), control: roadControl }).strict(),
   z.object({ mode: z.literal('cubic'), control_1: roadControl, control_2: roadControl }).strict()
 ]);
@@ -184,6 +185,8 @@ const mutationAnnotations = {
   preview_road_route: { ...annotations, readOnlyHint: false },
   preview_road_ring: { ...annotations, readOnlyHint: false },
   preview_road_grid: { ...annotations, readOnlyHint: false },
+  preview_road_native_grid: { ...annotations, readOnlyHint: false },
+  preview_road_continuous: { ...annotations, readOnlyHint: false },
   prepare_grid_native_preview: { ...annotations, readOnlyHint: false },
   advance_grid_construction: { ...annotations, readOnlyHint: false, destructiveHint: true },
   advance_city_plan_construction: { ...annotations, readOnlyHint: false, destructiveHint: true },
@@ -257,6 +260,7 @@ const mutationAnnotations = {
   set_building_active: { ...annotations, readOnlyHint: false },
   set_building_policy: { ...annotations, readOnlyHint: false },
   preview_zoning: { ...annotations, readOnlyHint: false },
+  preview_zoning_tool: { ...annotations, readOnlyHint: false },
   apply_zoning: { ...annotations, readOnlyHint: false, destructiveHint: true },
   cancel_zoning_preview: { ...annotations, readOnlyHint: false },
   preview_district_create: { ...annotations, readOnlyHint: false },
@@ -589,14 +593,24 @@ const definitions = [
   ['inspect_road_zoning', 'Inspect native Zone Block and Cell data owned by 1..64 permanent road edges. Reports block direction, 8 metre cell-lattice consistency, clear frontage, and Blocked, Shared, Occupied and Redundant cell counts. orderly_geometry verifies axis-aligned blocks, a common lattice phase and buffer-size consistency; it does not guarantee compatibility with every building prefab.', {
     edge_ids: z.array(entityId).min(1).max(64)
   }],
-  ['preview_road', 'Create a temporary in-game road preview. Requires a paused city and default selection tool. x/z are world metres; elevation_m is relative to terrain for a new point (ordinary roads use prefab elevation_range_m; bridge clearance is validated by native preview, not capped by that placement range). Values at or above 8m force elevated structures; values at or below -12m request tunnels. Optional node_id joins an existing node; edge_id snaps to and splits an existing road edge. Attached endpoints use their existing height. Optional curve supports quadratic or cubic control points. Poll get_road_operation. Game errors/warnings or building removal block commit. Reuse request_id to retry this exact route. Preview expires after 5 minutes.', {
-    request_id: requestId, road_prefab: z.string().min(1).max(200), start: roadPoint, end: roadPoint, curve: roadCurve.optional()
+  ['preview_road', 'Create a temporary in-game road preview. Requires a paused city and default selection tool. x/z are world metres; elevation_m is relative to terrain for a new point (ordinary roads use prefab elevation_range_m; bridge clearance is validated by native preview, not capped by that placement range). Values at or above 8m force elevated structures; values at or below -12m request tunnels. Optional node_id joins an existing node; edge_id snaps to and splits an existing road edge. Attached endpoints use their existing height. Optional curve supports quadratic or cubic control points. Poll get_road_operation. Game errors/warnings or building removal block commit. Reuse request_id to retry this exact route. Preview expires after 5 minutes. curve.mode simple reproduces the road tool Simple Curve (a fit between the tangent lines start->control and end->control, as the game draws it); quadratic is an exact quadratic Bezier; cubic reproduces Complex Curve. Curves longer than 256 metres are split into equal edges automatically. Optional parallel_count (1..10) and parallel_offset_m (gap between road edges, 0..128, default 0) reproduce the road tool parallel mode: copies are spaced gap + road width apart on the left in right-hand traffic (right in left-hand traffic), odd copies run reversed (a one-way prefab with parallel_count 1 yields a divided pair), copies of consecutive segments share nodes, curves are refitted to follow the offset, and copies do not attach to existing roads.', {
+    request_id: requestId, road_prefab: z.string().min(1).max(200), start: roadPoint, end: roadPoint, curve: roadCurve.optional(), parallel_count: z.number().int().min(0).max(10).optional(), parallel_offset_m: z.number().finite().min(0).max(128).optional()
   }],
-  ['preview_road_route', 'Preview one continuous polyline road route as a single operation. Provide 2..16 points; each adjacent pair is a straight ground segment of 16..256 metres. Points may use node_id or edge_id for exact network attachment. Shared unsnapped coordinates become shared junction nodes through the native road pipeline. Poll the returned operation and commit it once with build_road.', {
-    request_id: requestId, road_prefab: z.string().min(1).max(200), points: z.array(roadPoint).min(2).max(16)
+  ['preview_road_continuous', 'Preview a smooth road exactly as the road tool Continuous mode draws it: start, a direction point fixing the initial heading, then 1..16 waypoints. Each piece leaves along the previous heading and arrives along its chord (the native continuous rule), so consecutive pieces stay tangent; a chord perpendicular to the heading becomes a blended U-turn of two halves. Pieces longer than 256 metres are split into equal edges. start and waypoints may attach with node_id or edge_id and set elevation_m. Supports parallel_count and parallel_offset_m like preview_road. Poll get_road_operation, then commit once with build_road.', {
+    request_id: requestId, road_prefab: z.string().min(1).max(200), start: roadPoint, direction: roadControl, points: z.array(roadPoint).min(1).max(16),
+    parallel_count: z.number().int().min(0).max(10).optional(), parallel_offset_m: z.number().finite().min(0).max(128).optional()
+  }],
+  ['preview_road_route', 'Preview one continuous polyline road route as a single operation. Provide 2..16 points; each adjacent pair is a straight segment of at least 16 metres; pairs longer than 256 metres are split into equal edges automatically, as the game splits a long drawn road. Points may use node_id or edge_id for exact network attachment. Shared unsnapped coordinates become shared junction nodes through the native road pipeline. Poll the returned operation and commit it once with build_road. Optional parallel_count (1..10) and parallel_offset_m (gap between road edges, 0..128, default 0) reproduce the road tool parallel mode: copies are spaced gap + road width apart on the left in right-hand traffic (right in left-hand traffic), odd copies run reversed (a one-way prefab with parallel_count 1 yields a divided pair), copies of consecutive segments share nodes, curves are refitted to follow the offset, and copies do not attach to existing roads.', {
+    request_id: requestId, road_prefab: z.string().min(1).max(200), points: z.array(roadPoint).min(2).max(16), parallel_count: z.number().int().min(0).max(10).optional(), parallel_offset_m: z.number().finite().min(0).max(128).optional()
   }],
   ['preview_road_ring', 'Preview a closed circular road ring built as four cubic native road segments. Radius is 12..160 metres. Direction affects one-way prefabs; auto chooses counterclockwise for right-hand traffic and clockwise for left-hand traffic. This is a standalone ring road, distinct from preview_intersection_roundabout which converts an existing junction into the game native roundabout node type. Poll then commit once with build_road.', {
     request_id: requestId, road_prefab: z.string().min(1).max(200), center: roadControl, radius_m: z.number().finite().min(12).max(160), direction: z.enum(['auto', 'clockwise', 'counterclockwise']).default('auto')
+  }],
+  ['preview_road_native_grid', 'Preview a street grid exactly as the in-game road tool Grid mode draws it, from its three control points: start corner, a direction point fixing the first side, and the opposite end corner. One road_prefab for every line. Block counts are automatic, not parameters: each side is split into the fewest blocks no longer than the native maximum (for zoned roads road cell width x 8 + 192 m along direction and + 96 m across, e.g. 208 x 112 m for Small Road), evenly divided with cut positions snapped to the 8 m zoning lattice from the start corner. At most 11 blocks per side and no 64-segment limit. Segment directions alternate like the native tool, which matters for one-way prefabs. start and end may attach to an existing node_id or edge_id. Poll get_road_operation, then commit once with build_road.', {
+    request_id: requestId, road_prefab: z.string().min(1).max(200),
+    start: z.object({ x: coordinate, z: coordinate, node_id: entityId.optional(), edge_id: entityId.optional() }).strict().refine(point => !(point.node_id && point.edge_id), 'Use either node_id or edge_id, not both.'),
+    direction: roadControl,
+    end: z.object({ x: coordinate, z: coordinate, node_id: entityId.optional(), edge_id: entityId.optional() }).strict().refine(point => !(point.node_id && point.edge_id), 'Use either node_id or edge_id, not both.')
   }],
   ['preview_road_grid', 'Preview a rectangular hierarchical street grid as one native operation. road_prefab is the default. Optional horizontal_road_prefab and vertical_road_prefab override internal streets by direction; perimeter_road_prefab has highest precedence on boundary segments. With auto_connect enabled, the planner searches outward from requested north/east/south/west perimeter vertices, selects at most one unique existing road per side, reuses a nearby road node or splits an edge, and adds an orthogonal connection using connection_road_prefab (default: perimeter prefab). minimum_connections makes insufficient attachment targets fail before preview. origin snaps to the global 8 metre grid. Grid and connection definitions share one preview/apply transaction, with at most 64 segments and native zoning-cell verification.', {
     request_id: requestId, road_prefab: z.string().min(1).max(200), origin: roadControl,
@@ -953,6 +967,13 @@ const definitions = [
     zone: z.string().min(1).max(200), road_side: z.enum(['left', 'right', 'both']).default('both'),
     depth_cells: z.number().int().min(1).max(6).default(6), overwrite: z.boolean().default(false), include_occupied: z.boolean().default(false),
     sample_cells: z.number().int().min(0).max(32).default(8)
+  }],
+  ['preview_zoning_tool', 'Prepare an atomic zoning transaction with the in-game zoning tool modes, using the cell selection rules of the native zone tool. mode fill: point seeds the cell under it and spreads to 4-connected cells with the same zone and the same visible/occupied state, across blocks that can share cells (like clicking with Fill). mode marquee: a rectangle from start to end padded by half a cell (4 m), aligned to the zone block under start (align auto), to world axes (align world) or to an angle in degrees; selects visible cells whose centre lies inside. mode paint: path of 1..256 points; selects every visible cell whose 8 m square the stroke touches (a one-cell brush, like dragging with Paint). zone none dezones and always overwrites. Without overwrite, already zoned cells keep their zone. include_occupied (default false) must be true to change cells under grown buildings. At most 32768 cells. Commit with apply_zoning while paused; the result reports tool_mode and tool_geometry.', {
+    request_id: requestId, mode: z.enum(['fill', 'marquee', 'paint']), zone: z.string().min(1).max(200),
+    point: roadControl.optional(), start: roadControl.optional(), end: roadControl.optional(),
+    align: z.union([z.enum(['auto', 'world']), z.number().finite().min(-360).max(360)]).optional(),
+    path: z.array(roadControl).min(1).max(256).optional(),
+    overwrite: z.boolean().default(false), include_occupied: z.boolean().default(false), sample_cells: z.number().int().min(0).max(32).default(8)
   }],
   ['get_zoning_operation', 'Read a zoning transaction, its exact cell count and sample before/after values.', { operation_id: operationId }],
   ['apply_zoning', 'Apply a preview_ready zoning transaction while paused. Every target cell is compared with its preview snapshot; any conflict applies nothing and write failures are rolled back.', {
