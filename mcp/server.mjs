@@ -944,12 +944,15 @@ const definitions = [
   ['list_zone_types', 'List live zone prefab names and indices, area types, lot support, height limits and lock state. Use the exact name with preview_zoning; use none to clear zoning.', {
     search: z.string().max(100).default(''), unlocked_only: z.boolean().default(true)
   }],
-  ['analyze_zoning_cells', 'Read eligible native zoning cells attached to selected permanent roads, including world position, road side, depth, current zone, cell state, occupancy and height limit. Side follows each edge start-to-end direction.', {
-    edge_ids: z.array(entityId).min(1).max(64), road_side: z.enum(['left', 'right', 'both']).default('both'), depth_cells: z.number().int().min(1).max(6).default(6)
+  ['analyze_zoning_cells', 'Read eligible native zoning cells attached to selected permanent roads, including world position, road side, depth, current zone, cell state, occupancy and height limit. Side follows each edge start-to-end direction. Select roads with edge_ids, area, or both; area keeps only cells whose centre lies strictly inside it. At most 4096 items are returned.', {
+    edge_ids: z.array(entityId).min(1).max(256).optional(), area: planningBounds.optional(), exclude_edge_ids: z.array(entityId).max(256).optional(),
+    road_side: z.enum(['left', 'right', 'both']).default('both'), depth_cells: z.number().int().min(1).max(6).default(6)
   }],
-  ['preview_zoning', 'Prepare an atomic zoning-cell transaction for selected roads. Assign an exact unlocked zone or use none to clear. depth_cells selects rows outward from the road. overwrite replaces existing zoning; include_occupied also changes cells under grown buildings. No game state changes until apply_zoning.', {
-    request_id: requestId, edge_ids: z.array(entityId).min(1).max(64), zone: z.string().min(1).max(200), road_side: z.enum(['left', 'right', 'both']).default('both'),
-    depth_cells: z.number().int().min(1).max(6).default(6), overwrite: z.boolean().default(false), include_occupied: z.boolean().default(false)
+  ['preview_zoning', 'Prepare an atomic zoning-cell transaction of up to 32768 cells. Select roads with edge_ids (up to 256), an area rectangle, or both. With area alone every permanent road whose zone blocks reach it is used, and only cells whose centre lies strictly inside the area change: pass the centre-line bounds of a road-enclosed district to zone its interior in one call, with perimeter roads zoned only on their inner side and connectors outside the area left untouched. exclude_edge_ids removes roads from the selection. Assign an exact unlocked zone or use none to clear. depth_cells selects rows outward from the road. overwrite replaces existing zoning; include_occupied also changes cells under grown buildings. sample_cells limits the echoed before/after samples. No game state changes until apply_zoning.', {
+    request_id: requestId, edge_ids: z.array(entityId).min(1).max(256).optional(), area: planningBounds.optional(), exclude_edge_ids: z.array(entityId).max(256).optional(),
+    zone: z.string().min(1).max(200), road_side: z.enum(['left', 'right', 'both']).default('both'),
+    depth_cells: z.number().int().min(1).max(6).default(6), overwrite: z.boolean().default(false), include_occupied: z.boolean().default(false),
+    sample_cells: z.number().int().min(0).max(32).default(8)
   }],
   ['get_zoning_operation', 'Read a zoning transaction, its exact cell count and sample before/after values.', { operation_id: operationId }],
   ['apply_zoning', 'Apply a preview_ready zoning transaction while paused. Every target cell is compared with its preview snapshot; any conflict applies nothing and write failures are rolled back.', {

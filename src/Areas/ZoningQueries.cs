@@ -30,7 +30,9 @@ namespace CityWeaver
         public ushort ZoneIndex;
         public string Side;
         public int DepthCells;
-        public bool Overwrite, IncludeOccupied;
+        public bool Overwrite, IncludeOccupied, HasArea;
+        public float4 Area;
+        public int SampleLimit = 8;
         public string State = "preview_ready", Error, CommitRequestId;
         public DateTime Created = DateTime.UtcNow, Expires = DateTime.UtcNow.AddMinutes(5);
         public readonly List<Entity> Edges = new List<Entity>();
@@ -41,11 +43,12 @@ namespace CityWeaver
             ["operation_id"] = Id, ["session_id"] = Session, ["request_id"] = RequestId, ["state"] = State,
             ["zone"] = ZoneName, ["zone_index"] = ZoneIndex, ["mode"] = ZoneIndex == 0 ? "clear" : "assign",
             ["road_side"] = Side, ["depth_cells"] = DepthCells, ["overwrite"] = Overwrite,
-            ["include_occupied"] = IncludeOccupied, ["target_edge_ids"] = new JArray(Edges.Select(EntityId)),
+            ["include_occupied"] = IncludeOccupied, ["area"] = HasArea ? new JObject { ["min_x"] = Area.x, ["min_z"] = Area.y, ["max_x"] = Area.z, ["max_z"] = Area.w } : null,
+            ["target_edge_count"] = Edges.Count, ["target_edge_ids"] = Edges.Count <= 64 ? new JArray(Edges.Select(EntityId)) : null,
             ["changed_cell_count"] = Changes.Count,
             ["changes_by_side"] = new JObject { ["left"] = Changes.Count(c => c.Side == "left"), ["right"] = Changes.Count(c => c.Side == "right") },
             ["changes_by_previous_zone"] = new JObject(Changes.GroupBy(c => c.Before.m_Zone.m_Index.ToString()).Select(g => new JProperty(g.Key, g.Count()))),
-            ["sample_cells"] = new JArray(Changes.Take(32).Select(c => new JObject {
+            ["sample_cells"] = new JArray(Changes.Take(SampleLimit).Select(c => new JObject {
                 ["block_id"] = EntityId(c.Block), ["cell_index"] = c.CellIndex, ["grid_x"] = c.GridX, ["grid_y"] = c.GridY,
                 ["depth"] = c.Depth, ["side"] = c.Side, ["position"] = new JObject { ["x"] = c.Position.x, ["y"] = c.Position.y, ["z"] = c.Position.z },
                 ["before_zone_index"] = c.Before.m_Zone.m_Index, ["after_zone_index"] = c.After.m_Zone.m_Index,
@@ -124,20 +127,74 @@ namespace CityWeaver
             float2 delta = point - road; return tangent.x * delta.y - tangent.y * delta.x >= 0 ? "left" : "right";
         }
 
-        private List<ZoningCellChange> SelectZoningCells(JArray edgeIds, string side, int depth, bool overwrite, bool includeOccupied, ushort targetZone, World world, bool includeUnchanged, bool includeInvalid = false)
+        private const int MaxZoningCells = 32768, MaxExplicitZoningEdges = 256, MaxAreaZoningEdges = 2048;
+        // Zone blocks reach 6 cells (48 m) beyond the road side and the widest roads are about 64 m.
+        private const float ZoningAreaEdgeMargin = 96f;
+
+        private static bool InZoningArea(float4 area, float3 pos) => pos.x > area.x && pos.x < area.z && pos.z > area.y && pos.z < area.w;
+
+        // Explicit edge_ids win; otherwise every permanent road whose zone blocks can reach the area is selected.
+        private List<Entity> ZoningTargetEdges(JObject args, World world, out bool hasArea, out float4 area)
         {
-            if (edgeIds == null || edgeIds.Count < 1 || edgeIds.Count > 64) throw new QueryException("INVALID_ARGUMENT", "edge_ids must contain 1..64 permanent road edge IDs.");
-            var em = world.EntityManager; var result = new List<ZoningCellChange>(); var unique = new HashSet<Entity>(); var uniqueCells = new HashSet<string>();
-            foreach (var token in edgeIds)
+            var em = world.EntityManager; var edgeIds = args["edge_ids"] as JArray; var areaToken = args["area"] as JObject;
+            hasArea = areaToken != null; area = default(float4);
+            if ((edgeIds == null || edgeIds.Count == 0) && !hasArea) throw new QueryException("INVALID_ARGUMENT", "Provide edge_ids, area, or both.");
+            if (edgeIds != null && edgeIds.Count > MaxExplicitZoningEdges) throw new QueryException("INVALID_ARGUMENT", "edge_ids may contain at most " + MaxExplicitZoningEdges + " permanent road edge IDs.");
+            if (hasArea)
             {
-                var edge = ParseEntity((string)token, em); if (!unique.Add(edge)) throw new QueryException("DUPLICATE_ROAD_EDGE", "edge_ids must not contain duplicates.");
-                if (!PermanentRoad(em, edge)) throw new QueryException("INVALID_ROAD_EDGE", "Every edge_id must identify an existing permanent road edge.");
+                area = new float4(AreaNumber(areaToken, "min_x"), AreaNumber(areaToken, "min_z"), AreaNumber(areaToken, "max_x"), AreaNumber(areaToken, "max_z"));
+                if (area.x >= area.z || area.y >= area.w) throw new QueryException("INVALID_ARGUMENT", "area min values must be smaller than max values.");
+            }
+            var excluded = new HashSet<Entity>(); if (args["exclude_edge_ids"] is JArray excludeIds) foreach (var token in excludeIds) excluded.Add(ParseEntity((string)token, em));
+            var edges = new List<Entity>(); var unique = new HashSet<Entity>();
+            if (edgeIds != null && edgeIds.Count > 0)
+            {
+                foreach (var token in edgeIds)
+                {
+                    var edge = ParseEntity((string)token, em); if (!unique.Add(edge)) throw new QueryException("DUPLICATE_ROAD_EDGE", "edge_ids must not contain duplicates.");
+                    if (!PermanentRoad(em, edge)) throw new QueryException("INVALID_ROAD_EDGE", "Every edge_id must identify an existing permanent road edge.");
+                    if (!excluded.Contains(edge)) edges.Add(edge);
+                }
+                return edges;
+            }
+            var reach = area + new float4(-ZoningAreaEdgeMargin, -ZoningAreaEdgeMargin, ZoningAreaEdgeMargin, ZoningAreaEdgeMargin);
+            using (var query = em.CreateEntityQuery(new EntityQueryDesc { All = new[] { ComponentType.ReadOnly<Edge>(), ComponentType.ReadOnly<Road>(), ComponentType.ReadOnly<Curve>(), ComponentType.ReadOnly<SubBlock>() },
+                None = new[] { ComponentType.ReadOnly<Temp>(), ComponentType.ReadOnly<Deleted>() } }))
+            using (var entities = query.ToEntityArray(Allocator.Temp))
+            {
+                foreach (var edge in entities)
+                {
+                    if (excluded.Contains(edge)) continue; var b = em.GetComponentData<Curve>(edge).m_Bezier;
+                    // A Bezier curve stays inside the bounding box of its control points.
+                    float2 lo = math.min(math.min(b.a.xz, b.b.xz), math.min(b.c.xz, b.d.xz)), hi = math.max(math.max(b.a.xz, b.b.xz), math.max(b.c.xz, b.d.xz));
+                    if (hi.x < reach.x || lo.x > reach.z || hi.y < reach.y || lo.y > reach.w) continue;
+                    edges.Add(edge); if (edges.Count > MaxAreaZoningEdges) throw new QueryException("AREA_TOO_LARGE", "The area reaches more than " + MaxAreaZoningEdges + " road edges; split it into smaller areas.");
+                }
+            }
+            if (edges.Count == 0) throw new QueryException("NO_ROADS_IN_AREA", "No permanent road with zone blocks reaches the area.");
+            return edges;
+        }
+
+        private static float AreaNumber(JObject area, string name)
+        {
+            var token = area[name]; if (token == null || (token.Type != JTokenType.Float && token.Type != JTokenType.Integer)) throw new QueryException("INVALID_ARGUMENT", "area." + name + " must be a number.");
+            var value = (float)token; if (!math.isfinite(value) || value < -7168 || value > 7168) throw new QueryException("INVALID_ARGUMENT", "area." + name + " must be within -7168..7168.");
+            return value;
+        }
+
+        private List<ZoningCellChange> SelectZoningCells(JObject args, string side, int depth, bool overwrite, bool includeOccupied, ushort targetZone, World world, bool includeUnchanged, out bool hasArea, out float4 area, bool includeInvalid = false)
+        {
+            var edges = ZoningTargetEdges(args, world, out hasArea, out area); var zoneArea = area; var limitToArea = hasArea;
+            var em = world.EntityManager; var result = new List<ZoningCellChange>(); var uniqueCells = new HashSet<string>();
+            foreach (var edge in edges)
+            {
                 if (!em.HasBuffer<SubBlock>(edge)) continue; var curve = em.GetComponentData<Curve>(edge).m_Bezier; var blocks = em.GetBuffer<SubBlock>(edge, true);
                 for (int bi = 0; bi < blocks.Length; bi++)
                 {
                     var blockEntity = blocks[bi].m_SubBlock; if (!em.Exists(blockEntity) || em.HasComponent<Deleted>(blockEntity) || !em.HasComponent<Block>(blockEntity) || !em.HasBuffer<Cell>(blockEntity)) continue;
                     var block = em.GetComponentData<Block>(blockEntity); var cells = em.GetBuffer<Cell>(blockEntity, true); var candidates = new List<Tuple<int, float, float3, string>>();
-                    for (int i = 0; i < cells.Length; i++) { int x = i % block.m_Size.x, y = i / block.m_Size.x; var pos = ZoneUtils.GetCellPosition(block, new int2(x, y)); var closest = ClosestRoad(curve, pos.xz); var cellSide = CellSide(curve, pos.xz, closest.Item1); candidates.Add(Tuple.Create(i, closest.Item2, pos, cellSide)); }
+                    for (int i = 0; i < cells.Length; i++) { int x = i % block.m_Size.x, y = i / block.m_Size.x; var pos = ZoneUtils.GetCellPosition(block, new int2(x, y)); if (limitToArea && !InZoningArea(zoneArea, pos)) continue; var closest = ClosestRoad(curve, pos.xz); var cellSide = CellSide(curve, pos.xz, closest.Item1); candidates.Add(Tuple.Create(i, closest.Item2, pos, cellSide)); }
+                    if (candidates.Count == 0) continue;
                     foreach (var sideGroup in candidates.GroupBy(c => c.Item4))
                     {
                         float nearest = sideGroup.Min(c => c.Item2);
@@ -163,7 +220,7 @@ namespace CityWeaver
         {
             var side = ((string)args["road_side"] ?? "both").ToLowerInvariant(); int depth = ComponentInspector.Int(args, "depth_cells", 6, 1, 6);
             if (side != "left" && side != "right" && side != "both") throw new QueryException("INVALID_ARGUMENT", "road_side must be left, right, or both.");
-            var changes = SelectZoningCells(args["edge_ids"] as JArray, side, depth, true, true, ushort.MaxValue, world, true, true); var names = ZoneNames(world);
+            var changes = SelectZoningCells(args, side, depth, true, true, ushort.MaxValue, world, true, out _, out _, true); var names = ZoneNames(world);
             var items = new JArray(changes.Take(4096).Select(c => new JObject { ["edge_id"] = m_Session + ":" + c.Edge.Index + ":" + c.Edge.Version,
                 ["block_id"] = m_Session + ":" + c.Block.Index + ":" + c.Block.Version, ["cell_index"] = c.CellIndex, ["grid_x"] = c.GridX, ["grid_y"] = c.GridY,
                 ["depth"] = c.Depth, ["side"] = c.Side, ["position"] = new JObject { ["x"] = c.Position.x, ["y"] = c.Position.y, ["z"] = c.Position.z },
@@ -185,11 +242,12 @@ namespace CityWeaver
             int depth = ComponentInspector.Int(args, "depth_cells", 6, 1, 6); bool overwrite = args["overwrite"] != null && (bool)args["overwrite"];
             bool includeOccupied = args["include_occupied"] != null && (bool)args["include_occupied"]; var zoneName = (string)args["zone"] ?? ""; ResolveZone(zoneName, world, out var zoneData);
             ushort targetZone = string.Equals(zoneName, "none", StringComparison.OrdinalIgnoreCase) || string.Equals(zoneName, "clear", StringComparison.OrdinalIgnoreCase) ? (ushort)0 : zoneData.m_ZoneType.m_Index;
-            var changes = SelectZoningCells(args["edge_ids"] as JArray, side, depth, overwrite, includeOccupied, targetZone, world, false);
+            var changes = SelectZoningCells(args, side, depth, overwrite, includeOccupied, targetZone, world, false, out var hasArea, out var area);
             if (changes.Count == 0) throw new QueryException("NO_ZONING_CHANGES", "No eligible zoning cells would change. Inspect cells, enable road zoning, increase depth, allow overwrite, or select different roads.");
-            if (changes.Count > 4096) throw new QueryException("TOO_MANY_CELLS", "One zoning operation may change at most 4096 cells.");
+            if (changes.Count > MaxZoningCells) throw new QueryException("TOO_MANY_CELLS", "One zoning operation may change at most " + MaxZoningCells + " cells; split the area or edge list.");
             var op = new ZoningOperation { Session = m_Session, RequestId = key, Fingerprint = fingerprint, ZoneName = targetZone == 0 ? "none" : zoneName,
-                ZoneIndex = targetZone, Side = side, DepthCells = depth, Overwrite = overwrite, IncludeOccupied = includeOccupied };
+                ZoneIndex = targetZone, Side = side, DepthCells = depth, Overwrite = overwrite, IncludeOccupied = includeOccupied,
+                HasArea = hasArea, Area = area, SampleLimit = ComponentInspector.Int(args, "sample_cells", 8, 0, 32) };
             op.Edges.AddRange(changes.Select(c => c.Edge).Distinct()); op.Changes.AddRange(changes); m_ZoningOperations.Add(op.Id, op); m_ZoningRequestIds.Add(key, op.Id); return op;
         }
 

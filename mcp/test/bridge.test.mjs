@@ -501,6 +501,8 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
   assert.deepEqual((await client.callTool({ name: 'preview_road_batch_demolition', arguments: batchDemolition })).structuredContent.data.args, batchDemolition);
   const zoning = { request_id: 'road-zoning-001', edge_ids: edgeIds, left_enabled: false };
   assert.deepEqual((await client.callTool({ name: 'preview_road_zoning', arguments: zoning })).structuredContent.data.args, zoning);
+  const areaZoning = { request_id: 'area-zoning-001', area: { min_x: -4736, min_z: 3904, max_x: -3904, max_z: 4736 }, exclude_edge_ids: [edgeIds[1]], zone: 'Fixture Zone', road_side: 'both', depth_cells: 6, overwrite: false, include_occupied: false, sample_cells: 0 };
+  assert.deepEqual((await client.callTool({ name: 'preview_zoning', arguments: areaZoning })).structuredContent.data.args, areaZoning);
   const features = { request_id: 'fixture-features-001', edge_ids: ['a'.repeat(32) + ':1:1'], left_decoration: 'trees', right_wide_sidewalk: true, median_decoration: 'grass' };
   assert.deepEqual((await client.callTool({ name: 'preview_road_features', arguments: features })).structuredContent.data.args, features);
   const treeSpecies = { request_id: 'fixture-tree-species-001', edge_ids: edgeIds, left_tree_prefab: 'CoconutPalmTree01', right_tree_prefab: 'CoconutPalmTree01' };
@@ -611,6 +613,7 @@ test('real MCP handshake, tool schemas, query forwarding and validation', async 
     { name: 'preview_road_grid', arguments: { request_id: 'bad-grid-001', road_prefab: 'Fixture Road', origin: { x: 0, z: 0 }, columns: 2, rows: 2, block_width_m: 95, block_height_m: 80 } },
     { name: 'preview_road_batch_upgrade', arguments: { request_id: 'bad-batch-001', edge_ids: [], road_prefab: 'Fixture Road' } },
     { name: 'inspect_road_zoning', arguments: { edge_ids: [] } },
+    { name: 'preview_zoning', arguments: { request_id: 'bad-zoning-001', zone: 'Fixture Zone', area: { min_x: 10, min_z: 0, max_x: 0, max_z: 10 } } },
     { name: 'preview_road_batch_demolition', arguments: { request_id: 'bad-batch-002', edge_ids: Array(65).fill('a'.repeat(32) + ':1:1') } },
     { name: 'preview_road', arguments: { ...road, request_id: 'short' } },
     { name: 'build_road', arguments: { operation_id: commit.operation_id, request_id: commit.request_id } },
