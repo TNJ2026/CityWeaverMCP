@@ -1,0 +1,50 @@
+{
+  "at": "2026-09-21T01:13:23.196Z",
+  "dryRun": false,
+  "centre": {
+    "x": -400,
+    "z": -1248
+  },
+  "rEdge": 775.96,
+  "towers": [],
+  "before": {
+    "paused": false,
+    "summary": {
+      "city_name": "佩奇代尔",
+      "building_counts": {
+        "all": 534,
+        "residential": 253,
+        "commercial": 65,
+        "industrial": 128,
+        "office": 21
+      },
+      "population": 16138,
+      "money": 21066151,
+      "population_with_move_in": 16954,
+      "average_happiness": 80,
+      "average_health": 70,
+      "unlimited_money": false,
+      "metric_notes": "Counts are building entities, not housing units. Category counts may overlap. Population values come directly from Game.City.Population; money is game currency. Null means unavailable.",
+      "city_entity_id": "fd537682d55349c282f74590a72dea69:356498:1"
+    },
+    "water": {
+      "consumers": 484,
+      "wanted": 484,
+      "waterOk": 484,
+      "waterMissing": 0,
+      "sewageOk": 484,
+      "issues": [],
+      "pipeEdges": 804,
+      "pipeFlags": {
+        "WaterDisconnected": 24,
+        "SewageDisconnected": 36
+      },
+      "freshFlow": 481961,
+      "freshCap": 667867641674,
+      "disconnectedInUse": 0
+    }
+  },
+  "fatal": {
+    "message": "preview not clean for: bld-003 — nothing committed"
+  }
+}

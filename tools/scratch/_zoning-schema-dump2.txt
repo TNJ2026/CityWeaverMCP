@@ -1,0 +1,61 @@
+===== 'preview_zoning', @60716 =====
+
+'preview_zoning', 'apply_zoning']),
+    request_id: requestId,
+    expected_session_id: z.string().min(1).max(200).optional(),
+    operation_id: operationId.optional(),
+    max_cost: z.number().int().min(0).max(1000000000).optional(),
+    edge_ids: z.array(entityId).min(1).max(64).optional(),
+    zone_type: z.string().min(1).max(200).optional(),
+    road_side: z.enum(['left', 'right', 'both']).default('both'),
+    depth_cells: z.number().int().min(1).max(6).default(6),
+    overwrite: z.boolean().default(true),
+    include_occupied: z.boolean().default(false),
+    operation_timeout_ms: z.number().int().min(1000).max(120000).default(20000)
+  }],
+  ['deploy_grid_district', 'High-level grid-district workflow. The safe default approval_mode=staged creates and returns only one native road-grid preview plus a deterministic advance_grid_construction action; it makes no permanent change. approval_mode=automatic is an explicit opt-in that continues through road, optional zoning and optional roadside-building commits. Stable request_id values make retries idempotent within the MCP process and derive stable per-phase IDs. Use exact live prefab names. Separate adjacent grids so their perimeter roads do not overlap.', {
+    request_id: requestId,
+    approval_mode: z.enum(['staged', 'automatic']).default('staged'),
+    origin: roadControl,
+    columns: z.number().int().min(1).max(5).default(3),
+    rows: z.number().int().min(1).max(5).default(3),
+    block_width_m: z.num
+
+===== 'preview_zoning', @97639 =====
+
+'preview_zoning', 'Prepare an atomic zoning-cell transaction for selected roads. Assign an exact unlocked zone or use none to clear. depth_cells selects rows outward from the road. overwrite replaces existing zoning; include_occupied also changes cells under grown buildings. No game state changes until apply_zoning.', {
+    request_id: requestId, edge_ids: z.array(entityId).min(1).max(64), zone: z.string().min(1).max(200), road_side: z.enum(['left', 'right', 'both']).default('both'),
+    depth_cells: z.number().int().min(1).max(6).default(6), overwrite: z.boolean().default(false), include_occupied: z.boolean().default(false)
+  }],
+  ['get_zoning_operation', 'Read a zoning transaction, its exact cell count and sample before/after values.', { operation_id: operationId }],
+  ['apply_zoning', 'Apply a preview_ready zoning transaction while paused. Every target cell is compared with its preview snapshot; any conflict applies nothing and write failures are rolled back.', {
+    operation_id: operationId, request_id: requestId
+  }],
+  ['cancel_zoning_preview', 'Cancel an uncommitted zoning transaction.', { operation_id: operationId }],
+  ['list_districts', 'List every permanent administrative district with name, center, bounds, surface area and policy state.', {}],
+  ['get_district', 'Read one district including its complete polygon boundary and active policies.', { district_id: entityId }],
+  ['find_district_at', 'Find the administrative district containing a world x/z po
+
+===== 'apply_zoning', @98428 =====
+
+'apply_zoning', 'Apply a preview_ready zoning transaction while paused. Every target cell is compared with its preview snapshot; any conflict applies nothing and write failures are rolled back.', {
+    operation_id: operationId, request_id: requestId
+  }],
+  ['cancel_zoning_preview', 'Cancel an uncommitted zoning transaction.', { operation_id: operationId }],
+  ['list_districts', 'List every permanent administrative district with name, center, bounds, surface area and policy state.', {}],
+  ['get_district', 'Read one district including its complete polygon boundary and active policies.', { district_id: entityId }],
+  ['find_district_at', 'Find the administrative district containing a world x/z position.', { x: coordinate, z: coordinate }],
+  ['get_district_coverage', 'List live entities whose native CurrentDistrict points to this district.', { district_id: entityId, limit: z.number().int().min(1).max(1000).default(100) }],
+  ['preview_district_create', 'Create a native temporary district polygon. Points may include y; omitted y follows terrain. No permanent state changes until apply.', { request_id: requestId, name: z.string().max(100).default(''), boundary: z.array(z.object({ x: coordinate, y: z.number().finite().min(-1000).max(5000).optional(), z: coordinate }).strict()).min(3).max(65) }],
+  ['preview_district_boundary', 'Replace the complete boundary of an existing district through the native area relocation pipeline.', { request_id: requestId, district_id: entity
+
+===== 'cancel_zoning_preview', @98691 =====
+
+'cancel_zoning_preview', 'Cancel an uncommitted zoning transaction.', { operation_id: operationId }],
+  ['list_districts', 'List every permanent administrative district with name, center, bounds, surface area and policy state.', {}],
+  ['get_district', 'Read one district including its complete polygon boundary and active policies.', { district_id: entityId }],
+  ['find_district_at', 'Find the administrative district containing a world x/z position.', { x: coordinate, z: coordinate }],
+  ['get_district_coverage', 'List live entities whose native CurrentDistrict points to this district.', { district_id: entityId, limit: z.number().int().min(1).max(1000).default(100) }],
+  ['preview_district_create', 'Create a native temporary district polygon. Points may include y; omitted y follows terrain. No permanent state changes until apply.', { request_id: requestId, name: z.string().max(100).default(''), boundary: z.array(z.object({ x: coordinate, y: z.number().finite().min(-1000).max(5000).optional(), z: coordinate }).strict()).min(3).max(65) }],
+  ['preview_district_boundary', 'Replace the complete boundary of an existing district through the native area relocation pipeline.', { request_id: requestId, district_id: entityId, boundary: z.array(z.object({ x: coordinate, y: z.number().finite().min(-1000).max(5000).optional(), z: coordinate }).strict()).min(3).max(65) }],
+  ['preview_district_delete', 'Preview native deletion of an administrative district.', { request_id: requestId,

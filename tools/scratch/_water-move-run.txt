@@ -1,0 +1,25 @@
+﻿=== preflight ===
+  city="浣╁浠ｅ皵" bridge=1.23.1 paused=false  money=21071300 pop=16166
+  live roads 297 (ring 49); live buildings 532
+  ring sides: 48 of 49 Large Road edges (excluded 1 outer spur edge(s))
+  water baseline: consumers=487 wanted=487 WaterConnected=487 missing=0 sewageOk=487 pipeEdges=804 flags={"WaterDisconnected":24,"SewageDisconnected":36} freshFlow=483887
+
+=== current tower state ===
+  bld-005 姘村 3  (-196.0, -1026.1) r=301  production=19086  road_edge=fd537682d55349c282f74590a72dea69:351097:5  producerEdge=fd537682d55349c282f74590a72dea69:392851:13
+  bld-004 姘村 2  (-88.0, -1213.3) r=314  production=29413  road_edge=fd537682d55349c282f74590a72dea69:351096:5  producerEdge=fd537682d55349c282f74590a72dea69:392879:11
+  bld-003 姘村 1  (-141.0, -1121.4) r=288  production=30000  road_edge=fd537682d55349c282f74590a72dea69:351096:5  producerEdge=fd537682d55349c282f74590a72dea69:392835:11
+
+=== G1 ring scan (fresh live candidates) ===
+  90 anchors -> 529 distinct candidates -> 239 usable (on ring, outside, no collision)
+  233 of them are at least 40 m from any existing building
+  bld-005 姘村 3  from (-196.0, -1026.1) r=301  ->  (513.9, -1281.4) rot=-60.0  r=914.5 bearing=-2.1deg  gap=32.3  side=right  fd537682d55349c282f74590a72dea69:359099:1
+      nearest building OfficeLow01_L1_5x6 @ 162 m | fallback ladder: 14 more sites in the same +-45deg sector
+  bld-004 姘村 2  from (-88.0, -1213.3) r=314  ->  (-828.0, -439.8) rot=-180.0  r=914.6 bearing=117.9deg  gap=32.3  side=right  fd537682d55349c282f74590a72dea69:48967:3
+      nearest building WastewaterTreatmentPlant01 @ 144.4 m | fallback ladder: 14 more sites in the same +-45deg sector
+  bld-003 姘村 1  from (-141.0, -1121.4) r=288  ->  (-830.1, -1990.6) rot=-120.0  r=858.1 bearing=-120.1deg  gap=32.3  side=left  fd537682d55349c282f74590a72dea69:359091:1
+      nearest building Cemetery02 @ 77.5 m | fallback ladder: 14 more sites in the same +-45deg sector
+
+simulation paused: true
+
+=== G2 preview (walk the ladder until the native preview is clean) ===
+  bld-005 姘村 3  (513.9, -1281.4) r=914.5  state=preview_ready can_commit=true cost=0 errors=[]  ACCEPT

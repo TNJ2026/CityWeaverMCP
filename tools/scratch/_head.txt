@@ -1,0 +1,40 @@
+﻿{
+  "plan_id": "cplan-56c6823bd9701dac",
+  "city": "浣╁浠ｅ皵",
+  "name": "浣╁浠ｅ皵锝滄鍏竟褰㈠煄闀囨柦宸ュ浘锛堝彧璇昏鍒掞紝灏氭湭鎺堟潈鏂藉伐锛?,
+  "target_population": 3818,
+  "bounds": {
+    "min_x": -1558.26074,
+    "min_z": -2804.86914,
+    "max_x": 934.956543,
+    "max_z": 311.652344
+  },
+  "render": {
+    "title": "浣╁浠ｅ皵锝滄鍏竟褰㈠煄闀囨柦宸ュ浘锛堝彧璇昏鍒掞紝灏氭湭鎺堟潈鏂藉伐锛?,
+    "width": 2200,
+    "height": 1600,
+    "view": "surface",
+    "format": "static_html"
+  },
+  "water_cell_size_m": 128,
+  "terrain_cell_size_m": null,
+  "geometry": {
+    "hexagon": {
+      "center": {
+        "x": -400,
+        "z": -1248
+      },
+      "circumradius_m": 896,
+      "apothem_m": 776,
+      "vertices": [
+        {
+          "x": 496,
+          "z": -1248
+        },
+        {
+          "x": 48,
+          "z": -472
+        },
+        {
+          "x": -848,
+          "z": -472

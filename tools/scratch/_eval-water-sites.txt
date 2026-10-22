@@ -1,0 +1,66 @@
+﻿=== WaterTower prefab records ===
+{
+  "name": "WaterTower01",
+  "kind": "water_tower",
+  "locked": false,
+  "construction_cost": 60000,
+  "placement_flags": "RoadSide, OnGround, SubNetSnap",
+  "lot_cells": {
+    "width": 4,
+    "depth": 4
+  },
+  "requires_road": false,
+  "size_m": {
+    "x": 31.6,
+    "y": 51.4443359,
+    "z": 31.6
+  }
+}
+{
+  "name": "WaterTower02",
+  "kind": "water_tower",
+  "locked": false,
+  "construction_cost": 30000,
+  "placement_flags": "RoadSide, OnGround, SubNetSnap",
+  "lot_cells": {
+    "width": 2,
+    "depth": 2
+  },
+  "requires_road": false,
+  "size_m": {
+    "x": 15.6,
+    "y": 26.4009953,
+    "z": 15.6
+  }
+}
+{
+  "name": "WaterTower03",
+  "kind": "water_tower",
+  "locked": false,
+  "construction_cost": 20000,
+  "placement_flags": "RoadSide, OnGround, SubNetSnap",
+  "lot_cells": {
+    "width": 1,
+    "depth": 1
+  },
+  "requires_road": false,
+  "size_m": {
+    "x": 7.6,
+    "y": 23.097,
+    "z": 7.6
+  }
+}
+
+=== soil water (raw game units) ===
+cur-1              amount=       0  cellAmount=       0  max=       0  sat=0.0000  surf=0
+cur-2              amount=       0  cellAmount=       0  max=       0  sat=0.0000  surf=0
+cur-3              amount=       0  cellAmount=       0  max=       0  sat=0.0000  surf=0
+A  180deg-corner   amount=       0  cellAmount=       0  max=       0  sat=0.0000  surf=0
+B  -60deg-corner   amount=       0  cellAmount=       0  max=       0  sat=0.0000  surf=0
+C   60deg-corner   amount=       0  cellAmount=       0  max=       0  sat=0.0000  surf=0
+C2  alt 60deg      amount=       0  cellAmount=       0  max=       0  sat=0.0000  surf=0
+A2  alt 240deg     amount=       0  cellAmount=       0  max=       0  sat=0.0000  surf=0
+B2  alt 240deg     amount=       0  cellAmount=       0  max=       0  sat=0.0000  surf=0
+
+=== pollution ===
+{"items":[{"position":{"x":-141.010574,"z":-1121.442},"air":0,"ground":0,"noise":416},{"position":{"x":-196.003326,"z":-1026.121},"air":0,"ground":0,"noise":523},{"position":{"x":-88.0034,"z":-1213.32117},"air":0,"ground":0,"noise":382},{"position":{"x":-1313.9,"z":-1281.4},"air":3,"ground":11,"noise":2786},{"position":{"x":85.9,"z":-2022.8},"air":0,"ground":0,"noise":858},{"position":{"x":-44,"z":-439.8},"air":0,"ground":0,"noise":56},{"position":{"x":103.9,"z":-504.4},"air":0,"ground":0,"noise":45},{"position":{"x":-885.9,"z":-2022.8},"air":3,"ground":2,"noise":1100},{"position":{"x":-810,"z":-2056.2},"air":4,"ground":3,"noise":938}],"units":"raw game pollution units (0..32767)"}

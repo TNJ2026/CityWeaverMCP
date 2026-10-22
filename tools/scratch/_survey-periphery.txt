@@ -1,0 +1,34 @@
+﻿bld-003 WaterTower01 size_m={"x":31.6,"z":31.6} reserved={"x":32,"z":32} rot=60.01836 road=fd537682d55349c282f74590a72dea69:351096:5 side=left order=101
+bld-004 WaterTower01 size_m={"x":31.6,"z":31.6} reserved={"x":32,"z":32} rot=60.01836 road=fd537682d55349c282f74590a72dea69:351096:5 side=left order=101
+bld-005 WaterTower01 size_m={"x":31.6,"z":31.6} reserved={"x":32,"z":32} rot=60.01836 road=fd537682d55349c282f74590a72dea69:351097:5 side=left order=101
+
+live road edges in bounds: 296
+road prefabs:
+  Small Road: 179
+  Medium Road: 67
+  Large Road: 48
+  Highway Oneway - 2 lanes: 2
+
+--- 14 edges with the largest max-radius ---
+  fd537682d55349c282f74590a72dea69:352907:1  Highway Oneway - 2 lanes  minR=991 maxR=1175  farPoint=(-1566.8, -1112.6)
+  fd537682d55349c282f74590a72dea69:352909:1  Highway Oneway - 2 lanes  minR=990 maxR=1174  farPoint=(-1568.3, -1128.5)
+  fd537682d55349c282f74590a72dea69:352414:5  Medium Road  minR=896 maxR=989  farPoint=(-1384.0, -1144.0)
+  fd537682d55349c282f74590a72dea69:352471:7  Medium Road  minR=784 maxR=896  farPoint=(-848.0, -2024.0)
+  fd537682d55349c282f74590a72dea69:359925:7  Medium Road  minR=784 maxR=896  farPoint=(48.0, -472.0)
+  fd537682d55349c282f74590a72dea69:352365:5  Medium Road  minR=784 maxR=896  farPoint=(-848.0, -472.0)
+  fd537682d55349c282f74590a72dea69:48963:3  Large Road  minR=846 maxR=896  farPoint=(48.0, -472.0)
+  fd537682d55349c282f74590a72dea69:48949:3  Large Road  minR=846 maxR=896  farPoint=(48.0, -472.0)
+  fd537682d55349c282f74590a72dea69:48953:3  Large Road  minR=846 maxR=896  farPoint=(-848.0, -472.0)
+  fd537682d55349c282f74590a72dea69:48967:3  Large Road  minR=846 maxR=896  farPoint=(-848.0, -472.0)
+  fd537682d55349c282f74590a72dea69:352494:9  Medium Road  minR=784 maxR=896  farPoint=(48.0, -2024.0)
+  fd537682d55349c282f74590a72dea69:359083:1  Large Road  minR=846 maxR=896  farPoint=(-848.0, -2024.0)
+  fd537682d55349c282f74590a72dea69:359091:1  Large Road  minR=846 maxR=896  farPoint=(-848.0, -2024.0)
+  fd537682d55349c282f74590a72dea69:359095:1  Large Road  minR=846 maxR=896  farPoint=(48.0, -2024.0)
+
+--- nearest road edge to each of the 6 hexagon edge-midpoints (outer side) ---
+   30deg anchor=(272.0, -860.0)  -> fd537682d55349c282f74590a72dea69:363678:7 Small Road maxR=751 centreDist=52.0
+   90deg anchor=(-400.0, -472.0)  -> fd537682d55349c282f74590a72dea69:352618:9 Medium Road maxR=776 centreDist=0.0
+  150deg anchor=(-1072.0, -860.0)  -> fd537682d55349c282f74590a72dea69:363905:11 Small Road maxR=751 centreDist=52.0
+  210deg anchor=(-1072.0, -1636.0)  -> fd537682d55349c282f74590a72dea69:367223:11 Small Road maxR=751 centreDist=52.0
+  270deg anchor=(-400.0, -2024.0)  -> fd537682d55349c282f74590a72dea69:353677:13 Medium Road maxR=776 centreDist=0.0
+  330deg anchor=(272.0, -1636.0)  -> fd537682d55349c282f74590a72dea69:72255:65 Small Road maxR=751 centreDist=52.0

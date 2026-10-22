@@ -1,0 +1,149 @@
+===== preview_zoning @21819 =====
+
+lse, destructiveHint: true },
+  cancel_building_area_preview: { ...annotations, readOnlyHint: false },
+  set_building_name: { ...annotations, readOnlyHint: false },
+  set_building_active: { ...annotations, readOnlyHint: false },
+  set_building_policy: { ...annotations, readOnlyHint: false },
+  preview_zoning: { ...annotations, readOnlyHint: false },
+  apply_zoning: { ...annotations, readOnlyHint: false, destructiveHint: true },
+  cancel_zoning_preview: { ...annotations, readOnlyHint: false },
+  preview_district_create: { ...annotations, readOnlyHint: false },
+  preview_district_boundary: { ...annotations, readOnlyHint: false },
+  preview_district_delete: { ...annotations, readOnlyHint: false },
+  apply_district_operation: { ...annotations, readOnlyHint: false, destructiveHint: true },
+  cancel_district_preview: { ...annotations, readOnlyHint: false },
+  set_district_name: { ...annotations, readOnlyHint: false },
+  set_district_policy: { ...annotations, readOnlyHint: false },
+  set_service_districts: { ...annotations, readOnlyHint: false },
+  preview_transport_line: { ...annotations, readOnlyHint: false },
+  preview_transport_line_stops: { ...annotations, readOnlyHi
+
+===== preview_zoning @57598 =====
+
+gh-level preflight for a planned grid district. Validates every exact road prefab and the intended zone type against the live catalogs and current city theme, pauses only while creating and polling one native road-grid preview, then restores the original simulation speed. It never calls build_road, preview_zoning or any apply tool. Zoning remains explicitly blocked until permanent road edge IDs exist. The preview expires and can be removed with the returned cancel_road_preview action.', {
+    request_id: requestId,
+    origin: roadControl,
+    columns: z.number().int().min(1).max(5).default(3),
+    rows: z.number().int().min(1).max(5).default(3),
+    block_width_m: z.number().int().min(32).max(240).multipleOf(8).default(96),
+    block_height_m: z.number().int().min(32).max(240).multipleOf(8).default(96),
+    road_prefab: z.string().min(1).max(200),
+    horizontal_road_prefab: z.string().min(1).max(200).optional(),
+    vertical_road_prefab: z.string().min(1).max(200).optional(),
+    perimeter_road_prefab: z.string().min(1).max(200).optional(),
+    auto_connect: z.boolean().default(false),
+    connection_sides: z.array(z.enum(['north', 'east', 'south', 'west'])).min(1).ma
+
+===== preview_zoning @60293 =====
+
+.default('static_html') }).strict().optional()
+  }],
+  ['advance_grid_construction', 'Advance exactly one authorized construction stage after prepare_grid_native_preview. commit_roads consumes its preview_ready road operation, enforces max_cost, waits for completed and returns permanent edge IDs. preview_zoning accepts only those permanent IDs, validates the exact live zone/theme, inspects native zoning blocks and creates a separate atomic zoning preview. apply_zoning commits only that preview_ready zoning operation. Every call stops on failure or outcome_unknown, returns a next_action for the following stage, and never demolishes completed roads as an automatic rollback.', {
+    stage: z.enum(['commit_roads', 'preview_zoning', 'apply_zoning']),
+    request_id: requestId,
+    expected_session_id: z.string().min(1).max(200).optional(),
+    operation_id: operationId.optional(),
+    max_cost: z.number().int().min(0).max(1000000000).optional(),
+    edge_ids: z.array(entityId).min(1).max(64).optional(),
+    zone_type: z.string().min(1).max(200).optional(),
+    road_side: z.enum(['left', 'right', 'both']).default('both'),
+    depth_cells: z.number().int().min(1).max(6).default
+
+===== apply_zoning @21879 =====
+
+w: { ...annotations, readOnlyHint: false },
+  set_building_name: { ...annotations, readOnlyHint: false },
+  set_building_active: { ...annotations, readOnlyHint: false },
+  set_building_policy: { ...annotations, readOnlyHint: false },
+  preview_zoning: { ...annotations, readOnlyHint: false },
+  apply_zoning: { ...annotations, readOnlyHint: false, destructiveHint: true },
+  cancel_zoning_preview: { ...annotations, readOnlyHint: false },
+  preview_district_create: { ...annotations, readOnlyHint: false },
+  preview_district_boundary: { ...annotations, readOnlyHint: false },
+  preview_district_delete: { ...annotations, readOnlyHint: false },
+  apply_district_operation: { ...annotations, readOnlyHint: false, destructiveHint: true },
+  cancel_district_preview: { ...annotations, readOnlyHint: false },
+  set_district_name: { ...annotations, readOnlyHint: false },
+  set_district_policy: { ...annotations, readOnlyHint: false },
+  set_service_districts: { ...annotations, readOnlyHint: false },
+  preview_transport_line: { ...annotations, readOnlyHint: false },
+  preview_transport_line_stops: { ...annotations, readOnlyHint: false },
+  preview_transport_line_delete: { ...annotati
+
+===== apply_zoning @60455 =====
+
+e_preview. commit_roads consumes its preview_ready road operation, enforces max_cost, waits for completed and returns permanent edge IDs. preview_zoning accepts only those permanent IDs, validates the exact live zone/theme, inspects native zoning blocks and creates a separate atomic zoning preview. apply_zoning commits only that preview_ready zoning operation. Every call stops on failure or outcome_unknown, returns a next_action for the following stage, and never demolishes completed roads as an automatic rollback.', {
+    stage: z.enum(['commit_roads', 'preview_zoning', 'apply_zoning']),
+    request_id: requestId,
+    expected_session_id: z.string().min(1).max(200).optional(),
+    operation_id: operationId.optional(),
+    max_cost: z.number().int().min(0).max(1000000000).optional(),
+    edge_ids: z.array(entityId).min(1).max(64).optional(),
+    zone_type: z.string().min(1).max(200).optional(),
+    road_side: z.enum(['left', 'right', 'both']).default('both'),
+    depth_cells: z.number().int().min(1).max(6).default(6),
+    overwrite: z.boolean().default(true),
+    include_occupied: z.boolean().default(false),
+    operation_timeout_ms: z.number().int().min(1000).max(12000
+
+===== apply_zoning @60735 =====
+
+mic zoning preview. apply_zoning commits only that preview_ready zoning operation. Every call stops on failure or outcome_unknown, returns a next_action for the following stage, and never demolishes completed roads as an automatic rollback.', {
+    stage: z.enum(['commit_roads', 'preview_zoning', 'apply_zoning']),
+    request_id: requestId,
+    expected_session_id: z.string().min(1).max(200).optional(),
+    operation_id: operationId.optional(),
+    max_cost: z.number().int().min(0).max(1000000000).optional(),
+    edge_ids: z.array(entityId).min(1).max(64).optional(),
+    zone_type: z.string().min(1).max(200).optional(),
+    road_side: z.enum(['left', 'right', 'both']).default('both'),
+    depth_cells: z.number().int().min(1).max(6).default(6),
+    overwrite: z.boolean().default(true),
+    include_occupied: z.boolean().default(false),
+    operation_timeout_ms: z.number().int().min(1000).max(120000).default(20000)
+  }],
+  ['deploy_grid_district', 'High-level grid-district workflow. The safe default approval_mode=staged creates and returns only one native road-grid preview plus a deterministic advance_grid_construction action; it makes no permanent change. approval_mode=
+
+===== inspect_road_zoning @53014 =====
+
+eneck markers, lane flow offsets and accumulated road flow samples. Returns city averages and concrete edge IDs for upgrade, parallel relief or intersection optimization.', {
+    edge_ids: z.array(entityId).min(1).max(256).optional(), limit: z.number().int().min(1).max(100).default(20)
+  }],
+  ['inspect_road_zoning', 'Inspect native Zone Block and Cell data owned by 1..64 permanent road edges. Reports block direction, 8 metre cell-lattice consistency, clear frontage, and Blocked, Shared, Occupied and Redundant cell counts. orderly_geometry verifies axis-aligned blocks, a common lattice phase and buffer-size consistency; it does not guarantee compatibility with every building prefab.', {
+    edge_ids: z.array(entityId).min(1).max(64)
+  }],
+  ['preview_road', 'Create a temporary in-game road preview. Requires a paused city and default selection tool. x/z are world metres; elevation_m is relative to terrain for a new point (-50..50). Values at or above 8m force elevated structures; values at or below -12m request tunnels. Optional node_id joins an existing node; edge_id snaps to and splits an existing road edge. Attached endpoints use their existing height. Optional curve suppor
+
+===== list_zone_types @96933 =====
+
+used city and max_cost at least the current preview cost.', { operation_id: operationId, request_id: requestId, max_cost: z.number().int().min(0).max(1000000000) }],
+  ['cancel_building_area_preview', 'Cancel and clean up an uncommitted building-area preview.', { operation_id: operationId }],
+  ['list_zone_types', 'List live zone prefab names and indices, area types, lot support, height limits and lock state. Use the exact name with preview_zoning; use none to clear zoning.', {
+    search: z.string().max(100).default(''), unlocked_only: z.boolean().default(true)
+  }],
+  ['analyze_zoning_cells', 'Read eligible native zoning cells attached to selected permanent roads, including world position, road side, depth, current zone, cell state, occupancy and height limit. Side follows each edge start-to-end direction.', {
+    edge_ids: z.array(entityId).min(1).max(64), road_side: z.enum(['left', 'right', 'both']).default('both'), depth_cells: z.number().int().min(1).max(6).default(6)
+  }],
+  ['preview_zoning', 'Prepare an atomic zoning-cell transaction for selected roads. Assign an exact unlocked zone or use none to clear. depth_cells selects rows outward from the road. overwrite rep
+
+===== list_zone_types @181034 =====
+
+sedTiles.map(tile => tile.bounds.max_z)),
+        };
+        const proposalSnapshot = { ...snapshot, bounds };
+        const [roadCatalog, zoneCatalog, cityConfiguration] = await Promise.all([
+          queryGame('list_road_prefabs', { search: '', offset: 0, limit: 100 }),
+          queryGame('list_zone_types', { search: '', unlocked_only: true }),
+          queryGame('get_city_configuration', {}),
+        ]);
+        const conceptualProposal = proposeGridPlan(proposalSnapshot, args);
+        const boundProposal = bindGridProposal(conceptualProposal, {
+          road_prefabs: roadCatalog.data?.items ?? [],
+          zone_types: zoneCatalog.data?.items ?? [],
+        }, { ...args, city_theme: cityConfiguration.data?.theme });
+        const proposal = name === 'propose_city_plan' ? augmentGridProposal(boundProposal, args) : boundProposal;
+        const renderOptions = { ...args.render, bounds: snapshot.bounds, planning_bounds: bounds, include_existing: true };
+        const htmlFormat = args.render.format !== 'svg';
+        const renderMetadata = await planningRenderCache.renderArtifact(snapshot, proposal.plan, renderOptions, htmlFormat);
+        result = { ok: true,

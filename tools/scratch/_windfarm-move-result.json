@@ -1,0 +1,24 @@
+{
+  "at": "2026-09-21T00:32:22.642Z",
+  "dryRun": false,
+  "results": [
+    {
+      "planId": "bld-009",
+      "label": "小型风机 3",
+      "x": 681.6,
+      "z": -715.8,
+      "entity": "fd537682d55349c282f74590a72dea69:362016:3",
+      "anchorDeg": 270,
+      "state": "completed",
+      "target": {
+        "x": -435.799957,
+        "y": 617.7594,
+        "z": -2072.0498
+      },
+      "rotation": 0,
+      "road_edge_id": "fd537682d55349c282f74590a72dea69:359093:1",
+      "cost": 0,
+      "result_ids": []
+    }
+  ]
+}

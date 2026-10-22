@@ -1,0 +1,57 @@
+﻿live facilities: 9
+
+kind         prefab                        position                  radius  bearing
+water_tower  WaterTower01                  (-141.0, -1121.4)           288     26.0deg
+water_tower  WaterTower01                  (-196.0, -1026.1)           301     47.4deg
+water_tower  WaterTower01                  (-88.0, -1213.3)            314      6.3deg
+sewage       WastewaterTreatmentPlant01    (-685.6, -415.8)            880    108.9deg
+power_plant  WindTurbine02                 (310.5, -878.7)             801     27.5deg
+power_plant  WindTurbine02                 (-1064.8, -799.5)           802    146.0deg
+transformer  TransformerStation01          (-1021.7, -684.3)           839    137.8deg
+telecom      RadioMast01                   (-424.0, -1187.2)            65    111.5deg
+power_plant  WindTurbine02                 (-992.8, -1821.2)           825   -136.0deg
+
+--- plan buildings with plan radius > 700 ---
+bld-001 GroundwaterPumpingStation01    (292.9, -815.6)  r=817  32.0deg
+bld-002 GroundwaterPumpingStation01    (320.9, -864.1)  r=817  28.0deg
+bld-006 SewageOutlet01                 (637.9, -873.9)  r=1103  19.8deg
+bld-007 WindTurbine02                  (310.5, -878.7)  r=801  27.5deg
+bld-008 WindTurbine02                  (-1064.8, -799.5)  r=802  146.0deg
+bld-009 WindTurbine02                  (-435.8, -2048.0)  r=801  -92.6deg
+bld-010 TransformerStation01           (-1021.7, -684.3)  r=839  137.8deg
+bld-014 WastewaterTreatmentPlant01     (-685.6, -415.8)  r=880  108.9deg
+bld-015 MedicalClinic01                (-949.1, -727.7)  r=756  136.5deg
+bld-016 MedicalClinic01                (-949.1, -1768.3)  r=756  -136.5deg
+bld-017 MedicalClinic02                (84.6, -607.9)  r=803  52.9deg
+bld-018 MedicalClinic02                (-355.2, -508.3)  r=741  86.5deg
+bld-024 PoliceStation02                (-444.8, -508.3)  r=741  93.5deg
+bld-025 PoliceStation02                (-1140.6, -1051.3)  r=766  165.1deg
+bld-026 PoliceStation02                (-1018.2, -839.3)  r=741  146.5deg
+bld-027 ElementarySchool02             (-1238.9, -1427.5)  r=858  -167.9deg
+bld-028 ElementarySchool02             (-584.0, -1983.7)  r=758  -104.0deg
+bld-029 ElementarySchool02             (-552.0, -2064.3)  r=830  -100.5deg
+bld-030 HighSchool02                   (-237.6, -1975.8)  r=746  -77.4deg
+bld-031 Cemetery02                     (-114.4, -1983.8)  r=789  -68.8deg
+bld-032 Crematorium01                  (-700.0, -1967.8)  r=780  -112.6deg
+bld-034 ParkMaintenanceDepot01         (71.3, -1871.2)  r=781  -52.9deg
+bld-035 RoadMaintenanceDepot01         (-97.5, -1892.4)  r=712  -64.9deg
+bld-036 LargeEmergencyShelter01        (-359.7, -1976.2)  r=729  -86.8deg
+bld-037 LargeEmergencyShelter01        (-440.2, -1976.2)  r=729  -93.2deg
+bld-038 EmergencyShelter01             (228.6, -833.3)  r=753  33.4deg
+bld-039 EmergencyShelter01             (-1025.8, -731.5)  r=811  140.5deg
+bld-041 TelecomTower01                 (329.7, -1447.6)  r=756  -15.3deg
+bld-043 RadioMast01                    (-1114.7, -990.5)  r=760  160.2deg
+bld-044 CityPark02                     (-1014.7, -1654.7)  r=737  -146.5deg
+bld-045 CityPark02                     (-148.0, -2064.3)  r=854  -72.8deg
+bld-048 BasketballCourt01              (-887.3, -604.5)  r=807  127.1deg
+bld-049 BasketballCourt01              (-1111.3, -1503.5)  r=756  -160.2deg
+bld-050 BasketballCourt01              (-887.3, -1891.5)  r=807  -127.1deg
+bld-051 Playground01                   (133.0, -1828.3)  r=788  -47.4deg
+bld-052 Playground01                   (245.0, -1634.3)  r=752  -30.9deg
+bld-053 Playground01                   (183.8, -1740.3)  r=764  -40.1deg
+bld-054 Playground01                   (318.2, -1507.5)  r=764  -19.9deg
+bld-055 Playground01                   (228.6, -1662.7)  r=753  -33.4deg
+bld-067 Landfill01                     (-1168.8, -875.2)  r=854  154.1deg
+bld-068 College01                      (316.3, -1719.8)  r=858  -33.4deg
+bld-069 WelfareOffice01                (260.3, -679.2)  r=871  40.7deg
+bld-070 Hospital01                     (457.9, -1426.5)  r=876  -11.8deg

@@ -1,0 +1,91 @@
+﻿live utility facilities: 9
+  kind water_tower: 3
+  kind sewage: 1
+  kind power_plant: 3
+  kind transformer: 1
+  kind telecom: 1
+
+--- facilities whose prefab matches Water ---
+{
+  "facility_id": "fd537682d55349c282f74590a72dea69:391396:55",
+  "name": null,
+  "prefab": "WaterTower01",
+  "kind": "water_tower",
+  "position": {
+    "x": -141.010574,
+    "y": 617.7594,
+    "z": -1121.442
+  },
+  "road_edge_id": "fd537682d55349c282f74590a72dea69:351096:5",
+  "water_capacity": 30000,
+  "last_water_production": 26538,
+  "water_pollution": 0,
+  "efficiency_factors": []
+}
+{
+  "facility_id": "fd537682d55349c282f74590a72dea69:391504:55",
+  "name": null,
+  "prefab": "WaterTower01",
+  "kind": "water_tower",
+  "position": {
+    "x": -196.003326,
+    "y": 617.7594,
+    "z": -1026.121
+  },
+  "road_edge_id": "fd537682d55349c282f74590a72dea69:351097:5",
+  "water_capacity": 30000,
+  "last_water_production": 18920,
+  "water_pollution": 0,
+  "efficiency_factors": []
+}
+{
+  "facility_id": "fd537682d55349c282f74590a72dea69:391421:57",
+  "name": null,
+  "prefab": "WaterTower01",
+  "kind": "water_tower",
+  "position": {
+    "x": -88.0034,
+    "y": 617.7594,
+    "z": -1213.32117
+  },
+  "road_edge_id": "fd537682d55349c282f74590a72dea69:351096:5",
+  "water_capacity": 30000,
+  "last_water_production": 17344,
+  "water_pollution": 0,
+  "efficiency_factors": []
+}
+{
+  "facility_id": "fd537682d55349c282f74590a72dea69:373655:29",
+  "name": null,
+  "prefab": "WastewaterTreatmentPlant01",
+  "kind": "sewage",
+  "position": {
+    "x": -685.600037,
+    "y": 617.7594,
+    "z": -415.75
+  },
+  "road_edge_id": "fd537682d55349c282f74590a72dea69:48952:3",
+  "water_capacity": 36644,
+  "last_water_production": 10487,
+  "water_pollution": 0,
+  "sewage_capacity": 468000,
+  "last_sewage_processed": 73289,
+  "last_sewage_purified": 36644,
+  "efficiency_factors": [
+    1.1737411
+  ]
+}
+
+--- nearest facility to each plan target ---
+
+bld-003 water tower 1 plan=(-141.010574, -1121.442)
+   nearest: fd537682d55349c282f74590a72dea69:391396:55 WaterTower01 water_tower d=0.00
+   pos=(-141.010574, -1121.442) road=fd537682d55349c282f74590a72dea69:351096:5
+
+bld-004 water tower 2 plan=(-88.0034, -1213.32117)
+   nearest: fd537682d55349c282f74590a72dea69:391421:57 WaterTower01 water_tower d=0.00
+   pos=(-88.0034, -1213.32117) road=fd537682d55349c282f74590a72dea69:351096:5
+
+bld-005 water tower 3 plan=(-196.003326, -1026.121)
+   nearest: fd537682d55349c282f74590a72dea69:391504:55 WaterTower01 water_tower d=0.00
+   pos=(-196.003326, -1026.121) road=fd537682d55349c282f74590a72dea69:351097:5

@@ -1,0 +1,57 @@
+{
+  "at": "2026-09-21T00:41:59.023Z",
+  "kept": {
+    "planId": "bld-010",
+    "label": "变电站 1",
+    "prefab": "TransformerStation01",
+    "x": -92.00002,
+    "z": -516.25,
+    "keep": true,
+    "facilityId": "fd537682d55349c282f74590a72dea69:362206:3",
+    "matchedPrefab": "TransformerStation01"
+  },
+  "demolished": [
+    {
+      "planId": "bld-011",
+      "label": "变电站 2",
+      "prefab": "TransformerStation01",
+      "entity": "fd537682d55349c282f74590a72dea69:391695:55",
+      "position": {
+        "x": -652,
+        "z": -516.25
+      },
+      "state": "completed",
+      "cost": -15000,
+      "refund": null,
+      "errors": []
+    },
+    {
+      "planId": "bld-012",
+      "label": "配电站 1",
+      "prefab": "TransformerStation02",
+      "entity": "fd537682d55349c282f74590a72dea69:391719:57",
+      "position": {
+        "x": 311.271423,
+        "z": -992.526367
+      },
+      "state": "completed",
+      "cost": -15000,
+      "refund": null,
+      "errors": []
+    },
+    {
+      "planId": "bld-013",
+      "label": "配电站 2",
+      "prefab": "TransformerStation02",
+      "entity": "fd537682d55349c282f74590a72dea69:367252:19",
+      "position": {
+        "x": 176.8715,
+        "z": -759.7265
+      },
+      "state": "completed",
+      "cost": -15000,
+      "refund": null,
+      "errors": []
+    }
+  ]
+}

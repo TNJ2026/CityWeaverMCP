@@ -1,0 +1,46 @@
+﻿roads 298 ring 49 | buildings 514
+
+=== live buildings within 140 m of the 300deg aimed spots ===
+  aim (85.9, -2022.8):
+     fd537682d55349c282f74590a72dea69:477055:11     HighSchool03                   (102.6, -2009.4) d=21.5
+     fd537682d55349c282f74590a72dea69:398499:7      HighSchool02 Classroom Extension Building (0.0, -2064.0) d=95.3
+     fd537682d55349c282f74590a72dea69:471802:91     HighSchool02 Classroom Extension Building (0.4, -2127.8) d=135.4
+  aim (94.9, -2007.2):
+     fd537682d55349c282f74590a72dea69:477055:11     HighSchool03                   (102.6, -2009.4) d=8.0
+     fd537682d55349c282f74590a72dea69:398499:7      HighSchool02 Classroom Extension Building (0.0, -2064.0) d=110.6
+     fd537682d55349c282f74590a72dea69:378823:77     OfficeLow01_L1_5x5             (11.7, -1897.1) d=138.0
+     fd537682d55349c282f74590a72dea69:363762:3      ParkMaintenanceDepot01         (71.3, -1871.2) d=138.1
+  aim (141.9, -1925.8):
+     fd537682d55349c282f74590a72dea69:363762:3      ParkMaintenanceDepot01         (71.3, -1871.2) d=89.3
+     fd537682d55349c282f74590a72dea69:477055:11     HighSchool03                   (102.6, -2009.4) d=92.3
+     fd537682d55349c282f74590a72dea69:401677:21     Playground01                   (133.0, -1828.3) d=97.9
+     fd537682d55349c282f74590a72dea69:378823:77     OfficeLow01_L1_5x5             (11.7, -1897.1) d=133.3
+
+=== 180掳 瑗胯 anchor (-1331, -1248) -> 12 candidates, 9 outside+onRing ===
+   (-1356.0, -1280.3) rot=0.0 r=956.5 coll=false side=left  fd537682d55349c282f74590a72dea69:356591:115
+   (-1356.0, -1215.8) rot=-180.0 r=956.5 coll=false side=right fd537682d55349c282f74590a72dea69:356591:115
+   (-1331.0, -1280.3) rot=0.0 r=931.6 coll=false side=left  fd537682d55349c282f74590a72dea69:356591:115
+   (-1331.0, -1215.8) rot=-180.0 r=931.6 coll=false side=right fd537682d55349c282f74590a72dea69:356591:115
+   (-1304.9, -1199.0) rot=120.0 r=906.3 coll=false side=right fd537682d55349c282f74590a72dea69:48971:3
+   (-1295.9, -1312.6) rot=60.0 r=898.3 coll=false side=right fd537682d55349c282f74590a72dea69:48957:3
+   (-1258.1, -1249.2) rot=-120.0 r=858.1 coll=false side=left  fd537682d55349c282f74590a72dea69:48957:3
+   (-1249.1, -1231.2) rot=-60.0 r=849.2 coll=false side=left  fd537682d55349c282f74590a72dea69:48971:3
+
+=== 300掳 涓滃崡瑙?anchor (65.5, -2054.3) -> 12 candidates, 7 outside+onRing ===
+   (28.0, -1991.8) rot=180.0 r=858.1 coll=false side=left  fd537682d55349c282f74590a72dea69:359095:1
+   (30.1, -1990.6) rot=120.0 r=858.1 coll=false side=left  fd537682d55349c282f74590a72dea69:359087:1
+   (10.0, -1991.8) rot=180.0 r=849.3 coll=false side=left  fd537682d55349c282f74590a72dea69:359095:1
+   (39.1, -1975.0) rot=120.0 r=849.3 coll=false side=left  fd537682d55349c282f74590a72dea69:359087:1
+   (-8.0, -1991.8) rot=180.0 r=840.7 coll=false side=left  fd537682d55349c282f74590a72dea69:359095:1
+   (57.1, -1943.8) rot=120.0 r=832.5 coll=false side=left  fd537682d55349c282f74590a72dea69:359087:1
+   (66.1, -1928.2) rot=120.0 r=824.6 coll=false side=left  fd537682d55349c282f74590a72dea69:359087:1
+
+=== 60掳 涓滃寳瑙?anchor (65.5, -441.7) -> 12 candidates, 9 outside+onRing ===
+   (28.0, -439.8) rot=-180.0 r=914.6 coll=false side=right fd537682d55349c282f74590a72dea69:48949:3
+   (85.9, -473.2) rot=-120.0 r=914.6 coll=false side=right fd537682d55349c282f74590a72dea69:48963:3
+   (94.9, -488.8) rot=-120.0 r=906.3 coll=false side=right fd537682d55349c282f74590a72dea69:48963:3
+   (-8.0, -439.8) rot=-180.0 r=898.3 coll=false side=right fd537682d55349c282f74590a72dea69:48949:3
+   (112.9, -520.0) rot=-120.0 r=890.6 coll=false side=right fd537682d55349c282f74590a72dea69:48963:3
+   (30.1, -505.4) rot=60.0 r=858.1 coll=false side=left  fd537682d55349c282f74590a72dea69:48963:3
+   (-8.0, -504.3) rot=0.0 r=840.7 coll=false side=left  fd537682d55349c282f74590a72dea69:48949:3
+   (48.1, -536.6) rot=60.0 r=840.7 coll=false side=left  fd537682d55349c282f74590a72dea69:48963:3

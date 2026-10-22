@@ -1,0 +1,75 @@
+﻿plan keys:
+  roads : array(80)
+  buildings : array(66)
+  zones : array(54)
+  grids : array(0)
+  utilities : array(0)
+  tracks : array(0)
+  grid_exceptions : array(9)
+
+buildings: 66
+
+--- water-ish (9) ---
+  bld-001 | GroundwaterPumpingStation01 | 鍦颁笅姘存娊姘寸珯 1 | (292.858521, -815.6268) rot=-119.99868 | road=fd537682d55349c282f74590a72dea69:48947:3
+  bld-002 | GroundwaterPumpingStation01 | 鍦颁笅姘存娊姘寸珯 2 | (320.857422, -864.124756) rot=-119.998695 | road=fd537682d55349c282f74590a72dea69:48961:3
+  bld-003 | WaterTower01 | 姘村 1 | (-141.010574, -1121.442) rot=60.01836 | road=fd537682d55349c282f74590a72dea69:351096:5
+  bld-004 | WaterTower01 | 姘村 2 | (-88.0034, -1213.32117) rot=60.01836 | road=fd537682d55349c282f74590a72dea69:351096:5
+  bld-005 | WaterTower01 | 姘村 3 | (-196.003326, -1026.121) rot=60.01836 | road=fd537682d55349c282f74590a72dea69:351097:5
+  bld-006 | SewageOutlet01 | 姹℃按鎺掑彛 | (637.9, -873.9) rot=-94.24222 | road=-
+  bld-014 | WastewaterTreatmentPlant01 | 姹℃按澶勭悊鍘?| (-685.600037, -415.75) rot=-180 | road=fd537682d55349c282f74590a72dea69:48952:3
+  bld-041 | TelecomTower01 | 閫氫俊濉?1 | (329.678528, -1447.589) rot=119.99865 | road=fd537682d55349c282f74590a72dea69:359098:1
+  bld-042 | TelecomTower01 | 閫氫俊濉?2 | (-683.600769, -1188.115) rot=-60.01836 | road=fd537682d55349c282f74590a72dea69:355359:7
+
+--- sample building ---
+{
+  "id": "bld-001",
+  "label": "鍦颁笅姘存娊姘寸珯 1",
+  "name": "鍦颁笅姘存娊姘寸珯",
+  "prefab": "GroundwaterPumpingStation01",
+  "kind": "service",
+  "category": "utility_facility",
+  "position": {
+    "x": 292.858521,
+    "y": 617.7594,
+    "z": -815.6268
+  },
+  "rotation_degrees": -119.99868,
+  "rotation_source": "road_tangent",
+  "placement_status": "native_preview_verified",
+  "construction_status": "planned",
+  "construction_order": 101,
+  "depends_on": [
+    "hex-ring"
+  ],
+  "max_cost": 48000,
+  "size_m": {
+    "x": 47.6,
+    "z": 47.6
+  },
+  "reserved_size_m": {
+    "x": 48,
+    "z": 48
+  },
+  "industrial": false,
+  "planning_status": "bound",
+  "road_side": "right",
+  "road_edge_id": "fd537682d55349c282f74590a72dea69:48947:3",
+  "placement_binding": {
+    "session_id": "fd537682d55349c282f74590a72dea69",
+    "building_plan_id": "bplan-d0dd6db5f7a202df",
+    "operation_id": "cee9f111806f45bf936521cc6ff4aa1f",
+    "preview_state": "preview_ready",
+    "preview_cancelled": true,
+    "candidate_index": 14,
+    "road_prefab": "Large Road"
+  },
+  "native_preview": {
+    "operation_id": "cee9f111806f45bf936521cc6ff4aa1f",
+    "state": "verified_then_cancelled",
+    "cost": 40000,
+    "warnings": [],
+    "errors": [],
+    "error": null,
+    "expires_at_utc": "2026-09-21T00:12:39.8943325Z"
+  }
+}

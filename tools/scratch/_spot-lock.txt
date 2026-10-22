@@ -1,0 +1,42 @@
+﻿
+A 180掳 aimed (-1313.9, -1281.4) r_aim=914.5 -> 8 candidates
+   closest: (-1313.9, -1281.4) rot=60.0 offset=0.1 m  r=914.5  coll=false  fd537682d55349c282f74590a72dea69:48957:3 [Large Road]
+     (-1258.1, -1249.2) rot=-120.0 r=858.1 outside=true coll=false side=left
+     (-1313.9, -1281.4) rot=60.0 r=914.5 outside=true coll=false side=right
+     (-1316.0, -1215.8) rot=-180.0 r=916.6 outside=true coll=false side=right
+     (-1304.9, -1297.0) rot=60.0 r=906.3 outside=true coll=false side=right
+
+A 180掳 alt aimed (-1304.9, -1199) r_aim=906.2 -> 8 candidates
+   closest: (-1304.9, -1199.0) rot=120.0 offset=0.0 m  r=906.3  coll=false  fd537682d55349c282f74590a72dea69:48971:3 [Large Road]
+     (-1249.1, -1231.2) rot=-60.0 r=849.2 outside=true coll=false side=left
+     (-1304.9, -1199.0) rot=120.0 r=906.3 outside=true coll=false side=right
+     (-1313.9, -1214.6) rot=120.0 r=914.5 outside=true coll=false side=right
+     (-1240.1, -1215.6) rot=-60.0 r=840.7 outside=true coll=false side=left
+
+B 300掳 aimed (85.9, -2022.8) r_aim=914.6 -> 6 candidates
+   closest: (85.9, -2022.8) rot=-60.0 offset=0.0 m  r=914.6  coll=true  fd537682d55349c282f74590a72dea69:359087:1 [Large Road]
+     (30.1, -1990.6) rot=120.0 r=858.1 outside=true coll=false side=left
+     (39.1, -1975.0) rot=120.0 r=849.3 outside=true coll=false side=left
+     (48.1, -1959.4) rot=120.0 r=840.7 outside=true coll=false side=left
+     (85.9, -2022.8) rot=-60.0 r=914.6 outside=true coll=true side=right
+
+B 300掳 alt aimed (94.9, -2007.2) r_aim=906.3 -> 8 candidates
+   closest: (94.9, -2007.2) rot=-60.0 offset=0.0 m  r=906.3  coll=true  fd537682d55349c282f74590a72dea69:359087:1 [Large Road]
+     (39.1, -1975.0) rot=120.0 r=849.3 outside=true coll=false side=left
+     (30.1, -1990.6) rot=120.0 r=858.1 outside=true coll=false side=left
+     (57.1, -1943.8) rot=120.0 r=832.5 outside=true coll=false side=left
+     (39.1, -1975.0) rot=120.0 r=849.3 outside=true coll=false side=left
+
+C 60掳 aimed (103.9, -504.4) r_aim=898.3 -> 8 candidates
+   closest: (103.9, -504.4) rot=-120.0 offset=0.0 m  r=898.3  coll=false  fd537682d55349c282f74590a72dea69:48963:3 [Large Road]
+     (48.1, -536.6) rot=60.0 r=840.7 outside=true coll=false side=left
+     (103.9, -504.4) rot=-120.0 r=898.3 outside=true coll=false side=right
+     (57.1, -552.2) rot=60.0 r=832.5 outside=true coll=false side=left
+     (112.9, -520.0) rot=-120.0 r=890.6 outside=true coll=false side=right
+
+C 60掳 alt aimed (10, -439.8) r_aim=906.2 -> 8 candidates
+   closest: (10.0, -439.8) rot=-180.0 offset=0.0 m  r=906.3  coll=false  fd537682d55349c282f74590a72dea69:48949:3 [Large Road]
+     (10.0, -504.3) rot=0.0 r=849.3 outside=true coll=false side=left
+     (10.0, -439.8) rot=-180.0 r=906.3 outside=true coll=false side=right
+     (-8.0, -504.3) rot=0.0 r=840.7 outside=true coll=false side=left
+     (-8.0, -439.8) rot=-180.0 r=898.3 outside=true coll=false side=right

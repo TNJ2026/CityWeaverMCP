@@ -1,0 +1,1333 @@
+﻿component types: 1236
+  Game.Buildings.SewageOutlet  kind=component  fields=0
+  Game.Buildings.WastewaterTreatmentPlant  kind=component  fields=0
+  Game.Buildings.WaterConsumer  kind=component  fields=0
+  Game.Buildings.WaterPowered  kind=component  fields=0
+  Game.Buildings.WaterPumpingStation  kind=component  fields=0
+  Game.Buildings.WaterTower  kind=component  fields=0
+  Game.Events.WaterLevelChange  kind=component  fields=0
+  Game.Net.WaterPipeConnection  kind=component  fields=0
+  Game.Net.Waterway  kind=component  fields=0
+  Game.Objects.WaterPipeOutsideConnection  kind=component  fields=0
+  Game.Prefabs.EditorWaterConfigurationData  kind=component  fields=0
+  Game.Prefabs.GroundWaterPoweredData  kind=component  fields=0
+  Game.Prefabs.SewageOutletData  kind=component  fields=0
+  Game.Prefabs.SoilWaterParameterData  kind=component  fields=0
+  Game.Prefabs.WastewaterTreatmentPlantData  kind=component  fields=0
+  Game.Prefabs.Water.WaterRenderSettingsData  kind=component  fields=0
+  Game.Prefabs.WaterLevelChangeData  kind=component  fields=0
+  Game.Prefabs.WaterPipeConnectionData  kind=component  fields=0
+  Game.Prefabs.WaterPipeParameterData  kind=component  fields=0
+  Game.Prefabs.WaterPoweredData  kind=component  fields=0
+  Game.Prefabs.WaterPumpingStationData  kind=component  fields=0
+  Game.Prefabs.WaterSourceColorElement  kind=buffer  fields=0
+  Game.Prefabs.WaterSourceData  kind=component  fields=0
+  Game.Prefabs.WaterTowerData  kind=component  fields=0
+  Game.Prefabs.WatercraftData  kind=component  fields=0
+  Game.Prefabs.WaterwayComposition  kind=component  fields=0
+  Game.Prefabs.WaterwayData  kind=component  fields=0
+  Game.Simulation.WaterPipeBuildingConnection  kind=component  fields=0
+  Game.Simulation.WaterPipeEdge  kind=component  fields=0
+  Game.Simulation.WaterPipeNode  kind=component  fields=0
+  Game.Simulation.WaterPipeNodeConnection  kind=component  fields=0
+  Game.Simulation.WaterPipeValveConnection  kind=component  fields=0
+  Game.Simulation.WaterSourceData  kind=component  fields=0
+  Game.Tools.WaterSourceDefinition  kind=component  fields=0
+  Game.Vehicles.Watercraft  kind=component  fields=0
+  Game.Vehicles.WatercraftCurrentLane  kind=component  fields=0
+  Game.Vehicles.WatercraftNavigation  kind=component  fields=0
+  Game.Vehicles.WatercraftNavigationLane  kind=buffer  fields=0
+
+--- schema for candidates ---
+
+== Game.Buildings.WastewaterTreatmentPlant
+{
+  "component": "Game.Buildings.WastewaterTreatmentPlant",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_LastStoredWater",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_StoredWater",
+      "type": "System.Int32",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Buildings.WaterConsumer
+{
+  "component": "Game.Buildings.WaterConsumer",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_Flags",
+      "type": "Game.Buildings.WaterConsumerFlags",
+      "visibility": "public",
+      "enum_names": [
+        "None",
+        "WaterConnected",
+        "SewageConnected"
+      ]
+    },
+    {
+      "name": "m_FreshCooldownCounter",
+      "type": "System.Byte",
+      "visibility": "public"
+    },
+    {
+      "name": "m_FulfilledFresh",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_FulfilledSewage",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Pollution",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_SewageCooldownCounter",
+      "type": "System.Byte",
+      "visibility": "public"
+    },
+    {
+      "name": "m_WantedConsumption",
+      "type": "System.Int32",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Buildings.WaterPowered
+{
+  "component": "Game.Buildings.WaterPowered",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_Estimate",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Height",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Length",
+      "type": "System.Single",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Buildings.WaterPumpingStation
+{
+  "component": "Game.Buildings.WaterPumpingStation",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_Capacity",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_LastProduction",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Pollution",
+      "type": "System.Single",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Buildings.WaterTower
+{
+  "component": "Game.Buildings.WaterTower",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_LastStoredWater",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Polluted",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_StoredWater",
+      "type": "System.Int32",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Events.WaterLevelChange
+{
+  "component": "Game.Events.WaterLevelChange",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_DangerHeight",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Direction",
+      "type": "Unity.Mathematics.float2",
+      "visibility": "public",
+      "fields": [
+        {
+          "name": "x",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "y",
+          "type": "System.Single",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "name": "m_Intensity",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_MaxIntensity",
+      "type": "System.Single",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Net.WaterPipeConnection
+{
+  "component": "Game.Net.WaterPipeConnection",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_FreshCapacity",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_SewageCapacity",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_StormCapacity",
+      "type": "System.Int32",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Net.Waterway
+{
+  "component": "Game.Net.Waterway",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Objects.WaterPipeOutsideConnection
+{
+  "component": "Game.Objects.WaterPipeOutsideConnection",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Prefabs.EditorWaterConfigurationData
+{
+  "component": "Game.Prefabs.EditorWaterConfigurationData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Prefabs.GroundWaterPoweredData
+{
+  "component": "Game.Prefabs.GroundWaterPoweredData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_MaximumGroundWater",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Production",
+      "type": "System.Int32",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Prefabs.SoilWaterParameterData
+{
+  "component": "Game.Prefabs.SoilWaterParameterData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_HeightEffect",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_MaxDiffusion",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_MaximumWaterDepth",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_MoistureUnderWater",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_OverflowRate",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_RainMultiplier",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_WaterPerUnit",
+      "type": "System.Single",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Prefabs.WastewaterTreatmentPlantData
+{
+  "component": "Game.Prefabs.WastewaterTreatmentPlantData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_Capacity",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_WaterStorage",
+      "type": "System.Int32",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Prefabs.Water.WaterRenderSettingsData
+{
+  "component": "Game.Prefabs.Water.WaterRenderSettingsData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Prefabs.WaterLevelChangeData
+{
+  "component": "Game.Prefabs.WaterLevelChangeData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_ChangeType",
+      "type": "Game.Prefabs.WaterLevelChangeType",
+      "visibility": "public",
+      "enum_names": [
+        "None",
+        "Sine",
+        "RainControlled"
+      ]
+    },
+    {
+      "name": "m_DangerFlags",
+      "type": "Game.Events.DangerFlags",
+      "visibility": "public",
+      "enum_names": [
+        "StayIndoors",
+        "Evacuate",
+        "UseTransport",
+        "WaitingCitizens"
+      ]
+    },
+    {
+      "name": "m_DangerLevel",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_EscalationDelay",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_TargetType",
+      "type": "Game.Prefabs.WaterLevelTargetType",
+      "visibility": "public",
+      "enum_names": [
+        "None",
+        "River",
+        "Sea",
+        "All"
+      ]
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Prefabs.WaterPipeConnectionData
+{
+  "component": "Game.Prefabs.WaterPipeConnectionData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_FreshCapacity",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_SewageCapacity",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_StormCapacity",
+      "type": "System.Int32",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Prefabs.WaterPipeParameterData
+{
+  "component": "Game.Prefabs.WaterPipeParameterData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_DirtyWaterNotification",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    },
+    {
+      "name": "m_DirtyWaterPumpNotification",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    },
+    {
+      "name": "m_GroundwaterPumpEffectiveAmount",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_GroundwaterPurification",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_GroundwaterReplenish",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_GroundwaterUsageMultiplier",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_MaxToleratedPollution",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_NotEnoughGroundwaterNotification",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    },
+    {
+      "name": "m_NotEnoughSewageCapacityNotification",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    },
+    {
+      "name": "m_NotEnoughSurfaceWaterNotification",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    },
+    {
+      "name": "m_NotEnoughWaterCapacityNotification",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    },
+    {
+      "name": "m_SewageNotification",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    },
+    {
+      "name": "m_SewagePipeNotConnectedNotification",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    },
+    {
+      "name": "m_StaleWaterPipePurification",
+      "type": "System.Sing
+
+== Game.Prefabs.WaterPoweredData
+{
+  "component": "Game.Prefabs.WaterPoweredData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_CapacityFactor",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_ProductionFactor",
+      "type": "System.Single",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Prefabs.WaterPumpingStationData
+{
+  "component": "Game.Prefabs.WaterPumpingStationData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_Capacity",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Purification",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Types",
+      "type": "Game.Prefabs.AllowedWaterTypes",
+      "visibility": "public",
+      "enum_names": [
+        "None",
+        "Groundwater",
+        "SurfaceWater"
+      ]
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Prefabs.WaterSourceColorElement
+{
+  "component": "Game.Prefabs.WaterSourceColorElement",
+  "kind": "buffer",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_Fill",
+      "type": "UnityEngine.Color",
+      "visibility": "public",
+      "fields": [
+        {
+          "name": "a",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "b",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "g",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "r",
+          "type": "System.Single",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "name": "m_Outline",
+      "type": "UnityEngine.Color",
+      "visibility": "public",
+      "fields": [
+        {
+          "name": "a",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "b",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "g",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "r",
+          "type": "System.Single",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "name": "m_ProjectedFill",
+      "type": "UnityEngine.Color",
+      "visibility": "public",
+      "fields": [
+        {
+          "name": "a",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "b",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "g",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "r",
+          "type": "System.Single",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "name": "m_ProjectedOutline",
+      "type": "UnityEngine.Color",
+      "visibility": "public",
+      "fields": [
+        {
+          "name": "a",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "b",
+          "type": "System.Single",
+          "visibility": 
+
+== Game.Prefabs.WaterSourceData
+{
+  "component": "Game.Prefabs.WaterSourceData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_InitialPolluted",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Radius",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_height",
+      "type": "System.Single",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Prefabs.WaterTowerData
+{
+  "component": "Game.Prefabs.WaterTowerData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Prefabs.WatercraftData
+{
+  "component": "Game.Prefabs.WatercraftData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_Acceleration",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_AngularAcceleration",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Braking",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_EnergyType",
+      "type": "Game.Vehicles.EnergyTypes",
+      "visibility": "public",
+      "enum_names": [
+        "None",
+        "Fuel",
+        "Electricity",
+        "FuelAndElectricity"
+      ]
+    },
+    {
+      "name": "m_MaxSpeed",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_SizeClass",
+      "type": "Game.Vehicles.SizeClass",
+      "visibility": "public",
+      "enum_names": [
+        "Small",
+        "Medium",
+        "Large",
+        "Undefined"
+      ]
+    },
+    {
+      "name": "m_Turning",
+      "type": "Unity.Mathematics.float2",
+      "visibility": "public",
+      "fields": [
+        {
+          "name": "x",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "y",
+          "type": "System.Single",
+          "visibility": "public"
+        }
+      ]
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Prefabs.WaterwayComposition
+{
+  "component": "Game.Prefabs.WaterwayComposition",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_SpeedLimit",
+      "type": "System.Single",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Prefabs.WaterwayData
+{
+  "component": "Game.Prefabs.WaterwayData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_SpeedLimit",
+      "type": "System.Single",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Simulation.WaterPipeBuildingConnection
+{
+  "component": "Game.Simulation.WaterPipeBuildingConnection",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_ConsumerEdge",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    },
+    {
+      "name": "m_ProducerEdge",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Simulation.WaterPipeEdge
+{
+  "component": "Game.Simulation.WaterPipeEdge",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_End",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    },
+    {
+      "name": "m_Flags",
+      "type": "Game.Simulation.WaterPipeEdgeFlags",
+      "visibility": "public",
+      "enum_names": [
+        "None",
+        "WaterShortage",
+        "SewageBackup",
+        "WaterDisconnected",
+        "SewageDisconnected"
+      ]
+    },
+    {
+      "name": "m_FreshCapacity",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_FreshFlow",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_FreshPollution",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Index",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_SewageCapacity",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_SewageFlow",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Start",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Simulation.WaterPipeNode
+{
+  "component": "Game.Simulation.WaterPipeNode",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_FreshPollution",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Index",
+      "type": "System.Int32",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Simulation.WaterPipeNodeConnection
+{
+  "component": "Game.Simulation.WaterPipeNodeConnection",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_WaterPipeNode",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Simulation.WaterPipeValveConnection
+{
+  "component": "Game.Simulation.WaterPipeValveConnection",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_ValveNode",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Simulation.WaterSourceData
+{
+  "component": "Game.Simulation.WaterSourceData",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_ConstantDepth",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Height",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Id",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Modifier",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Multiplier",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Polluted",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Radius",
+      "type": "System.Single",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Tools.WaterSourceDefinition
+{
+  "component": "Game.Tools.WaterSourceDefinition",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_ConstantDepth",
+      "type": "System.Int32",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Height",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Multiplier",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Polluted",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Position",
+      "type": "Unity.Mathematics.float3",
+      "visibility": "public",
+      "fields": [
+        {
+          "name": "x",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "y",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "z",
+          "type": "System.Single",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "name": "m_Radius",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_SourceId",
+      "type": "System.Int32",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Vehicles.Watercraft
+{
+  "component": "Game.Vehicles.Watercraft",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_Flags",
+      "type": "Game.Vehicles.WatercraftFlags",
+      "visibility": "public",
+      "enum_names": [
+        "StayOnWaterway",
+        "AnyLaneTarget",
+        "Queueing",
+        "DeckLights",
+        "LightsOff",
+        "Working"
+      ]
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Vehicles.WatercraftCurrentLane
+{
+  "component": "Game.Vehicles.WatercraftCurrentLane",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_ChangeLane",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    },
+    {
+      "name": "m_ChangeProgress",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_CurvePosition",
+      "type": "Unity.Mathematics.float3",
+      "visibility": "public",
+      "fields": [
+        {
+          "name": "x",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "y",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "z",
+          "type": "System.Single",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "name": "m_Distance",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Duration",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_Lane",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    },
+    {
+      "name": "m_LaneFlags",
+      "type": "Game.Vehicles.WatercraftLaneFlags",
+      "visibility": "public",
+      "enum_names": [
+        "EndOfPath",
+        "EndReached",
+        "UpdateOptimalLane",
+        "TransformTarget",
+        "ResetSpeed",
+        "FixedStart",
+        "Obsolete",
+        "Reserved",
+        "FixedLane",
+        "NeedSignal",
+        "IgnoreSignal",
+        "GroupTarget",
+        "Queue",
+        "IgnoreBlocker",
+        "IsBlocked",
+        "QueueReached",
+        "Connection",
+        "Area",
+        "AlignLeft",
+        "AlignRight"
+      ]
+    },
+    {
+      "name": "m_LanePosition",
+      "type": "System.Single",
+      "visibility": "public"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Vehicles.WatercraftNavigation
+{
+  "component": "Game.Vehicles.WatercraftNavigation",
+  "kind": "component",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_MaxSpeed",
+      "type": "System.Single",
+      "visibility": "public"
+    },
+    {
+      "name": "m_TargetDirection",
+      "type": "Unity.Mathematics.float3",
+      "visibility": "public",
+      "fields": [
+        {
+          "name": "x",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "y",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "z",
+          "type": "System.Single",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "name": "m_TargetPosition",
+      "type": "Unity.Mathematics.float3",
+      "visibility": "public",
+      "fields": [
+        {
+          "name": "x",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "y",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "z",
+          "type": "System.Single",
+          "visibility": "public"
+        }
+      ]
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}
+
+== Game.Vehicles.WatercraftNavigationLane
+{
+  "component": "Game.Vehicles.WatercraftNavigationLane",
+  "kind": "buffer",
+  "readable": true,
+  "enableable": false,
+  "fields": [
+    {
+      "name": "m_CurvePosition",
+      "type": "Unity.Mathematics.float2",
+      "visibility": "public",
+      "fields": [
+        {
+          "name": "x",
+          "type": "System.Single",
+          "visibility": "public"
+        },
+        {
+          "name": "y",
+          "type": "System.Single",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "name": "m_Flags",
+      "type": "Game.Vehicles.WatercraftLaneFlags",
+      "visibility": "public",
+      "enum_names": [
+        "EndOfPath",
+        "EndReached",
+        "UpdateOptimalLane",
+        "TransformTarget",
+        "ResetSpeed",
+        "FixedStart",
+        "Obsolete",
+        "Reserved",
+        "FixedLane",
+        "NeedSignal",
+        "IgnoreSignal",
+        "GroupTarget",
+        "Queue",
+        "IgnoreBlocker",
+        "IsBlocked",
+        "QueueReached",
+        "Connection",
+        "Area",
+        "AlignLeft",
+        "AlignRight"
+      ]
+    },
+    {
+      "name": "m_Lane",
+      "type": "Unity.Entities.Entity",
+      "visibility": "public",
+      "representation": "entity_id or null"
+    }
+  ],
+  "notes": "Original public and non-public instance fields. No computed properties. Entity references contain session-scoped IDs. Value units/semantics are not inferred."
+}

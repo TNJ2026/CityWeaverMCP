@@ -1,0 +1,123 @@
+﻿live road edges: 296
+
+snapshot layers:
+  session_id: string
+  captured_at_utc: string
+  bounds: object
+  roads: array(296)
+  buildings: array(473)
+  tracks: array(6)
+  utilities: array(5)
+  counts: object
+  truncated: boolean
+  max_features_per_layer: number
+  notes: string
+
+--- edges whose closest approach to centre is > 640 m (rim band) : 105 ---
+  fd537682d55349c282f74590a72dea69:359886:9  Medium Road                near=652  nearPt=(-726.0, -1812.7) bearing=-120.0deg len=132.0
+  fd537682d55349c282f74590a72dea69:361500:9  Medium Road                near=652  nearPt=(-74.0, -1812.7) bearing=-60.0deg len=132.0
+  fd537682d55349c282f74590a72dea69:369755:3  Medium Road                near=652  nearPt=(-726.0, -683.3) bearing=120.0deg len=132.0
+  fd537682d55349c282f74590a72dea69:361898:7  Medium Road                near=652  nearPt=(-74.0, -683.3) bearing=60.0deg len=132.0
+  fd537682d55349c282f74590a72dea69:363905:11  Small Road                 near=653  nearPt=(-960.0, -912.0) bearing=149.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:355576:31  Small Road                 near=653  nearPt=(-960.0, -1584.0) bearing=-149.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:359884:9  Small Road                 near=653  nearPt=(-736.0, -1808.0) bearing=-121.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:355660:29  Small Road                 near=653  nearPt=(-960.0, -912.0) bearing=149.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:367223:11  Small Road                 near=653  nearPt=(-960.0, -1584.0) bearing=-149.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:363678:7  Small Road                 near=653  nearPt=(160.0, -912.0) bearing=31.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:355662:31  Small Road                 near=653  nearPt=(160.0, -1584.0) bearing=-31.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:48907:57  Small Road                 near=653  nearPt=(160.0, -912.0) bearing=31.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:359607:13  Small Road                 near=653  nearPt=(160.0, -1584.0) bearing=-31.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:361891:7  Small Road                 near=653  nearPt=(-64.0, -688.0) bearing=59.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:369753:3  Small Road                 near=653  nearPt=(-736.0, -688.0) bearing=121.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:361495:9  Small Road                 near=653  nearPt=(-64.0, -1808.0) bearing=-59.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:352618:9  Medium Road                near=664  nearPt=(-400.0, -584.0) bearing=90.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:353677:13  Medium Road                near=666  nearPt=(-400.0, -1914.3) bearing=-90.0deg len=109.7
+  fd537682d55349c282f74590a72dea69:355579:5  Medium Road                near=672  nearPt=(272.0, -1248.0) bearing=0.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:366824:1  Small Road                 near=672  nearPt=(272.0, -1248.0) bearing=0.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:360861:5  Small Road                 near=672  nearPt=(-400.0, -576.0) bearing=90.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:352369:7  Medium Road                near=672  nearPt=(-1072.0, -1248.0) bearing=180.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:361770:3  Small Road                 near=672  nearPt=(-400.0, -576.0) bearing=90.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:75645:55  Small Road                 near=672  nearPt=(-1072.0, -1248.0) bearing=180.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:75641:63  Small Road                 near=672  nearPt=(-1072.0, -1248.0) bearing=180.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:352364:57  Small Road                 near=672  nearPt=(272.0, -1248.0) bearing=0.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:359864:5  Small Road                 near=672  nearPt=(-400.0, -1920.0) bearing=-90.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:359863:5  Small Road                 near=672  nearPt=(-400.0, -1920.0) bearing=-90.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:368814:1  Small Road                 near=681  nearPt=(272.0, -1360.0) bearing=-9.5deg len=112.0
+  fd537682d55349c282f74590a72dea69:75643:63  Small Road                 near=681  nearPt=(-1072.0, -1136.0) bearing=170.5deg len=112.0
+  fd537682d55349c282f74590a72dea69:359865:5  Small Road                 near=681  nearPt=(-288.0, -1920.0) bearing=-80.5deg len=112.0
+  fd537682d55349c282f74590a72dea69:359862:5  Small Road                 near=681  nearPt=(-512.0, -1920.0) bearing=-99.5deg len=112.0
+  fd537682d55349c282f74590a72dea69:361771:3  Small Road                 near=681  nearPt=(-288.0, -576.0) bearing=80.5deg len=112.0
+  fd537682d55349c282f74590a72dea69:72487:63  Small Road                 near=681  nearPt=(272.0, -1360.0) bearing=-9.5deg len=112.0
+  fd537682d55349c282f74590a72dea69:360860:5  Small Road                 near=681  nearPt=(-512.0, -576.0) bearing=99.5deg len=112.0
+  fd537682d55349c282f74590a72dea69:366915:3  Small Road                 near=681  nearPt=(-1072.0, -1136.0) bearing=170.5deg len=112.0
+  fd537682d55349c282f74590a72dea69:369101:1  Small Road                 near=681  nearPt=(272.0, -1136.0) bearing=9.5deg len=112.0
+  fd537682d55349c282f74590a72dea69:75644:63  Small Road                 near=681  nearPt=(-1072.0, -1360.0) bearing=-170.5deg len=112.0
+  fd537682d55349c282f74590a72dea69:355732:17  Small Road                 near=681  nearPt=(-1072.0, -1360.0) bearing=-170.5deg len=112.0
+  fd537682d55349c282f74590a72dea69:391839:53  Small Road                 near=681  nearPt=(272.0, -1136.0) bearing=9.5deg len=112.0
+  fd537682d55349c282f74590a72dea69:352412:57  Small Road                 near=708  nearPt=(272.0, -1024.0) bearing=18.4deg len=112.0
+  fd537682d55349c282f74590a72dea69:72255:65  Small Road                 near=708  nearPt=(272.0, -1472.0) bearing=-18.4deg len=112.0
+  fd537682d55349c282f74590a72dea69:75628:61  Small Road                 near=708  nearPt=(-1072.0, -1472.0) bearing=-161.6deg len=112.0
+  fd537682d55349c282f74590a72dea69:75696:53  Small Road                 near=708  nearPt=(-1072.0, -1024.0) bearing=161.6deg len=112.0
+  fd537682d55349c282f74590a72dea69:48947:3  Large Road                 near=776  nearPt=(272.0, -860.0) bearing=30.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:48961:3  Large Road                 near=776  nearPt=(272.0, -860.0) bearing=30.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:48959:3  Large Road                 near=776  nearPt=(-1072.0, -1636.0) bearing=-150.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:48973:3  Large Road                 near=776  nearPt=(-1072.0, -1636.0) bearing=-150.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:48969:3  Large Road                 near=776  nearPt=(-1072.0, -860.0) bearing=150.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:48955:3  Large Road                 near=776  nearPt=(-1072.0, -860.0) bearing=150.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:359097:1  Large Road                 near=776  nearPt=(272.0, -1636.0) bearing=-30.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:359089:1  Large Road                 near=776  nearPt=(272.0, -1636.0) bearing=-30.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:48965:3  Large Road                 near=776  nearPt=(-400.0, -472.0) bearing=90.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:48951:3  Large Road                 near=776  nearPt=(-400.0, -472.0) bearing=90.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:359093:1  Large Road                 near=776  nearPt=(-400.0, -2024.0) bearing=-90.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:359085:1  Large Road                 near=776  nearPt=(-400.0, -2024.0) bearing=-90.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:75699:57  Small Road                 near=784  nearPt=(-1184.0, -1248.0) bearing=180.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:75698:57  Small Road                 near=784  nearPt=(-1184.0, -1248.0) bearing=180.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:358507:5  Medium Road                near=784  nearPt=(384.0, -1248.0) bearing=0.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:352470:63  Small Road                 near=784  nearPt=(384.0, -1248.0) bearing=0.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:352478:65  Small Road                 near=784  nearPt=(384.0, -1248.0) bearing=0.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:352373:7  Medium Road                near=784  nearPt=(-1184.0, -1248.0) bearing=180.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:359098:1  Large Road                 near=784  nearPt=(328.0, -1539.0) bearing=-21.8deg len=112.0
+  fd537682d55349c282f74590a72dea69:48970:3  Large Road                 near=784  nearPt=(-1128.0, -957.0) bearing=158.2deg len=112.0
+  fd537682d55349c282f74590a72dea69:48958:3  Large Road                 near=784  nearPt=(-1128.0, -1539.0) bearing=-158.2deg len=112.0
+  fd537682d55349c282f74590a72dea69:48946:3  Large Road                 near=784  nearPt=(328.0, -957.0) bearing=21.8deg len=112.0
+  fd537682d55349c282f74590a72dea69:48974:3  Large Road                 near=784  nearPt=(-1016.0, -1733.0) bearing=-141.8deg len=112.0
+  fd537682d55349c282f74590a72dea69:48962:3  Large Road                 near=784  nearPt=(216.0, -763.0) bearing=38.2deg len=112.0
+  fd537682d55349c282f74590a72dea69:48954:3  Large Road                 near=784  nearPt=(-1016.0, -763.0) bearing=141.8deg len=112.0
+  fd537682d55349c282f74590a72dea69:359088:1  Large Road                 near=784  nearPt=(216.0, -1733.0) bearing=-38.2deg len=112.0
+  fd537682d55349c282f74590a72dea69:352494:9  Medium Road                near=784  nearPt=(-8.0, -1927.0) bearing=-60.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:352471:7  Medium Road                near=784  nearPt=(-792.0, -1927.0) bearing=-120.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:359925:7  Medium Road                near=784  nearPt=(-8.0, -569.0) bearing=60.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:352365:5  Medium Road                near=784  nearPt=(-792.0, -569.0) bearing=120.0deg len=112.0
+  fd537682d55349c282f74590a72dea69:48966:3  Large Road                 near=784  nearPt=(-512.0, -472.0) bearing=98.2deg len=112.0
+  fd537682d55349c282f74590a72dea69:48950:3  Large Road                 near=784  nearPt=(-288.0, -472.0) bearing=81.8deg len=112.0
+  fd537682d55349c282f74590a72dea69:359084:1  Large Road                 near=784  nearPt=(-512.0, -2024.0) bearing=-98.2deg len=112.0
+  fd537682d55349c282f74590a72dea69:359094:1  Large Road                 near=784  nearPt=(-288.0, -2024.0) bearing=-81.8deg len=112.0
+  fd537682d55349c282f74590a72dea69:48960:3  Large Road                 near=808  nearPt=(384.0, -1054.0) bearing=13.9deg len=112.0
+  fd537682d55349c282f74590a72dea69:48972:3  Large Road                 near=808  nearPt=(-1184.0, -1442.0) bearing=-166.1deg len=112.0
+  fd537682d55349c282f74590a72dea69:48956:3  Large Road                 near=808  nearPt=(-1184.0, -1054.0) bearing=166.1deg len=112.0
+  fd537682d55349c282f74590a72dea69:359090:1  Large Road                 near=808  nearPt=(384.0, -1442.0) bearing=-13.9deg len=112.0
+  fd537682d55349c282f74590a72dea69:48948:3  Large Road                 near=808  nearPt=(160.0, -666.0) bearing=46.1deg len=112.0
+  fd537682d55349c282f74590a72dea69:48968:3  Large Road                 near=808  nearPt=(-960.0, -666.0) bearing=133.9deg len=112.0
+  fd537682d55349c282f74590a72dea69:359096:1  Large Road                 near=808  nearPt=(160.0, -1830.0) bearing=-46.1deg len=112.0
+  fd537682d55349c282f74590a72dea69:359082:1  Large Road                 near=808  nearPt=(-960.0, -1830.0) bearing=-133.9deg len=112.0
+  fd537682d55349c282f74590a72dea69:48964:3  Large Road                 near=808  nearPt=(-176.0, -472.0) bearing=73.9deg len=112.0
+  fd537682d55349c282f74590a72dea69:48952:3  Large Road                 near=808  nearPt=(-624.0, -472.0) bearing=106.1deg len=112.0
+  fd537682d55349c282f74590a72dea69:359092:1  Large Road                 near=808  nearPt=(-624.0, -2024.0) bearing=-106.1deg len=112.0
+  fd537682d55349c282f74590a72dea69:359086:1  Large Road                 near=808  nearPt=(-176.0, -2024.0) bearing=-73.9deg len=112.0
+  fd537682d55349c282f74590a72dea69:359099:1  Large Road                 near=846  nearPt=(440.0, -1345.0) bearing=-6.6deg len=112.0
+  fd537682d55349c282f74590a72dea69:48971:3  Large Road                 near=846  nearPt=(-1240.0, -1151.0) bearing=173.4deg len=112.0
+  fd537682d55349c282f74590a72dea69:48957:3  Large Road                 near=846  nearPt=(-1240.0, -1345.0) bearing=-173.4deg len=112.0
+  fd537682d55349c282f74590a72dea69:48945:3  Large Road                 near=846  nearPt=(440.0, -1151.0) bearing=6.6deg len=112.0
+  fd537682d55349c282f74590a72dea69:359091:1  Large Road                 near=846  nearPt=(-904.0, -1927.0) bearing=-126.6deg len=112.0
+  fd537682d55349c282f74590a72dea69:48963:3  Large Road                 near=846  nearPt=(104.0, -569.0) bearing=53.4deg len=112.0
+  fd537682d55349c282f74590a72dea69:48953:3  Large Road                 near=846  nearPt=(-904.0, -569.0) bearing=126.6deg len=112.0
+  fd537682d55349c282f74590a72dea69:359087:1  Large Road                 near=846  nearPt=(104.0, -1927.0) bearing=-53.4deg len=112.0
+  fd537682d55349c282f74590a72dea69:48949:3  Large Road                 near=846  nearPt=(-64.0, -472.0) bearing=66.6deg len=112.0
+  fd537682d55349c282f74590a72dea69:48967:3  Large Road                 near=846  nearPt=(-736.0, -472.0) bearing=113.4deg len=112.0
+  fd537682d55349c282f74590a72dea69:359083:1  Large Road                 near=846  nearPt=(-736.0, -2024.0) bearing=-113.4deg len=112.0
+  fd537682d55349c282f74590a72dea69:359095:1  Large Road                 near=846  nearPt=(-64.0, -2024.0) bearing=-66.6deg len=112.0
+  fd537682d55349c282f74590a72dea69:352414:5  Medium Road                near=896  nearPt=(-1296.0, -1248.0) bearing=180.0deg len=136.2
+  fd537682d55349c282f74590a72dea69:352909:1  Highway Oneway - 2 lanes   near=990  nearPt=(-1384.5, -1142.7) bearing=173.9deg len=184.4
+  fd537682d55349c282f74590a72dea69:352907:1  Highway Oneway - 2 lanes   near=991  nearPt=(-1383.5, -1126.7) bearing=173.0deg len=183.9
+
+written tools/scratch/_rim-edges.json

@@ -1,0 +1,259 @@
+﻿=== get_game_status ===
+{
+  "connected": true,
+  "city_loaded": true,
+  "loading": false,
+  "game_mode": "Game",
+  "bridge_version": "1.23.1",
+  "read_only": false,
+  "paused": true,
+  "selected_speed": 0,
+  "city_name": "浣╁浠ｅ皵"
+}
+
+=== query_entities Game.Buildings.WaterConsumer ===
+data keys: [
+  'snapshot_id',
+  'membership_captured_at_utc',
+  'row_values',
+  'total',
+  'offset',
+  'next_offset',
+  'skipped_deleted',
+  'items'
+]
+[
+  {
+    "entity_id": "fd537682d55349c282f74590a72dea69:352746:3",
+    "name": "宸ヤ笟璁炬柦",
+    "prefab_name": "IndustrialManufacturing02_L1_5x6",
+    "position": {
+      "x": -820,
+      "y": 617.7103,
+      "z": -880
+    },
+    "categories": [
+      "industrial"
+    ],
+    "abandoned": false,
+    "condemned": false,
+    "destroyed": false,
+    "components": {
+      "Game.Buildings.WaterConsumer": {
+        "kind": "component",
+        "fields": {
+          "m_Flags": {
+            "name": "WaterConnected, SewageConnected",
+            "value": 3
+          },
+          "m_FreshCooldownCounter": 0,
+          "m_FulfilledFresh": 111,
+          "m_FulfilledSewage": 111,
+          "m_Pollution": 0,
+          "m_SewageCooldownCounter": 0,
+          "m_WantedConsumption": 111
+        },
+        "present": true
+      }
+    },
+    "prefab_entity_id": "fd537682d55349c282f74590a72dea69:15427:1"
+  },
+  {
+    "entity_id": "fd537682d55349c282f74590a72dea69:355482:15",
+    "name": "娆ф床楂樺瘑搴﹀晢涓?,
+    "prefab_name": "EU_CommercialHigh01_L1_3x4",
+    "position": {
+      "x": -536,
+      "y": 617.7594,
+      "z": -1156
+    },
+    "categories": [
+      "commercial"
+    ],
+    "abandoned": false,
+    "condemned": false,
+    "destroyed": false,
+    "components": {
+      "Game.Buildings.WaterConsumer": {
+        "kind": "component",
+        "fields": {
+          "m_Flags": {
+            "name": "WaterConnected, SewageConnected",
+            "value": 3
+          },
+          "m_FreshCooldownCounter": 0,
+          "m_FulfilledFresh": 1,
+          "m_FulfilledSewage": 1,
+          "m_Pollution": 0,
+          "m_SewageCooldownCounter": 0,
+          "m_WantedConsumption": 1
+        },
+        "present": true
+      }
+    },
+    "prefab_entity_id": "fd537682d55349c282f74590a72dea69:12632:1"
+  },
+  {
+    "entity_id": "fd537682d55349c282f74590a72dea69:355499:23",
+    "name": "娆ф床楂樺瘑搴﹀晢涓?,
+    "prefab_name": "EU_CommercialHigh01_L1_2x2",
+    "position": {
+      "x": 143.999985,
+      "y": 617.7594,
+      "z": -1152
+    },
+    "categories": [
+      "commercial"
+    ],
+    "abandoned": false,
+    "condemned": false,
+    "destroyed": false,
+    "components": {
+      "Game.Buildings.WaterConsumer": {
+        "kind": "component",
+        "fields": {
+          "m_Flags": {
+            "name": "WaterConnected, SewageConnected",
+            "value": 3
+          },
+          "m_FreshCooldownCounter": 0,
+          "m_FulfilledFresh": 1,
+          "m_FulfilledSewage": 1,
+          "m_Pollution": 0,
+         
+
+=== query_entities Game.Simulation.WaterPipeEdge ===
+data keys: [
+  'snapshot_id',
+  'membership_captured_at_utc',
+  'row_values',
+  'total',
+  'offset',
+  'next_offset',
+  'skipped_deleted',
+  'items'
+]
+[
+  {
+    "entity_id": "fd537682d55349c282f74590a72dea69:352824:3",
+    "name": "",
+    "components": {
+      "Game.Simulation.WaterPipeEdge": {
+        "kind": "component",
+        "fields": {
+          "m_End": "fd537682d55349c282f74590a72dea69:355045:1",
+          "m_Flags": {
+            "name": "None",
+            "value": 0
+          },
+          "m_FreshCapacity": 265,
+          "m_FreshFlow": 265,
+          "m_FreshPollution": 0,
+          "m_Index": 731,
+          "m_SewageCapacity": 265,
+          "m_SewageFlow": 265,
+          "m_Start": "fd537682d55349c282f74590a72dea69:364425:5"
+        },
+        "present": true
+      }
+    }
+  },
+  {
+    "entity_id": "fd537682d55349c282f74590a72dea69:355105:1",
+    "name": "",
+    "components": {
+      "Game.Simulation.WaterPipeEdge": {
+        "kind": "component",
+        "fields": {
+          "m_End": "fd537682d55349c282f74590a72dea69:355050:1",
+          "m_Flags": {
+            "name": "WaterDisconnected, SewageDisconnected",
+            "value": 12
+          },
+          "m_FreshCapacity": 1073741823,
+          "m_FreshFlow": 0,
+          "m_FreshPollution": 0,
+          "m_Index": 1,
+          "m_SewageCapacity": 1073741823,
+          "m_SewageFlow": 0,
+          "m_Start": "fd537682d55349c282f74590a72dea69:355046:1"
+        },
+        "present": true
+      }
+    }
+  },
+  {
+    "entity_id": "fd537682d55349c282f74590a72dea69:355106:1",
+    "name": "",
+    "components": {
+      "Game.Simulation.WaterPipeEdge": {
+        "kind": "component",
+        "fields": {
+          "m_End": "fd537682d55349c282f74590a72dea69:355048:1",
+          "m_Flags": {
+            "name": "WaterDisconnected, SewageDisconnected",
+            "value": 12
+          },
+          "m_FreshCapacity": 1073741823,
+          "m_FreshFlow": 0,
+          "m_FreshPollution": 0,
+          "m_Index": 2,
+          "m_SewageCapacity": 1073741823,
+          "m_SewageFlow": 0,
+          "m_Start": "fd537682d55349c282f74590a72dea69:355047:1"
+        },
+        "present": true
+      }
+    }
+  }
+]
+
+=== get_entity_components on a water tower ===
+{
+  "entity_id": "fd537682d55349c282f74590a72dea69:391504:55",
+  "total_components": 3,
+  "next_component_offset": null,
+  "components": {
+    "Game.Buildings.Building": {
+      "kind": "component",
+      "fields": {
+        "m_CurvePosition": 0.4999822974205017,
+        "m_Flags": {
+          "name": "StreetLightsOff, Illuminated",
+          "value": 10
+        },
+        "m_OptionMask": 0,
+        "m_RoadEdge": "fd537682d55349c282f74590a72dea69:351097:5"
+      },
+      "present": true
+    },
+    "Game.Buildings.WaterTower": {
+      "present": false
+    },
+    "Game.Simulation.WaterPipeBuildingConnection": {
+      "kind": "component",
+      "fields": {
+        "m_ConsumerEdge": null,
+        "m_ProducerEdge": "fd537682d55349c282f74590a72dea69:392851:13"
+      },
+      "present": true
+    }
+  },
+  "notes": "Public stored fields, not computed properties. Check each component status and buffer next_offset. Original field units are not interpreted."
+}
+
+=== read_entity_field m_RoadEdge ===
+{
+  "entity_id": "fd537682d55349c282f74590a72dea69:391504:55",
+  "component": "Game.Buildings.Building",
+  "field_path": [],
+  "value": {
+    "m_CurvePosition": 0.4999822974205017,
+    "m_Flags": {
+      "name": "StreetLightsOff, Illuminated",
+      "value": 10
+    },
+    "m_OptionMask": 0,
+    "m_RoadEdge": "fd537682d55349c282f74590a72dea69:351097:5"
+  }
+}
