@@ -6,6 +6,7 @@ bin/
 obj/
 Library/
 artifacts/
+/plans/
 node_modules/
 tools/ilspy/
 .vs/
