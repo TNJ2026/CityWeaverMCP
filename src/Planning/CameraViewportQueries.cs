@@ -8,6 +8,10 @@ using Newtonsoft.Json.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using Colossal.UI;
+using Colossal.PSI.Common;
 
 namespace CityWeaver
 {
@@ -321,20 +325,38 @@ namespace CityWeaver
 
         private static byte[] CaptureCameraPng(Camera camera, bool includeUi, int width, int height)
         {
-            Texture2D screen = null; Texture2D image = null; RenderTexture target = null;
+            Texture2D screen = null; Texture2D image = null; RenderTexture target = null; RenderTexture hdr = null; Material compose = null;
             var previousActive = RenderTexture.active; var previousTarget = camera.targetTexture; var previousForce = camera.forceIntoRenderTexture;
+            var ui = UIManager.defaultUISystem;
+            var rendering = World.DefaultGameObjectInjectionWorld?.GetExistingSystemManaged<RenderingSystem>();
+            var uiEnabled = ui != null && ui.enabled;
+            var overlayHidden = rendering != null && rendering.hideOverlay;
+            var previousSrgb = GL.sRGBWrite;
             try
             {
                 target = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
                 if (includeUi)
                 {
-                    screen = ScreenCapture.CaptureScreenshotAsTexture();
+                    screen = PlatformManager.instance.TakeScreenshotAsTexture();
                     if (screen == null) throw new QueryException("SCREENSHOT_FAILED", "Unity did not return a game-window framebuffer.");
                     Graphics.Blit(screen, target);
                 }
                 else
                 {
-                    camera.forceIntoRenderTexture = true; camera.targetTexture = target; camera.Render();
+                    // Match the game's save-preview path: HDR intermediate and temporal warmup.
+                    var pipeline = QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) as HDRenderPipelineAsset;
+                    if (pipeline == null) throw new QueryException("SCREENSHOT_FAILED", "The active HDR render pipeline is unavailable.");
+                    HDRPDotsInputs.punctualLightsJobHandle.Complete();
+                    hdr = new RenderTexture(width, height, 16, (GraphicsFormat)pipeline.currentPlatformRenderPipelineSettings.colorBufferFormat);
+                    hdr.Create();
+                    if (ui != null) ui.enabled = false;
+                    if (rendering != null) rendering.hideOverlay = true;
+                    camera.forceIntoRenderTexture = true; camera.targetTexture = hdr;
+                    for (var frame = 0; frame < 8; frame++) camera.Render();
+                    var shader = Shader.Find("Hidden/ScreenCaptureCompose");
+                    if (shader == null) throw new QueryException("SCREENSHOT_FAILED", "The native screenshot composition shader is unavailable.");
+                    compose = new Material(shader); compose.DisableKeyword("STYLIZE");
+                    Graphics.Blit(hdr, target, compose, 0);
                 }
                 RenderTexture.active = target;
                 image = new Texture2D(width, height, TextureFormat.RGB24, false);
@@ -346,6 +368,11 @@ namespace CityWeaver
             finally
             {
                 camera.targetTexture = previousTarget; camera.forceIntoRenderTexture = previousForce; RenderTexture.active = previousActive;
+                GL.sRGBWrite = previousSrgb;
+                if (ui != null) ui.enabled = uiEnabled;
+                if (rendering != null) rendering.hideOverlay = overlayHidden;
+                if (compose != null) UnityEngine.Object.Destroy(compose);
+                if (hdr != null) { hdr.Release(); UnityEngine.Object.Destroy(hdr); }
                 if (target != null) RenderTexture.ReleaseTemporary(target);
                 if (screen != null) UnityEngine.Object.Destroy(screen);
                 if (image != null) UnityEngine.Object.Destroy(image);

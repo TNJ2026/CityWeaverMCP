@@ -105,7 +105,7 @@ namespace CityWeaver
             if (em.HasComponent<TrainNavigation>(e)) row["navigation_speed_mps"] = em.GetComponentData<TrainNavigation>(e).m_Speed;
             if (em.HasComponent<PersonalCar>(e)) { var p = em.GetComponentData<PersonalCar>(e); row["personal_car"] = new JObject { ["keeper_id"] = OptionalEntity(m_Session, p.m_Keeper), ["state"] = p.m_State.ToString() }; }
             if (em.HasComponent<DeliveryTruck>(e)) { var d = em.GetComponentData<DeliveryTruck>(e); row["delivery"] = new JObject { ["resource"] = d.m_Resource.ToString(), ["amount"] = d.m_Amount, ["state"] = d.m_State.ToString() }; }
-            if (em.HasBuffer<Passenger>(e)) { var b = em.GetBuffer<Passenger>(e, true); row["passenger_count"] = b.Length; if (detail) { var a = new JArray(); for (int i = 0; i < Math.Min(256, b.Length); i++) a.Add(OptionalEntity(m_Session, b[i].m_Passenger)); row["passenger_ids"] = a; row["passengers_truncated"] = b.Length > a.Count; } }
+            AddPassengerManifest(row, em, e, detail);
             if (em.HasBuffer<LayoutElement>(e)) { var b = em.GetBuffer<LayoutElement>(e, true); row["layout_vehicle_count"] = b.Length; if (detail) { var a = new JArray(); for (int i = 0; i < Math.Min(64, b.Length); i++) a.Add(OptionalEntity(m_Session, b[i].m_Vehicle)); row["layout_vehicle_ids"] = a; } }
             return row;
         }

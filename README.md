@@ -2,6 +2,12 @@
 
 English | [简体中文](README.zh-CN.md)
 
+Passenger helicopter transport is maintained in the separate sibling project [Transport Fever 3 Helicopters](../TransportFever3Helicopters/README.en.md). Local bridge 1.37.4 builds and runs without that project or runtime. Its optional adapter accesses an already enabled helicopter mod and never loads it.
+
+See [current project information](docs/reference/PROJECT-INFO.md) for component versions, runtime dependencies and publishing targets. The in-game bridge and Node.js server have separate version numbers; local publishing metadata does not establish an online release.
+
+Local bridge 1.37.3 removes the bundled 12/24-lane roads, 6-lane one-way road, 8-lane highway and dedicated road stencils. Generic road editing, speed policies, model import/replacement, color, animation and persistence APIs remain. Replace these custom roads with native roads using the previous version before upgrading an existing save; this update does not migrate saves.
+
 CityWeaver is a Cities: Skylines II code mod and local MCP bridge for inspecting, planning, and building in a live city. The game mod runs inside the game; a separate Node.js STDIO MCP server connects your agent to it. The mod does not call a model API on its own.
 
 The optional [cities-skylines2 skill](skills/cities-skylines2/SKILL.md) provides tool routing and operating safeguards for Agent clients that support compatible skills. Its [English planning and construction guide](skills/cities-skylines2/references/planning-construction.en.md) covers the core write-safety workflow. Install and invoke the skill according to your client's instructions (`$cities-skylines2` is one invocation example); it does not replace the mod or MCP server. See the [documentation index](docs/README.md) and [MCP guide](mcp/README.md) for the complete workflows. The available tool list comes from the connected server's runtime `tools/list`, not a fixed list in this README.
@@ -121,7 +127,7 @@ Save your city and exit the game before deploying a local build. Do not enable t
 .\build.ps1 -Stage
 ```
 
-The normal build runs the official Mod Post Processor and deploys to `%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Mods\CityWeaver`. The official deployment replaces that mod directory, so keep your source checkout elsewhere. The game may lock the DLL while running; save and exit before deploying.
+The normal build runs the official Mod Post Processor and deploys to `%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Mods\CityWeaverMCP`. Staged output is `artifacts/staged/CityWeaverMCP`. MCP owns its generic persistence types; see [project information](docs/reference/PROJECT-INFO.md) for legacy save migration conditions. The official deployment replaces the target mod directory, so keep your source checkout elsewhere. Save and exit before deploying.
 
 After building, launch or restart the game and check that CityWeaver appears in the settings menu. Load a city and use the read-only connection prompt above. For automated MCP tests, run `npm --prefix .\mcp ci` first, then `npm --prefix .\mcp test`; for live checks, see [MCP testing and diagnostics](mcp/README.md). Current coverage and known in-game validation gaps are recorded in [validation notes](docs/validation/VALIDATION.md).
 

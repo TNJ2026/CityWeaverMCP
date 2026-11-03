@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -59,6 +60,8 @@ namespace CityWeaver
                 File.WriteAllText(m_EndpointPath, new JObject {
                     ["protocol_version"] = 1, ["host"] = "127.0.0.1",
                     ["port"] = ((IPEndPoint)m_Listener.LocalEndpoint).Port,
+                    ["max_request_bytes"] = BridgeLimits.MaxRequestBytes,
+                    ["max_response_bytes"] = BridgeLimits.MaxResponseBytes,
                     ["token"] = m_Token, ["process_id"] = System.Diagnostics.Process.GetCurrentProcess().Id
                 }.ToString(Formatting.None), new UTF8Encoding(false));
                 m_UpdaterId = MainThreadDispatcher.RegisterUpdater(Pump);
@@ -101,7 +104,7 @@ namespace CityWeaver
                     using (lifetime.Token.Register(() => client.Close()))
                     using (var stream = client.GetStream())
                     {
-                        var buffer = new byte[8192];
+                        var buffer = new byte[BridgeLimits.MaxRequestBytes];
                         var count = 0;
                         var end = -1;
                         while (end < 0 && count < buffer.Length)
@@ -134,7 +137,7 @@ namespace CityWeaver
                         }
                         catch (JsonException) { response = Error("INVALID_REQUEST", "Invalid JSON request."); }
                         var payload = Encoding.UTF8.GetBytes(response.ToString(Formatting.None) + "\n");
-                        if (payload.Length > 1500000) payload = Encoding.UTF8.GetBytes(Error("RESPONSE_TOO_LARGE", "Request fewer entities/components or a smaller buffer_limit.").ToString(Formatting.None) + "\n");
+                        if (payload.Length > BridgeLimits.MaxResponseBytes) payload = Encoding.UTF8.GetBytes(Error("RESPONSE_TOO_LARGE", "Response exceeds 8 MiB. Request fewer entities/components or a smaller buffer_limit.").ToString(Formatting.None) + "\n");
                         await stream.WriteAsync(payload, 0, payload.Length, lifetime.Token).ConfigureAwait(false);
                     }
                 }
@@ -155,6 +158,27 @@ namespace CityWeaver
             for (var i = 0; i < 2 && m_Queue.TryDequeue(out var pending); i++)
             {
                 if (pending.Result.Task.IsCompleted || DateTime.UtcNow > pending.Deadline) continue;
+                if ((string)pending.Request["tool"] == "capture_game_view")
+                {
+                    // Unity's back buffer is only valid after the frame has rendered.
+                    Game.SceneFlow.GameManager.instance.StartCoroutine(CaptureAfterFrame(pending));
+                    continue;
+                }
+                Complete(pending);
+            }
+            return false;
+        }
+
+        private IEnumerator CaptureAfterFrame(Pending pending)
+        {
+            yield return new UnityEngine.WaitForEndOfFrame();
+            // A minimized/stalled window can outlive the connection's timeout.
+            if (!m_Stop.IsCancellationRequested && !pending.Result.Task.IsCompleted && DateTime.UtcNow <= pending.Deadline)
+                Complete(pending);
+        }
+
+        private void Complete(Pending pending)
+        {
                 try { pending.Result.TrySetResult(m_Queries.Execute(pending.Request)); }
                 catch (QueryException ex) { pending.Result.TrySetResult(Error(ex.Code, ex.Message)); }
                 catch (Exception ex)
@@ -162,8 +186,6 @@ namespace CityWeaver
                     Mod.log.Error(ex, "Game query failed");
                     pending.Result.TrySetResult(Error("QUERY_FAILED", "Game query failed; consult the mod log."));
                 }
-            }
-            return false;
         }
 
         internal static JObject Error(string code, string message) => new JObject {

@@ -1,14 +1,14 @@
 # Paradox Mods 发布 CityWeaver
 
-CityWeaver 是游戏内代码模组，`mcp/` 中的 Node.js MCP 服务是独立组件，目前按 **Windows** 平台提供支持。Paradox Mods 的代码模组包只包含游戏端构建产物；发布游戏模组不会自动分发 MCP 服务。发布页的 GitHub 链接应指向可获取兼容 MCP 服务的项目，并在说明中明确还需 Node.js 20+ 和支持 STDIO MCP 的 Agent。仅订阅模组无法使用城市查询或施工工具。
+CityWeaver 是游戏内代码模组，`mcp/` 中的 Node.js MCP 服务是独立组件，目前按 **Windows** 平台提供支持。Paradox Mods 的代码模组包只包含游戏端构建产物；发布游戏模组不会自动分发 MCP 服务。发布页的 GitHub 链接应指向可获取兼容 MCP 服务的项目，并在说明中明确还需 Node.js 20+ 和支持 STDIO MCP 的 Agent。仅订阅模组无法使用城市查询或施工工具。自1.37.4起，MCP自身包含通用持久化类型，不应混入独立直升机的CityWeaver.dll。组件与旧存档迁移条件见[当前项目信息](../reference/PROJECT-INFO.md)，资料校验不代替订阅载入验收。
 
 ## 首次发布前
 
 1. 确认游戏版本、已验证功能和已知限制；不要把编译或接口测试等同于全部实机验收。
-2. 检查 `CityWeaver.csproj`、`src/Core/GameQueryService.cs` 的 `bridge_version` 和 `Properties/PublishConfiguration.xml` 的 `ModVersion` 一致。`mcp/package.json` 是独立服务版本，不要求与模组版本相同。
+2. 检查 `CityWeaver.csproj` 的Version、AssemblyVersion前三段和 `Properties/PublishConfiguration.xml` 的ModVersion一致。`bridge_version`直接读取Mod程序集版本，不再维护另一份常量。`mcp/package.json`是独立服务版本，STDIO握手从该文件读取，不要求与游戏桥接版本相同。
 3. 检查发布页名称、Windows 支持范围、独立 MCP 服务要求、GitHub 链接、兼容游戏版本、缩略图、更新日志和公开级别。首次发布时 `ModId` 留空；之后更新必须填写平台返回的真实 ID。当前 `GameVersion=1.6.2*` 基于本机 1.6.2f1 记录，上传前仍须核对待发布游戏版本。
 4. 保存并退出游戏后运行 `./build.ps1 -Configuration Release -Stage`，再运行 `./tools/check-publish.ps1 -RequireStagedBuild`。此命令只验证和暂存，不上传。
-5. 确认暂存目录只包含预期的游戏端 DLL/Burst 文件，不包含桥接令牌、日志、存档、规划图和开发脚本。
+5. 当前桥接暂存目录是 `artifacts/staged/CityWeaverMCP`，入口为 `CityWeaverMCP.dll`，不是独立直升机的 `CityWeaver.dll`。确认待发布包只包含MCP自身的游戏端DLL/Burst文件，程序集引用中不存在CityWeaver或PassengerHelicopters；不得包含桥接令牌、日志、存档、规划图和开发脚本。
 6. 在 Visual Studio 或 Rider 中选 `PublishNewMod` 发布配置，登录自己的 Paradox 账户，并在确认公开内容后执行发布。上传成功后回读页面、下载包和模组 ID，在另一套安装环境验证订阅安装。
 
 官方说明：代码模组通过 IDE 的 Publish 功能上传到 Paradox Mods；缩略图现为必需。参见 [代码模组开发日志](https://www.paradoxinteractive.com/games/cities-skylines-ii/modding/dev-diary-3-code-modding)和[春季清理补丁说明](https://www.paradoxinteractive.com/games/cities-skylines-ii/news/patch-notes-spring-cleaning)。

@@ -87,6 +87,19 @@ namespace CityWeaver
         public float3 Start, End;
         public Bezier4x3 Curve;
         public string CurveMode = "straight";
+        public float3 CopySourceOrigin, CopyTargetOrigin;
+        public float CopyRotationDegrees, CopyHeightOffset;
+        public int CopySourceNodeCount;
+        public bool CopyNodeCourses;
+        public bool CopyMirrored;
+        public float3 CopyMirrorStart, CopyMirrorEnd;
+        public bool? CopyVerified;
+        public string CopyValidationFailure;
+        public JObject CopyValidationDiagnostics = new JObject();
+        public float CopyConnectionTolerance;
+        public List<RoadCopyTarget> CopyConnectionTargets = new List<RoadCopyTarget>();
+        public Dictionary<Entity, RoadCopyBinding> CopyBindings = new Dictionary<Entity, RoadCopyBinding>();
+        public List<RoadSegmentPlan> CopyReusedSegments = new List<RoadSegmentPlan>();
         public float3? Control1, Control2;
         public long Cost, MaxCost;
         public bool CommitRequested, CancelRequested, ApplyDispatched;
@@ -181,6 +194,24 @@ namespace CityWeaver
             ["start_elevation_m"] = StartElevation, ["end_elevation_m"] = EndElevation,
             ["elevation_mode"] = ElevationMode(StartElevation, EndElevation),
             ["curve_mode"] = CurveMode, ["control_1"] = Control1.HasValue ? Point(Control1.Value) : null,
+            ["copy_source_origin"] = CurveMode == "network_copy" ? Point(CopySourceOrigin) : null,
+            ["copy_target_origin"] = CurveMode == "network_copy" ? Point(CopyTargetOrigin) : null,
+            ["copy_rotation_degrees"] = CurveMode == "network_copy" ? new JValue(CopyRotationDegrees) : null,
+            ["copy_mirror_axis"] = CopyMirrored ? new JObject { ["start"] = Point(CopyMirrorStart), ["end"] = Point(CopyMirrorEnd) } : null,
+            ["copy_height_offset_m"] = CurveMode == "network_copy" ? new JValue(CopyHeightOffset) : null,
+            ["copy_source_node_count"] = CurveMode == "network_copy" ? new JValue(CopySourceNodeCount) : null,
+            ["copy_verified"] = CopyVerified,
+            ["copy_validation_failure"] = CopyValidationFailure,
+            ["copy_validation_diagnostics"] = CopyValidationDiagnostics.DeepClone(),
+            ["copy_geometry_mode"] = CurveMode == "network_copy" ? (CopyNodeCourses ? "native_node_courses" : CopyConnectionTargets.Count>0 ? "native_junctions" : "rigid") : null,
+            ["copy_source_segment_count"] = CurveMode == "network_copy" ? new JValue(Segments.Count+CopyReusedSegments.Count) : null,
+            ["copy_connection_edge_ids"] = new JArray(CopyConnectionTargets.Select(t => EntityId(t.Edge))),
+            ["copy_connection_tolerance_m"] = CopyConnectionTargets.Count > 0 ? new JValue(CopyConnectionTolerance) : null,
+            ["copy_connections"] = new JArray(CopyBindings.Select(b => new JObject {
+                ["source_node_id"] = EntityId(b.Key), ["target_id"] = EntityId(b.Value.Target),
+                ["target_edge_id"] = EntityId(b.Value.Edge), ["split_position"] = b.Value.Split,
+                ["position"] = Point(b.Value.Position), ["adjustment_m"] = b.Value.Adjustment })),
+            ["copy_reused_segments"] = new JArray(CopyReusedSegments.Select((s,i) => s.Json(this,i))),
             ["control_2"] = Control2.HasValue ? Point(Control2.Value) : null,
             ["length_m"] = Segments.Count == 0 ? MathUtils.Length(Curve) : Segments.Sum(segment => MathUtils.Length(segment.Curve)),
             ["segment_count"] = Segments.Count == 0 ? 1 : Segments.Count,
@@ -228,6 +259,8 @@ namespace CityWeaver
     {
         public Entity TargetEdge, OriginalPrefab, Prefab, SourceEdge;
         public Entity TargetNode;
+        public Entity CopySourceStart, CopySourceEnd;
+        public float CopyStartTrimLimit, CopyEndTrimLimit;
         public string OriginalPrefabName, PrefabName, Role, GridSide;
         public CompositionFlags UpgradeFlags;
         public bool HasUpgradeFlags;
@@ -247,6 +280,11 @@ namespace CityWeaver
             ["role"] = Role, ["grid_side"] = GridSide,
             ["target_edge_id"] = operation.EntityId(TargetEdge), ["original_road_prefab"] = OriginalPrefabName,
             ["source_edge_id"] = operation.EntityId(SourceEdge),
+            ["copy_source_start_node_id"] = operation.EntityId(CopySourceStart),
+            ["copy_source_end_node_id"] = operation.EntityId(CopySourceEnd),
+            ["curve"] = operation.CurveMode == "network_copy" ? new JObject {
+                ["a"] = RoadOperation.Point(Curve.a), ["b"] = RoadOperation.Point(Curve.b),
+                ["c"] = RoadOperation.Point(Curve.c), ["d"] = RoadOperation.Point(Curve.d) } : null,
             ["target_node_id"] = operation.EntityId(TargetNode),
             ["zoning_left_enabled"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_Left & CompositionFlags.Side.ZonesDisabled) == 0) : null,
             ["zoning_right_enabled"] = HasUpgradeFlags ? new JValue((UpgradeFlags.m_Right & CompositionFlags.Side.ZonesDisabled) == 0) : null,
@@ -436,7 +474,7 @@ namespace CityWeaver
                 var backward = (road.m_Flags & Game.Prefabs.RoadFlags.DefaultIsBackward) != 0;
                 var row = new JObject { ["name"] = prefab.name, ["prefab_entity_id"] = EntityId(e), ["width_m"] = g.m_DefaultWidth,
                     ["elevation_range_m"] = new JObject { ["min"] = elevationRange.min, ["max"] = elevationRange.max },
-                    ["speed_limit"] = road.m_SpeedLimit, ["one_way"] = forward != backward,
+                    ["speed_limit"] = RoadSpeedUnits.FromLane(road.m_SpeedLimit), ["one_way"] = forward != backward,
                     ["default_direction"] = forward != backward ? (forward ? "forward" : "backward") : "both",
                     ["zoning_enabled"] = (road.m_Flags & Game.Prefabs.RoadFlags.EnableZoning) != 0,
                     ["uses_highway_rules"] = (road.m_Flags & Game.Prefabs.RoadFlags.UseHighwayRules) != 0,
@@ -2471,7 +2509,8 @@ namespace CityWeaver
             if (world.GetExistingSystemManaged<SimulationSystem>().selectedSpeed != 0) throw new QueryException("CITY_MUST_BE_PAUSED", "Pause the city before changing a road.");
             if (tool.Busy || !(tools.activeTool is DefaultToolSystem)) throw new QueryException("TOOL_BUSY", "Finish the current tool operation and select the default selection tool first.");
             var edgeIds = batch ? args["edge_ids"] as JArray : new JArray(args["edge_id"]?.DeepClone());
-            if (edgeIds == null || edgeIds.Count < 1 || edgeIds.Count > 64) throw new QueryException("INVALID_ARGUMENT", "edge_ids must contain 1..64 road edge IDs.");
+            var maxBatchEdges = kind == "demolish" ? 400 : 64;
+            if (edgeIds == null || edgeIds.Count < 1 || edgeIds.Count > maxBatchEdges) throw new QueryException("INVALID_ARGUMENT", "edge_ids must contain 1.." + maxBatchEdges + " road edge IDs.");
             var targets = new List<Entity>(); var unique = new HashSet<Entity>();
             foreach (var token in edgeIds)
             {
@@ -2487,7 +2526,7 @@ namespace CityWeaver
             {
                 foreach (var e in RoadPrefabs(em)) if (prefabs.TryGetPrefab<PrefabBase>(e, out var p) && p is RoadPrefab && p.name == targetName) { targetPrefab = e; break; }
                 if (targetPrefab == Entity.Null) throw new QueryException("UNKNOWN_ROAD_PREFAB", "Use an exact name from list_road_prefabs.");
-                if (RoadOperation.IsLocked(em, targetPrefab)) throw new QueryException("ROAD_LOCKED", "This road is not unlocked.");
+                if (!IsEditorReady() && RoadOperation.IsLocked(em, targetPrefab)) throw new QueryException("ROAD_LOCKED", "This road is not unlocked.");
             }
             var operation = new RoadOperation { Session = m_Session, RequestId = key, Fingerprint = fingerprint, OperationType = batch ? "batch_" + kind : kind,
                 TargetEdge = targets[0], Prefab = targetPrefab, PrefabName = targetName, CurveMode = "existing" };

@@ -27,6 +27,8 @@ Paradox Mods 包只安装游戏内模组；`mcp/` 中的 STDIO 服务须从仓�
 
 ## 组件与边界
 
+游戏内桥接、Node.js服务与独立直升机模组分别维护，版本与兼容条件见[项目信息](reference/PROJECT-INFO.md)。自桥接1.37.4起，通用持久化类型由MCP自身提供，无直升机程序集强依赖；可选适配仅访问已经启用的独立模组。
+
 | 层 | 主要入口 | 职责 | 不负责 |
 | --- | --- | --- | --- |
 | 游戏内模组 | [`src/Core/Mod.cs`](../src/Core/Mod.cs)、[`src/Core/LocalQueryBridge.cs`](../src/Core/LocalQueryBridge.cs) | 随游戏加载，注册更新系统，监听本机动态端口，将请求交给游戏主线程 | MCP 握手、Agent 推理、跨机器服务 |

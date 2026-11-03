@@ -16,7 +16,7 @@ class Program {
   static void Main() {
     foreach(var tool in new[]{"preview_terrain","apply_terrain","create_water_source","place_landscape_objects","preview_map_resources","capture_game_view","get_editor_state","get_editor_configuration","preview_editor_configuration","apply_editor_configuration","list_editor_environment_presets","preview_editor_environment"})
       if(!EditorAccessPolicy.Allows(tool)) throw new Exception("Required editor domain unavailable");
-    foreach(var tool in new[]{"set_city_money","unlock_all_map_tiles","preview_road_upgrade","preview_road_grid","preview_road_elevation","preview_road_policies","set_resource_amount","save_game","unknown",null})
+    foreach(var tool in new[]{"set_city_money","unlock_all_map_tiles","preview_road_grid","preview_road_elevation","set_resource_amount","save_game","unknown",null})
       if(EditorAccessPolicy.Allows(tool)) throw new Exception("City-only or unknown mutation escaped editor gate");
     foreach(var resource in new[]{"fish","forest","coal","Ore",null})
       if(EditorAccessPolicy.IsResource(resource)) throw new Exception("Unsupported resource layer accepted");
@@ -26,12 +26,12 @@ class Program {
     foreach(var kind in new[]{"road","transport_track","utility_network","pier_pathway",null,"Waterway"})
       if(EditorAccessPolicy.EditorWaterway(true,kind)) throw new Exception("Unrelated editor network escaped city gates");
     if(EditorAccessPolicy.EditorWaterway(false,"waterway")) throw new Exception("City waterway bypassed economy/progression");
-    foreach(var tool in new[]{"list_road_prefabs","find_roads_by_name","inspect_road_lanes","preview_road","preview_road_route","preview_road_ring","get_road_operation","build_road","cancel_road_preview"})
+    foreach(var tool in new[]{"list_road_prefabs","find_roads_by_name","inspect_road_lanes","preview_road","preview_road_route","preview_road_ring","preview_road_upgrade","preview_road_batch_upgrade","preview_road_demolition","preview_road_batch_demolition","preview_road_policies","preview_intersection_control","preview_intersection_rules","inspect_intersection_controls","get_road_operation","build_road","cancel_road_preview"})
       if(!EditorAccessPolicy.Allows(tool)) throw new Exception("Editor road lifecycle incomplete");
     foreach(bool editor in new[]{false,true})
-    foreach(var kind in new string[]{null,"waterway","road","transport_track","utility_network","pier_pathway","direct_atomic","native_asset_stamp"})
-    foreach(var op in new string[]{null,"create","upgrade","demolish","road_policies","terrain_elevation"}) {
-      bool expected=editor && (kind=="waterway" || (kind==null && op=="create"));
+    foreach(var kind in new string[]{null,"waterway","road","transport_track","utility_network","pier_pathway","direct_atomic","direct_editor_speed","native_asset_stamp"})
+    foreach(var op in new string[]{null,"create","upgrade","batch_upgrade","intersection_control","intersection_rules","demolish","batch_demolish","road_policies","terrain_elevation"}) {
+      bool expected=editor && (kind=="waterway" || (kind=="direct_editor_speed" && op=="road_policies") || (kind==null && (op=="create" || op=="upgrade" || op=="batch_upgrade" || op=="intersection_control" || op=="intersection_rules" || op=="demolish" || op=="batch_demolish")));
       if(EditorAccessPolicy.EditorNetwork(editor,kind,op)!=expected) throw new Exception("Network lifecycle escaped mode/domain boundary");
     }
     if(!EditorAccessPolicy.ContainsCell(0,0,0,0,28,28,40)) throw new Exception("Contained cell excluded");

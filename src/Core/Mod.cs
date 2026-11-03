@@ -1,4 +1,4 @@
-﻿using Colossal.Logging;
+using Colossal.Logging;
 using Game;
 using Game.Modding;
 using Game.SceneFlow;
@@ -29,9 +29,18 @@ namespace CityWeaver
 
             AssetDatabase.global.LoadSettings(nameof(CityWeaver), m_Setting, new Setting(this));
             updateSystem.UpdateAt<StarterSystem>(SystemUpdatePhase.GameSimulation);
+            // Generic speed overrides remain available for existing game roads.
+            updateSystem.UpdateAfter<SavedRoadSpeedSystem, Game.Prefabs.PrefabSystem>(SystemUpdatePhase.MainLoop);
+            updateSystem.UpdateBefore<SavedRoadSpeedPrefabReferencesSystem, Game.Serialization.PrimaryPrefabReferencesSystem>(SystemUpdatePhase.PrefabReferences);
+            updateSystem.UpdateAfter<McpVehicleRouteReferenceSystem, Game.Prefabs.PrefabSystem>(SystemUpdatePhase.MainLoop);
+            // Native SystemOrder places this upload after ObjectInterpolateSystem.
+            // Register once: UpdateSystem inserts each registration, rather than merging constraints.
+            updateSystem.UpdateBefore<McpVehicleDoorSystem, ProceduralSkeletonSystem>(SystemUpdatePhase.Rendering);
             // Relative ordering only runs when both systems use the same phase.
             updateSystem.UpdateBefore<McpCameraFocusSystem, CameraUpdateSystem>(SystemUpdatePhase.PreCulling);
             updateSystem.UpdateBefore<McpRoadToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
+            updateSystem.UpdateBefore<McpRoadCopyNodeProtectionSystem, Game.Tools.NodeReductionSystem>(SystemUpdatePhase.Modification2B);
+            updateSystem.UpdateAfter<McpRoadCopyNodeProtectionCleanupSystem, Game.Tools.NodeReductionSystem>(SystemUpdatePhase.Modification2B);
             updateSystem.UpdateAfter<McpTrafficSignalProgramSystem, Game.Simulation.TrafficLightSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateBefore<McpTerrainToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpEditorAssetToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
@@ -41,6 +50,8 @@ namespace CityWeaver
             updateSystem.UpdateBefore<McpTransportLineToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateBefore<McpWorkRouteToolSystem, Game.Tools.ToolOutputSystem>(SystemUpdatePhase.ToolUpdate);
             m_Queries = new GameQueryService();
+            updateSystem.UpdateBefore<McpVehicleModelPersistenceSystem, Game.Prefabs.PrefabSystem>(SystemUpdatePhase.MainLoop);
+            Unity.Entities.World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<McpVehicleModelPersistenceSystem>().UpdateModels=m_Queries.UpdateSavedVehicleModels;
             StartBridge();
         }
 
@@ -74,6 +85,7 @@ namespace CityWeaver
             log.Info(nameof(OnDispose));
             StopBridge();
             m_Queries?.Dispose();
+            McpVehicleDoorSystem.Targets.Clear();
             m_Queries = null;
             if (m_Setting != null)
             {

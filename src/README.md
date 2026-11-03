@@ -2,9 +2,12 @@
 
 游戏模组源码按职责分组，统一使用 `CityWeaver` 命名空间；SDK 项目会递归编译这些文件。
 
+本项目输出 `CityWeaverMCP.dll`。通用持久化类型由 `Persistence` 目录提供，不再引用直升机程序集；直升机管理仅通过可选适配访问已启用的独立模组。模型和运输模拟由同级 [TransportFever3Helicopters](../../TransportFever3Helicopters/README.md) 项目维护。构建、旧存档迁移和分发边界见[项目信息](../docs/reference/PROJECT-INFO.md)。
+
 | 目录 | 职责 |
 | --- | --- |
 | `Core` | 模组入口、设置、启动系统、本地桥接与基础查询服务 |
+| `Persistence` | MCP自有的模型、车门与限速持久化类型，以及已有旧组件的可选兼容迁移 |
 | `Inspection` | ECS 实体、组件、系统、私有字段和原生数据读取 |
 | `Buildings` | 建筑查询、放置事务与建筑附属区域 |
 | `Roads` | 道路查询、规划、建设和道路高层工具 |

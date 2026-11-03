@@ -12,9 +12,14 @@ $profilePath = Join-Path $projectRoot ('Properties\PublishProfiles\' + $profileN
 [xml]$profile = Get-Content -LiteralPath $profilePath -Raw
 
 $modVersion = ([string]$publish.Publish.ModVersion.Value).Trim()
-$projectVersion = ([string]$project.Project.PropertyGroup.Version).Trim()
-$bridgeVersionMatch = Select-String -LiteralPath (Join-Path $projectRoot 'src\Core\GameQueryService.cs') -Pattern '\["bridge_version"\] = "([^"]+)"'
-$bridgeVersion = $bridgeVersionMatch.Matches[0].Groups[1].Value
+$projectVersion = $project.SelectSingleNode('/Project/PropertyGroup/Version').InnerText.Trim()
+$assemblyVersion = [version]$project.SelectSingleNode('/Project/PropertyGroup/AssemblyVersion').InnerText.Trim()
+$assemblyName = $project.SelectSingleNode('/Project/PropertyGroup/AssemblyName').InnerText.Trim()
+$bridgeSource = Get-Content -LiteralPath (Join-Path $projectRoot 'src\Core\GameQueryService.cs') -Raw
+if (!$bridgeSource.Contains('["bridge_version"] = typeof(Mod).Assembly.GetName().Version.ToString(3)')) {
+    throw 'The bridge version no longer uses the mod assembly; review its version source before publishing.'
+}
+$bridgeVersion = $assemblyVersion.ToString(3)
 if ($modVersion -ne $projectVersion -or $modVersion -ne $bridgeVersion) {
     throw "Version mismatch: publish=$modVersion, project=$projectVersion, bridge=$bridgeVersion"
 }
@@ -44,11 +49,15 @@ if (!(Test-Path -LiteralPath $thumbnailPath -PathType Leaf) -or (Get-Item -Liter
 }
 
 if ($RequireStagedBuild) {
-    $stagedDll = Join-Path $projectRoot 'artifacts\staged\CityWeaver\CityWeaver.dll'
+    $stagedDll = Join-Path $projectRoot ('artifacts\staged\' + $assemblyName + '\' + $assemblyName + '.dll')
     if (!(Test-Path -LiteralPath $stagedDll -PathType Leaf)) {
         throw 'The staged mod DLL is missing. Run ./build.ps1 -Configuration Release -Stage first.'
     }
     $stagedVersion = (Get-Item -LiteralPath $stagedDll).VersionInfo.ProductVersion
+    $stagedAssembly = [Reflection.AssemblyName]::GetAssemblyName($stagedDll)
+    if ($stagedAssembly.Name -ne $assemblyName -or $stagedAssembly.Version.ToString(3) -ne $modVersion) {
+        throw 'The staged bridge assembly identity does not match the current project.'
+    }
     if ($stagedVersion -and $stagedVersion -ne $modVersion -and !$stagedVersion.StartsWith($modVersion + '+')) {
         throw "Staged DLL version $stagedVersion does not match publish version $modVersion. Rebuild first."
     }

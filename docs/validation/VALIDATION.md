@@ -239,3 +239,75 @@ Reports: artifacts/road-build-validation.log and artifacts/created-road-details.
 
 
 
+
+### 1.36.30 — helicopter route display scale (staged)
+
+Live MCP on 1.36.29 confirmed the owned line RouteData width/snap distance were both 40 m, segment length 640 m. Native GuideLinesSystem scales waypoint circles from width; Routes.RaycastJobs uses snap distance as the waypoint hit radius, overlapping the 29 m dual-pad spacing.
+
+The owned helicopter line now copies native Bus Line display width and segment length while retaining helicopter transport/path connections. A MainLoop migration repairs serialized owned RouteData dimensions and refreshes route/waypoint/segment geometry in place. Built-in and subscribed prefabs are excluded; no prefab reconstruction or waypoint replacement is performed.
+
+Staged official build: zero warnings/errors. Four existing regression tests passed (stop migration, line safety, heliport layout, helicopter route rules). These tests do not verify rendered hit targets. Deployment, independent UI selection of both pads, and save/reload verification are still pending.
+
+1.36.30 live verification (2026-10-27): loaded bridge version confirmed. Saved owned RouteData now width=4 m, snap distance=8 m, segment length=64 m (previously 40/40/640). At zoom 350 m, native route-tool hover identified route 1 on the first pad and Dual-pad-verification on the second; each was left-clicked separately into its edit preview and cancelled without moving a waypoint. Highlight circles are compact and do not cover the neighboring pad. Both saved routes still report two valid stops, service_ready=true and one vehicle after inspection. Evidence: artifacts/verification-1.36.30-status.json. No route edits or save performed; simulation paused for inspection. A subsequent save/reload of the repaired dimensions has not been tested.
+
+### 1.36.31 — align operational pads to ring artwork (staged)
+
+Live route 1 helicopter 311386:1 was Boarding at (792.1825,385.296,1399.951), matching stop 48969:1 within 2 mm. The operational authored target (-3,26) differed from the independently measured first ring center (-4.081496695,31.39467335); the second ring has the same offset and is 29 m away. This explains the roughly 5.5 m visual error without blaming vehicle navigation.
+
+New layouts align the legacy Z=26 operational row to the measured ring centers. Existing owned airports migrate marker transforms and network nodes/curves in place; managed/runtime prefab layouts are aligned before dual-stop deduplication. Frontage and depot at Z=4 remain fixed. Connected waypoints are refreshed; identities are retained. No live city changes were applied this turn.
+
+Official staged build: zero warnings/errors. Four regression tests passed, including independent ring-center measurements, idempotent alignment and unchanged frontage/depot coordinates. Live migration, route retention, actual landings on both centers and persistence remain pending deployment. Baseline: artifacts/before-1.36.31-helicopter-status.json.
+
+### 1.36.33 — helicopter capacity and route origin rules (staged)
+
+Passenger capacity is 60 for CityWeaver Passenger Helicopter and HelicopterPassenger01 (the two current passenger fleet models). A MainLoop pass updates their serialized PublicTransportVehicleData and managed PublicTransport components in place, including existing instances referencing those prefabs. Other helicopter services are excluded. The previously applied Mi-26 2/3-size geometry remains the replacement source.
+
+New and edited owned routes must start at an airport with TransportDepot, not a standalone helipad. Adjacent different stops with the same airport owner are rejected, including the closing leg. Repeating the exact start stop to close an inter-airport loop is allowed. Dedicated and generic MCP previews share the policy; commit snapshot validation rechecks it. Existing lines are not rewritten or stopped merely because their stored starting index predates this rule.
+
+The native route tool has a pre-Apply guard reading its snapped control points; edit/removal previews use their generated stop sequence. A private Error entity feeds the native GetAllowApply gate and a Chinese tooltip explains origin/same-airport restrictions. The native Error cleanup may remove the component, so the guard reinstates it before each relevant tool update. This integration depends on the 1.6.2f1 RouteToolSystem private field layout and still requires live verification after deployment.
+
+Five regression test files passed, including 12 new route-policy cases (first stop, same-airport leg, wraparound, closing duplicate, open preview and valid multi-airport loops), the capacity constant, existing stop migration/layout/safety, and Mi-26 rig geometry. Official staged build passed with zero warnings/errors. Pending: deploy, verify 60-capacity existing fleet, reject standalone first click and same-airport leg in UI/MCP, allow airport-to-independent-pad round trip, verify edit/remove and switching away clears the gate. Game was left running; no city edits or deployment this turn.
+
+1.36.33 live verification (2026-10-27): bridge version confirmed; both current helicopters report capacity 60, with 18 passengers observed on the owned vehicle. MCP rejected standalone-first creation/edit, same-airport pair and closing-leg violations. Valid airport-to-standalone roundtrip reached preview_ready with no warnings/errors, then was cancelled. Native UI accepted airport first node, displayed same-airport rejection on the other pad, and rejected standalone first click while remaining Default with Chinese tooltip. Uncommitted UI start cancelled; menu closing was not confirmed because user input intervened; original four routes remain service_ready with unchanged two-stop counts. Normal simulation restored. No new route committed. UI removal/edit variants and loading all 60 seats are not yet tested. Evidence: artifacts/verification-1.36.33.json.
+
+### 1.36.34 — standalone helipad frontage and rooftop landing (staged)
+
+Live 1.36.33 inspection found the standalone prefab's boarding and takeoff SubObjects had OnGround flags and parent index -1 despite authored Y=5.128026. Actual boarding stop 116850:1 was Y=385.670746, approximately the building base (385.67865), instead of the rooftop (~390.80668). Native SubObjectSystem explicitly discards authored Y for OnGround objects. Native MeshData measured a Z extent -16.736443..15.380692; after centering, the visible front was 16.058567 against a 5-cell lot front of 20, leaving a 3.941433 m gap.
+
+New station creation aligns the model front to +Z lot frontage, binds stop/takeoff markers to parent 0, and binds elevated path endpoints to parent 0 while keeping roadside pedestrian endpoints grounded. Saved copies are repaired in place using their actual runtime mesh transforms and bounds. Existing marker identities, ConnectedRoute references and network entities are retained; transforms, elevation, cached local transforms and connected waypoints are refreshed. The root building and road edge association stay in place. Existing aircraft are not teleported; next arrivals must be verified on the new landing plane.
+
+Official staged 1.36.34 build completed with zero warnings/errors. Five regression files passed, including measured frontage, idempotent offset, roof-height parent binding, invalid bounds rejection, existing airport layout/stop migration/safety/route rules. Live migration, road frontage appearance, pedestrian access, actual landing, and save/reload verification remain pending deployment. Baseline bounds: artifacts/helipad-1.36.33-bounds.json.
+
+1.36.34 live verification: both old stations remain road-connected; screenshot helipad-1.36.34-roof.png shows frontage meeting the sidewalk. Stop heights migrated to 390.806671 and 388.738342, matching root +5.128026. Existing helicopter routes remained service_ready. However a real arrival carrying 59 passengers landed at Y=383.6099 beneath the far roof, so landing verification FAILED. The actual AircraftCurrentLane 177940:1 and owner edge 220034:1 retain the old centered XZ coordinates and ground Y; native navigation correctly follows that stale edge. City paused at frame 7746559. Evidence: artifacts/verification-1.36.34.json, artifacts/helipad-1.36.34-landing-bug.png.
+
+### 1.36.35 — migrate saved centered helipad networks
+
+Root cause: newly registered aligned station prefabs can already have FrontShift=0 when old city network instances still use the former centered coordinates. The prior migration matched only current prefab positions and skipped those old edges/nodes. Migration now also derives the original centered endpoints from measured mesh extent, recognizes old and current positions, and retains the fixed roadside endpoint. Added regression cases for aligned-prefab/legacy-instance reload mapping. Official staged build zero warnings/errors; five regression files pass. Deployment, edge/lane elevation, next real landing and reload verification pending.
+
+1.36.35 live verification (2026-10-27): both existing standalone pads successfully received new arrivals after migration. Near helicopter boarded at (325.3355,390.8067,1236.68384); far helicopter carried 39 passengers, landed at (1494.16821,388.7383,2117.255), then unloaded to 6 passengers. Both are within 2 mm of their roof stop centers. Native far flight lane and pedestrian access-lane endpoint match roof Y=388.738342; screenshots confirm aircraft above the roof and entrance beside the sidewalk. All four existing routes remain service_ready. Normal simulation restored. No routes/buildings created or deleted; no save performed. Subsequent save/reload of migrated network remains untested. Evidence: artifacts/verification-1.36.35.json, artifacts/helipad-1.36.35-near-landing.png, artifacts/helipad-1.36.35-far-landing.png.
+
+### 1.36.37 双停机坪独立起降（待实机）
+
+MCP 确认第二停机坪线路的 RouteLane 绑定旧共用滑行道；实际 PathElement 从第一停机坪侧沿该道进入第二停机坪，第一停机坪本身无 ConnectedRoute。修复将共用 45 米路径拆成两条 16 米登机滑行道，各自通过起降标记接入空中航路，分别连接机库后侧。旧机场原地缩短共用边、迁移其共享节点并顺序补建分支，保留登机点实体和线路引用。只匹配完整旧长边，避免重载误移新增分支节点。
+
+正式构建零警告、零错误；5 项相关回归测试通过，包含两停机坪独立最短起降路径、机库连通、重复迁移匹配及现有机场布局/线路安全。待部署验证两个现有机场的滑行道、站点 RouteLane 重新绑定、往返飞行不经过另一停机坪、机库派车，以及保存重载。证据：artifacts/second-pad-route-diagnosis.json、artifacts/tests-1.36.37.log、artifacts/build-1.36.37.log。
+
+1.36.37 实机：两个机场均生成 5 条滑行边，第二登机点绑定独立短边；两架直升机均实际返回第二停机坪圆心，第二线路完成 60 人满载起飞。第一线路离场 PathElement 从新第二停机坪车道直接连接起降标记与航路，不经过第一停机坪车道。原有四条线路保留，正常速度已恢复。迁移时正在上下客的一架保留旧位置至本次离站，下次回场已正确。机库重新派车与迁移后保存重载尚未单独验证。证据 artifacts/live-1.36.37.json。
+
+1.36.37 完整退出游戏后载入验证通过：新进程 28732、新会话 31d981b687a442d59a1df8eb57e94c65；两个机场各 10 条内部边（步行/滑行），全部曲线控制点与迁移后保存前一致（误差阈值 1 毫米），无重复边或再次移动。第二停机坪仍绑定独立车道；当前五条线路均 service_ready（检查期间用户新增第三条直升机线路）。两种 Mi-26 的 restore-save 自动恢复操作均 completed，容量 60。未手动修改游戏状态。证据 artifacts/reload-1.36.37.json。
+
+### 1.36.38 相邻停机坪独立准入（待实机）
+
+定位：PassengerHelicopterAirportSystem 虽按登机点建队列，却把每个点周围 80 米内全部飞机作为占用者；相距约 29 米的双停机坪因此互锁。新增单一停机坪归属：原生 BoardingVehicle 优先，其次指定降落目标，离场保留来源停机坪归属直至离开保护区域，未指定目标者按最近停机坪归属。同一架飞机不会同时阻塞两个队列，也不会离场途中转占邻坪；同坪排队和巡航间距保留。
+
+正式构建零警告、零错误，4 项相关测试通过（相邻占用、同时准入、离场不转占、同坪互斥、独立通道及线路安全）。尚待两个机场双线路同时起降实机验证。
+
+1.36.38 实机通过：同一机场线路 2 在第二停机坪持续 Boarding（离站帧 8099445）期间，线路 3 返回第一停机坪并完成降落、上下客，帧 8098156/8098234 两机分别位于两圆心且均 Boarding；之后线路 3 于 8099072 已离站移动，线路 2 在 8099052 仍 Boarding。远端共用同一独立停机坪时，线路 3 保持等待，线路 2 离开后才降落，同坪保护仍有效。五条线路正常，正常速度已恢复。证据 artifacts/live-1.36.38.json、artifacts/two-pads-1.36.38.png。
+
+### 1.36.39 直升机异常行程计时（待实机）
+
+MCP 读取线路 2 机场 waypoint 的 VehicleTiming.m_AverageTravelTime=9017794，另一站约 80.34；原生使用 uint 到站帧减离站帧，未来离站时间可产生下溢并污染平均值。新增限定 CityWeaver 线路的修复系统，在 TransportAircraftAISystem 前运行：重置非有限、负数或超过 max(3600,计划全程时长*64) 的平均值为原生未观测值 0；非 Boarding 车辆携带未来离站时间时清零，保留正常候车时限；仅对本次修复的线路，将现有 Boarding 的未来期限最多缩至正常站点停留时间，并同步匹配的 waypoint 最后离站帧。保留车辆政策、站点、线路与机场排队。原生线路系统继续计算间隔，不固定写入间隔参数。
+
+正式构建零警告、零错误，4 项相关测试通过：uint 下溢复现、异常/正常样本区分、帧数回绕、只缩短不延长的停站恢复、相邻坪队列及模型持久化。待部署实测两架飞机派车、计时恢复、间隔回落和连续多圈无复发。
+
+1.36.39 实机：加载日志确认重置线路 2 的异常计时 2254494。12 次采样跨 13233 模拟帧，平均行程恢复至约 60.19/95.63 秒，间隔约 103.97～119.43，两架均载客离站，观察到 20 人载客；未复发巨大计时。正常班次均匀间距等待仍存在（一次采样剩余约 86 秒），共用远端坪仍按占用排队。五条线路正常，恢复正常速度。尚未单独验证本次计时修复后的保存重载。证据 artifacts/live-1.36.39.json。

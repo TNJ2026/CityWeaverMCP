@@ -9,10 +9,17 @@ namespace CityWeaver
         internal static readonly HashSet<string> Tools = new HashSet<string>(StringComparer.Ordinal)
         {
             "get_editor_state", "show_editor_save_panel",
+            "preview_model_color", "set_model_color", "restore_model_color", "save_model_color_preset",
+            "list_vehicle_models", "get_vehicle_model", "preview_vehicle_replacement", "apply_vehicle_replacement", "get_vehicle_replacement_operation", "restore_vehicle_replacement", "cancel_vehicle_replacement", "export_model", "get_model_export_operation", "get_asset_file_capabilities", "list_asset_materials", "preview_texture_replacement", "preview_model_import",
+            "list_imported_models", "select_imported_model", "preview_model_composition",
+            "get_asset_file_operation", "apply_asset_file_operation", "cancel_asset_file_operation", "restore_texture_replacement",
             "list_editor_assets", "get_editor_asset", "select_editor_asset", "preview_editor_asset",
             "get_editor_asset_operation", "apply_editor_asset", "cancel_editor_asset_preview",
             "list_road_prefabs", "find_roads_by_name", "inspect_road_lanes",
             "preview_road", "preview_road_route", "preview_road_ring",
+            "preview_road_upgrade", "preview_road_batch_upgrade", "preview_intersection_control", "preview_intersection_rules", "inspect_intersection_controls",
+            "preview_road_demolition", "preview_road_batch_demolition",
+            "preview_road_policies",
             "get_road_operation", "build_road", "cancel_road_preview",
             "list_waterway_prefabs", "list_waterways", "get_waterway", "preview_waterway", "preview_waterway_delete",
             "get_waterway_operation", "apply_waterway_operation", "cancel_waterway_preview",
@@ -33,7 +40,10 @@ namespace CityWeaver
         internal static bool EditorWaterway(bool editor, string transactionKind) => editor && transactionKind == "waterway";
         // Null is the ordinary native road transaction kind; do not admit other networks or direct writes.
         internal static bool EditorNetwork(bool editor, string transactionKind, string operationType) => editor &&
-            (transactionKind == "waterway" || (transactionKind == null && operationType == "create"));
+            (transactionKind == "waterway" || (transactionKind == "direct_editor_speed" && operationType == "road_policies") || (transactionKind == null &&
+                (operationType == "create" || operationType == "upgrade" || operationType == "batch_upgrade" ||
+                 operationType == "intersection_control" || operationType == "intersection_rules" ||
+                 operationType == "demolish" || operationType == "batch_demolish")));
         internal static bool DirectMutation(string tool) => tool == "create_water_source" || tool == "update_water_source" || tool == "delete_water_source" ||
             tool == "place_landscape_objects" || tool == "plant_landscape_pattern" || tool == "move_landscape_object" || tool == "set_tree_state" ||
             tool == "remove_landscape_objects" || tool == "clear_landscape_area";

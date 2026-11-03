@@ -1,7 +1,9 @@
 param(
     [ValidateSet('Debug', 'Release')]
     [string]$Configuration = 'Debug',
-    [switch]$Stage
+    [switch]$Stage,
+    [ValidateSet('CityWeaver')]
+    [string]$Target = 'CityWeaver'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,7 +29,7 @@ try {
     }
     Push-Location $PSScriptRoot
     try {
-        $buildArguments = @('build', 'CityWeaver.csproj', '-c', $Configuration, '--nologo')
+        $buildArguments = @('-c', $Configuration, '--nologo')
         # The desktop host can inherit the toolchain even when MSBuild cannot
         # read user-level environment variables. Pass these as global properties
         # so the shared Mod.props cannot overwrite them with empty values.
@@ -46,8 +48,12 @@ try {
             if (![string]::IsNullOrWhiteSpace($value)) { $buildArguments += ('-p:' + $property + '=' + $value) }
         }
         if ($Stage) { $buildArguments += ('-p:LocalModsPath=' + (Join-Path $PSScriptRoot 'artifacts\staged')) }
-        & $sdkCommand @buildArguments
-        $buildExitCode = $LASTEXITCODE
+        $projects = @('CityWeaver.csproj')
+        $buildExitCode = 0
+        foreach ($project in $projects) {
+            & $sdkCommand build $project @buildArguments
+            if ($LASTEXITCODE -ne 0) { $buildExitCode = $LASTEXITCODE; break }
+        }
     } finally {
         Pop-Location
     }

@@ -45,7 +45,8 @@
 ## 版本号口径
 
 - 各指南标题或首段的版本号是**该能力首次引入的 MCP 版本**，属历史标记，**不代表当前版本**。统一写作「自 MCP X.Y.Z 起」或「能力引入 MCP X.Y.Z」。
-- **当前 MCP 版本以 `mcp/package.json` 的 `version` 字段为唯一来源**；工具总数以运行时 `tools/list` 为准。文档不重复固化这两个数字，避免随版本推进过期。
+- 游戏内桥接模组版本以 `CityWeaver.csproj` 为准，运行时 `bridge_version` 直接读取该程序集版本；本地 Node.js MCP 服务版本以 `mcp/package.json` 为准，STDIO 握手从该文件读取。两者独立编号，不要求相同。工具总数以运行时 `tools/list` 为准。
+- 当前组件、发布条目、直升机拆分边界与构建入口见[项目信息](reference/PROJECT-INFO.md)。本地发布配置不代表对应版本已经上传。
 - `validation/VALIDATION.md` 是按版本倒序的实机验证档案，其中的版本号与工具总数是**当时的事实快照**，不回填修改。
 
 MCP 服务开发、运行和协议说明位于 [`mcp`](../mcp/README.md)；供支持技能的 Agent 使用的技能入口与按需文档路由位于 [`skills/cities-skylines2`](../skills/cities-skylines2/SKILL.md)。详细内容以本目录为单一维护来源。

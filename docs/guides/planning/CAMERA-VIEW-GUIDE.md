@@ -47,7 +47,7 @@ CityWeaverMCP 提供两个只读工具，用于把玩家当前看到的地图范
 
 - 镜头朝向天空、超出地图或近平行于地面时，部分射线可能无法命中地形；`terrain` 模式会用指定水平面回退，并在每个点的 `source` 字段中标明。
 - `visible_polygon` 不扣除被游戏 UI 遮挡的区域。
-- 无 UI 捕获会单独渲染当前活动相机，因此更适合地图分析；带 UI 捕获用于确认玩家眼前的游戏画面。
+- 无 UI 捕获会在帧末使用 HDR 中间纹理、关闭并恢复游戏 UI/叠加层，按原生存档预览方式预热 8 次相机渲染，再经原生截图合成 shader 输出，因此更适合地图分析；带 UI 捕获在帧末调用游戏平台截图入口，用于确认玩家眼前的游戏画面。
 - 这两个工具都是查询工具，不需要预览/提交事务，也不会购买土地或施工。
 
 ## 平滑聚焦与自动跟随施工
@@ -63,3 +63,7 @@ CityWeaverMCP 提供两个只读工具，用于把玩家当前看到的地图范
 `focus_camera` 返回 `scheduled=true` 只表示接受了移动请求。随后读取 `get_camera_view.focus_status`：`idle`（尚无请求）、`scheduled`、`moving`、`completed`、`cancelled_by_user` 或 `camera_unavailable`。`completed` 表示控制器插值结束，仍应结合 `center_hit` 与 `visible_bounds` 确认目标实际进入画面；原生相机的碰撞和地形约束可能调整视角。
 
 镜头动画系统必须在 `PreCulling` 阶段、原生 `CameraUpdateSystem` 之前注册。游戏的相对调度只关联同阶段系统；误用 `Rendering` 会导致请求已排队但动画系统不执行。该阶段在模拟暂停时仍运行。
+
+## 1.30.2 截图修复
+
+截图请求由桥接器延迟到 WaitForEndOfFrame 执行，避免在 Update 中读取未就绪的帧缓冲。超时或断开后的请求不继续执行。无 UI 截图使用当前 HDRP 颜色格式和原生 ScreenCaptureCompose shader，预热时序渲染，并在异常/成功路径恢复 UI、overlay、相机目标、forceIntoRenderTexture、活动 RenderTexture 和 sRGB 状态。带 UI 截图使用平台原生入口。窗口最小化或不渲染时仍可能超时；不把缺失帧或无效输出认定为成功验证。正式构建与桥接/资产等 16 项回归测试通过，截图画面须部署后实测。

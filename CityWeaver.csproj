@@ -1,12 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<AssemblyName>CityWeaver</AssemblyName>
+		<AssemblyName>CityWeaverMCP</AssemblyName>
+		<OutputPath>bin\MCP\$(Configuration)\</OutputPath>
+		<IntermediateOutputPath>obj\MCP\$(Configuration)\</IntermediateOutputPath>
 		<RootNamespace>CityWeaver</RootNamespace>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<Version>1.26.0</Version>
-		<AssemblyVersion>1.26.0.0</AssemblyVersion>
-		<FileVersion>1.26.0.0</FileVersion>
+		<Version>1.37.5</Version>
+		<AssemblyVersion>1.37.5.0</AssemblyVersion>
+		<FileVersion>1.37.5.0</FileVersion>
 		<Configurations>Debug;Release</Configurations>
 	
 		<!--The file where mod information which is required for publishing mod on PDX mods are stored-->
@@ -46,6 +48,8 @@
 		<Reference Include="Colossal.IO.AssetDatabase">
 			<Private>false</Private>
 		</Reference>
+		<Reference Include="Colossal.AssetPipeline"><Private>false</Private></Reference>
+		<Reference Include="Colossal.PSI.Common"><Private>false</Private></Reference>
 		<Reference Include="Colossal.UI">
 			<Private>false</Private>
 		</Reference>
@@ -68,6 +72,8 @@
 		<Reference Include="UnityEngine.ScreenCaptureModule">
 			<Private>false</Private>
 		</Reference>
+		<Reference Include="Unity.RenderPipelines.Core.Runtime"><Private>false</Private></Reference>
+		<Reference Include="Unity.RenderPipelines.HighDefinition.Runtime"><Private>false</Private></Reference>
 		<Reference Include="Unity.Burst">
 			<Private>false</Private>
 		</Reference>
@@ -102,10 +108,9 @@
 
 	<ItemGroup>
 		<Compile Remove="artifacts\**\*.cs" />
+        <Compile Remove="mods\**\*.cs" />
 		<None Include="$(ModPropsFile)" Link="Properties\Mod.props" />
 		<None Include="$(ModTargetsFile)" Link="Properties\Mod.targets" />
 	</ItemGroup>
 
 </Project>
-
-

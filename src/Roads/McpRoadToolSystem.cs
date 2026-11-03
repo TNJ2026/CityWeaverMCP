@@ -105,6 +105,8 @@ namespace CityWeaver
         {
             inputDeps.Complete();
             EntityManager.CompleteAllTrackedJobs();
+            // Defensive cleanup before any preview readback or permanent apply.
+            World.GetExistingSystemManaged<McpRoadCopyNodeProtectionSystem>()?.Release();
             if (m_Operation == null) { applyMode = ApplyMode.Clear; return default; }
             try { Tick(); }
             catch (Exception e)
@@ -385,6 +387,11 @@ namespace CityWeaver
                 }
                 if (IsIntersectionPrefab && !StampTopologyValid(completed))
                 { if (m_Ticks < 120) return; Fail("APPLY_OUTCOME_UNKNOWN"); return; }
+                if (IsNetworkCopy)
+                {
+                    op.CopyVerified = NetworkCopyMatches(completed);
+                    if (op.CopyVerified != true) { if (m_Ticks < 120) return; Fail("NETWORK_COPY_READBACK_FAILED"); return; }
+                }
                 if (op.ZoningAligned && op.PlannerStrategy != null)
                 {
                     if (!TryReadAppliedZoning(completed, out var orderly))
@@ -528,6 +535,7 @@ namespace CityWeaver
         }
         private bool EndpointsValid()
         {
+            if (IsNetworkCopy && !CopyTargetsUnchanged()) return false;
             var op = m_Operation;
             if (!IsDemolish && !IsZoning && !IsRoadFeatures && !IsIntersectionRules && !IsIntersectionControl && !IsIntersectionRoundabout && (!EntityManager.Exists(op.Prefab) || (!IsEditorNetwork && RoadOperation.IsLocked(EntityManager, op.Prefab)))) return false;
             if (IsIntersectionPrefab) return EntityManager.HasComponent<AssetStampData>(op.Prefab);
@@ -707,7 +715,9 @@ namespace CityWeaver
                     if (temp.m_Original != Entity.Null && EntityManager.HasComponent<Game.Buildings.Building>(temp.m_Original) &&
                         (temp.m_Flags & (TempFlags.Delete | TempFlags.Replace)) != 0 && !expectedPierOwner)
                         op.Errors.Add("WOULD_REMOVE_BUILDING");
-                    if (IsIntersectionPrefab && temp.m_Original != Entity.Null && EntityManager.HasComponent<Road>(temp.m_Original) && (temp.m_Flags & (TempFlags.Delete | TempFlags.Replace)) != 0)
+                    if ((IsIntersectionPrefab || IsNetworkCopy) && temp.m_Original != Entity.Null && EntityManager.HasComponent<Road>(temp.m_Original) &&
+                        (temp.m_Flags & (TempFlags.Delete | TempFlags.Replace)) != 0 &&
+                        !(IsNetworkCopy && op.CopyConnectionTargets.Exists(t=>t.Edge==temp.m_Original)))
                         op.Errors.Add("WOULD_REMOVE_EXISTING_ROAD");
                     if (EntityManager.HasComponent<Game.Buildings.Building>(e) && !expectedPierOwner)
                         op.Errors.Add("UNEXPECTED_BUILDING_PREVIEW");
@@ -772,6 +782,8 @@ namespace CityWeaver
                         if (EntityManager.GetComponentData<PrefabRef>(e).m_Prefab != expectedPrefab) { op.Errors.Add("UNEXPECTED_ROAD_PREVIEW"); continue; }
                         m_Candidates.Add(e); continue;
                     }
+                    if (IsNetworkCopy && op.CopyConnectionTargets.Count>0 && (temp.m_Flags & (TempFlags.Delete | TempFlags.Cancel))==0 && CopyRemnantTarget(e,out _)!=null)
+                    { m_SplitRemnants.Add(e); continue; }
                     if (op.OperationType != "create" || temp.m_Original != Entity.Null || (temp.m_Flags & (TempFlags.Delete | TempFlags.Cancel)) != 0) continue;
                     if (!ExpectedRoadPrefab(generatedPrefab))
                     {
@@ -782,6 +794,8 @@ namespace CityWeaver
                 }
             }
             m_Candidates.Sort((a, b) => a.Index.CompareTo(b.Index));
+            if (IsNetworkCopy && m_Candidates.Count > 0 && !NetworkCopyMatches(m_Candidates))
+            { op.Errors.Add("NETWORK_COPY_GEOMETRY_OR_TOPOLOGY_CHANGED"); CaptureCopyDiagnostics(); }
             m_SplitRemnants.Sort((a, b) => a.Index.CompareTo(b.Index));
             op.SplitRemnantEdges = new List<Entity>(m_SplitRemnants);
             if (IsUtilityNetwork && op.OperationType == "create")
@@ -971,6 +985,7 @@ namespace CityWeaver
                         (elevation >= 8 ? CoursePosFlags.ForceElevatedNode | CoursePosFlags.ForceElevatedEdge : 0) };
                 var definition = EntityManager.CreateEntity(); m_Definitions.Add(definition);
                 EntityManager.AddComponentData(definition, new CreationDefinition { m_Prefab = segment.Prefab != Entity.Null ? segment.Prefab : op.Prefab, m_Flags = CreationFlags.SubElevation, m_RandomSeed = 1 + ((op.Id.GetHashCode() + i) & 0x3fffffff) });
+                if (segment.HasUpgradeFlags) EntityManager.AddComponentData(definition, new Upgraded { m_Flags = segment.UpgradeFlags });
                 if (IsOwnedNetwork)
                     EntityManager.AddComponentData(definition, new OwnerDefinition {
                         m_Prefab = op.NetworkOwnerPrefab, m_Position = op.NetworkOwnerPosition, m_Rotation = op.NetworkOwnerRotation });

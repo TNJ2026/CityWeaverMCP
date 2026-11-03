@@ -1,0 +1,77 @@
+{
+  "importSettings": {
+    "#cwSafe.Texture": {
+      "@type": "Colossal.AssetPipeline.Importers.DefaultTextureImporter+ImportSettings",
+      "normalMap": false,
+      "linearTexture": false,
+      "computeMips": true,
+      "singleChannel": false,
+      "keep16Bit": false,
+      "compressBC": false,
+      "compressionEffort": 0,
+      "filterMode": "Trilinear",
+      "wrapMode": "Repeat",
+      "anisoLevel": 16,
+      "alphaIsTransparency": false,
+      "overrideCompressionFormat": "None"
+    },
+    "#cwSafeNormal.Texture": {
+      "@type": "Colossal.AssetPipeline.Importers.DefaultTextureImporter+ImportSettings",
+      "normalMap": true,
+      "linearTexture": false,
+      "computeMips": true,
+      "singleChannel": false,
+      "keep16Bit": false,
+      "compressBC": false,
+      "compressionEffort": 0,
+      "filterMode": "Trilinear",
+      "wrapMode": "Repeat",
+      "anisoLevel": 16,
+      "alphaIsTransparency": false,
+      "overrideCompressionFormat": "None"
+    },
+    "#cwLinear.Texture": {
+      "@type": "Colossal.AssetPipeline.Importers.DefaultTextureImporter+ImportSettings",
+      "normalMap": false,
+      "linearTexture": true,
+      "computeMips": true,
+      "singleChannel": false,
+      "keep16Bit": false,
+      "compressBC": false,
+      "compressionEffort": 0,
+      "filterMode": "Trilinear",
+      "wrapMode": "Repeat",
+      "anisoLevel": 16,
+      "alphaIsTransparency": false,
+      "overrideCompressionFormat": "None"
+    },
+    "#cwGlass.Surface": {
+      "@type": "Colossal.AssetPipeline.PostProcessors.SurfacePostProcessor+PostProcessSettings",
+      "materialTemplate": "DefaultGlass",
+      "needsAlpha": true,
+      "needsAlphaClip": false
+    }
+  },
+  "assetMapping": {
+    "*{Texture}": [
+      "#cwSafe.Texture"
+    ],
+    "*{_Normal}{Texture}": [
+      "#cwSafeNormal.Texture"
+    ],
+    "*_MaskMap{Texture}": [
+      "#cwLinear.Texture"
+    ],
+    "CWMilMi26tcPart04": [
+      "#cwGlass.Surface"
+    ]
+  },
+  "createProceduralAnimationForPrefab": [
+    "CWMilMi26tcPart01",
+    "CWMilMi26tcPart02",
+    "CWMilMi26tcPart03",
+    "CWMilMi26tcPart05",
+    "CWMilMi26tcPart06",
+    "CWMilMi26tcPart04"
+  ]
+}

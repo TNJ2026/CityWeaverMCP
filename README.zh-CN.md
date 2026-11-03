@@ -2,6 +2,12 @@
 
 简体中文 | [English](README.md)
 
+直升机客运由同级独立项目 [Transport Fever 3 Helicopters](../TransportFever3Helicopters/README.md)维护。自本地桥接1.37.4起，MCP无需该项目或运行库即可独立构建和运行；直升机管理接口仅在对应独立模组已启用时可用，不主动加载它。
+
+组件版本、运行库依赖和发布条目见[当前项目信息](docs/reference/PROJECT-INFO.md)。游戏内桥接与Node.js服务分别编号；本地发布配置不代表对应版本已经上传。
+
+自本地桥接1.37.3起，不再提供12/24车道道路、6车道单向道路、8车道高速及专用标线。通用道路编辑、限速、模型导入替换、配色、动画和存档恢复接口保留。使用这些自定义道路的旧存档须先在旧版中换成原生道路，再升级；本次不自动修改存档。
+
 CityWeaver 是《都市：天际线 II》的代码模组与本地 MCP 桥接项目，可查询、规划并建设实时城市。游戏模组在游戏内运行；独立的 Node.js STDIO MCP 服务负责连接 Agent。模组本身不调用大模型 API。
 
 可选的 [cities-skylines2 技能](skills/cities-skylines2/SKILL.md)可供支持兼容技能的 Agent 客户端进行工具路由并遵守操作约束；英文 Agent 可先读[英文规划与施工指南](skills/cities-skylines2/references/planning-construction.en.md)。请按所用客户端的说明安装和调用（`$cities-skylines2` 只是一种调用示例）；技能不能代替模组或 MCP 服务。完整工作流见[文档目录](docs/README.md)和 [MCP 指南](mcp/README.md)。可用工具清单以已连接服务运行时的 `tools/list` 为准，而不是 README 中的固定列表。
@@ -121,7 +127,7 @@ CityWeaver 是《都市：天际线 II》的代码模组与本地 MCP 桥接项�
 .\build.ps1 -Stage
 ```
 
-普通构建会运行官方 Mod Post Processor，并部署到 `%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Mods\CityWeaver`。官方部署会替换该模组目录，所以源码应保留在其他位置。游戏运行时可能锁定 DLL；部署前先保存并退出游戏。
+普通构建会运行官方 Mod Post Processor，并部署到 `%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Mods\CityWeaverMCP`；暂存产物位于 `artifacts/staged/CityWeaverMCP`。通用持久化类型已归MCP所有；旧存档迁移条件见[项目信息](docs/reference/PROJECT-INFO.md)。官方部署会替换目标模组目录，所以源码应保留在其他位置；部署前先保存并退出游戏。
 
 构建后启动或重启游戏，确认设置菜单出现 CityWeaver。加载城市后使用上面的只读连接提示词。运行 MCP 自动化测试前先执行 `npm --prefix .\mcp ci`，再运行 `npm --prefix .\mcp test`；实机检查见 [MCP 测试与诊断](mcp/README.md)。当前覆盖范围和已知实机验证缺口见[验证记录](docs/validation/VALIDATION.md)。
 

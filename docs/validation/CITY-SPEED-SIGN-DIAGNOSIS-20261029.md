@@ -1,0 +1,7 @@
+# Actual city displays70/25
+
+Read-only diagnosis in city奥本山, session719c9b477b5f482fab367f8254e303c5, Game1.36.81. Four sampled custom highway edges read200km/h; four custom twelve-lane edges160; all four center ring edges20. Road catalog defaults likewise200/160/20. The map-editor ring100 override has not carried into this city. Current evidence cannot distinguish map save timing from lane regeneration; do not claim a verified persistence root cause without a save/load reproduction.
+
+Selected native stencils directly inspected on a center approach: six NA LaneMarkings Speed70 objects. On a ring edge: six NA LaneMarkings Speed25 objects. CityConfigurationSystem.defaultTheme is22588, matching NA stencil ObjectRequirementElement; custom200 clones inherit requirement22587 from the EU template. Its native limit400 is correct, but it is ineligible for current NA theme; fallback stock70 is visual, not highway/arterial simulation speed. NA25 has native sign speed60 and is the low-end fallback for ring native40 (display20).
+
+No city mutations performed; simulation speed remained as found (fastest). Needed follow-up: theme-independent custom sign eligibility or correct regional custom variants, plus reproduction and persistence of map-editor ring100 in a new city. Evidence: speed-city-prefabs.json, all-roads.json, lanes.json, custom-requirements.json, native70-model.json, actual-stencils.json.

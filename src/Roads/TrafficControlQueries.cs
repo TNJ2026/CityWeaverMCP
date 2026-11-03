@@ -75,7 +75,7 @@ namespace CityWeaver
                             if (type != TrafficSignType.None && type != TrafficSignType.Count &&
                                 (data.m_TypeMask & TrafficSignData.GetTypeMask(type)) != 0) types.Add(type.ToString());
                         signs.Add(new JObject { ["object_id"] = EntityId(sign), ["owner_id"] = EntityId(owner), ["prefab"] = prefabBase?.name,
-                            ["supported_sign_types"] = types, ["speed_limit_kph"] = data.m_SpeedLimit });
+                            ["supported_sign_types"] = types, ["speed_limit_kph"] = RoadSpeedUnits.FromPrefab(data.m_SpeedLimit) });
                     }
                 }
                 row["traffic_sign_objects"] = signs;

@@ -8,6 +8,8 @@ Agent 客户端 → 本地 Node.js MCP 服务（STDIO）→ 经过令牌认证�
 
 服务版本以 [package.json](package.json) 为准；实体查询分类和工具清单以连接后的 `tools/list` 为准，不固定文档中的数量。实际可用功能还取决于游戏会话、解锁状态和模组版本。
 
+Node.js服务的STDIO握手版本与package.json一致；游戏内桥接另以CityWeaver.csproj编号。自桥接1.37.4起，通用持久化归MCP自身所有，直升机集成为可选适配，无需其运行库即可构建和运行。旧存档迁移与发布状态口径见[项目信息](../docs/reference/PROJECT-INFO.md)。
+
 ## 功能导航
 
 | 领域 | 主要能力 | 指南 |
@@ -78,6 +80,24 @@ codex mcp add cities-skylines2 -- node $mcpServer
 | preview_road_parking | edge_ids、style | 使用原生道路变体预览无停车、平行停车或斜列停车 |
 | preview_road_interchange | 两条道路、匝道预制件、距离 | 四条坡度受限曲线匝道的一次性原生预览 |
 | preview_road_undo | request_id、source_operation_id | 为支持的已完成道路事务生成精确逆操作 |
+| get_asset_file_capabilities | 无 | 本地 PNG/TGA 替换、FBX/OBJ 导入的范围与限制；[使用说明](../docs/guides/areas/ASSET-FILE-IMPORT-GUIDE.md) |
+| list_imported_models | search、offset、limit | 重新发现导入根模型、当前 ID、原生包围盒和放置状态 |
+| select_imported_model | prefab 或 prefab_id | 城市/编辑器中选中导入模型的原生放置工具，不自动施工 |
+| list_asset_materials | prefab 或 prefab_id | 查询建筑、道路及网格依赖的材质槽和精确纹理属性 |
+| preview_texture_replacement | request_id、render_prefab_id、surface_index、property、file_path、color_space | 解码检查 PNG/TGA，预览共享网格的会话级 2D 纹理替换 |
+| preview_model_import | request_id、source_directory、preset、construction_cost | 城市/编辑器 FBX/OBJ 导入预检，导入期间保持暂停 |
+| get_asset_file_operation | operation_id | 原导入/替换事务状态和真实资产结果 |
+| apply_asset_file_operation | operation_id、原 request_id、max_input_bytes | 应用一次材质覆盖或异步导入新的本地模型资产，不自动放置 |
+| cancel_asset_file_operation | operation_id | 取消尚未应用的文件预览 |
+| restore_texture_replacement | operation_id | 冲突检查后恢复原共享 Surface 引用 |
+| preview_model_color / set_model_color | request_id, configuration_path, color? | 从原始贴图按遮罩预览/动态换色，暂停时生效 |
+| restore_model_color | operation_id | 从最新调色记录恢复该槽连续调色前外观 |
+| save_model_color_preset | operation_id | 保存可重用 JSON 配色；重载后显式重新应用 |
+
+动态调色的遮罩配置、公交示例与会话限制见 [模型调色指南](../docs/guides/areas/MODEL-COLOR-GUIDE.md)。
+
+1.34.0 增加可选 OBJ 刚性蒙皮侧车文件、原生车轮滚动/转向和上下客驱动的门扇控制；`get_vehicle_animation_state(vehicle_id)` 可读取实时骨骼与上下客状态。制作约定、公交模型和验收边界见 [车辆骨骼指南](../docs/guides/areas/VEHICLE-RIG-GUIDE.md)。
+| preview_road_network_copy | edge_ids 或 bounds、source_origin、target_origin、可选 connection_edge_ids | 复制街区路网；支持显式接驳与复用既有主干道，分开回读新路和原路保留段；[使用说明](../docs/guides/roads/ROAD-NETWORK-COPY.md) |
 
 `building_type`：all、residential、commercial、industrial、office。
 
@@ -112,9 +132,9 @@ entity_id 包含城市会话与实体版本，切换/重新加载存档会失效
 
 MCP 对该文件使用 100ms 的短时缓存，以减少高频工具调用中的重复磁盘读取；缓存到期后重新读取，连接失败时立即失效并在下一次请求读取新端点，因此仍支持游戏重启后快速重连。这个文件是连接凭据，不要提交到仓库或粘贴到对话。测试时可通过环境变量 `CSII_BRIDGE_FILE` 指定其他端点文件。
 
-每条请求是一行 JSON，包含 protocol_version=1、token、tool、arguments；每连接只处理一条请求。请求限制 8 KiB，客户端响应限制 2 MiB；最多 8 个并发连接，队列限制 32 条附近（并发入队最多额外 7 条），每次主线程回调最多处理两条。查询等候 10 秒超时。网络线程不访问 ECS；暂停游戏仍可通过主线程 dispatcher 响应，加载和退出期间明确报错。
+每条请求是一行 JSON，包含 protocol_version=1、token、tool、arguments；每连接只处理一条请求。1.36.86 起，请求限制 128 KiB，模组和客户端响应限制均为 8 MiB；端点通过 `max_request_bytes`、`max_response_bytes` 公布容量，连接旧模组时仍使用旧上限。最多 8 个并发连接，队列限制 32 条附近（并发入队最多额外 7 条），每次主线程回调最多处理两条。查询等候 10 秒超时。网络线程不访问 ECS；暂停游戏仍可通过主线程 dispatcher 响应，加载和退出期间明确报错。
 
-模组端响应超过 1500000 字节会返回 RESPONSE_TOO_LARGE，需缩小 limit、components 或 buffer_limit；不会悄悄丢弃字段。
+模组端响应超过 8 MiB 会返回 RESPONSE_TOO_LARGE，需缩小复制范围、limit、components 或 buffer_limit；不会悄悄丢弃字段。街区道路复制可按区域选择最多 2048 段，或显式指定最多 1024 个道路 ID。
 
 ## 测试与诊断
 
@@ -144,3 +164,17 @@ node audit-components.mjs # 遍历目录，每种组件抽取一个现存对象�
 
 - [Codex MCP 配置示例](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
 - [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/v1.x)
+
+### 静态模型导出
+
+1.31.0 新增 `export_model` / `get_model_export_operation`：暂停城市或编辑器后，将车辆、建筑或静态物件的预制体导出为 OBJ、MTL 和可读取的 PNG 贴图。支持实体 ID 或精确预制体选择，独立输出目录不覆盖已有文件。动画、实例涂装及游戏 shader 不在导出范围内；状态变体和缺失贴图见 manifest。详见 [资产文件指南](../docs/guides/areas/ASSET-FILE-IMPORT-GUIDE.md)。
+
+### 车辆外观替换
+
+1.32.0 新增 `list_vehicle_models`、`get_vehicle_model`、`preview_vehicle_replacement`、`apply_vehicle_replacement`、`get_vehicle_replacement_operation`、`restore_vehicle_replacement`、`cancel_vehicle_replacement`。适用于原生各类车型，支持静态/带骨骼源模型、骨骼与动画映射、灯光及原车特效配置；同车型全体实例生效，本次会话可恢复。动画需要源模型具备对应数据。详见 [车辆外观替换指南](../docs/guides/areas/VEHICLE-MODEL-REPLACEMENT-GUIDE.md)。
+
+### 1.36.5 transport diagnostics
+
+`complete` retains the native route/path completion flag; it is not proof that all stops still exist. Line responses add `path_complete`, `stops_valid`, `missing_stop_count`, `service_ready`, and `service_status`. `service_ready` requires active policy, native complete path and valid stops; it does not certify schedule, road connectivity, airport efficiency or fleet availability. CityWeaver helicopter routes with persistently missing stops are automatically put out of service through the native policy after a 512-frame grace period. Repair stops and explicitly reactivate; they do not automatically resume.
+
+Vehicle `passenger_count` and `passenger_ids` now exclude pets, matching the native passenger panel. Use `pet_count` / `pet_ids` for pets and `passenger_buffer_count` for the old raw buffer-length semantics. `passengers_truncated` and `pets_truncated` independently describe the bounded ID arrays.

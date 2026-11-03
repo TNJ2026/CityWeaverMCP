@@ -24,13 +24,16 @@ namespace CityWeaver
         public Entity Entity;
         public Entity OwnerEdge;
         public string Kind;
-        public bool HasCar, HasParking, HasName;
+        public bool HasCar, HasParking, HasName, HasSpeed;
+        public McpSavedRoadSpeed SpeedKey;
+        public McpSavedRoadSpeed? BeforeSpeed, AfterSpeed;
         public NetCarLane BeforeCar, AfterCar;
         public NetParkingLane BeforeParking, AfterParking;
         public string BeforeName, AfterName;
 
         public RoadDirectChange Reverse() => new RoadDirectChange {
             Entity = Entity, OwnerEdge = OwnerEdge, Kind = Kind, HasCar = HasCar, HasParking = HasParking, HasName = HasName,
+            HasSpeed = HasSpeed, SpeedKey = SpeedKey, BeforeSpeed = AfterSpeed, AfterSpeed = BeforeSpeed,
             BeforeCar = AfterCar, AfterCar = BeforeCar, BeforeParking = AfterParking, AfterParking = BeforeParking,
             BeforeName = AfterName, AfterName = BeforeName
         };
@@ -41,6 +44,11 @@ namespace CityWeaver
             if (HasCar)
             {
                 value["before"] = CarJson(BeforeCar); value["after"] = CarJson(AfterCar);
+                if (HasSpeed)
+                {
+                    value["saved_speed_before_kph"] = BeforeSpeed.HasValue ? new JValue(RoadSpeedUnits.FromLane(BeforeSpeed.Value.Speed)) : JValue.CreateNull();
+                    value["saved_speed_after_kph"] = AfterSpeed.HasValue ? new JValue(RoadSpeedUnits.FromLane(AfterSpeed.Value.Speed)) : JValue.CreateNull();
+                }
             }
             else if (HasParking)
             {
@@ -55,8 +63,8 @@ namespace CityWeaver
         }
 
         private static JObject CarJson(NetCarLane lane) => new JObject {
-            ["speed_limit_kph"] = lane.m_SpeedLimit * 3.6f,
-            ["default_speed_limit_kph"] = lane.m_DefaultSpeedLimit * 3.6f,
+            ["speed_limit_kph"] = RoadSpeedUnits.FromLane(lane.m_SpeedLimit),
+            ["default_speed_limit_kph"] = RoadSpeedUnits.FromLane(lane.m_DefaultSpeedLimit),
             ["public_transport_only"] = (lane.m_Flags & CarLaneFlags.PublicOnly) != 0,
             ["left_turn"] = (lane.m_Flags & (CarLaneFlags.TurnLeft | CarLaneFlags.GentleTurnLeft)) != 0,
             ["right_turn"] = (lane.m_Flags & (CarLaneFlags.TurnRight | CarLaneFlags.GentleTurnRight)) != 0,
@@ -80,8 +88,7 @@ namespace CityWeaver
             else if (lower.Contains("quay") || lower.Contains("harbor")) structure = "quay";
             else if (lower.Contains("retaining")) structure = "retaining_wall";
             else if (lower.Contains("tunnel")) structure = "tunnel";
-            int laneCount = 0;
-            for (int lanes = 1; lanes <= 12; lanes++) if (lower.Contains(lanes + " lane") || lower.Contains(lanes + "-lane")) { laneCount = lanes; break; }
+            int laneCount = RoadPrefabNameRules.AdvertisedLaneCount(name);
             return new JObject { ["structure_type"] = structure, ["advertised_lane_count"] = laneCount == 0 ? JValue.CreateNull() : new JValue(laneCount),
                 ["includes_parking"] = lower.Contains("parking"), ["public_transport_road"] = lower.Contains("bus") || lower.Contains("tram"),
                 ["bridge_prefab"] = em.HasComponent<BridgeData>(prefab), ["quay_or_retaining_profile"] = structure == "quay" || structure == "retaining_wall" };
@@ -132,8 +139,10 @@ namespace CityWeaver
                         {
                             var car = em.GetComponentData<NetCarLane>(lane); carCount++;
                             if ((car.m_Flags & CarLaneFlags.PublicOnly) != 0) publicOnly++;
-                            row["type"] = "car"; row["speed_limit_kph"] = car.m_SpeedLimit * 3.6f;
-                            row["default_speed_limit_kph"] = car.m_DefaultSpeedLimit * 3.6f;
+                            row["type"] = "car"; row["speed_limit_kph"] = RoadSpeedUnits.FromLane(car.m_SpeedLimit);
+                            row["default_speed_limit_kph"] = RoadSpeedUnits.FromLane(car.m_DefaultSpeedLimit);
+                            row["saved_speed_limit_kph"] = em.HasComponent<Game.Net.Lane>(lane) && em.HasComponent<PrefabRef>(lane) && McpSavedRoadSpeed.Read(em, edge, McpSavedRoadSpeed.Key(em, edge, lane)) is McpSavedRoadSpeed savedSpeed
+                                ? new JValue(RoadSpeedUnits.FromLane(savedSpeed.Speed)) : JValue.CreateNull();
                             row["public_transport_only"] = (car.m_Flags & CarLaneFlags.PublicOnly) != 0;
                             row["left_turn"] = (car.m_Flags & (CarLaneFlags.TurnLeft | CarLaneFlags.GentleTurnLeft)) != 0;
                             row["right_turn"] = (car.m_Flags & (CarLaneFlags.TurnRight | CarLaneFlags.GentleTurnRight)) != 0;
@@ -162,6 +171,8 @@ namespace CityWeaver
                 var prefab = em.GetComponentData<PrefabRef>(edge).m_Prefab;
                 var upgrades = em.HasComponent<Upgraded>(edge) ? em.GetComponentData<Upgraded>(edge).m_Flags : default(CompositionFlags);
                 result.Add(new JObject { ["edge_id"] = EntityId(edge), ["prefab_entity_id"] = EntityId(prefab), ["car_lane_count"] = carCount,
+                    ["stored_speed_policy_count"] = em.HasBuffer<McpSavedRoadSpeed>(edge) ? em.GetBuffer<McpSavedRoadSpeed>(edge, true).Length : 0,
+                    ["matched_speed_policy_count"] = lanes.Count(row => row["saved_speed_limit_kph"]?.Type == JTokenType.Float || row["saved_speed_limit_kph"]?.Type == JTokenType.Integer),
                     ["left_bicycle_lane"] = (upgrades.m_Left & CompositionFlags.Side.SecondaryLane) != 0,
                     ["right_bicycle_lane"] = (upgrades.m_Right & CompositionFlags.Side.SecondaryLane) != 0,
                     ["left_public_transport_lane"] = (upgrades.m_Left & CompositionFlags.Side.PrimaryLane) != 0,
@@ -179,6 +190,14 @@ namespace CityWeaver
 
         private JObject PreviewRoadPolicies(JObject args, World world)
         {
+            if (IsEditorReady())
+            {
+                string[] otherFields = { "road_name", "parking_allowed", "parking_fee", "public_transport_only", "left_turn", "right_turn", "straight" };
+                if (args["speed_limit_kph"] == null || otherFields.Any(f => args[f] != null))
+                    throw new QueryException("EDITOR_SPEED_ONLY", "Map editor road policies currently support speed_limit_kph only.");
+                if (!(world.GetExistingSystemManaged<ToolSystem>().activeTool is DefaultToolSystem))
+                    throw new QueryException("TOOL_BUSY", "Return to the default selection tool before changing editor speed limits.");
+            }
             var key = RequestKey(args);
             var fingerprint = new JObject { ["operation_type"] = "road_policies", ["edge_ids"] = args["edge_ids"]?.DeepClone(), ["lane_ids"] = args["lane_ids"]?.DeepClone(),
                 ["road_name"] = args["road_name"]?.DeepClone(), ["speed_limit_kph"] = args["speed_limit_kph"]?.DeepClone(), ["parking_allowed"] = args["parking_allowed"]?.DeepClone(),
@@ -194,7 +213,7 @@ namespace CityWeaver
             var em = world.EntityManager; var edges = new List<Entity>(); var laneFilter = new HashSet<Entity>();
             if (args["lane_ids"] is JArray laneIds) foreach (var token in laneIds) laneFilter.Add(ParseEntity((string)token, em));
             if (!(args["edge_ids"] is JArray edgeIds) || edgeIds.Count < 1 || edgeIds.Count > 64) throw new QueryException("INVALID_ARGUMENT", "edge_ids must contain 1..64 road edge IDs.");
-            var operation = new RoadOperation { Session = m_Session, RequestId = key, Fingerprint = fingerprint, OperationType = "road_policies", CurveMode = "existing", TransactionKind = "direct_atomic" };
+            var operation = new RoadOperation { Session = m_Session, RequestId = key, Fingerprint = fingerprint, OperationType = "road_policies", CurveMode = "existing", TransactionKind = IsEditorReady() ? "direct_editor_speed" : "direct_atomic" };
             var nameSystem = world.GetExistingSystemManaged<NameSystem>(); var seenLanes = new HashSet<Entity>(); bool changed = false;
             foreach (var token in edgeIds)
             {
@@ -214,10 +233,21 @@ namespace CityWeaver
                     if (em.HasComponent<NetCarLane>(lane) && (speed.HasValue || args["public_transport_only"] != null || args["left_turn"] != null || args["right_turn"] != null || args["straight"] != null))
                     {
                         var before = em.GetComponentData<NetCarLane>(lane); var after = before;
-                        if (speed.HasValue) after.m_SpeedLimit = after.m_DefaultSpeedLimit = speed.Value / 3.6f;
+                        if (speed.HasValue) after.m_SpeedLimit = after.m_DefaultSpeedLimit = RoadSpeedUnits.ToLane(speed.Value);
                         void Flag(JToken value, CarLaneFlags flag) { if (value == null) return; if ((bool)value) after.m_Flags |= flag; else after.m_Flags &= ~flag; }
                         Flag(args["public_transport_only"], CarLaneFlags.PublicOnly); Flag(args["left_turn"], CarLaneFlags.TurnLeft); Flag(args["right_turn"], CarLaneFlags.TurnRight); Flag(args["straight"], CarLaneFlags.Forward);
-                        if (!before.Equals(after)) { operation.DirectChanges.Add(new RoadDirectChange { Entity = lane, OwnerEdge = edge, Kind = "car_lane", HasCar = true, BeforeCar = before, AfterCar = after }); changed = true; }
+                        if (!before.Equals(after) || speed.HasValue)
+                        {
+                            var change = new RoadDirectChange { Entity = lane, OwnerEdge = edge, Kind = "car_lane", HasCar = true, BeforeCar = before, AfterCar = after, HasSpeed = speed.HasValue };
+                            if (change.HasSpeed)
+                            {
+                                change.SpeedKey = McpSavedRoadSpeed.Key(em, edge, lane);
+                                change.BeforeSpeed = McpSavedRoadSpeed.Read(em, edge, change.SpeedKey);
+                                var saved = change.SpeedKey; saved.Speed = after.m_SpeedLimit; saved.DefaultSpeed = after.m_DefaultSpeedLimit;
+                                change.AfterSpeed = saved;
+                            }
+                            operation.DirectChanges.Add(change); changed = true;
+                        }
                     }
                 }
             }
@@ -234,6 +264,7 @@ namespace CityWeaver
             bool MatchesBefore(RoadDirectChange change)
             {
                 if (!em.Exists(change.Entity)) return false;
+                if (change.HasSpeed && !Nullable.Equals(McpSavedRoadSpeed.Read(em, change.OwnerEdge, change.SpeedKey), change.BeforeSpeed)) return false;
                 if (change.HasCar) return em.HasComponent<NetCarLane>(change.Entity) && em.GetComponentData<NetCarLane>(change.Entity).Equals(change.BeforeCar);
                 if (change.HasParking) return em.HasComponent<NetParkingLane>(change.Entity) && em.GetComponentData<NetParkingLane>(change.Entity).Equals(change.BeforeParking);
                 if (change.HasName) { names.TryGetCustomName(change.Entity, out var value); return value == change.BeforeName; }
@@ -244,18 +275,23 @@ namespace CityWeaver
             {
                 foreach (var change in operation.DirectChanges)
                 {
+                    // Include this record in rollback even if persisting its policy fails.
+                    applied.Add(change);
                     if (change.HasCar) { em.SetComponentData(change.Entity, change.AfterCar); if (!em.HasComponent<PathfindUpdated>(change.Entity)) em.AddComponent<PathfindUpdated>(change.Entity); }
                     else if (change.HasParking) { em.SetComponentData(change.Entity, change.AfterParking); if (!em.HasComponent<PathfindUpdated>(change.Entity)) em.AddComponent<PathfindUpdated>(change.Entity); }
                     else if (change.HasName) names.SetCustomName(change.Entity, change.AfterName);
-                    applied.Add(change);
+                    if (change.HasSpeed) McpSavedRoadSpeed.Write(em, change.OwnerEdge, change.SpeedKey, change.AfterSpeed);
                 }
             }
             catch
             {
                 for (int i = applied.Count - 1; i >= 0; i--) { var change = applied[i]; if (!em.Exists(change.Entity)) continue;
-                    if (change.HasCar) em.SetComponentData(change.Entity, change.BeforeCar); else if (change.HasParking) em.SetComponentData(change.Entity, change.BeforeParking); else if (change.HasName) names.SetCustomName(change.Entity, change.BeforeName); }
+                    if (change.HasCar) em.SetComponentData(change.Entity, change.BeforeCar); else if (change.HasParking) em.SetComponentData(change.Entity, change.BeforeParking); else if (change.HasName) names.SetCustomName(change.Entity, change.BeforeName);
+                    if (change.HasSpeed) McpSavedRoadSpeed.Write(em, change.OwnerEdge, change.SpeedKey, change.BeforeSpeed); }
                 throw;
             }
+            foreach (var edge in operation.DirectChanges.Where(c => c.HasCar && c.BeforeCar.m_SpeedLimit != c.AfterCar.m_SpeedLimit).Select(c => c.OwnerEdge).Distinct())
+                RoadSpeedSignRefresh.Request(em, edge);
             operation.ApplyDispatched = true; operation.CommitRequested = true; operation.CreatedEdges = operation.TargetEdges.ToList(); operation.State = "completed";
         }
 
@@ -264,6 +300,7 @@ namespace CityWeaver
             var sourceId = (string)args["source_operation_id"] ?? "";
             if (!m_RoadOperations.TryGetValue(sourceId, out var source) || source.Session != m_Session) throw new QueryException("ROAD_OPERATION_NOT_FOUND", "Unknown source operation in this city session.");
             if (source.State != "completed") throw new QueryException("UNDO_SOURCE_NOT_COMPLETED", "Only a completed operation can be undone.");
+            if (source.CopyConnectionTargets.Count>0) throw new QueryException("UNDO_NOT_AVAILABLE", "Connected road copies reuse and split existing roads. Automatic undo cannot restore the original corridor topology; inspect created_road_ids and split_remnant_road_ids before any manual removal.");
             if (source.CurveMode == "intersection_prefab") throw new QueryException("UNDO_NOT_AVAILABLE", "An intersection stamp may include decorations and terrain changes; road-only undo cannot restore the whole asset. Inspect and remove intended roads explicitly.");
             var key = RequestKey(args); var fingerprint = "undo:" + sourceId;
             if (m_RoadRequestIds.TryGetValue(key, out var oldId)) { var old = m_RoadOperations[oldId]; if (old.Fingerprint != fingerprint) throw new QueryException("IDEMPOTENCY_CONFLICT", "request_id already belongs to another operation."); return old.Json(); }
